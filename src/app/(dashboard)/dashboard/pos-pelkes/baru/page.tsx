@@ -169,7 +169,7 @@ export default function TambahPosPelkesPage() {
               className="mt-1 block w-full px-3 py-3 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm"
             >
               <option value="Pos Pelkes">Pos Pelkes (Pos Pelayanan Kesaksian)</option>
-              <option value="Bajem">Bajem (Bakalan Jemaat)</option>
+              <option value="Bajem">Bajem (Bakal Jemaat)</option>
             </select>
             {errors.kategori && <p className="mt-1 text-xs text-red-500">{errors.kategori.message}</p>}
           </div>
