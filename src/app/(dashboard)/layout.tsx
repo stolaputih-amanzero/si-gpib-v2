@@ -1,5 +1,6 @@
 import BottomNav from '@/components/layout/BottomNav';
 import Sidebar from '@/components/layout/Sidebar';
+import MobileHeaderBreadcrumb from '@/components/layout/MobileHeaderBreadcrumb';
 
 export default function DashboardLayout({
   children,
@@ -8,15 +9,18 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="flex h-screen bg-surface-base overflow-hidden">
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebar (Collapsible) */}
       <div className="hidden md:block flex-shrink-0">
         <Sidebar />
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col h-full relative overflow-hidden">
-        {/* Scrollable Content Area - Flush on Mobile so sticky page headers fit seamlessly */}
-        <main className="flex-1 overflow-y-auto pb-32 md:pb-8 px-0 md:px-8">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col h-full relative min-w-0 overflow-hidden">
+        {/* Mobile Top Breadcrumb Header */}
+        <MobileHeaderBreadcrumb />
+
+        {/* Scrollable Main Content */}
+        <main className="flex-1 overflow-y-auto pb-32 md:pb-8 px-4 sm:px-6 md:px-8 pt-4">
           <div className="max-w-6xl mx-auto min-h-full">
             {children}
           </div>
@@ -30,4 +34,3 @@ export default function DashboardLayout({
     </div>
   );
 }
-
