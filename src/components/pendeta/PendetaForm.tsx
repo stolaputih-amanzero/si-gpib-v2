@@ -6,6 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { pendetaSchema, PendetaInput } from '@/lib/validations/pendeta.schema';
 import { useCreatePendeta, useUpdatePendeta, PendetaItem } from '@/hooks/use-pendeta';
 import { Loader2, Save, AlertCircle, Phone } from 'lucide-react';
+import { JemaatCascadingSelector } from '@/components/hierarki/HierarkiSelector/JemaatCascadingSelector';
+import { Controller } from 'react-hook-form';
 
 interface PendetaFormProps {
   id_induk?: string;
@@ -75,14 +77,20 @@ export function PendetaForm({ id_induk = 'IND-13055', initialData, onSuccess }: 
       )}
 
       {/* ID Jemaat Induk */}
-      <div className="space-y-1.5">
-        <label className="text-xs font-semibold text-text-high">ID Jemaat Induk *</label>
-        <input
-          type="text"
-          {...register('id_induk')}
-          className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-base font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
+      <div className="space-y-1.5 w-full">
+        <Controller
+          name="id_induk"
+          control={control}
+          render={({ field }) => (
+            <JemaatCascadingSelector
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.id_induk?.message}
+              defaultIndukId={initialData?.id_induk || id_induk}
+              disabled={isSubmitting}
+            />
+          )}
         />
-        {errors.id_induk && <p className="text-xs text-error">{errors.id_induk.message}</p>}
       </div>
 
       {/* Nama Lengkap & Jabatan */}

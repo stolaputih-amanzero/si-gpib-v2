@@ -11,6 +11,8 @@ import {
 } from '@/lib/validations/jadwal.schema';
 import { useCreateJadwal, useUpdateJadwal, JadwalItem } from '@/hooks/use-jadwal';
 import { Loader2, Save, AlertCircle, Clock, Calendar } from 'lucide-react';
+import { PosCascadingSelector } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
+import { Controller } from 'react-hook-form';
 
 interface JadwalFormProps {
   id_pos?: string;
@@ -27,6 +29,7 @@ export function JadwalForm({ id_pos = 'POS-001', initialData, onSuccess }: Jadwa
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<JadwalInput>({
     resolver: zodResolver(jadwalSchema),
@@ -71,14 +74,20 @@ export function JadwalForm({ id_pos = 'POS-001', initialData, onSuccess }: Jadwa
       )}
 
       {/* ID Pos Input */}
-      <div className="space-y-1.5">
-        <label className="text-xs font-semibold text-text-high">ID Pos Pelkes *</label>
-        <input
-          type="text"
-          {...register('id_pos')}
-          className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-base font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
+      <div className="space-y-1.5 w-full">
+        <Controller
+          name="id_pos"
+          control={control}
+          render={({ field }) => (
+            <PosCascadingSelector
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.id_pos?.message}
+              defaultPosId={initialData?.id_pos || id_pos}
+              disabled={isSubmitting}
+            />
+          )}
         />
-        {errors.id_pos && <p className="text-xs text-error">{errors.id_pos.message}</p>}
       </div>
 
       {/* Jenis Ibadah */}

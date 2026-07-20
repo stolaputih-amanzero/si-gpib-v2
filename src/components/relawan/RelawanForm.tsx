@@ -6,6 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { relawanSchema, RelawanInput, KATEGORI_RELAWAN } from '@/lib/validations/relawan.schema';
 import { useCreateRelawan, useUpdateRelawan, RelawanItem } from '@/hooks/use-relawan';
 import { Loader2, Save, AlertCircle, Phone, Award } from 'lucide-react';
+import { PosCascadingSelector } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
+import { Controller } from 'react-hook-form';
 
 interface RelawanFormProps {
   id_pos?: string;
@@ -22,6 +24,7 @@ export function RelawanForm({ id_pos = 'POS-001', initialData, onSuccess }: Rela
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<RelawanInput>({
     resolver: zodResolver(relawanSchema),
@@ -69,13 +72,19 @@ export function RelawanForm({ id_pos = 'POS-001', initialData, onSuccess }: Rela
 
       {/* ID Pos Input */}
       <div className="space-y-1.5">
-        <label className="text-xs font-semibold text-text-high">ID Pos Pelkes *</label>
-        <input
-          type="text"
-          {...register('id_pos')}
-          className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-base font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
+        <Controller
+          name="id_pos"
+          control={control}
+          render={({ field }) => (
+            <PosCascadingSelector
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.id_pos?.message}
+              defaultPosId={initialData?.id_pos || id_pos}
+              disabled={isSubmitting}
+            />
+          )}
         />
-        {errors.id_pos && <p className="text-xs text-error">{errors.id_pos.message}</p>}
       </div>
 
       {/* Nama & No WA */}

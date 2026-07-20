@@ -8,8 +8,10 @@ import {
   PotensiInput,
   KATEGORI_POTENSI_OPTIONS,
 } from '@/lib/validations/wilayah.schema';
-import { useCreatePotensi, usePosPelkesList } from '@/hooks/use-wilayah';
+import { useCreatePotensi } from '@/hooks/use-wilayah';
 import { Loader2, CheckCircle2, AlertCircle, Save, Sparkles } from 'lucide-react';
+import { PosCascadingSelector } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
+import { Controller } from 'react-hook-form';
 
 interface PotensiFormProps {
   defaultPosId?: string;
@@ -21,7 +23,6 @@ export function PotensiForm({ defaultPosId, onSuccess, onCancel }: PotensiFormPr
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const { data: posList, isLoading: isLoadingPos } = usePosPelkesList();
   const createMutation = useCreatePotensi();
 
   const form = useForm<PotensiInput>({
@@ -98,26 +99,20 @@ export function PotensiForm({ defaultPosId, onSuccess, onCancel }: PotensiFormPr
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {/* Pilih Pos Pelkes */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-high flex items-center justify-between">
-            <span>Pos Pelkes *</span>
-            {isLoadingPos && <span className="text-[11px] text-text-muted">Memuat daftar Pos...</span>}
-          </label>
-          <select
-            {...form.register('id_pos')}
-            disabled={isLoadingPos}
-            className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-sm font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
-          >
-            <option value="">-- Pilih Pos Pelkes --</option>
-            {posList?.map((pos) => (
-              <option key={pos.id_pos} value={pos.id_pos}>
-                {pos.nama_pos} {pos.mupel ? `(Mupel ${pos.mupel})` : ''}
-              </option>
-            ))}
-          </select>
-          {form.formState.errors.id_pos && (
-            <p className="text-xs text-error font-medium">{form.formState.errors.id_pos.message}</p>
-          )}
+        <div className="space-y-1.5 w-full">
+          <Controller
+            name="id_pos"
+            control={form.control}
+            render={({ field }) => (
+              <PosCascadingSelector
+                value={field.value}
+                onChange={field.onChange}
+                error={form.formState.errors.id_pos?.message}
+                defaultPosId={defaultPosId}
+                disabled={createMutation.isPending}
+              />
+            )}
+          />
         </div>
 
         {/* Nama Potensi & Kategori */}
