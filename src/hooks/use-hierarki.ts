@@ -418,6 +418,25 @@ export function useAssignKmj() {
       }
 
       // 2. Guarantee 100% synchronization on all related tables
+      const { data: oldPendeta } = await supabase
+        .from('m_pendeta')
+        .select('id_induk, is_kmj')
+        .eq('id_pendeta', data.id_pendeta)
+        .single();
+
+      if (oldPendeta?.id_induk && oldPendeta.id_induk !== data.id_induk && oldPendeta.is_kmj) {
+        await supabase
+          .from('m_jemaat_induk')
+          .update({ id_kmj: null, updated_at: new Date().toISOString() })
+          .eq('id_induk', oldPendeta.id_induk);
+      }
+
+      await supabase
+        .from('t_pj_jemaat')
+        .update({ tanggal_selesai: new Date().toISOString().split('T')[0], status: 'Selesai' })
+        .eq('id_pendeta', data.id_pendeta)
+        .is('tanggal_selesai', null);
+
       await supabase
         .from('m_jemaat_induk')
         .update({ id_kmj: data.id_pendeta, updated_at: new Date().toISOString() })
@@ -430,7 +449,7 @@ export function useAssignKmj() {
 
       await supabase
         .from('m_pendeta')
-        .update({ is_kmj: true, id_induk: data.id_induk, updated_at: new Date().toISOString() })
+        .update({ is_kmj: true, is_pj: false, id_induk: data.id_induk, updated_at: new Date().toISOString() })
         .eq('id_pendeta', data.id_pendeta);
 
       return { success: true };
@@ -472,6 +491,25 @@ export function useAssignPj() {
       }
 
       // 2. Guarantee 100% synchronization on all related tables
+      const { data: oldPendeta } = await supabase
+        .from('m_pendeta')
+        .select('id_induk, is_kmj')
+        .eq('id_pendeta', data.id_pendeta)
+        .single();
+
+      if (oldPendeta?.is_kmj && oldPendeta.id_induk) {
+        await supabase
+          .from('m_jemaat_induk')
+          .update({ id_kmj: null, updated_at: new Date().toISOString() })
+          .eq('id_induk', oldPendeta.id_induk);
+      }
+
+      await supabase
+        .from('t_pj_jemaat')
+        .update({ tanggal_selesai: new Date().toISOString().split('T')[0], status: 'Selesai' })
+        .eq('id_pendeta', data.id_pendeta)
+        .is('tanggal_selesai', null);
+
       await supabase.from('t_pj_jemaat').insert({
         id_induk: data.id_induk,
         id_pendeta: data.id_pendeta,
@@ -481,7 +519,7 @@ export function useAssignPj() {
 
       await supabase
         .from('m_pendeta')
-        .update({ is_pj: true, id_induk: data.id_induk, updated_at: new Date().toISOString() })
+        .update({ is_pj: true, is_kmj: false, id_induk: data.id_induk, updated_at: new Date().toISOString() })
         .eq('id_pendeta', data.id_pendeta);
 
       return { success: true };
