@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState, useActionState } from 'react';
 import { login } from './actions';
 import { BiometricLogin } from '@/components/biometric/BiometricLogin';
@@ -15,9 +16,17 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col justify-center px-4 bg-surface-base">
       <div className="max-w-md w-full mx-auto space-y-8 bg-surface-elevated p-8 rounded-xl shadow-sm border border-gray-100">
-        <div className="text-center">
+        <div className="text-center flex flex-col items-center">
+          <Image 
+            src="/logo-si-gpib.png" 
+            alt="Logo SI GPIB" 
+            width={72} 
+            height={72} 
+            className="w-16 h-16 object-contain mb-3"
+            priority
+          />
           <h2 className="text-3xl font-bold text-brand-primary">SI GPIB</h2>
-          <p className="text-text-muted mt-2">Login ke Sistem Informasi Pos Pelkes</p>
+          <p className="text-text-muted mt-1.5 text-sm">Login ke Sistem Informasi Pos Pelkes</p>
         </div>
 
         <form className="space-y-6" action={formAction}>

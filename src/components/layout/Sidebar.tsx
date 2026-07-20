@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Home, Map, FileText, User, LayoutDashboard, Database, Activity, LogOut } from 'lucide-react';
+import { Home, Map, FileText, User, Database, Activity, LogOut } from 'lucide-react';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -42,7 +43,13 @@ export default function Sidebar() {
   return (
     <aside className="w-64 h-screen bg-surface-elevated border-r border-gray-200 flex flex-col sticky top-0 left-0">
       <div className="h-16 flex items-center px-6 border-b border-gray-100">
-        <LayoutDashboard className="text-brand-primary mr-3" size={24} />
+        <Image 
+          src="/logo-si-gpib.png" 
+          alt="Logo SI GPIB" 
+          width={32} 
+          height={32} 
+          className="w-8 h-8 object-contain mr-3"
+        />
         <h1 className="text-xl font-bold text-brand-primary tracking-tight">SI GPIB</h1>
       </div>
 
