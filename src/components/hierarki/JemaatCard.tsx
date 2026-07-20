@@ -1,17 +1,38 @@
 'use client';
 
 import Link from 'next/link';
-import { JemaatIndukItem } from '@/hooks/use-hierarki';
-import { Church, ChevronRight, UserCheck, MapPin, AlertCircle } from 'lucide-react';
+import { JemaatIndukItem, useDeleteJemaat } from '@/hooks/use-hierarki';
+import { Church, ChevronRight, UserCheck, MapPin, AlertCircle, Edit3, Trash2 } from 'lucide-react';
 
 interface JemaatCardProps {
   jemaat: JemaatIndukItem;
   id_mupel: string;
+  onEdit?: (jemaat: JemaatIndukItem) => void;
 }
 
-export function JemaatCard({ jemaat, id_mupel }: JemaatCardProps) {
+export function JemaatCard({ jemaat, id_mupel, onEdit }: JemaatCardProps) {
   const hasKmj = Boolean(jemaat.kmj?.nama_lengkap);
   const hasCoordinates = Boolean(jemaat.latitude && jemaat.longitude);
+  const deleteJemaatMutation = useDeleteJemaat();
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (confirm(`Apakah Anda yakin ingin menghapus Jemaat Induk "${jemaat.nama_induk}"?`)) {
+      try {
+        await deleteJemaatMutation.mutateAsync(jemaat.id_induk);
+      } catch (err: any) {
+        alert(err?.message || 'Gagal menghapus Jemaat Induk.');
+      }
+    }
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onEdit) onEdit(jemaat);
+  };
 
   return (
     <Link
@@ -54,8 +75,32 @@ export function JemaatCard({ jemaat, id_mupel }: JemaatCardProps) {
           </div>
         </div>
 
-        <div className="p-2 rounded-xl text-text-muted group-hover:text-brand-primary group-hover:bg-surface-sunken transition-all shrink-0">
-          <ChevronRight size={20} />
+        <div className="flex items-center gap-1 shrink-0">
+          {/* Actions */}
+          {onEdit && (
+            <button
+              type="button"
+              onClick={handleEdit}
+              className="p-2 rounded-xl text-text-muted hover:text-brand-primary hover:bg-surface-sunken transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
+              title="Edit Jemaat Induk"
+            >
+              <Edit3 size={16} />
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleteJemaatMutation.isPending}
+            className="p-2 rounded-xl text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center disabled:opacity-50"
+            title="Hapus Jemaat Induk"
+          >
+            <Trash2 size={16} />
+          </button>
+
+          <div className="p-2 rounded-xl text-text-muted group-hover:text-brand-primary group-hover:bg-surface-sunken transition-all shrink-0">
+            <ChevronRight size={20} />
+          </div>
         </div>
       </div>
 

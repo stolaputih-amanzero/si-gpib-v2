@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useMupelDetail, useJemaatByMupel } from '@/hooks/use-hierarki';
+import { useMupelDetail, useJemaatByMupel, JemaatIndukItem } from '@/hooks/use-hierarki';
 import { BreadcrumbNav } from '@/components/hierarki/BreadcrumbNav';
 import { JemaatCard } from '@/components/hierarki/JemaatCard';
+import { JemaatFormModal } from '@/components/hierarki/JemaatFormModal';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Layers, Church, Search, AlertCircle } from 'lucide-react';
+import { Layers, Church, Search, AlertCircle, Plus } from 'lucide-react';
 
 interface MupelDetailClientProps {
   id_mupel: string;
@@ -14,6 +15,8 @@ interface MupelDetailClientProps {
 export function MupelDetailClient({ id_mupel }: MupelDetailClientProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editJemaat, setEditJemaat] = useState<JemaatIndukItem | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -23,6 +26,16 @@ export function MupelDetailClient({ id_mupel }: MupelDetailClientProps) {
   const { data: jemaatList, isLoading: isLoadingJemaat, isError } = useJemaatByMupel(id_mupel, searchQuery);
 
   const totalPosCount = (jemaatList || []).reduce((acc, curr) => acc + (curr.pos_count || 0), 0);
+
+  const handleOpenAddModal = () => {
+    setEditJemaat(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (jemaat: JemaatIndukItem) => {
+    setEditJemaat(jemaat);
+    setIsModalOpen(true);
+  };
 
   if (!mounted) {
     return (
@@ -66,8 +79,17 @@ export function MupelDetailClient({ id_mupel }: MupelDetailClientProps) {
               </div>
             </div>
 
-            {/* Quick Stat Badges */}
-            <div className="flex items-center gap-2">
+            {/* Quick Stat Badges & Add Button */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={handleOpenAddModal}
+                className="min-h-[40px] px-4 py-2 rounded-xl bg-brand-primary text-white font-bold text-xs flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all shadow-sm"
+              >
+                <Plus size={16} />
+                <span>Tambah Jemaat Induk</span>
+              </button>
+
               <div className="bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl px-3 py-1.5 text-center">
                 <span className="block text-[10px] font-bold text-indigo-700 dark:text-indigo-300 uppercase">Jemaat Induk</span>
                 <span className="text-sm font-black text-indigo-950 dark:text-indigo-200 tabular-nums">
@@ -104,7 +126,7 @@ export function MupelDetailClient({ id_mupel }: MupelDetailClientProps) {
         />
       </div>
 
-      {/* List Jemaat Induk */}
+      {/* Main Jemaat List */}
       {isLoadingJemaat ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Skeleton className="h-28 rounded-2xl" />
@@ -115,20 +137,33 @@ export function MupelDetailClient({ id_mupel }: MupelDetailClientProps) {
       ) : isError ? (
         <div className="p-8 text-center bg-surface-elevated rounded-2xl border border-border-subtle text-red-600 space-y-2">
           <AlertCircle className="w-8 h-8 mx-auto" />
-          <p className="text-sm font-semibold">Gagal memuat daftar Jemaat Induk.</p>
+          <p className="text-sm font-semibold">Gagal memuat data Jemaat Induk.</p>
         </div>
       ) : !jemaatList || jemaatList.length === 0 ? (
         <div className="p-8 text-center bg-surface-elevated rounded-2xl border border-border-subtle text-text-muted space-y-2">
-          <Church className="w-8 h-8 mx-auto opacity-50 text-indigo-500" />
-          <p className="text-sm font-semibold">Tidak ada Jemaat Induk ditemukan di Mupel ini.</p>
+          <Church className="w-8 h-8 mx-auto text-text-muted opacity-50" />
+          <p className="text-sm font-semibold">Tidak ada Jemaat Induk di bawah Mupel ini.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {jemaatList.map((jemaat) => (
-            <JemaatCard key={jemaat.id_induk} jemaat={jemaat} id_mupel={id_mupel} />
+            <JemaatCard
+              key={jemaat.id_induk}
+              jemaat={jemaat}
+              id_mupel={id_mupel}
+              onEdit={handleOpenEditModal}
+            />
           ))}
         </div>
       )}
+
+      {/* Jemaat Form Modal */}
+      <JemaatFormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        id_mupel={id_mupel}
+        editData={editJemaat}
+      />
     </div>
   );
 }

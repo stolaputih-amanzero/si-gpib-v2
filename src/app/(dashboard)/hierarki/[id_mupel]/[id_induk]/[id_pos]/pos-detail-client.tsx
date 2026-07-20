@@ -7,6 +7,7 @@ import { usePosByJemaat, useJemaatDetail } from '@/hooks/use-hierarki';
 import { MapPin, Church, HeartHandshake, ArrowLeft, FileText, AlertTriangle, Home, Users } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ShareButton } from '@/components/mobile/ShareButton';
+import { StatusHistoryTimeline } from '@/components/hierarki/StatusHistoryTimeline';
 
 interface PosDetailClientProps {
   id_mupel: string;
@@ -169,6 +170,9 @@ export function PosDetailClient({ id_mupel, id_induk, id_pos }: PosDetailClientP
           </div>
         </div>
       </div>
+
+      {/* Riwayat Peningkatan Status Timeline */}
+      <StatusHistoryTimeline id_pos={id_pos} />
 
       {/* Profil Lengkap Redirect Link */}
       <div className="p-5 rounded-2xl bg-surface-elevated border border-border-subtle shadow-soft flex items-center justify-between gap-4">

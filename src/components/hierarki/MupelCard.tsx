@@ -1,14 +1,36 @@
 'use client';
 
 import Link from 'next/link';
-import { MupelItem } from '@/hooks/use-hierarki';
-import { Layers, ChevronRight, Church, MapPin } from 'lucide-react';
+import { MupelItem, useDeleteMupel } from '@/hooks/use-hierarki';
+import { Layers, ChevronRight, Church, MapPin, Edit3, Trash2 } from 'lucide-react';
 
 interface MupelCardProps {
   mupel: MupelItem;
+  onEdit?: (mupel: MupelItem) => void;
 }
 
-export function MupelCard({ mupel }: MupelCardProps) {
+export function MupelCard({ mupel, onEdit }: MupelCardProps) {
+  const deleteMupelMutation = useDeleteMupel();
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (confirm(`Apakah Anda yakin ingin menghapus Mupel "${mupel.nama_mupel}"?`)) {
+      try {
+        await deleteMupelMutation.mutateAsync(mupel.id_mupel);
+      } catch (err: any) {
+        alert(err?.message || 'Gagal menghapus Mupel.');
+      }
+    }
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onEdit) onEdit(mupel);
+  };
+
   return (
     <Link
       href={`/hierarki/${encodeURIComponent(mupel.id_mupel)}`}
@@ -35,7 +57,29 @@ export function MupelCard({ mupel }: MupelCardProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          {/* Action Buttons */}
+          {onEdit && (
+            <button
+              type="button"
+              onClick={handleEdit}
+              className="p-2 rounded-xl text-text-muted hover:text-brand-primary hover:bg-surface-sunken transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
+              title="Edit Mupel"
+            >
+              <Edit3 size={16} />
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleteMupelMutation.isPending}
+            className="p-2 rounded-xl text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center disabled:opacity-50"
+            title="Hapus Mupel"
+          >
+            <Trash2 size={16} />
+          </button>
+
           <div className="hidden sm:flex items-center gap-2">
             <div className="bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl px-2.5 py-1 text-center">
               <span className="block text-[10px] font-bold text-indigo-700 dark:text-indigo-300 uppercase">Jemaat</span>

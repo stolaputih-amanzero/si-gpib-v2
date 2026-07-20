@@ -1,21 +1,34 @@
 'use client';
 
 import { useState } from 'react';
-import { useMupelList } from '@/hooks/use-hierarki';
+import { useMupelList, MupelItem } from '@/hooks/use-hierarki';
 import { HierarchyStats } from '@/components/hierarki/HierarchyStats';
 import { MupelCard } from '@/components/hierarki/MupelCard';
 import { HierarchyTree } from '@/components/hierarki/HierarchyTree';
 import { BreadcrumbNav } from '@/components/hierarki/BreadcrumbNav';
+import { MupelFormModal } from '@/components/hierarki/MupelFormModal';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Layers, Search, LayoutList, GitFork, AlertCircle } from 'lucide-react';
+import { Layers, Search, LayoutList, GitFork, AlertCircle, Plus } from 'lucide-react';
 
 type ViewMode = 'list' | 'tree';
 
 export default function HierarkiEntryPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editMupel, setEditMupel] = useState<MupelItem | null>(null);
 
   const { data: mupelList, isLoading, isError } = useMupelList(searchQuery);
+
+  const handleOpenAddModal = () => {
+    setEditMupel(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (mupel: MupelItem) => {
+    setEditMupel(mupel);
+    setIsModalOpen(true);
+  };
 
   return (
     <div className="space-y-6 pb-12">
@@ -38,33 +51,45 @@ export default function HierarkiEntryPage() {
           </p>
         </div>
 
-        {/* View Mode Toggle */}
-        <div className="flex items-center gap-1 p-1 bg-surface-sunken rounded-xl border border-border-subtle self-start sm:self-auto">
+        {/* Header Actions */}
+        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
           <button
             type="button"
-            onClick={() => setViewMode('list')}
-            className={`min-h-[40px] px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
-              viewMode === 'list'
-                ? 'bg-surface-elevated text-brand-primary shadow-sm'
-                : 'text-text-muted hover:text-text-high'
-            }`}
+            onClick={handleOpenAddModal}
+            className="min-h-[40px] px-4 py-2 rounded-xl bg-brand-primary text-white font-bold text-xs flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all shadow-sm"
           >
-            <LayoutList size={16} />
-            <span>List View</span>
+            <Plus size={16} />
+            <span>Tambah Mupel</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => setViewMode('tree')}
-            className={`min-h-[40px] px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
-              viewMode === 'tree'
-                ? 'bg-surface-elevated text-brand-primary shadow-sm'
-                : 'text-text-muted hover:text-text-high'
-            }`}
-          >
-            <GitFork size={16} />
-            <span>Tree View</span>
-          </button>
+          {/* View Mode Toggle */}
+          <div className="flex items-center gap-1 p-1 bg-surface-sunken rounded-xl border border-border-subtle">
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`min-h-[40px] px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                viewMode === 'list'
+                  ? 'bg-surface-elevated text-brand-primary shadow-sm'
+                  : 'text-text-muted hover:text-text-high'
+              }`}
+            >
+              <LayoutList size={16} />
+              <span>List View</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setViewMode('tree')}
+              className={`min-h-[40px] px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                viewMode === 'tree'
+                  ? 'bg-surface-elevated text-brand-primary shadow-sm'
+                  : 'text-text-muted hover:text-text-high'
+              }`}
+            >
+              <GitFork size={16} />
+              <span>Tree View</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -98,18 +123,26 @@ export default function HierarkiEntryPage() {
           <p className="text-xs text-text-muted">Pastikan koneksi internet terhubung dan coba muat ulang.</p>
         </div>
       ) : !mupelList || mupelList.length === 0 ? (
-        <div className="p-8 text-center bg-surface-elevated rounded-2xl border border-border-subtle text-text-muted">
-          <p className="text-sm font-semibold">Tidak ada data Mupel yang sesuai pencarian.</p>
+        <div className="p-8 text-center bg-surface-elevated rounded-2xl border border-border-subtle text-text-muted space-y-2">
+          <Layers className="w-8 h-8 mx-auto text-text-muted opacity-50" />
+          <p className="text-sm font-semibold">Tidak ada Mupel yang ditemukan.</p>
         </div>
       ) : viewMode === 'tree' ? (
-        <HierarchyTree mupelList={mupelList} searchQuery={searchQuery} />
+        <HierarchyTree mupelList={mupelList} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {mupelList.map((mupel) => (
-            <MupelCard key={mupel.id_mupel} mupel={mupel} />
+            <MupelCard key={mupel.id_mupel} mupel={mupel} onEdit={handleOpenEditModal} />
           ))}
         </div>
       )}
+
+      {/* Mupel Form Modal */}
+      <MupelFormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        editData={editMupel}
+      />
     </div>
   );
 }

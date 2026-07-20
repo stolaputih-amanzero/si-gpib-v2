@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useJemaatDetail, usePosByJemaat } from '@/hooks/use-hierarki';
+import { useJemaatDetail, usePosByJemaat, useDeletePos, PosPelkesItem } from '@/hooks/use-hierarki';
 import { BreadcrumbNav } from '@/components/hierarki/BreadcrumbNav';
 import { KMJSelector } from '@/components/hierarki/KMJSelector';
 import { PJSelector } from '@/components/hierarki/PJSelector';
+import { PosFormModal } from '@/components/hierarki/PosFormModal';
+import { StatusElevationModal } from '@/components/hierarki/StatusElevationModal';
 import { ShareButton } from '@/components/mobile/ShareButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -20,10 +22,10 @@ import {
   PhoneCall,
   UserPlus,
   Building,
-  Home,
-  Users,
   Sprout,
-  ExternalLink,
+  TrendingUp,
+  Edit3,
+  Trash2,
 } from 'lucide-react';
 
 interface JemaatDetailClientProps {
@@ -35,6 +37,13 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
   const [searchPos, setSearchPos] = useState('');
   const [showKmjModal, setShowKmjModal] = useState(false);
   const [showPjModal, setShowPjModal] = useState(false);
+
+  // Pos CRUD & Elevation Modal States
+  const [showPosModal, setShowPosModal] = useState(false);
+  const [editPosData, setEditPosData] = useState<PosPelkesItem | null>(null);
+  const [showElevateModal, setShowElevateModal] = useState(false);
+  const [elevatePosItem, setElevatePosItem] = useState<{ id_pos: string; nama_pos: string; kategori?: string | null; id_induk: string } | null>(null);
+
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -43,16 +52,50 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
 
   const { data: jemaat, isLoading: isLoadingJemaat } = useJemaatDetail(id_induk);
   const { data: posList, isLoading: isLoadingPos } = usePosByJemaat(id_induk, searchPos);
+  const deletePosMutation = useDeletePos();
 
-  const hasKmj = Boolean(jemaat?.kmj?.nama_lengkap);
-  const hasGps = Boolean(jemaat?.latitude && jemaat?.longitude);
+  const bajemList = (posList || []).filter(
+    (p) => p.kategori === 'Bajem' || p.nama_pos.toLowerCase().startsWith('bajem')
+  );
+  const posPelkesOnly = (posList || []).filter(
+    (p) => p.kategori !== 'Bajem' && !p.nama_pos.toLowerCase().startsWith('bajem')
+  );
 
-  const formatNum = (val?: number | null) => {
-    return new Intl.NumberFormat('id-ID').format(val || 0);
+  const handleOpenAddPos = () => {
+    setEditPosData(null);
+    setShowPosModal(true);
   };
 
-  const bajemList = (posList || []).filter((p) => p.kategori === 'Bajem');
-  const posPelkesOnly = (posList || []).filter((p) => p.kategori !== 'Bajem');
+  const handleOpenEditPos = (e: React.MouseEvent, pos: PosPelkesItem) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setEditPosData(pos);
+    setShowPosModal(true);
+  };
+
+  const handleOpenElevate = (e: React.MouseEvent, pos: PosPelkesItem) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setElevatePosItem({
+      id_pos: pos.id_pos,
+      nama_pos: pos.nama_pos,
+      kategori: pos.kategori,
+      id_induk: pos.id_induk,
+    });
+    setShowElevateModal(true);
+  };
+
+  const handleDeletePos = async (e: React.MouseEvent, pos: PosPelkesItem) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (confirm(`Apakah Anda yakin ingin menghapus Pos Pelkes/Bajem "${pos.nama_pos}"?`)) {
+      try {
+        await deletePosMutation.mutateAsync(pos.id_pos);
+      } catch (err: any) {
+        alert(err?.message || 'Gagal menghapus Pos Pelkes.');
+      }
+    }
+  };
 
   if (!mounted) {
     return (
@@ -64,10 +107,10 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
           ]}
         />
         <Skeleton className="h-36 w-full rounded-2xl" />
-        <div className="grid grid-cols-3 gap-3">
-          <Skeleton className="h-24 rounded-2xl" />
-          <Skeleton className="h-24 rounded-2xl" />
-          <Skeleton className="h-24 rounded-2xl" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Skeleton className="h-20 rounded-2xl" />
+          <Skeleton className="h-20 rounded-2xl" />
+          <Skeleton className="h-20 rounded-2xl" />
         </div>
       </div>
     );
@@ -75,7 +118,7 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Breadcrumb Nav */}
+      {/* 1. Breadcrumb Nav */}
       <BreadcrumbNav
         items={[
           { label: jemaat?.mupel?.nama_mupel || id_mupel, href: `/hierarki/${encodeURIComponent(id_mupel)}` },
@@ -83,190 +126,139 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
         ]}
       />
 
-      {/* 1. Header Banner Jemaat Induk */}
+      {/* 2. Header Banner Jemaat Induk */}
       {isLoadingJemaat ? (
         <Skeleton className="h-36 w-full rounded-2xl" />
       ) : (
         <div className="bg-surface-elevated p-5 rounded-2xl border border-border-subtle shadow-soft space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div className="flex items-start gap-3">
-              <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 mt-0.5 shrink-0">
+              <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 mt-0.5">
                 <Church className="w-6 h-6" />
               </div>
               <div className="space-y-1">
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-surface-sunken border border-border-subtle text-text-muted">
                     {id_induk}
                   </span>
                   <span className="text-xs font-semibold text-text-muted">
-                    Mupel: {jemaat?.mupel?.nama_mupel || id_mupel}
+                    Mupel: {jemaat?.mupel?.nama_mupel} ({id_mupel})
                   </span>
                 </div>
                 <h1 className="text-xl sm:text-2xl font-black text-text-high tracking-tight">
                   {jemaat?.nama_induk}
                 </h1>
                 {jemaat?.alamat && <p className="text-xs text-text-muted">{jemaat.alamat}</p>}
-
-                {/* GPS Info & Map Link */}
-                {hasGps ? (
-                  <div className="pt-1 flex items-center gap-2">
-                    <a
-                      href={`https://www.google.com/maps?q=${jemaat?.latitude},${jemaat?.longitude}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs font-bold text-brand-primary hover:underline flex items-center gap-1 min-h-[36px]"
-                    >
-                      <MapPin size={14} />
-                      <span>{jemaat?.latitude}, {jemaat?.longitude}</span>
-                      <ExternalLink size={12} />
-                    </a>
-                  </div>
-                ) : (
-                  <div className="pt-1">
-                    <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-300">
-                      <AlertCircle size={14} className="text-amber-600" />
-                      <span>Koordinat GPS belum diisi</span>
-                    </span>
-                  </div>
-                )}
               </div>
             </div>
 
-            {/* Share Button */}
-            <div className="self-end sm:self-start">
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={handleOpenAddPos}
+                className="min-h-[40px] px-3.5 py-2 rounded-xl bg-brand-primary text-white text-xs font-extrabold flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all shadow-sm"
+              >
+                <Plus size={16} />
+                <span>Tambah Pos</span>
+              </button>
+
               <ShareButton
                 title={`Jemaat Induk GPIB: ${jemaat?.nama_induk}`}
-                text={`Mupel: ${jemaat?.mupel?.nama_mupel || id_mupel}\nSektor: ${jemaat?.jumlah_sektor || 0} | KK: ${jemaat?.jumlah_kk || 0} | Jiwa: ${jemaat?.jumlah_jiwa || 0}\nKMJ: ${jemaat?.kmj?.nama_lengkap || 'Belum ada'}`}
+                text={`Jemaat Induk: ${jemaat?.nama_induk}\nMupel: ${jemaat?.mupel?.nama_mupel}\nKMJ: ${jemaat?.kmj?.nama_lengkap || 'Belum ada'}\nAlamat: ${jemaat?.alamat || '-'}`}
                 variant="ghost"
+                iconOnly
               />
             </div>
           </div>
+
+          {jemaat?.keterangan && (
+            <p className="text-xs text-text-muted bg-surface-sunken p-3 rounded-xl border border-border-subtle">
+              {jemaat.keterangan}
+            </p>
+          )}
         </div>
       )}
 
-      {/* 2. SECTION: STATISTIK JEMAAT (BARU) */}
+      {/* 3. Stat Cards Summary */}
       <div className="grid grid-cols-3 gap-3">
-        {/* Card 1: Jumlah Sektor */}
-        <div className="bg-surface-elevated p-3.5 sm:p-4 rounded-2xl border border-border-subtle shadow-soft space-y-1 text-center min-h-[44px]">
-          <div className="w-8 h-8 mx-auto rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400 flex items-center justify-center">
-            <Building size={18} />
-          </div>
-          <p className="text-[11px] text-text-muted font-bold uppercase tracking-wider">Sektor</p>
-          <p className="text-xl sm:text-2xl font-black text-text-high tabular-nums">
-            {formatNum(jemaat?.jumlah_sektor)}
-          </p>
+        <div className="bg-surface-elevated p-3.5 rounded-2xl border border-border-subtle shadow-soft space-y-1 text-center">
+          <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Jumlah Sektor</span>
+          <p className="text-xl font-black text-text-high tabular-nums">{jemaat?.jumlah_sektor ?? 0}</p>
         </div>
 
-        {/* Card 2: Jumlah KK */}
-        <div className="bg-surface-elevated p-3.5 sm:p-4 rounded-2xl border border-border-subtle shadow-soft space-y-1 text-center min-h-[44px]">
-          <div className="w-8 h-8 mx-auto rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 flex items-center justify-center">
-            <Home size={18} />
-          </div>
-          <p className="text-[11px] text-text-muted font-bold uppercase tracking-wider">KK</p>
-          <p className="text-xl sm:text-2xl font-black text-text-high tabular-nums">
-            {formatNum(jemaat?.jumlah_kk)}
-          </p>
+        <div className="bg-surface-elevated p-3.5 rounded-2xl border border-border-subtle shadow-soft space-y-1 text-center">
+          <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Total KK</span>
+          <p className="text-xl font-black text-indigo-600 dark:text-indigo-400 tabular-nums">{jemaat?.jumlah_kk ?? 0}</p>
         </div>
 
-        {/* Card 3: Jumlah Jiwa */}
-        <div className="bg-surface-elevated p-3.5 sm:p-4 rounded-2xl border border-border-subtle shadow-soft space-y-1 text-center min-h-[44px]">
-          <div className="w-8 h-8 mx-auto rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400 flex items-center justify-center">
-            <Users size={18} />
-          </div>
-          <p className="text-[11px] text-text-muted font-bold uppercase tracking-wider">Jiwa</p>
-          <p className="text-xl sm:text-2xl font-black text-text-high tabular-nums">
-            {formatNum(jemaat?.jumlah_jiwa)}
-          </p>
+        <div className="bg-surface-elevated p-3.5 rounded-2xl border border-border-subtle shadow-soft space-y-1 text-center">
+          <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Total Jiwa</span>
+          <p className="text-xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">{jemaat?.jumlah_jiwa ?? 0}</p>
         </div>
       </div>
 
-      {/* 3. SECTION: KMJ & PJ (2 Grid Columns) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* A. KMJ Card */}
-        <div className="bg-surface-elevated p-5 rounded-2xl border border-border-subtle shadow-soft flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between border-b border-border-subtle pb-3">
-            <div className="flex items-center gap-2">
-              <UserCheck className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-              <h3 className="font-extrabold text-text-high text-sm">Ketua Majelis Jemaat (KMJ)</h3>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowKmjModal(true)}
-              className="text-xs font-extrabold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 hover:underline flex items-center gap-1 min-h-[44px]"
-            >
-              <UserPlus size={14} />
-              <span>{hasKmj ? 'Ganti KMJ' : 'Assign KMJ'}</span>
-            </button>
+      {/* 4. KMJ Assignment Section */}
+      <div className="bg-surface-elevated p-5 rounded-2xl border border-border-subtle shadow-soft space-y-4">
+        <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+          <div className="flex items-center gap-2">
+            <UserCheck className="w-5 h-5 text-indigo-600" />
+            <h2 className="text-lg font-black text-text-high">Ketua Majelis Jemaat (KMJ)</h2>
           </div>
 
-          {hasKmj ? (
-            <div className="p-3.5 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-800 flex items-center justify-between gap-3">
-              <div>
-                <span className="block text-[10px] font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider">
-                  KMJ Aktif
-                </span>
-                <h4 className="font-black text-text-high text-sm mt-0.5">{jemaat?.kmj?.nama_lengkap}</h4>
-              </div>
-              {jemaat?.kmj?.no_wa && (
-                <a
-                  href={`https://wa.me/${jemaat.kmj.no_wa.replace(/[^0-9]/g, '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="min-h-[44px] px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold flex items-center gap-1.5 hover:bg-emerald-700 transition-colors shrink-0 shadow-sm"
-                >
-                  <PhoneCall size={14} />
-                  <span>WhatsApp</span>
-                </a>
+          <button
+            type="button"
+            onClick={() => setShowKmjModal(true)}
+            className="min-h-[40px] px-3.5 py-1.5 rounded-xl border border-border-subtle bg-surface-sunken hover:bg-surface-elevated text-xs font-bold text-brand-primary flex items-center gap-1.5 transition-colors"
+          >
+            <UserPlus size={16} />
+            <span>{jemaat?.kmj ? 'Ganti KMJ' : 'Tetapkan KMJ'}</span>
+          </button>
+        </div>
+
+        {jemaat?.kmj ? (
+          <div className="p-4 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider">KMJ Aktif</span>
+              <h3 className="font-extrabold text-base text-text-high">{jemaat.kmj.nama_lengkap}</h3>
+              {jemaat.kmj.no_wa && (
+                <p className="text-xs text-text-muted flex items-center gap-1">
+                  <PhoneCall size={12} className="text-emerald-600" />
+                  WA: {jemaat.kmj.no_wa}
+                </p>
               )}
             </div>
-          ) : (
-            <div className="p-4 rounded-xl bg-amber-50/60 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-amber-900 dark:text-amber-200 text-xs space-y-2">
-              <div className="flex items-center gap-2 font-bold">
-                <AlertCircle size={16} className="text-amber-600 shrink-0" />
-                <span>Belum ada KMJ terdaftar di Jemaat Induk ini.</span>
-              </div>
-              <p className="text-text-muted">Klik tombol "Assign KMJ" di atas untuk menugaskan pendeta KMJ baru.</p>
-            </div>
-          )}
-        </div>
 
-        {/* B. PJ Card */}
-        <div className="bg-surface-elevated p-5 rounded-2xl border border-border-subtle shadow-soft flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+            <Link
+              href={`/pendeta/${encodeURIComponent(jemaat.kmj.id_pendeta || '')}`}
+              className="min-h-[40px] px-3.5 py-2 rounded-xl bg-surface-elevated border border-border-subtle hover:bg-indigo-50 text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 self-start sm:self-auto transition-colors"
+            >
+              <span>Profil KMJ</span>
+              <ChevronRight size={16} />
+            </Link>
+          </div>
+        ) : (
+          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/40 text-amber-900 dark:text-amber-200 text-xs flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <HeartHandshake className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-              <h3 className="font-extrabold text-text-high text-sm">Pendeta Jemaat (PJ)</h3>
+              <AlertCircle size={18} className="text-amber-600 shrink-0" />
+              <span>Belum ada KMJ (Ketua Majelis Jemaat) yang ditugaskan di Jemaat Induk ini.</span>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowPjModal(true)}
-              className="text-xs font-extrabold text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 hover:underline flex items-center gap-1 min-h-[44px]"
-            >
-              <Plus size={14} />
-              <span>Tambah PJ</span>
-            </button>
           </div>
-
-          <div className="p-3.5 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800 flex items-center justify-between gap-3">
-            <div>
-              <span className="block text-[10px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
-                Total PJ Penugasan
-              </span>
-              <h4 className="font-black text-text-high text-sm mt-0.5">{jemaat?.pj_count || 0} Pendeta Jemaat</h4>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowPjModal(true)}
-              className="min-h-[44px] px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold flex items-center gap-1.5 hover:bg-emerald-700 transition-colors shrink-0 shadow-sm"
-            >
-              <Plus size={14} />
-              <span>Kelola PJ</span>
-            </button>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* 4. SECTION: BAKAL JEMAAT (BAJEM) */}
+      {/* 5. Search Bar for Pos / Bajem */}
+      <div className="relative bg-surface-elevated p-3 rounded-2xl border border-border-subtle shadow-soft">
+        <Search size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-text-muted" />
+        <input
+          type="text"
+          placeholder="Cari Pos Pelkes atau Bajem..."
+          value={searchPos}
+          onChange={(e) => setSearchPos(e.target.value)}
+          className="w-full min-h-[44px] pl-10 pr-4 rounded-xl border border-border-subtle bg-surface-base text-xs sm:text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
+        />
+      </div>
+
+      {/* 6. Section Bakal Jemaat (Bajem) */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -283,57 +275,83 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
             <span>Belum ada Bajem terdaftar di bawah Jemaat Induk ini.</span>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {bajemList.map((pos) => (
-              <Link
-                key={pos.id_pos}
-                href={`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(id_induk)}/${encodeURIComponent(pos.id_pos)}`}
-                className="block min-h-[44px] bg-surface-elevated p-4 rounded-2xl border border-purple-200 dark:border-purple-900/40 shadow-soft hover:border-purple-500 transition-all"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {bajemList.map((bajem) => (
+              <div
+                key={bajem.id_pos}
+                className="bg-surface-elevated p-4 rounded-2xl border border-purple-200 dark:border-purple-900/40 shadow-soft hover:border-purple-400 transition-all space-y-3"
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300">
-                      {pos.id_pos} • Bajem
-                    </span>
-                    <h4 className="font-extrabold text-text-high text-sm mt-1">{pos.nama_pos}</h4>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300">
+                        {bajem.id_pos} • Bajem
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                        {bajem.jumlah_kk || 0} KK • {bajem.jumlah_jiwa || 0} Jiwa
+                      </span>
+                    </div>
+
+                    <h3 className="font-extrabold text-base text-text-high">{bajem.nama_pos}</h3>
+                    {bajem.alamat && <p className="text-xs text-text-muted line-clamp-1">{bajem.alamat}</p>}
                   </div>
-                  <ChevronRight size={18} className="text-text-muted" />
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={(e) => handleOpenElevate(e, bajem)}
+                      className="px-2.5 py-1.5 rounded-xl bg-purple-600 text-white text-xs font-bold flex items-center gap-1 hover:bg-purple-700 transition-colors shadow-xs min-h-[36px]"
+                      title="Tingkatkan Status ke Jemaat Induk"
+                    >
+                      <TrendingUp size={14} />
+                      <span className="hidden sm:inline">Elevasi</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => handleOpenEditPos(e, bajem)}
+                      className="p-2 rounded-xl text-text-muted hover:text-brand-primary hover:bg-surface-sunken transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                      title="Edit Bajem"
+                    >
+                      <Edit3 size={15} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeletePos(e, bajem)}
+                      className="p-2 rounded-xl text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                      title="Hapus Bajem"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
                 </div>
-              </Link>
+
+                <div className="pt-2 border-t border-border-subtle flex items-center justify-between text-xs text-text-muted">
+                  <span>PJ: {bajem.pj?.nama_lengkap || 'Belum ada'}</span>
+                  <Link
+                    href={`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(id_induk)}/${encodeURIComponent(bajem.id_pos)}`}
+                    className="font-bold text-purple-600 hover:underline flex items-center gap-1"
+                  >
+                    <span>Detail</span>
+                    <ChevronRight size={14} />
+                  </Link>
+                </div>
+              </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* 5. SECTION: LIST POS PELKES */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      {/* 7. Section Pos Pelkes */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-emerald-600" />
+            <Building className="w-5 h-5 text-emerald-600" />
             <h2 className="text-lg font-black text-text-high">
-              Daftar Pos Pelkes ({posPelkesOnly.length} Pos)
+              Pos Pelayanan & Kesaksian / Pos Pelkes ({posPelkesOnly.length})
             </h2>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="relative w-full sm:w-64">
-              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
-              <input
-                type="text"
-                placeholder="Cari nama pos..."
-                value={searchPos}
-                onChange={(e) => setSearchPos(e.target.value)}
-                className="w-full min-h-[40px] pl-9 pr-3.5 rounded-xl border border-border-subtle bg-surface-elevated text-xs text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
-              />
-            </div>
-
-            <Link
-              href="/dashboard/pos-pelkes/baru"
-              className="min-h-[40px] px-3 rounded-xl bg-brand-primary text-white text-xs font-bold flex items-center gap-1.5 shrink-0 hover:bg-blue-800 transition-colors shadow-sm"
-            >
-              <Plus size={16} />
-              <span className="hidden sm:inline">Tambah Pos</span>
-            </Link>
           </div>
         </div>
 
@@ -353,65 +371,87 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
               const hasPosGps = Boolean(pos.latitude && pos.longitude);
 
               return (
-                <Link
+                <div
                   key={pos.id_pos}
-                  href={`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(id_induk)}/${encodeURIComponent(pos.id_pos)}`}
-                  className="block group min-h-[44px] bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft hover:border-emerald-500/40 hover:shadow-medium transition-all active:scale-[0.99]"
+                  className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft hover:border-emerald-500/40 transition-all space-y-3"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3">
-                      <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors shrink-0 mt-0.5">
-                        <MapPin size={20} />
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-surface-sunken border border-border-subtle text-text-muted">
+                          {pos.id_pos}
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                          {pos.jumlah_kk || 0} KK • {pos.jumlah_jiwa || 0} Jiwa
+                        </span>
                       </div>
 
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-surface-sunken border border-border-subtle text-text-muted">
-                            {pos.id_pos}
-                          </span>
-                        </div>
-
-                        <h3 className="font-extrabold text-text-high text-base group-hover:text-emerald-600 transition-colors leading-snug">
-                          {pos.nama_pos}
-                        </h3>
-
-                        <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200/60">
-                            {pos.jumlah_kk || 0} KK • {pos.jumlah_jiwa || 0} Jiwa
-                          </span>
-                        </div>
-
-                        {pos.alamat && (
-                          <p className="text-xs text-text-muted line-clamp-1">{pos.alamat}</p>
-                        )}
-                      </div>
+                      <h3 className="font-extrabold text-base text-text-high">{pos.nama_pos}</h3>
+                      {pos.alamat && <p className="text-xs text-text-muted line-clamp-1">{pos.alamat}</p>}
                     </div>
 
-                    <div className="p-2 rounded-xl text-text-muted group-hover:text-emerald-600 group-hover:bg-surface-sunken transition-all shrink-0">
-                      <ChevronRight size={20} />
+                    {/* Actions */}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={(e) => handleOpenElevate(e, pos)}
+                        className="px-2.5 py-1.5 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/40 text-xs font-bold flex items-center gap-1 hover:bg-amber-500/20 transition-colors min-h-[36px]"
+                        title="Tingkatkan Status ke Bajem"
+                      >
+                        <TrendingUp size={14} />
+                        <span className="hidden sm:inline">Elevasi</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={(e) => handleOpenEditPos(e, pos)}
+                        className="p-2 rounded-xl text-text-muted hover:text-brand-primary hover:bg-surface-sunken transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                        title="Edit Pos"
+                      >
+                        <Edit3 size={15} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeletePos(e, pos)}
+                        className="p-2 rounded-xl text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                        title="Hapus Pos"
+                      >
+                        <Trash2 size={15} />
+                      </button>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-3 border-t border-border-subtle mt-3 text-xs text-text-muted">
+                  <div className="pt-2 border-t border-border-subtle flex items-center justify-between text-xs text-text-muted">
                     <span className="font-semibold text-text-high flex items-center gap-1">
                       <HeartHandshake size={14} className="text-emerald-600" />
                       {pos.pj ? `PJ: ${pos.pj.nama_lengkap}` : '⚠️ Belum ada PJ'}
                     </span>
 
-                    {!hasPosGps && (
-                      <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium italic">
-                        ⚠️ No GPS
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {!hasPosGps && (
+                        <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium italic">
+                          ⚠️ No GPS
+                        </span>
+                      )}
+
+                      <Link
+                        href={`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(id_induk)}/${encodeURIComponent(pos.id_pos)}`}
+                        className="font-bold text-emerald-600 hover:underline flex items-center gap-1"
+                      >
+                        <span>Detail</span>
+                        <ChevronRight size={14} />
+                      </Link>
+                    </div>
                   </div>
-                </Link>
+                </div>
               );
             })}
           </div>
         )}
       </div>
 
-      {/* 6. MODALS */}
+      {/* 8. MODALS & FORMS */}
       {showKmjModal && (
         <KMJSelector
           id_induk={id_induk}
@@ -428,6 +468,23 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
           nama_induk={jemaat?.nama_induk || id_induk}
           onSuccess={() => setShowPjModal(false)}
           onClose={() => setShowPjModal(false)}
+        />
+      )}
+
+      {/* Pos Form Modal */}
+      <PosFormModal
+        isOpen={showPosModal}
+        onClose={() => setShowPosModal(false)}
+        id_induk={id_induk}
+        editData={editPosData}
+      />
+
+      {/* Status Elevation Modal */}
+      {showElevateModal && elevatePosItem && (
+        <StatusElevationModal
+          isOpen={showElevateModal}
+          onClose={() => setShowElevateModal(false)}
+          posItem={elevatePosItem}
         />
       )}
     </div>

@@ -571,3 +571,255 @@ export function useAssignPj() {
     },
   });
 }
+
+/**
+ * Interface Histori Status Perubahan
+ */
+export interface HistoriStatusItem {
+  id_histori: string;
+  id_pos: string | null;
+  id_induk_baru: string | null;
+  status_lama: string;
+  status_baru: string;
+  tanggal_perubahan: string;
+  keterangan_perubahan: string;
+  created_at: string;
+}
+
+/**
+ * Hook Mutation: CRUD Mupel
+ */
+export function useCreateMupel() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: { id_mupel: string; nama_mupel: string; keterangan?: string }) => {
+      const { data, error } = await supabase.from('m_mupel').insert(payload).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mupel-list'] });
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(10);
+    },
+  });
+}
+
+export function useUpdateMupel() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id_mupel, payload }: { id_mupel: string; payload: { nama_mupel: string; keterangan?: string } }) => {
+      const { data, error } = await supabase.from('m_mupel').update({ ...payload, updated_at: new Date().toISOString() }).eq('id_mupel', id_mupel).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mupel-list'] });
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(10);
+    },
+  });
+}
+
+export function useDeleteMupel() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id_mupel: string) => {
+      const { error } = await supabase.from('m_mupel').delete().eq('id_mupel', id_mupel);
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mupel-list'] });
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(10);
+    },
+  });
+}
+
+/**
+ * Hook Mutation: CRUD Jemaat Induk
+ */
+export function useCreateJemaat() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: any) => {
+      const { data, error } = await supabase.from('m_jemaat_induk').insert(payload).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['jemaat-list-by-mupel'] });
+      queryClient.invalidateQueries({ queryKey: ['jemaat-detail', variables.id_induk] });
+      queryClient.invalidateQueries({ queryKey: ['jemaat-map-data'] });
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(10);
+    },
+  });
+}
+
+export function useUpdateJemaat() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id_induk, payload }: { id_induk: string; payload: any }) => {
+      const { data, error } = await supabase.from('m_jemaat_induk').update({ ...payload, updated_at: new Date().toISOString() }).eq('id_induk', id_induk).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['jemaat-list-by-mupel'] });
+      queryClient.invalidateQueries({ queryKey: ['jemaat-detail', variables.id_induk] });
+      queryClient.invalidateQueries({ queryKey: ['jemaat-map-data'] });
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(10);
+    },
+  });
+}
+
+export function useDeleteJemaat() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id_induk: string) => {
+      const { error } = await supabase.from('m_jemaat_induk').delete().eq('id_induk', id_induk);
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['jemaat-list-by-mupel'] });
+      queryClient.invalidateQueries({ queryKey: ['jemaat-map-data'] });
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(10);
+    },
+  });
+}
+
+/**
+ * Hook Mutation: CRUD Pos Pelkes / Bajem
+ */
+export function useCreatePos() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: any) => {
+      const { data, error } = await supabase.from('m_pos_pelkes').insert(payload).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pos-list-by-jemaat'] });
+      queryClient.invalidateQueries({ queryKey: ['wilayah-map-data'] });
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(10);
+    },
+  });
+}
+
+export function useUpdatePos() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id_pos, payload }: { id_pos: string; payload: any }) => {
+      const { data, error } = await supabase.from('m_pos_pelkes').update({ ...payload, updated_at: new Date().toISOString() }).eq('id_pos', id_pos).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pos-list-by-jemaat'] });
+      queryClient.invalidateQueries({ queryKey: ['wilayah-map-data'] });
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(10);
+    },
+  });
+}
+
+export function useDeletePos() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id_pos: string) => {
+      const { error } = await supabase.from('m_pos_pelkes').delete().eq('id_pos', id_pos);
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pos-list-by-jemaat'] });
+      queryClient.invalidateQueries({ queryKey: ['wilayah-map-data'] });
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(10);
+    },
+  });
+}
+
+/**
+ * Hook Mutation: Peningkatan Status Berjenjang (Atomic RPC process_status_elevation)
+ */
+export function useElevateStatus() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: {
+      id_pos: string;
+      target_status: 'BAJEM' | 'JEMAAT_INDUK';
+      tanggal_perubahan: string;
+      keterangan_perubahan: string;
+      id_induk_baru?: string;
+      nama_induk_baru?: string;
+      id_mupel_baru?: string;
+    }) => {
+      const { error } = await supabase.rpc('process_status_elevation', {
+        p_id_pos: data.id_pos,
+        p_target_status: data.target_status,
+        p_tanggal_perubahan: data.tanggal_perubahan,
+        p_keterangan: data.keterangan_perubahan,
+        p_id_induk_baru: data.id_induk_baru || null,
+        p_nama_induk_baru: data.nama_induk_baru || null,
+        p_id_mupel_baru: data.id_mupel_baru || null,
+      });
+
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pos-list-by-jemaat'] });
+      queryClient.invalidateQueries({ queryKey: ['jemaat-list-by-mupel'] });
+      queryClient.invalidateQueries({ queryKey: ['mupel-list'] });
+      queryClient.invalidateQueries({ queryKey: ['histori-status'] });
+      queryClient.invalidateQueries({ queryKey: ['wilayah-map-data'] });
+      queryClient.invalidateQueries({ queryKey: ['jemaat-map-data'] });
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([10, 50, 10]);
+    },
+    onError: () => {
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([50, 100, 50]);
+    },
+  });
+}
+
+/**
+ * Hook Query: Fetch Histori Status Perubahan
+ */
+export function useHistoriStatus(id_pos: string) {
+  const supabase = createClient();
+
+  return useQuery<HistoriStatusItem[]>({
+    queryKey: ['histori-status', id_pos],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('t_histori_perubahan_status')
+        .select('*')
+        .eq('id_pos', id_pos)
+        .order('tanggal_perubahan', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id_pos,
+  });
+}
+
