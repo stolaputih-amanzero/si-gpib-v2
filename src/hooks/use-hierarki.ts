@@ -175,17 +175,18 @@ export function useJemaatByMupel(id_mupel?: string, search?: string) {
       const allPjAssignments = pjData || [];
 
       const result: JemaatIndukItem[] = (jemaatData || []).map((j: any) => {
-        // 1. Synchronized KMJ Resolution (FK id_kmj -> is_kmj flag -> Jabatan)
+        // 1. Synchronized KMJ Resolution (FK id_kmj -> is_kmj flag -> Jabatan -> First assigned pendeta)
         let resolvedKmj = j.kmj
           ? { id_pendeta: j.kmj.id_pendeta, nama_lengkap: cleanQuotes(j.kmj.nama_lengkap), no_wa: j.kmj.no_wa }
           : null;
 
         if (!resolvedKmj) {
-          const fallbackKmj = allPendeta.find(
+          const jemaatPendetaList = allPendeta.filter((p) => p.id_induk === j.id_induk);
+          const fallbackKmj = jemaatPendetaList.find(
             (p) =>
-              p.id_induk === j.id_induk &&
-              (p.is_kmj || (p.jabatan && p.jabatan.toUpperCase().includes('KMJ')))
-          );
+              p.is_kmj || (p.jabatan && p.jabatan.toUpperCase().includes('KMJ'))
+          ) || jemaatPendetaList[0];
+
           if (fallbackKmj) {
             resolvedKmj = {
               id_pendeta: fallbackKmj.id_pendeta,
@@ -195,10 +196,10 @@ export function useJemaatByMupel(id_mupel?: string, search?: string) {
           }
         }
 
-        // 2. Synchronized PJ Count (Combine t_pj_jemaat & is_pj flag)
+        // 2. Synchronized PJ Count (Combine t_pj_jemaat & m_pendeta assigned to this jemaat)
         const pjSet = new Set<string>();
         allPjAssignments.filter((pj) => pj.id_induk === j.id_induk).forEach((pj) => pjSet.add(pj.id_pendeta));
-        allPendeta.filter((p) => p.id_induk === j.id_induk && p.is_pj).forEach((p) => pjSet.add(p.id_pendeta));
+        allPendeta.filter((p) => p.id_induk === j.id_induk).forEach((p) => pjSet.add(p.id_pendeta));
 
         const pCount = allPos.filter((p) => p.id_induk === j.id_induk).length;
 
@@ -268,7 +269,8 @@ export function useJemaatDetail(id_induk?: string) {
       if (!resolvedKmj) {
         const fallbackKmj = allPendeta.find(
           (p) => p.is_kmj || (p.jabatan && p.jabatan.toUpperCase().includes('KMJ'))
-        );
+        ) || allPendeta[0];
+
         if (fallbackKmj) {
           resolvedKmj = {
             id_pendeta: fallbackKmj.id_pendeta,
@@ -281,7 +283,7 @@ export function useJemaatDetail(id_induk?: string) {
       // Multi-Source PJ Count
       const pjSet = new Set<string>();
       (pjData || []).forEach((pj) => pjSet.add(pj.id_pendeta));
-      allPendeta.filter((p) => p.is_pj).forEach((p) => pjSet.add(p.id_pendeta));
+      allPendeta.forEach((p) => pjSet.add(p.id_pendeta));
 
       return {
         ...(data as any),
@@ -329,8 +331,7 @@ export function usePosByJemaat(id_induk?: string, search?: string) {
           .eq('status_tugas', 'Aktif'),
         supabase
           .from('m_pendeta')
-          .select('id_pendeta, id_induk, nama_lengkap, no_wa, is_pj')
-          .eq('is_pj', true),
+          .select('id_pendeta, id_induk, nama_lengkap, no_wa, is_pj'),
       ]);
 
       const result: PosPelkesItem[] = (posData || []).map((p: any) => {
