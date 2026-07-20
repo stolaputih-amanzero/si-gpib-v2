@@ -3,13 +3,14 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Home, Map, FileText, User, Database, Activity, LogOut, Users, Box, HandHeart, UserCheck, HeartHandshake, Calendar, UserPlus, ShieldAlert } from 'lucide-react';
+import { Home, Map, FileText, User, Database, Activity, LogOut, Users, Box, HandHeart, UserCheck, HeartHandshake, Calendar, UserPlus, ShieldAlert, GitFork } from 'lucide-react';
 
 export default function Sidebar() {
   const pathname = usePathname();
 
   const mainNav = [
     { label: 'Beranda', href: '/dashboard', icon: Home },
+    { label: 'Hierarki GPIB', href: '/hierarki', icon: GitFork },
     { label: 'Peta', href: '/dashboard/peta', icon: Map },
     { label: 'Log Pastoral', href: '/dashboard/pastoral', icon: FileText },
   ];

@@ -1,0 +1,189 @@
+'use client';
+
+import { useState } from 'react';
+import { usePendetaList } from '@/hooks/use-pendeta';
+import { useAssignKmj } from '@/hooks/use-hierarki';
+import { UserCheck, Search, Loader2, CheckCircle2, AlertCircle, X } from 'lucide-react';
+
+interface KMJSelectorProps {
+  id_induk: string;
+  nama_induk: string;
+  currentKmjId?: string | null;
+  onSuccess?: () => void;
+  onClose: () => void;
+}
+
+export function KMJSelector({
+  id_induk,
+  nama_induk,
+  currentKmjId,
+  onSuccess,
+  onClose,
+}: KMJSelectorProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedPendetaId, setSelectedPendetaId] = useState<string | null>(currentKmjId || null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // POKA YOKE: Only fetch pendeta belonging to this Jemaat Induk
+  const { data: pendetaList, isLoading } = usePendetaList(id_induk, searchQuery);
+  const assignKmjMutation = useAssignKmj();
+
+  const handleAssign = async () => {
+    if (!selectedPendetaId) return;
+    setSuccessMsg(null);
+    setErrorMsg(null);
+
+    try {
+      await assignKmjMutation.mutateAsync({
+        id_induk,
+        id_pendeta: selectedPendetaId,
+      });
+
+      setSuccessMsg('Ketua Majelis Jemaat (KMJ) berhasil ditetapkan!');
+      if (onSuccess) {
+        setTimeout(() => onSuccess(), 1200);
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Gagal memproses penetapan KMJ.';
+      setErrorMsg(message);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
+      <div className="w-full max-w-lg max-h-[90vh] bg-surface-elevated rounded-3xl p-5 shadow-float border border-border-subtle flex flex-col relative">
+        {/* Modal Header */}
+        <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+              <UserCheck size={20} />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-text-high text-base">Assign KMJ Baru</h3>
+              <p className="text-xs text-text-muted">{nama_induk} ({id_induk})</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-full text-text-muted hover:text-text-high bg-surface-sunken transition-colors"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Notifications */}
+        {successMsg && (
+          <div className="mt-3 flex items-center gap-2 p-3 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-medium dark:bg-emerald-950/40 dark:text-emerald-300">
+            <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+            <span>{successMsg}</span>
+          </div>
+        )}
+
+        {errorMsg && (
+          <div className="mt-3 flex items-center gap-2 p-3 rounded-xl bg-red-50 text-red-800 border border-red-200 text-xs font-medium dark:bg-red-950/40 dark:text-red-300">
+            <AlertCircle size={16} className="text-red-600 shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
+        {/* Search Input */}
+        <div className="relative my-3">
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+          <input
+            type="text"
+            placeholder="Cari pendeta di jemaat ini..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full min-h-[44px] pl-9 pr-3.5 rounded-xl border border-border-subtle bg-surface-base text-xs text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
+          />
+        </div>
+
+        {/* List Pendeta Selection */}
+        <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[200px] max-h-[300px]">
+          {isLoading ? (
+            <div className="p-8 text-center text-xs text-text-muted">Memuat daftar pendeta...</div>
+          ) : !pendetaList || pendetaList.length === 0 ? (
+            <div className="p-6 text-center bg-surface-sunken rounded-2xl text-xs text-text-muted space-y-1">
+              <p className="font-semibold">Tidak ada pendeta terdaftar di Jemaat ini.</p>
+              <p className="text-[11px]">Daftarkan pendeta baru terlebih dahulu melalui Modul Pendeta.</p>
+            </div>
+          ) : (
+            pendetaList.map((pendeta) => {
+              const isSelected = selectedPendetaId === pendeta.id_pendeta;
+              const isCurrentKmj = currentKmjId === pendeta.id_pendeta;
+
+              return (
+                <button
+                  key={pendeta.id_pendeta}
+                  type="button"
+                  onClick={() => setSelectedPendetaId(pendeta.id_pendeta)}
+                  className={`w-full min-h-[48px] p-3 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                    isSelected
+                      ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/40 ring-2 ring-indigo-500/30'
+                      : 'border-border-subtle bg-surface-base hover:border-border-strong'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${
+                        isSelected
+                          ? 'border-indigo-600 bg-indigo-600 text-white'
+                          : 'border-text-muted bg-surface-elevated'
+                      }`}
+                    >
+                      {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                    </div>
+                    <div>
+                      <h4 className="font-extrabold text-xs text-text-high leading-snug">
+                        {pendeta.nama_lengkap}
+                      </h4>
+                      <p className="text-[11px] text-text-muted">
+                        Jabatan: {pendeta.jabatan} {pendeta.no_wa ? `• WA: ${pendeta.no_wa}` : ''}
+                      </p>
+                    </div>
+                  </div>
+
+                  {isCurrentKmj && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      KMJ Saat Ini
+                    </span>
+                  )}
+                </button>
+              );
+            })
+          )}
+        </div>
+
+        {/* Modal Actions */}
+        <div className="flex items-center gap-3 pt-4 border-t border-border-subtle mt-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 min-h-[44px] px-4 rounded-xl border border-border-subtle text-xs font-semibold text-text-muted hover:text-text-high transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            type="button"
+            disabled={!selectedPendetaId || assignKmjMutation.isPending}
+            onClick={handleAssign}
+            className="flex-1 min-h-[48px] bg-indigo-600 text-white rounded-xl font-bold text-xs hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-soft"
+          >
+            {assignKmjMutation.isPending ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                <span>Menyimpan...</span>
+              </>
+            ) : (
+              <>
+                <UserCheck size={16} />
+                <span>Tetapkan Sebagai KMJ</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
