@@ -1,7 +1,7 @@
 {
   "name": "SI GPIB v2.2",
   "short_name": "SI GPIB",
-  "description": "Sistem Informasi Pos Pelkes GPIB",
+  "description": "Sistem Informasi GPIB",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
