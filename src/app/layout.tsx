@@ -2,25 +2,26 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'SI GPIB v2.2 - Sistem Informasi Pos Pelkes GPIB',
+  title: 'SI GPIB v2.2 - Sistem Informasi GPIB',
   description: 'Platform Digital Terpadu Pelayanan & Kesaksian Pos Pelkes GPIB di Seluruh Indonesia.',
   manifest: '/manifest.json',
+  metadataBase: new URL('https://sigpib.amanzero.space'),
   icons: {
     icon: '/logo-si-gpib.png',
     shortcut: '/logo-si-gpib.png',
     apple: '/logo-si-gpib.png',
   },
   openGraph: {
-    title: 'SI GPIB v2.2 - Sistem Informasi Pos Pelkes GPIB',
+    title: 'SI GPIB v2.2 - Sistem Informasi GPIB',
     description: 'Platform Digital Terpadu Pelayanan & Kesaksian Pos Pelkes GPIB di Seluruh Indonesia.',
-    url: 'https://si-gpib-v2.vercel.app',
+    url: 'https://sigpib.amanzero.space',
     siteName: 'SI GPIB',
     images: [
       {
-        url: 'https://si-gpib-v2.vercel.app/og-image-si-gpib.png',
+        url: 'https://sigpib.amanzero.space/og-image-si-gpib.png',
         width: 1200,
         height: 630,
-        alt: 'SI GPIB v2.2 - Sistem Informasi Pos Pelkes GPIB',
+        alt: 'SI GPIB v2.2 - Sistem Informasi GPIB',
       },
     ],
     locale: 'id_ID',
@@ -28,9 +29,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SI GPIB v2.2 - Sistem Informasi Pos Pelkes GPIB',
+    title: 'SI GPIB v2.2 - Sistem Informasi GPIB',
     description: 'Platform Digital Terpadu Pelayanan & Kesaksian Pos Pelkes GPIB di Seluruh Indonesia.',
-    images: ['https://si-gpib-v2.vercel.app/og-image-si-gpib.png'],
+    images: ['https://sigpib.amanzero.space/og-image-si-gpib.png'],
   },
 };
 
