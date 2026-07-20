@@ -17,6 +17,8 @@ interface PosDetail {
   longitude: number | null;
   tgl_berdiri: string | null;
   keterangan: string | null;
+  jumlah_kk?: number | null;
+  jumlah_jiwa?: number | null;
   jemaat_induk: {
     nama_induk: string;
     id_induk: string;
@@ -54,7 +56,7 @@ async function getPosDetail(id_pos: string): Promise<PosDetail | null> {
   const { data, error } = await supabase
     .from('m_pos_pelkes')
     .select(`
-      id_pos, nama_pos, alamat, latitude, longitude, tgl_berdiri, keterangan,
+      id_pos, nama_pos, alamat, latitude, longitude, tgl_berdiri, keterangan, jumlah_kk, jumlah_jiwa,
       jemaat_induk:m_jemaat_induk(id_induk, nama_induk)
     `)
     .eq('id_pos', id_pos)
@@ -122,10 +124,15 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
     notFound();
   }
 
-  const totalKK = demografi.reduce((acc, curr) => acc + (curr.jml_kk || 0), 0);
-  const totalLaki = demografi.reduce((acc, curr) => acc + (curr.laki || 0), 0);
-  const totalPerempuan = demografi.reduce((acc, curr) => acc + (curr.perempuan || 0), 0);
-  const totalJiwa = totalLaki + totalPerempuan;
+  const demoKK = demografi.reduce((acc, curr) => acc + (curr.jml_kk || 0), 0);
+  const demoLaki = demografi.reduce((acc, curr) => acc + (curr.laki || 0), 0);
+  const demoPerempuan = demografi.reduce((acc, curr) => acc + (curr.perempuan || 0), 0);
+  const demoJiwa = demoLaki + demoPerempuan;
+
+  const totalKK = demoKK || pos.jumlah_kk || 0;
+  const totalJiwa = demoJiwa || pos.jumlah_jiwa || 0;
+  const totalLaki = demoLaki;
+  const totalPerempuan = demoPerempuan;
 
   return (
     <div className="min-h-screen bg-surface-base pb-safe">
