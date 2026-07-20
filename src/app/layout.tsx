@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   description: 'Platform Digital Terpadu GPIB di Seluruh Indonesia.',
   manifest: '/manifest.json',
   metadataBase: new URL('https://sigpib.amanzero.space'),
+  alternates: {
+    canonical: 'https://sigpib.amanzero.space',
+  },
   icons: {
     icon: '/logo-si-gpib.png',
     shortcut: '/logo-si-gpib.png',
