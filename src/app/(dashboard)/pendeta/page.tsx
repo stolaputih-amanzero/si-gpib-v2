@@ -1,21 +1,26 @@
 'use client';
 
 import { useState } from 'react';
-import { usePendetaList, useDeletePendeta, PendetaItem } from '@/hooks/use-pendeta';
+import { usePendetaList, useDeletePendeta, PendetaItem, usePendetaKontrakSegeraBerakhir } from '@/hooks/use-pendeta';
 import { PendetaCard } from '@/components/pendeta/PendetaCard';
 import { PendetaForm } from '@/components/pendeta/PendetaForm';
-import { Plus, Search, UserCheck, Crown, ShieldCheck } from 'lucide-react';
+import { Plus, Search, UserCheck, Crown, ShieldCheck, AlertTriangle, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 
 export default function PendetaOverviewPage() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedInduk, setSelectedInduk] = useState<string>('');
+  const [jenisFilter, setJenisFilter] = useState<'all' | 'Organik' | 'Non-Organik'>('all');
   const [showModal, setShowModal] = useState<boolean>(false);
   const [editingItem, setEditingItem] = useState<PendetaItem | null>(null);
 
-  const { data: pendetaList, isLoading } = usePendetaList(
-    selectedInduk || undefined,
-    searchQuery || undefined
-  );
+  const { data: pendetaList, isLoading } = usePendetaList({
+    id_induk: selectedInduk || undefined,
+    search: searchQuery || undefined,
+    jenis_pendeta: jenisFilter === 'all' ? undefined : jenisFilter
+  });
+  
+  const { data: kontrakSegeraBerakhir } = usePendetaKontrakSegeraBerakhir();
 
   const deleteMutation = useDeletePendeta();
 
@@ -62,6 +67,44 @@ export default function PendetaOverviewPage() {
       </div>
 
       <main className="max-w-6xl mx-auto px-4 py-5 space-y-6">
+        
+        {/* Alert Kontrak Segera Berakhir */}
+        {kontrakSegeraBerakhir && kontrakSegeraBerakhir.length > 0 && (
+          <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 shadow-sm animate-fadeIn">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">
+                <AlertTriangle size={20} />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-amber-800 dark:text-amber-300 text-sm">
+                  Peringatan: {kontrakSegeraBerakhir.length} Pendeta dengan Kontrak Segera Berakhir (&lt; 90 hari)
+                </h3>
+                <p className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-1 mb-3">
+                  Terdapat pendeta Non-Organik yang masa kontraknya akan segera habis atau sudah kedaluwarsa.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                  {kontrakSegeraBerakhir.slice(0, 3).map((p) => (
+                    <Link key={p.id_pendeta} href={`/pendeta/${p.id_pendeta}`} className="bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-black/40 border border-amber-200/50 dark:border-amber-800/50 rounded-lg p-2.5 flex items-center justify-between transition-colors">
+                      <div>
+                        <p className="text-xs font-bold text-amber-900 dark:text-amber-200 truncate max-w-[150px]">{p.nama_lengkap}</p>
+                        <p className="text-[10px] text-amber-700 dark:text-amber-400/80 mt-0.5">Berakhir: {p.tgl_akhir_kontrak}</p>
+                      </div>
+                      <ChevronRight size={14} className="text-amber-400" />
+                    </Link>
+                  ))}
+                  {kontrakSegeraBerakhir.length > 3 && (
+                    <button onClick={() => setJenisFilter('Non-Organik')} className="bg-amber-100/50 hover:bg-amber-200/50 dark:bg-amber-900/30 dark:hover:bg-amber-900/50 border border-amber-200/50 dark:border-amber-800/50 rounded-lg p-2.5 flex items-center justify-center transition-colors">
+                      <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">
+                        Lihat {kontrakSegeraBerakhir.length - 3} lainnya...
+                      </span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* KPI Cards Overview */}
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-surface-elevated p-4 rounded-xl border border-border-subtle shadow-soft">
@@ -110,6 +153,23 @@ export default function PendetaOverviewPage() {
               />
             </div>
           </div>
+        </div>
+
+        {/* Filter Jenis Pendeta Tabs */}
+        <div className="flex p-1 bg-surface-sunken rounded-xl border border-border-subtle inline-flex">
+          {(['all', 'Organik', 'Non-Organik'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setJenisFilter(tab)}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all min-h-[44px] ${
+                jenisFilter === tab
+                  ? 'bg-surface-elevated text-brand-primary shadow-sm'
+                  : 'text-text-muted hover:text-text-high'
+              }`}
+            >
+              {tab === 'all' ? 'Semua Pendeta' : tab}
+            </button>
+          ))}
         </div>
 
         {/* Pendeta List */}

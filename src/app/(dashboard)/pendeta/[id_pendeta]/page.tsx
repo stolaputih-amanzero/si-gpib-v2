@@ -6,8 +6,13 @@ import {
   useMutationHistory, 
   useSetKmj 
 } from '@/hooks/use-pendeta';
+import { useJabatanByPendeta } from '@/hooks/use-jabatan-struktural';
 import { MutationTimeline } from '@/components/pendeta/MutationTimeline';
 import { MutasiForm } from '@/components/pendeta/MutasiForm';
+import { JabatanTimeline } from '@/components/pendeta/JabatanTimeline';
+import { OrganikBadge } from '@/components/pendeta/OrganikBadge';
+import { KontrakAlert } from '@/components/pendeta/KontrakAlert';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { 
   ArrowLeft, 
   Building2, 
@@ -32,6 +37,7 @@ export default function PendetaDetailPage({ params }: { params: Promise<{ id_pen
 
   const { data: pendeta, isLoading } = usePendetaDetail(id_pendeta);
   const { data: historyList, isLoading: historyLoading } = useMutationHistory(id_pendeta);
+  const { data: jabatans } = useJabatanByPendeta(id_pendeta);
   const setKmjMutation = useSetKmj();
 
   if (isLoading) {
@@ -113,6 +119,10 @@ export default function PendetaDetailPage({ params }: { params: Promise<{ id_pen
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-xl md:text-2xl font-serif font-bold text-text-high">{pendeta.nama_lengkap}</h1>
+                  <OrganikBadge jenis={pendeta.jenis_pendeta} size="sm" />
+                  {pendeta.jenis_pendeta === 'Non-Organik' && pendeta.tgl_akhir_kontrak && (
+                    <KontrakAlert tglAkhir={pendeta.tgl_akhir_kontrak} />
+                  )}
                   {pendeta.is_kmj && (
                     <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1">
                       <Crown size={12} className="text-amber-600" />
@@ -192,17 +202,43 @@ export default function PendetaDetailPage({ params }: { params: Promise<{ id_pen
           </div>
         </div>
 
-        {/* Mutation Timeline Section */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-serif font-bold text-brand-primary flex items-center gap-2">
-              <Calendar size={18} />
-              <span>Riwayat Mutasi & Penugasan</span>
-            </h2>
-          </div>
+        {/* Tabs for details */}
+        <Tabs defaultValue="mutasi" className="w-full">
+          <TabsList className="w-full justify-start overflow-x-auto bg-surface-sunken">
+            <TabsTrigger value="mutasi" className="text-xs font-semibold">Riwayat Mutasi</TabsTrigger>
+            <TabsTrigger value="jabatan" className="text-xs font-semibold">Jabatan Struktural</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="mutasi" className="mt-4 animate-fadeIn">
+            <div className="bg-surface-elevated rounded-2xl p-6 border border-border-subtle shadow-soft space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-serif font-bold text-brand-primary flex items-center gap-2">
+                  <Calendar size={18} />
+                  <span>Riwayat Mutasi & Penugasan</span>
+                </h2>
+              </div>
+              <MutationTimeline historyList={historyList || []} isLoading={historyLoading} />
+            </div>
+          </TabsContent>
 
-          <MutationTimeline historyList={historyList || []} isLoading={historyLoading} />
-        </div>
+          <TabsContent value="jabatan" className="mt-4 animate-fadeIn">
+            <div className="bg-surface-elevated rounded-2xl p-6 border border-border-subtle shadow-soft space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-serif font-bold text-brand-primary flex items-center gap-2">
+                  <Building2 size={18} />
+                  <span>Riwayat Jabatan Struktural</span>
+                </h2>
+                <Link
+                  href={`/pendeta/${pendeta.id_pendeta}/jabatan`}
+                  className="px-4 py-2 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-blue-800 transition-all flex items-center gap-1.5 shadow-sm min-h-[36px]"
+                >
+                  Kelola Jabatan
+                </Link>
+              </div>
+              <JabatanTimeline jabatans={jabatans || []} />
+            </div>
+          </TabsContent>
+        </Tabs>
       </main>
 
       {/* Modal Mutasi Form */}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { pendetaSchema, PendetaInput } from '@/lib/validations/pendeta.schema';
 import { useCreatePendeta, useUpdatePendeta, PendetaItem } from '@/hooks/use-pendeta';
@@ -22,9 +22,10 @@ export function PendetaForm({ id_induk = 'IND-13055', initialData, onSuccess }: 
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<PendetaInput>({
-    resolver: zodResolver(pendetaSchema),
+    resolver: zodResolver(pendetaSchema) as any,
     defaultValues: {
       id_induk: initialData?.id_induk || id_induk,
       nama_lengkap: initialData?.nama_lengkap || '',
@@ -32,10 +33,21 @@ export function PendetaForm({ id_induk = 'IND-13055', initialData, onSuccess }: 
       jabatan: initialData?.jabatan || 'Pendeta Jemaat',
       gender: initialData?.gender || 'Laki-laki',
       status: (initialData?.status as any) || 'Aktif',
-      tgl_lahir: initialData?.tgl_lahir || '',
-      tgl_tugas: initialData?.tgl_tugas || '',
+      tgl_lahir: initialData?.tgl_lahir ? new Date(initialData.tgl_lahir).toISOString().split('T')[0] : '',
+      tgl_tugas: initialData?.tgl_tugas ? new Date(initialData.tgl_tugas).toISOString().split('T')[0] : '',
       keterangan: initialData?.keterangan || '',
-    },
+      jenis_pendeta: initialData?.jenis_pendeta || 'Organik',
+      tgl_mulai_kontrak: initialData?.tgl_mulai_kontrak ? new Date(initialData.tgl_mulai_kontrak).toISOString().split('T')[0] : '',
+      tgl_akhir_kontrak: initialData?.tgl_akhir_kontrak ? new Date(initialData.tgl_akhir_kontrak).toISOString().split('T')[0] : '',
+      sumber_pembiayaan: initialData?.sumber_pembiayaan || '',
+      eligible_rotasi: initialData?.eligible_rotasi ?? true,
+      gereja_asal: initialData?.gereja_asal || '',
+    } as any,
+  });
+
+  const jenisPendeta = useWatch({
+    control,
+    name: 'jenis_pendeta',
   });
 
   const onSubmit = async (data: PendetaInput) => {
@@ -151,6 +163,64 @@ export function PendetaForm({ id_induk = 'IND-13055', initialData, onSuccess }: 
           </select>
         </div>
       </div>
+
+      {/* Jenis Pendeta & Sumber Pembiayaan */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-border-subtle pt-4 mt-2">
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-text-high">Jenis Pendeta *</label>
+          <select
+            {...register('jenis_pendeta')}
+            className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-base font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
+          >
+            <option value="Organik">Organik</option>
+            <option value="Non-Organik">Non-Organik</option>
+          </select>
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-text-high">Sumber Pembiayaan</label>
+          <input
+            type="text"
+            placeholder="Misal: Kas Sinode, Kas Jemaat"
+            {...register('sumber_pembiayaan')}
+            className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-base font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
+          />
+        </div>
+      </div>
+
+      {/* Kontrak (Hanya untuk Non-Organik) */}
+      {jenisPendeta === 'Non-Organik' && (
+        <div className="bg-amber-50 dark:bg-amber-950/20 p-4 rounded-xl border border-amber-200 dark:border-amber-900/50 space-y-4 animate-fadeIn">
+          <h4 className="text-sm font-semibold text-amber-800 dark:text-amber-400">Detail Kontrak (Non-Organik)</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-amber-900 dark:text-amber-300">Tanggal Mulai Kontrak</label>
+              <input
+                type="date"
+                {...register('tgl_mulai_kontrak')}
+                className="w-full min-h-[44px] px-3.5 rounded-xl border border-amber-300 bg-white dark:bg-surface-elevated text-base font-medium focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-amber-900 dark:text-amber-300">Tanggal Akhir Kontrak *</label>
+              <input
+                type="date"
+                {...register('tgl_akhir_kontrak')}
+                className="w-full min-h-[44px] px-3.5 rounded-xl border border-amber-300 bg-white dark:bg-surface-elevated text-base font-medium focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+              {errors.tgl_akhir_kontrak && <p className="text-xs text-error">{errors.tgl_akhir_kontrak.message}</p>}
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-amber-900 dark:text-amber-300">Gereja Asal</label>
+            <input
+              type="text"
+              placeholder="Misal: GMIM, HKBP, dll"
+              {...register('gereja_asal')}
+              className="w-full min-h-[44px] px-3.5 rounded-xl border border-amber-300 bg-white dark:bg-surface-elevated text-base font-medium focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Keterangan */}
       <div className="space-y-1.5">

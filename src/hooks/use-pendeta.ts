@@ -15,6 +15,12 @@ export interface PendetaItem {
   is_kmj: boolean;
   is_pj: boolean;
   keterangan?: string | null;
+  jenis_pendeta: 'Organik' | 'Non-Organik';
+  tgl_mulai_kontrak?: string | null;
+  tgl_akhir_kontrak?: string | null;
+  sumber_pembiayaan?: string | null;
+  eligible_rotasi: boolean;
+  gereja_asal?: string | null;
   created_at?: string;
   updated_at?: string;
   jemaat_induk?: {
@@ -47,19 +53,23 @@ function generateId(prefix: string) {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`.toUpperCase();
 }
 
-export function usePendetaList(id_induk?: string, search?: string) {
+export function usePendetaList(filter?: { id_induk?: string, search?: string, jenis_pendeta?: 'Organik' | 'Non-Organik' }) {
   const supabase = createClient();
 
   return useQuery({
-    queryKey: ['pendeta-list', id_induk, search],
+    queryKey: ['pendeta-list', filter],
     queryFn: async () => {
       let query = supabase
         .from('m_pendeta')
         .select('*, jemaat_induk:m_jemaat_induk!m_pendeta_id_induk_fkey(id_induk, nama_induk, mupel:m_mupel(nama_mupel))')
         .order('created_at', { ascending: false });
 
-      if (id_induk && id_induk !== 'all') {
-        query = query.or(`id_induk.eq.${id_induk},id_induk.is.null`);
+      if (filter?.id_induk && filter.id_induk !== 'all') {
+        query = query.or(`id_induk.eq.${filter.id_induk},id_induk.is.null`);
+      }
+
+      if (filter?.jenis_pendeta && filter.jenis_pendeta !== 'all' as any) {
+        query = query.eq('jenis_pendeta', filter.jenis_pendeta);
       }
 
       const { data, error } = await query;
@@ -67,8 +77,8 @@ export function usePendetaList(id_induk?: string, search?: string) {
 
       let result = (data || []) as PendetaItem[];
 
-      if (search) {
-        const s = search.toLowerCase();
+      if (filter?.search) {
+        const s = filter.search.toLowerCase();
         result = result.filter(
           (p) =>
             p.nama_lengkap.toLowerCase().includes(s) ||
@@ -78,6 +88,30 @@ export function usePendetaList(id_induk?: string, search?: string) {
       }
 
       return result;
+    },
+  });
+}
+
+export function usePendetaKontrakSegeraBerakhir() {
+  const supabase = createClient();
+
+  return useQuery({
+    queryKey: ['pendeta-kontrak-segera-berakhir'],
+    queryFn: async () => {
+      const ninetyDaysFromNow = new Date();
+      ninetyDaysFromNow.setDate(ninetyDaysFromNow.getDate() + 90);
+
+      const { data, error } = await supabase
+        .from('m_pendeta')
+        .select(`*, jemaat_induk:m_jemaat_induk!m_pendeta_id_induk_fkey(nama_induk)`)
+        .eq('jenis_pendeta', 'Non-Organik')
+        .not('tgl_akhir_kontrak', 'is', null)
+        .lte('tgl_akhir_kontrak', ninetyDaysFromNow.toISOString().split('T')[0])
+        .gte('tgl_akhir_kontrak', new Date().toISOString().split('T')[0])
+        .order('tgl_akhir_kontrak');
+
+      if (error) throw error;
+      return (data || []) as PendetaItem[];
     },
   });
 }
@@ -134,9 +168,15 @@ export function useCreatePendeta() {
       const payload = {
         id_pendeta,
         ...input,
-        tgl_lahir: input.tgl_lahir || null,
-        tgl_tugas: input.tgl_tugas || null,
+        tgl_lahir: input.tgl_lahir ? new Date(input.tgl_lahir).toISOString().split('T')[0] : null,
+        tgl_tugas: input.tgl_tugas ? new Date(input.tgl_tugas).toISOString().split('T')[0] : null,
         keterangan: input.keterangan || null,
+        jenis_pendeta: input.jenis_pendeta || 'Organik',
+        tgl_mulai_kontrak: input.tgl_mulai_kontrak ? new Date(input.tgl_mulai_kontrak).toISOString().split('T')[0] : null,
+        tgl_akhir_kontrak: input.tgl_akhir_kontrak ? new Date(input.tgl_akhir_kontrak).toISOString().split('T')[0] : null,
+        sumber_pembiayaan: input.sumber_pembiayaan || null,
+        eligible_rotasi: input.eligible_rotasi ?? true,
+        gereja_asal: input.gereja_asal || null,
       };
 
       const { data, error } = await supabase
@@ -163,9 +203,17 @@ export function useUpdatePendeta() {
 
   return useMutation({
     mutationFn: async ({ id_pendeta, input }: { id_pendeta: string; input: Partial<PendetaInput> }) => {
+      const updateData = {
+        ...input,
+        tgl_lahir: input.tgl_lahir ? new Date(input.tgl_lahir).toISOString().split('T')[0] : null,
+        tgl_tugas: input.tgl_tugas ? new Date(input.tgl_tugas).toISOString().split('T')[0] : null,
+        tgl_mulai_kontrak: input.tgl_mulai_kontrak ? new Date(input.tgl_mulai_kontrak).toISOString().split('T')[0] : null,
+        tgl_akhir_kontrak: input.tgl_akhir_kontrak ? new Date(input.tgl_akhir_kontrak).toISOString().split('T')[0] : null,
+      };
+
       const { data, error } = await supabase
         .from('m_pendeta')
-        .update({ ...input, updated_at: new Date().toISOString() })
+        .update({ ...updateData, updated_at: new Date().toISOString() })
         .eq('id_pendeta', id_pendeta)
         .select()
         .single();

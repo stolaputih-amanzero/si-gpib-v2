@@ -1,6 +1,8 @@
 import { PendetaItem } from '@/hooks/use-pendeta';
 import { Phone, MapPin, Edit2, Trash2, ShieldCheck, Crown, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { OrganikBadge } from './OrganikBadge';
+import { KontrakAlert } from './KontrakAlert';
 
 interface PendetaCardProps {
   item: PendetaItem;
@@ -40,7 +42,13 @@ export function PendetaCard({ item, onEdit, onDelete }: PendetaCardProps) {
                 </span>
               )}
             </div>
-            <p className="text-xs font-semibold text-brand-primary mt-0.5">{item.jabatan}</p>
+            <div className="flex flex-wrap items-center gap-1.5 mt-1">
+              <p className="text-xs font-semibold text-brand-primary">{item.jabatan}</p>
+              <OrganikBadge jenis={item.jenis_pendeta} size="sm" />
+              {item.jenis_pendeta === 'Non-Organik' && item.tgl_akhir_kontrak && (
+                <KontrakAlert tglAkhir={item.tgl_akhir_kontrak} />
+              )}
+            </div>
           </div>
         </div>
 

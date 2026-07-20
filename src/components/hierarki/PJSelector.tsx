@@ -25,10 +25,10 @@ export function PJSelector({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Fetch pendeta: either filtered by jemaat or all
-  const { data: pendetaList, isLoading } = usePendetaList(
-    filterMode === 'jemaat' ? id_induk : undefined,
-    searchQuery
-  );
+  const { data: pendetaList, isLoading } = usePendetaList({
+    id_induk: filterMode === 'jemaat' ? id_induk : undefined,
+    search: searchQuery
+  });
   const assignPjMutation = useAssignPj();
 
   const handleAssign = async () => {
