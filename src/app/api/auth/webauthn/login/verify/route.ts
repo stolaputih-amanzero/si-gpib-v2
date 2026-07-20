@@ -85,15 +85,34 @@ export async function POST(req: NextRequest) {
     let redirectUrl = null;
 
     if (userData?.email) {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
       const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
         type: 'magiclink',
         email: userData.email,
-        options: { redirectTo: `${appUrl}/dashboard` }
       });
 
       if (!linkError && linkData?.properties?.action_link) {
-        redirectUrl = linkData.properties.action_link;
+        // Ekstrak token dari action_link
+        const url = new URL(linkData.properties.action_link);
+        const tokenHash = url.searchParams.get('token');
+
+        if (tokenHash) {
+          // Panggil verifyOtp menggunakan server client agar cookies di-set di HTTP Response!
+          const { createClient } = await import('@/lib/supabase/server');
+          const supabaseServer = await createClient();
+          
+          const { error: otpError } = await supabaseServer.auth.verifyOtp({
+            type: 'magiclink',
+            email: userData.email,
+            token: tokenHash,
+          });
+
+          if (!otpError) {
+             // Set redirectUrl langsung ke dashboard karena sesi sudah terbentuk via cookie
+             redirectUrl = '/dashboard';
+          } else {
+             console.error('OTP Error:', otpError);
+          }
+        }
       }
     }
 
