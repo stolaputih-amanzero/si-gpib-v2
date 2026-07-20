@@ -55,7 +55,7 @@ export function usePendetaList(id_induk?: string, search?: string) {
     queryFn: async () => {
       let query = supabase
         .from('m_pendeta')
-        .select('*, jemaat_induk:m_jemaat_induk(id_induk, nama_induk, mupel:m_mupel(nama_mupel))')
+        .select('*, jemaat_induk:m_jemaat_induk!m_pendeta_id_induk_fkey(id_induk, nama_induk, mupel:m_mupel(nama_mupel))')
         .order('created_at', { ascending: false });
 
       if (id_induk && id_induk !== 'all') {
@@ -92,7 +92,7 @@ export function usePendetaDetail(id_pendeta?: string) {
 
       const { data, error } = await supabase
         .from('m_pendeta')
-        .select('*, jemaat_induk:m_jemaat_induk(id_induk, nama_induk, mupel:m_mupel(nama_mupel))')
+        .select('*, jemaat_induk:m_jemaat_induk!m_pendeta_id_induk_fkey(id_induk, nama_induk, mupel:m_mupel(nama_mupel))')
         .eq('id_pendeta', id_pendeta)
         .single();
 
