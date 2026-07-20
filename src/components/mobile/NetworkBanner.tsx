@@ -2,11 +2,19 @@
 
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { WifiOff, RefreshCw, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export function NetworkBanner() {
   const { isOnline, pendingCount } = useNetworkStatus();
   const [dismissed, setDismissed] = useState<boolean>(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Avoid hydration mismatch by waiting until mounted
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   // If online and no pending queue, don't display banner
   if (isOnline && pendingCount === 0) return null;
