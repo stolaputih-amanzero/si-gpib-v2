@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import '../styles/globals.css';
+import './globals.css';
 
 export const metadata: Metadata = {
   title: 'SI GPIB v2.2 - Sistem Informasi Pos Pelkes GPIB',
