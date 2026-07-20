@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, LogOut, Copy, Check, Shield, Mail, Smartphone, Info } from 'lucide-react';
+import { LogOut, Copy, Check, Shield, Mail, Smartphone, Info } from 'lucide-react';
 import { BiometricSetup } from '@/components/biometric/BiometricSetup';
 import { createClient } from '@/lib/supabase/client';
 import { logout } from '@/app/(auth)/login/actions';
