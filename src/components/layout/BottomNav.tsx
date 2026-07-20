@@ -46,13 +46,13 @@ export default function BottomNav() {
 
         {/* FAB Container */}
         <div className="flex-shrink-0 w-16 flex justify-center -mt-6">
-          <button 
-            type="button"
+          <Link 
+            href="/dashboard/pos-pelkes/baru"
             className="flex items-center justify-center w-14 h-14 bg-brand-primary text-white rounded-full shadow-lg hover:bg-blue-800 active:bg-blue-900 focus:outline-none focus:ring-4 focus:ring-blue-100 transition-transform active:scale-95"
-            aria-label="Tindakan Cepat"
+            aria-label="Tambah Pos Pelkes"
           >
             <Plus size={28} className="stroke-2" />
-          </button>
+          </Link>
         </div>
 
         {/* Right Nav Items */}
