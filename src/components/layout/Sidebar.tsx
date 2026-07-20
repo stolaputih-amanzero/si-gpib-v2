@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Home, Map, FileText, User, Database, Activity, LogOut, Users } from 'lucide-react';
+import { Home, Map, FileText, User, Database, Activity, LogOut, Users, Box } from 'lucide-react';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -17,6 +17,7 @@ export default function Sidebar() {
   const secondaryNav = [
     { label: 'Pos Pelkes', href: '/dashboard/pos-pelkes', icon: Database },
     { label: 'Demografi Pelkat', href: '/demografi', icon: Users },
+    { label: 'Inventaris Aset', href: '/aset', icon: Box },
     { label: 'Aktivitas', href: '/dashboard/aktivitas', icon: Activity },
     { label: 'Profil', href: '/dashboard/profil', icon: User },
   ];
