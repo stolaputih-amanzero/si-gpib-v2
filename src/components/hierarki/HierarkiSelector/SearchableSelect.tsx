@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Search, ChevronDown, Check, X, Loader2 } from 'lucide-react';
 
 export interface SelectOption {
@@ -40,12 +40,16 @@ export function SearchableSelect({
 }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
-  // Focus search input when popover opens
+  // Reset highlighted index & query when popover state changes
   useEffect(() => {
     if (isOpen) {
+      setHighlightedIndex(0);
       setTimeout(() => {
         searchInputRef.current?.focus();
       }, 50);
@@ -67,15 +71,41 @@ export function SearchableSelect({
 
   const selectedOption = options.find((opt) => opt.value === value);
 
-  // Filter options based on query
-  const filteredOptions = options.filter((opt) => {
+  // Filter options with performance monitoring
+  const filteredOptions = useMemo(() => {
+    const startTime = performance.now();
     const q = query.toLowerCase().trim();
-    if (!q) return true;
-    return (
-      opt.label.toLowerCase().includes(q) ||
-      (opt.sublabel && opt.sublabel.toLowerCase().includes(q))
-    );
-  });
+
+    const filtered = !q
+      ? options
+      : options.filter(
+          (opt) =>
+            opt.label.toLowerCase().includes(q) ||
+            (opt.sublabel && opt.sublabel.toLowerCase().includes(q))
+        );
+
+    const duration = performance.now() - startTime;
+    if (duration > 100) {
+      console.warn(`[SearchableSelect] Search took ${duration.toFixed(2)}ms for ${options.length} items`);
+    }
+
+    return filtered;
+  }, [options, query]);
+
+  // Reset highlight index when filtered options change
+  useEffect(() => {
+    setHighlightedIndex(0);
+  }, [query]);
+
+  // Auto-scroll highlighted item into view
+  useEffect(() => {
+    if (isOpen && listRef.current) {
+      const activeEl = listRef.current.children[highlightedIndex] as HTMLElement;
+      if (activeEl) {
+        activeEl.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }, [highlightedIndex, isOpen]);
 
   const handleSelect = (val: string) => {
     onChange(val);
@@ -87,8 +117,44 @@ export function SearchableSelect({
     onChange('');
   };
 
+  // Keyboard navigation handler
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isOpen) {
+      if (e.key === 'ArrowDown' || e.key === 'Enter') {
+        e.preventDefault();
+        setIsOpen(true);
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setHighlightedIndex((prev) =>
+          prev < filteredOptions.length - 1 ? prev + 1 : 0
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setHighlightedIndex((prev) =>
+          prev > 0 ? prev - 1 : filteredOptions.length - 1
+        );
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (filteredOptions[highlightedIndex]) {
+          handleSelect(filteredOptions[highlightedIndex].value);
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        setIsOpen(false);
+        break;
+    }
+  };
+
   return (
-    <div className="space-y-1.5 w-full relative" ref={containerRef}>
+    <div className="space-y-1.5 w-full relative" ref={containerRef} onKeyDown={handleKeyDown}>
       {label && (
         <label className="text-xs font-semibold text-text-high flex items-center justify-between">
           <span>{label}</span>
@@ -165,22 +231,26 @@ export function SearchableSelect({
           </div>
 
           {/* Options List */}
-          <div className="max-h-60 overflow-y-auto p-1 space-y-0.5 scrollbar-thin">
+          <div ref={listRef} className="max-h-60 overflow-y-auto p-1 space-y-0.5 scrollbar-thin">
             {filteredOptions.length === 0 ? (
               <div className="p-3 text-center text-xs text-text-muted">
                 {emptyMessage}
               </div>
             ) : (
-              filteredOptions.map((opt) => {
+              filteredOptions.map((opt, index) => {
                 const isSelected = opt.value === value;
+                const isHighlighted = index === highlightedIndex;
                 return (
                   <button
                     key={opt.value}
                     type="button"
                     onClick={() => handleSelect(opt.value)}
+                    onMouseEnter={() => setHighlightedIndex(index)}
                     className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-between gap-2 ${
                       isSelected
                         ? 'bg-brand-primary/10 text-brand-primary font-semibold'
+                        : isHighlighted
+                        ? 'bg-surface-hover text-text-high'
                         : 'text-text-high hover:bg-surface-hover'
                     }`}
                   >
