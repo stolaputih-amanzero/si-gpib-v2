@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { BreadcrumbNav } from '@/components/hierarki/BreadcrumbNav';
 import { usePosByJemaat, useJemaatDetail } from '@/hooks/use-hierarki';
-import { MapPin, Church, HeartHandshake, ArrowLeft, FileText, AlertTriangle } from 'lucide-react';
+import { MapPin, Church, HeartHandshake, ArrowLeft, FileText, AlertTriangle, Home, Users } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ShareButton } from '@/components/mobile/ShareButton';
 
 interface PosDetailClientProps {
   id_mupel: string;
@@ -82,13 +83,21 @@ export function PosDetailClient({ id_mupel, id_induk, id_pos }: PosDetailClientP
               </div>
             </div>
 
-            <Link
-              href={`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(id_induk)}`}
-              className="min-h-[40px] px-3.5 py-2 rounded-xl border border-border-subtle bg-surface-sunken hover:bg-surface-elevated text-xs font-bold text-text-high flex items-center gap-1.5 transition-colors self-start shrink-0"
-            >
-              <ArrowLeft size={16} />
-              <span>Kembali ke Jemaat</span>
-            </Link>
+            <div className="flex items-center gap-2 shrink-0">
+              <ShareButton
+                title={`Pos Pelkes GPIB: ${pos?.nama_pos || id_pos}`}
+                text={`Jemaat Induk: ${jemaat?.nama_induk || id_induk}\nAlamat: ${pos?.alamat || '-'}\nJumlah KK: ${pos?.jumlah_kk || 0}\nTotal Jiwa: ${pos?.jumlah_jiwa || 0}`}
+                variant="ghost"
+                iconOnly
+              />
+              <Link
+                href={`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(id_induk)}`}
+                className="min-h-[40px] px-3.5 py-2 rounded-xl border border-border-subtle bg-surface-sunken hover:bg-surface-elevated text-xs font-bold text-text-high flex items-center gap-1.5 transition-colors self-start shrink-0"
+              >
+                <ArrowLeft size={16} />
+                <span>Kembali</span>
+              </Link>
+            </div>
           </div>
 
           {/* Warning GPS missing */}
@@ -100,6 +109,29 @@ export function PosDetailClient({ id_mupel, id_induk, id_pos }: PosDetailClientP
           )}
         </div>
       )}
+
+      {/* Statistik Demografi Ringkasan Grid */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <Home size={20} />
+          </div>
+          <div>
+            <span className="block text-[10px] font-bold text-text-muted uppercase tracking-wider">Jumlah KK</span>
+            <p className="text-xl font-black text-text-high tabular-nums">{pos?.jumlah_kk || 0} KK</p>
+          </div>
+        </div>
+
+        <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400 flex items-center justify-center shrink-0">
+            <Users size={20} />
+          </div>
+          <div>
+            <span className="block text-[10px] font-bold text-text-muted uppercase tracking-wider">Jumlah Jiwa</span>
+            <p className="text-xl font-black text-text-high tabular-nums">{pos?.jumlah_jiwa || 0} Jiwa</p>
+          </div>
+        </div>
+      </div>
 
       {/* Info Details Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

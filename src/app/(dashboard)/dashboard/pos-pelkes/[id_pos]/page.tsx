@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { ArrowLeft, MapPin, Users, Building2, FileText, Calendar } from 'lucide-react';
+import { ArrowLeft, MapPin, Users, Building2, FileText, Calendar, Home } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -122,7 +122,10 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
     notFound();
   }
 
-  const totalJiwa = demografi.reduce((acc, curr) => acc + curr.laki + curr.perempuan, 0);
+  const totalKK = demografi.reduce((acc, curr) => acc + (curr.jml_kk || 0), 0);
+  const totalLaki = demografi.reduce((acc, curr) => acc + (curr.laki || 0), 0);
+  const totalPerempuan = demografi.reduce((acc, curr) => acc + (curr.perempuan || 0), 0);
+  const totalJiwa = totalLaki + totalPerempuan;
 
   return (
     <div className="min-h-screen bg-surface-base pb-safe">
@@ -142,12 +145,17 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
           <div className="flex items-center gap-2">
             <ShareButton
               title={`Pos Pelkes GPIB: ${pos.nama_pos}`}
-              text={`Jemaat Induk: ${pos.jemaat_induk?.nama_induk || '-'}\nAlamat: ${pos.alamat || '-'}\nTotal Jiwa: ${totalJiwa}`}
+              text={`Jemaat Induk: ${pos.jemaat_induk?.nama_induk || '-'}\nAlamat: ${pos.alamat || '-'}\nJumlah KK: ${totalKK}\nTotal Jiwa: ${totalJiwa}`}
               variant="ghost"
               iconOnly
             />
-            <Badge variant="secondary" className="text-base px-3 py-1">
-              {totalJiwa} Jiwa
+            <Badge variant="outline" className="text-xs px-2.5 py-1 flex items-center gap-1 font-bold">
+              <Home size={14} className="text-emerald-600" />
+              <span>{totalKK} KK</span>
+            </Badge>
+            <Badge variant="secondary" className="text-xs px-2.5 py-1 flex items-center gap-1 font-bold">
+              <Users size={14} className="text-brand-primary" />
+              <span>{totalJiwa} Jiwa</span>
             </Badge>
           </div>
         </div>
@@ -165,6 +173,25 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
 
           {/* TAB 1: PROFIL */}
           <TabsContent value="profil" className="space-y-4 mt-0">
+            {/* Stat Summary Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="bg-surface-elevated p-3.5 rounded-2xl border border-border-subtle shadow-soft space-y-1 text-center">
+                <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Jumlah KK</span>
+                <p className="text-xl font-black text-text-high tabular-nums">{totalKK}</p>
+              </div>
+              <div className="bg-surface-elevated p-3.5 rounded-2xl border border-border-subtle shadow-soft space-y-1 text-center">
+                <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Total Jiwa</span>
+                <p className="text-xl font-black text-brand-primary tabular-nums">{totalJiwa}</p>
+              </div>
+              <div className="bg-surface-elevated p-3.5 rounded-2xl border border-border-subtle shadow-soft space-y-1 text-center">
+                <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Laki-Laki</span>
+                <p className="text-xl font-black text-blue-600 dark:text-blue-400 tabular-nums">{totalLaki}</p>
+              </div>
+              <div className="bg-surface-elevated p-3.5 rounded-2xl border border-border-subtle shadow-soft space-y-1 text-center">
+                <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Perempuan</span>
+                <p className="text-xl font-black text-pink-600 dark:text-pink-400 tabular-nums">{totalPerempuan}</p>
+              </div>
+            </div>
             <Card className="border-border-subtle shadow-soft">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">

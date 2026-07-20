@@ -375,6 +375,12 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
                           {pos.nama_pos}
                         </h3>
 
+                        <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200/60">
+                            {pos.jumlah_kk || 0} KK • {pos.jumlah_jiwa || 0} Jiwa
+                          </span>
+                        </div>
+
                         {pos.alamat && (
                           <p className="text-xs text-text-muted line-clamp-1">{pos.alamat}</p>
                         )}

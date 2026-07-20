@@ -44,6 +44,8 @@ export interface PosPelkesItem {
   longitude: number | null;
   tgl_berdiri: string | null;
   keterangan: string | null;
+  jumlah_kk?: number;
+  jumlah_jiwa?: number;
   jemaat_induk?: {
     id_induk: string;
     nama_induk: string;
@@ -322,8 +324,8 @@ export function usePosByJemaat(id_induk?: string, search?: string) {
       const { data: posData, error } = await query;
       if (error) throw error;
 
-      // Fetch PJ assignments from multiple tables
-      const [{ data: pjData }, { data: penugasanData }, { data: pendetaData }] = await Promise.all([
+      // Fetch PJ assignments & demografi totals from multiple tables
+      const [{ data: pjData }, { data: penugasanData }, { data: pendetaData }, { data: demografiData }] = await Promise.all([
         supabase
           .from('t_pj_jemaat')
           .select('id_induk, id_pendeta, pendeta:m_pendeta(id_pendeta, nama_lengkap, no_wa)')
@@ -335,6 +337,9 @@ export function usePosByJemaat(id_induk?: string, search?: string) {
         supabase
           .from('m_pendeta')
           .select('id_pendeta, id_induk, nama_lengkap, no_wa, is_pj'),
+        supabase
+          .from('t_demografi_pelkat')
+          .select('id_pos, jml_kk, laki, perempuan'),
       ]);
 
       const result: PosPelkesItem[] = (posData || []).map((p: any) => {
@@ -369,10 +374,17 @@ export function usePosByJemaat(id_induk?: string, search?: string) {
         const cleanedName = cleanQuotes(p.nama_pos);
         const derivedKategori = p.kategori || (cleanedName.toLowerCase().startsWith('bajem') ? 'Bajem' : 'Pos Pelkes');
 
+        // Demografi totals calculation
+        const posDemo = (demografiData || []).filter((d: any) => d.id_pos === p.id_pos);
+        const jmlKK = posDemo.reduce((sum: number, d: any) => sum + (d.jml_kk || 0), 0);
+        const jmlJiwa = posDemo.reduce((sum: number, d: any) => sum + (d.laki || 0) + (d.perempuan || 0), 0);
+
         return {
           ...p,
           nama_pos: cleanedName,
           kategori: derivedKategori,
+          jumlah_kk: jmlKK,
+          jumlah_jiwa: jmlJiwa,
           pj: posPj ? (posPj as any) : null,
         };
       });
