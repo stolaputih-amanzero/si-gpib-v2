@@ -1,0 +1,102 @@
+ID Pendeta	Nama Pendeta	No. Telepon	Tanggal Mulai Melayani	Catatan	ID Jemaat
+PDT-19060024	Pdt. Anita Angelina Lovica Putu Buraen, S.Si-Teol	+62 878 5513 7387	2025-11-09		02-01-BM
+PDT-51107295	Pdt. Leo Nardo Pardosi, S. Si. Teol	+62 528 2972 339	2025-10-19		24-06-SN
+PDT-21159377	Pdt. Windy Untajana S.Si (Teol.)	+62 812 5284 3717	2025-09-14		20-04-EK
+PDT-87216948	Pdt. Arni Muliyanti Mali, S.Th	+62 812 3782 4821	2021-10-25		05-01-IJ
+PDT-43300681	Pdt. Ben Bianco Pattinama, S.Si-Teol	+62 877 3011 6407	2026-07-27		20-24-PJ
+PDT-86990096	Pdt. Nadya Natalia Antoinette Gala, S. Th	+62 878 5290 2709	2024-03-25		04-04-BZ
+PDT-70501119	Pdt. Paulin Maureel Titiheru	+62 813 2736 2361	2025-09-14		01-01-AP
+PDT-32299530	Pdt anithya Adriana Talakua Saragih 	+62 812 1900 5244	2024-07-21		22-08-MB
+PDT-41915346	Pdt. Otniel Jonatan Panjinegara Adua, S.Si. (Teol.)	+62 815 4682 6865	2025-09-28		23-03-ET
+PDT-82603338	Pdt. Johnstevance Eldad Winman, S. Si-Teol	+62 812 2580 6102	2025-12-24		20-11-SS
+PDT-37549598	Pdt. Putra Sang Bayu, S.Fil.	+62 821 4510 7779	2025-08-03		23-08-PS
+PDT-26374165	Pdt. Josua Natal Walumbu	+62 851 5522 4632	2025-10-12		03-05-ET
+PDT-92486233	Stephani Gratia Lalenoh S. Si-Teol	+62 851 5512 3296	2025-08-03		04-10-IP
+PDT-37149792	Dania Ariskah, S.Th	+62 813 1112 9636	2025-10-19		06-03-IM
+PDT-21939323	Pdt. Ananda Kezia br Sebayang, S.Th	+62 822 9206 1943	2024-03-10	Tanggal mulai melayani terhitung dari tanggal Tahbisan. 	04-08-ED
+PDT-64020785	Pdt. Angelly Christisya Kantohe, M.Si	+62 851 5626 2139	2024-03-10		04-08-ED
+PDT-59711512	Pdt. Reza Hariyoga, S.Si. (Teol.)	+62 896 3718 3613	2025-08-31		22-07-KK
+PDT-87046457	Pdt. Maretha Kurnia Sari S. Si-Teol	+62 812 5311 5105	2024-04-07		06-13-MK
+PDT-39429573	Pdt. Iunike Ribka Chrisna Pawestri, S.Si (Teol)	+62 812 2853 0095	2025-08-03		06-05-MA
+PDT-30098900	Pdt. Adystia Ernel Raintung, S.Fil	+62 818 0665 5399	2025-08-10		20-15-BA
+PDT-66495066	Rudolfo Jacob Manusiwa S.Si-Teol	+62 851 7238 1284	2025-08-03		20-05-IT
+PDT-77965490	Meylisa Paulina Boesday, S.Th	+62 823 4911 1567	2018-11-04		19-14-PB
+PDT-57362747	Pdt. Kevin Eflyano Badilo, S.Si.Teol	+62 812 9377 3337	2024-03-10		04-08-ED
+PDT-29286934	Pdt. Rifensia Jeriska Soselisa	+62 821 3115 1101	2024-04-28		16-10-PS
+PDT-91423016	Pdt. Giovanno Adi Nugroho, S.Si-Teol	+62 851 8666 7371	2025-07-27		20-08-MI
+PDT-94436290	Pdt. Ni Gusti Ketut Melliana Achriyanthi Arnawa, S.Si-Teol	+62 811 4616 682	2024-03-10		04-08-ED
+PDT-19375058	Pdt. Yehezkiel Marselino Banjarnahor S.Fil	+62 813 2843 1274	2024-03-10		02-04-IT
+PDT-34532604	Pdt. Trisa Angela Mauriza Sinaulan, S.Th	+62 812 3943 7667	2025-10-19		24-05-MT
+PDT-34880669	Benoni Benyamin Klokke, S.Si-Teol.	+62 812 1955 2355	2024-03-25		04-06-EP
+PDT-70567471	Pdt Mauren Astria Tatipatta, S.Th.	+62 812 3239 4003			19-17-SK
+PDT-32051258	Pdt. Cristin Dwi Ningsih, S.Si-Teol	+62 822 4157 3150	2025-08-17		20-12-SK
+PDT-48212443	Pdt. Marchely Elvira Sirait -Ruitenbach, S. Si. Teol	+62 812 3174 0390	2024-11-03		16-14-TS
+PDT-56844638	Nevada Florida Nualedang, Ssi.Teol	+62 822 3644 4322	2025-09-10		24-05-MT
+PDT-97921792	Marena, S.Th	+62 813 5221 9404	2025-07-28		23-02-ES
+PDT-74312933	Pdt. Fiola Aura Thahara, S. Si-Teol	+62 857 8348 9895	2025-09-14		20-02-BM
+PDT-26671820	Pdt. Odi Etman Raidas Mali, S. Th	+62 823 4566 6332	2025-09-21		06-07-PE
+PDT-84971611	Pdt. Mick Mordekhai Sopacoly, S.Th., M.Si.	+62 812 4547 6827	2025-08-24		23-02-ES
+PDT-84597888	Alency Geovani Wijaya, S.Th	+62 822 5446 0487	2024-03-27		20-08-MI
+PDT-99170588	Pdt Valini Mandaries Rompas, S.Th 	+62 821 3888 4292	2024-03-25		05-01-AJ
+PDT-92176638	nuh gustomi gultom, S.Si-Teol	+62 822 5297 3566	2024-03-10		24-08-SI
+PDT-63921098	Pdt. Akselofira Khidsal Dukhid, S.Si-Teol	+62 813 4747 1719	2024-03-24		20-22-BZ
+PDT-39185836	Pdt. Rafilius Ariyanto, S.Th	+62 821 2505 3535	2024-03-10		21-04-IK
+PDT-34353889	Pdt. Corinthiani Perbina Sinulingga, S.Fil	+62 821 7503 1281	2025-09-15		21-06-SB
+PDT-80027321	Pdt. Mega Amelia	+62 877 8423 4852	2025-09-05		22-10-SK
+PDT-61800733	Pdt. Novita Sarah Wilhelmina Sumampow, S.Fil	+62 811 4213 234	2025-09-14		20-21-S
+PDT-22062148	Pdt. Clinton Banjarnahor	+62 852 7339 8648	2025-09-07		20-21-S
+PDT-99011520	Pdt. Kezia Elza Bawole S.Th	+62 821 9180 3851	2025-08-31		21-06-SB
+PDT-65727337	Nataniel Yeperson Blegur Ssi.Teol	+62 812 3312 7174	###############################################################################################################################################################################################################################################################		20-19-S
+PDT-97284701	Pdt. Rani Natalia Br. SItorus S.Si-Teol	+62 812 8171 6017	2024-03-24		20-12-SK
+PDT-50581483	Pdt. Joshua Hendrikson Siregar, S.Si-Teol	+62 821 5033 0918	2024-03-24	Sudah menjalani 1 kali mutasi	04-09-GR
+PDT-17657741	Pdt. Stiven Kurniadijaya Lahunduitan Macpal, S.Si.Teol.	+62 813 1598 4997	2025-09-21		23-05-IA
+PDT-91784974	Pdt. Genesya, M.Th.	+62 812 8465 4402	2024-03-24		04-09-GR
+PDT-79598449	Pdt. Dressta Margareth Aksamine Titihalawa, S.Th.	+62 821 8705 8276	2026-08-24		20-11-SS
+PDT-23285681	Pdt. Tien Apriani Djolawang, S.Th	+62 812 4125 3714	2024-03-10		23-08-PS
+PDT-71723244	Pdt. Pit Manghophop Sitompul, S.Si-Teol	+62 821 4725 2409	2025-09-14		20-05-IT
+PDT-32980492	Pdt. Geofani Febrian Ruindungan	+62 852 4107 3419	2024-03-10	OK	20-02-BM
+PDT-75037916	Kefi Putriani Banunu, S.Th	+62 822 1468 9773			21-03-IB
+PDT-80598199	Pdt. Roki Yunus, S.Si-Teol	+62 853 4843 9908	2024-03-24		06-05-MA
+PDT-70698942	Tiffany Hillary Derek, S.Th	+62 877 3109 9517	2024-03-10		20-02-BM
+PDT-73800812	Pdt. Samuel Roberto Lintang, S.Si-Teol	+62 813 4909 3706	2024-03-10		20-02-BM
+PDT-59135418	Arfiando Rivaldo Aprilio Mekel, S.Fil	+62 853 3299 1311	2025-10-26		20-16-EA
+PDT-33372790	Pdt. Richard Christov Lewerissa, S.Th,.	+62 853 1429 2196	2024-03-25		20-09-OS
+PDT-91331801	Pdt. Chintia Oktavia, S.Fil	+62 823 5890 0484	2025-09-28		23-14-HS
+PDT-61105165	Pdt. Maca Dina Vira Tarigan, S.Fil	+62 822 2096 2646	2024-03-28		23-11-SK
+PDT-50731837	Pdt. Aditya Paschal Pantow, S.Si-Teol., M.Si	+62 895 0902 2722	2024-04-15		20-04-EK
+PDT-75744712	Pdt. Celine Meirella Pesiwarissa, S. Si-Teol.	+62 812 9860 6603	2024-03-25	Long Mesangat	23-03-ET
+PDT-63297445	Mauren Priscilla Agatha Latupeirissa M.Si	+62 852 4314 3219	2024-03-10		23-06-IS
+PDT-98564767	Pdt. Gladys Marseline Wilhelmina Rompas, S.Si.Teol	+62 821 3858 8042	2024-03-10		20-05-IT
+PDT-43833673	Devina Fenisia Larungkondo,S.Si. Teol	+62 812 3126 5062	2024-03-10		01-06-MP
+PDT-57348885	DOROTHEA FEBE WINMAN, M.Si	+62 853 3659 1365	2024-03-10		01-06-MP
+PDT-43759100	Yemmima Indri Thena Kartika, S. Fil	+62 853 4691 9069	2024-03-10		20-05-IT
+PDT-29777050	Magiantang Regina Fransiska	+62 852 4019 4632	2025-09-21		03-07-IB
+PDT-11639704	Lea Christty Barahama S.Si-Teol	+62 811 9672 21	2024-03-10		20-05-IT
+PDT-50703951	Yapia Amung	+62 858 1609 3498	2024-02-25		06-12-SP
+PDT-41950460	Pdt. Fransleo Cornelis Melatunan Junior, S.Si Teol	+62 853 7123 7621	2025-08-31		22-04-EB
+PDT-78038857	Benedictus Patriach Paskah Unpapar S.Fil	+62 812 2798 2645	2024-03-25		24-05-MT
+PDT-27471110	Pdt. Yosua Asido Parulian Simbolon S. Fil	+62 855 2630 2060	2025-10-03		20-09-OS
+PDT-74857909	Pendeta rut marchel avellia, S.Si Teol	+62 857 3299 6160	2025-09-07		04-14-SK
+PDT-23910877	Pdt. Hezron Tangke Salu Pakan, S.Th	+62 823 1243 3461	2025-09-21		04-07-EF
+PDT-42480179	Pdt. Valerie Estherlita Javelien Sumlang, S.Si (Teol)	+62 812 9629 4367	2021-09-26		05-06MJ
+PDT-64742682	Pdt. Satius, S.Th	+62 821 9244 5467	2024-03-10		23-08-PS
+PDT-65676161	Pdt. Antoneta Taneo, S.Th	+62 822 3899 8983	2023-03-25		05-06MJ
+PDT-50821277	Kefi Putriani Banunu, S.Th	+62 859 7456 6156	2025-09-07		21-04-IK
+PDT-29746330	Pdt. ENOS ZURIEL HEHAKAJA, S.Si-Teol	+62 812 2173 2913	2025-09-07		05-07-PS
+PDT-63289176	Pdt. Aninda Marlya Wangkay, S.Fil.	+62 813 5522 4903	2025-11-23		05-10-EJ
+PDT-16929588	Pdt. Aedelyn Sylvia Yunita Laiskodat S.Si- Teol	+62 813 5198 6358	2025-09-05		24-01-BM
+PDT-57897189	Melinda Marpaung	+62 813 1564 0062	2026-03-01		22-11-SB
+PDT-45846521	Pdt. Anthony Richard Pietersz, S.Si-Teol	+62 821 3702 3090	2017-10-08		23-03-ET
+PDT-37298708	Pendeta Cyntia Nellyta, S. Si. Teol.	+62 851 6131 1742	2024-03-10		21-02-RP
+PDT-41129720	Ruth Meilan Tupalessy, S.Si.(Teol)	+62 822 9825 9263	2025-11-16		04-15-SD
+PDT-47831495	Pdt. Claudio Hersa Totonini Gurusinga, S.Si-Teol.	+62 877 2215 1822	2024-03-10		24-05-MT
+PDT-46514951	Pdt Eunykhe Widiarty Nani, S. Th	+62 852 4225 0608	2024-03-27		02-05-KM
+PDT-10651965	Pdt. Timotius Verdino, M.Fil.	+62 821 2311 1243	2024-03-10		20-03-BP
+PDT-80271497	Pdt. Moshe William Daniel, S. Fil	+62 813 5828 5734	2024-03-10		20-22-BZ
+PDT-52587201	Pendeta Christy Febianty Sinaga - Lekahena	+62 852 2997 8955	2021-09-19		18-04-MD
+PDT-71887759	Pdt Asina Wahyu Deinnara S.Si Teol	+62 823 6735 6822	2024-09-13	Pos Pelkes Hosana Separi 	23-06-IS
+PDT-59630925	Pdt. Gabriella Christianty Titahena	+62 822 2582 1082	2024-11-04		20-10-PA
+PDT-81550253	Shendy Novaldy Sitania, S. Si-Teol, M.Sc	+62 811 2642 509	2024-03-10		20-07-MS
+PDT-40606621	LESMA RIANTI SIMANJUNTAK S.Si Teol	+62 822 6511 8390	2024-03-10		20-13-SP
+PDT-47079836	Pdt. Ade Rindunta 	+62 853 4171 1671	2024-03-28		20-01-AB
+PDT-21698587	Pdt. Ezra Sudarsono, S.Si., M.M.	+62 813 2807 7006	2025-03-02		07-09-YU

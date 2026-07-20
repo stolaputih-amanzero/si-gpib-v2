@@ -1,0 +1,274 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* =========================================
+   SI GPIB V2.0 DESIGN TOKENS (FINAL MANIFESTO)
+   ========================================= */
+
+@theme {
+  /* --- 1. TYPOGRAPHY FAMILIES --- */
+  --font-sans: 'Geist', var(--font-sans), system-ui, -apple-system, sans-serif;
+  --font-serif: var(--font-serif), 'Playfair Display', Georgia, serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+
+  /* --- 2. FLUID SPATIAL & ERGONOMICS --- */
+  --spacing-touch: 44px; 
+  --spacing-page-x: clamp(1rem, 5vw, 2rem); 
+  --spacing-safe-bottom: env(safe-area-inset-bottom, 0px); 
+
+  /* --- 3. SEMANTIC COLORS (Light Mode Default) --- */
+  --color-surface-base: oklch(0.985 0.005 90); /* Warm Ivory */
+  --color-surface-elevated: oklch(1 0 0); /* Pure White */
+  --color-surface-sunken: oklch(0.96 0.005 90);
+  
+  --color-brand-primary: oklch(0.25 0.06 260); /* Deep Navy */
+  --color-accent-valor: oklch(0.75 0.14 85); /* Warm Gold */
+  
+  --color-text-high: oklch(0.2 0.02 260); /* Charcoal Navy */
+  --color-text-muted: oklch(0.5 0.02 260); /* Slate Navy */
+  --color-text-disabled: oklch(0.7 0.01 260);
+  
+  --color-border-subtle: oklch(0.92 0.005 90);
+  --color-border-strong: oklch(0.85 0.01 90);
+  --color-error: oklch(0.6 0.18 20);
+
+  /* --- Backward Compatibility Mapping for shadcn/ui --- */
+  --color-background: var(--color-surface-base);
+  --color-foreground: var(--color-text-high);
+  
+  --color-card: var(--color-surface-elevated);
+  --color-card-foreground: var(--color-text-high);
+  
+  --color-popover: var(--color-surface-elevated);
+  --color-popover-foreground: var(--color-text-high);
+  
+  --color-primary: var(--color-brand-primary);
+  --color-primary-foreground: oklch(1 0 0);
+  
+  --color-secondary: var(--color-surface-sunken);
+  --color-secondary-foreground: var(--color-brand-primary);
+  
+  --color-muted: var(--color-surface-sunken);
+  --color-muted-foreground: var(--color-text-muted);
+  
+  --color-accent: var(--color-accent-valor);
+  --color-accent-foreground: oklch(0.2 0.02 260);
+  
+  --color-destructive: var(--color-error);
+  --color-destructive-foreground: oklch(1 0 0);
+  
+  --color-border: var(--color-border-subtle);
+  --color-input: var(--color-border-subtle);
+  --color-ring: var(--color-brand-primary);
+
+  /* --- 4. SPATIAL ELEVATION (Colored Shadows - Navy Tint) --- */
+  --shadow-soft: 0 4px 24px -4px oklch(0.25 0.06 260 / 0.08), 
+                 0 2px 8px -2px oklch(0.25 0.06 260 / 0.04);
+  --shadow-medium: 0 8px 32px -8px oklch(0.25 0.06 260 / 0.12), 
+                   0 4px 12px -4px oklch(0.25 0.06 260 / 0.08);
+  --shadow-float: 0 16px 48px -12px oklch(0.25 0.06 260 / 0.18), 
+                  0 8px 24px -8px oklch(0.25 0.06 260 / 0.12);
+
+  /* --- 5. MOTION PHYSICS --- */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.6, 0.32, 1.6);
+  
+  --duration-micro: 150ms;
+  --duration-base: 250ms;
+  --duration-macro: 400ms;
+
+  /* --- 6. BORDER RADIUS --- */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+}
+
+.dark {
+  --color-surface-base: oklch(0.15 0.02 260);
+  --color-surface-elevated: oklch(0.20 0.02 260);
+  --color-surface-sunken: oklch(0.10 0.02 260);
+  
+  --color-brand-primary: oklch(0.75 0.1 260); /* Luminous Navy */
+  --color-accent-valor: oklch(0.80 0.15 85); /* Bright Gold */
+  
+  --color-text-high: oklch(0.95 0.005 90);
+  --color-text-muted: oklch(0.65 0.02 260);
+  
+  --color-border-subtle: oklch(0.25 0.02 260);
+  --color-border-strong: oklch(0.35 0.02 260);
+  --color-error: oklch(0.65 0.18 20);
+
+  /* --- Backward Compatibility Mapping for shadcn/ui (Dark Mode) --- */
+  --color-background: var(--color-surface-base);
+  --color-foreground: var(--color-text-high);
+  
+  --color-card: var(--color-surface-elevated);
+  --color-card-foreground: var(--color-text-high);
+  
+  --color-popover: var(--color-surface-elevated);
+  --color-popover-foreground: var(--color-text-high);
+  
+  --color-primary: var(--color-brand-primary);
+  --color-primary-foreground: oklch(0.2 0.02 260);
+  
+  --color-secondary: var(--color-surface-sunken);
+  --color-secondary-foreground: var(--color-brand-primary);
+  
+  --color-muted: var(--color-surface-sunken);
+  --color-muted-foreground: var(--color-text-muted);
+  
+  --color-accent: var(--color-accent-valor);
+  --color-accent-foreground: oklch(0.2 0.02 260);
+  
+  --color-destructive: var(--color-error);
+  --color-destructive-foreground: oklch(0.95 0.005 90);
+  
+  --color-border: var(--color-border-subtle);
+  --color-input: var(--color-border-subtle);
+  --color-ring: var(--color-brand-primary);
+
+  --shadow-soft: 0 4px 24px -4px oklch(0 0 0 / 0.4);
+  --shadow-float: 0 16px 48px -12px oklch(0 0 0 / 0.6);
+}
+
+/* =========================================
+   GLOBAL BASE STYLES
+   ========================================= */
+body {
+  background-color: var(--color-surface-base);
+  color: var(--color-text-high);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: contain; /* Prevent pull-to-refresh in PWA */
+  margin: 0;
+  padding: 0;
+}
+
+/* Utility class for Financial Numbers */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.pb-safe {
+  padding-bottom: calc(var(--spacing-safe-bottom) + 12px);
+}
+.pt-safe {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html, body {
+  overscroll-behavior-y: contain;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+input, textarea, select {
+  user-select: text;
+}
+
+/* =========================================
+   LUXURY LANDING PAGE SPECIAL STYLES (AMANLOKA INSPIRED)
+   ========================================= */
+
+@keyframes noise-anim {
+  0% { transform: translate(0, 0); }
+  10% { transform: translate(-5%, -5%); }
+  20% { transform: translate(-10%, 5%); }
+  30% { transform: translate(5%, -10%); }
+  40% { transform: translate(-5%, 15%); }
+  50% { transform: translate(-10%, 5%); }
+  60% { transform: translate(15%, 0); }
+  70% { transform: translate(0, 15%); }
+  80% { transform: translate(3%, 35%); }
+  90% { transform: translate(-10%, 10%); }
+  100% { transform: translate(0, 0); }
+}
+
+.noise-overlay {
+  opacity: 0.035;
+  pointer-events: none;
+  z-index: 9999;
+  background: url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+  width: 200%;
+  height: 200vh;
+  animation: 0.25s infinite noise-anim;
+  position: fixed;
+  top: -50%;
+  right: -50%;
+  bottom: -50%;
+  left: -50%;
+}
+
+@keyframes dashed-scroll {
+  0% { background-position: 0 0; }
+  100% { background-position: 24px 0; }
+}
+
+.animate-dashed-line {
+  background-image: linear-gradient(90deg, var(--color-accent-valor, #c5a855) 50%, transparent 50%);
+  background-size: 24px 1px;
+  animation: 2s linear infinite dashed-scroll;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent);
+}
+
+@keyframes vertical-dashed-scroll {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 24px; }
+}
+
+.animate-dashed-line-vertical {
+  background-image: linear-gradient(180deg, var(--color-accent-valor, #c5a855) 50%, transparent 50%);
+  background-size: 1px 24px;
+  animation: 2s linear infinite vertical-dashed-scroll;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+}
+
+/* Premium Gold Text gradient */
+.text-luxury-gradient {
+  background: linear-gradient(135deg, oklch(0.95 0.05 85) 0%, oklch(0.75 0.14 85) 50%, oklch(0.55 0.10 85) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Premium Glow effects */
+.glow-gold {
+  box-shadow: 0 0 40px -5px oklch(0.80 0.15 85 / 0.12);
+}
+
+.glow-navy {
+  box-shadow: 0 0 50px -10px oklch(0.25 0.06 260 / 0.2);
+}
+
+/* Smooth horizontal border for sections */
+.divider-luxury {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-border-subtle) 20%, var(--color-border-subtle) 80%, transparent);
+  width: 100%;
+}
+
+/* Disable transitions temporarily to prevent flashing on theme switch */
+.disable-transitions,
+.disable-transitions *,
+.disable-transitions *:before,
+.disable-transitions *:after {
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -o-transition: none !important;
+  -ms-transition: none !important;
+  transition: none !important;
+}
+
