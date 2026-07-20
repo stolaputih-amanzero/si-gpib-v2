@@ -7,6 +7,7 @@ export async function savePosPelkes(formData: FormData) {
 
   const id_induk = formData.get('id_induk') as string
   const nama_pos = formData.get('nama_pos') as string
+  const kategori = (formData.get('kategori') as string) || 'Pos Pelkes'
   const alamat = formData.get('alamat') as string
   const latStr = formData.get('latitude') as string | null
   const lngStr = formData.get('longitude') as string | null
@@ -29,6 +30,7 @@ export async function savePosPelkes(formData: FormData) {
       id_pos,
       id_induk,
       nama_pos,
+      kategori,
       alamat,
       latitude,
       longitude,

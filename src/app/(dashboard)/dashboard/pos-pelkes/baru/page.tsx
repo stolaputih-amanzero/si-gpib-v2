@@ -11,6 +11,7 @@ import { savePosPelkes } from './actions';
 const formSchema = z.object({
   id_induk: z.string().min(1, 'Jemaat Induk wajib dipilih'),
   nama_pos: z.string().min(3, 'Nama Pos minimal 3 karakter'),
+  kategori: z.enum(['Pos Pelkes', 'Bajem']),
   alamat: z.string().min(5, 'Alamat wajib diisi'),
   latitude: z.number().nullable(),
   longitude: z.number().nullable(),
@@ -34,12 +35,11 @@ export default function TambahPosPelkesPage() {
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      kategori: 'Pos Pelkes',
       latitude: null,
       longitude: null,
     }
   });
-
-
   const getLocation = () => {
     setIsGettingLocation(true);
     if ('geolocation' in navigator) {
@@ -65,7 +65,6 @@ export default function TambahPosPelkesPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Client-side compression using Canvas (< 1MB)
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = (event) => {
@@ -103,17 +102,17 @@ export default function TambahPosPelkesPage() {
             }
           },
           'image/jpeg',
-          0.7 // 70% quality usually results in < 1MB for 1200px
+          0.7
         );
       };
     };
   };
-
   const onSubmit = async (data: FormValues) => {
     setServerError(null);
     const formData = new FormData();
     formData.append('id_induk', data.id_induk);
     formData.append('nama_pos', data.nama_pos);
+    formData.append('kategori', data.kategori);
     formData.append('alamat', data.alamat);
     if (data.latitude) formData.append('latitude', data.latitude.toString());
     if (data.longitude) formData.append('longitude', data.longitude.toString());
@@ -135,7 +134,7 @@ export default function TambahPosPelkesPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6 pb-24 md:pb-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-brand-primary">Tambah Pos Pelkes</h1>
+        <h1 className="text-2xl font-bold text-brand-primary">Tambah Unit Pelayanan</h1>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -155,8 +154,8 @@ export default function TambahPosPelkesPage() {
               className="mt-1 block w-full px-3 py-3 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm"
             >
               <option value="">Pilih Jemaat Induk...</option>
-              {/* Dummy data for prototype, in real app fetch from m_jemaat_induk */}
               <option value="01-01-AP">ANUGERAH - Pangkalan Brandan</option>
+              <option value="01-06-MP">MARANATHA - Pematang Siantar</option>
               <option value="04-10-IP">IMMANUEL - Pekanbaru</option>
               <option value="03-01-BB">BAHTERA HAYAT - Batam</option>
             </select>
@@ -164,12 +163,24 @@ export default function TambahPosPelkesPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text-high">Nama Pos Pelkes</label>
+            <label className="block text-sm font-medium text-text-high">Kategori Status Unit</label>
+            <select 
+              {...register('kategori')}
+              className="mt-1 block w-full px-3 py-3 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm"
+            >
+              <option value="Pos Pelkes">Pos Pelkes (Pos Pelayanan Kesaksian)</option>
+              <option value="Bajem">Bajem (Bakalan Jemaat)</option>
+            </select>
+            {errors.kategori && <p className="mt-1 text-xs text-red-500">{errors.kategori.message}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-high">Nama Unit (Pos Pelkes / Bajem)</label>
             <input 
               {...register('nama_pos')}
               type="text"
               className="mt-1 block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm"
-              placeholder="Cth: Pos Pelkes Getsemani"
+              placeholder="Cth: Bajem Wonobakti / Pos Pelkes Getsemani"
             />
             {errors.nama_pos && <p className="mt-1 text-xs text-red-500">{errors.nama_pos.message}</p>}
           </div>

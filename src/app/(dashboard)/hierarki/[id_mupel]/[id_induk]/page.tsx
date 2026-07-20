@@ -219,9 +219,18 @@ export default function JemaatDetailPage({ params }: PageProps) {
                       </div>
 
                       <div className="space-y-1">
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-surface-sunken border border-border-subtle text-text-muted">
-                          {pos.id_pos}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-surface-sunken border border-border-subtle text-text-muted">
+                            {pos.id_pos}
+                          </span>
+                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${
+                            pos.kategori === 'Bajem'
+                              ? 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-950/50 dark:text-purple-300'
+                              : 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300'
+                          }`}>
+                            {pos.kategori || 'Pos Pelkes'}
+                          </span>
+                        </div>
 
                         <h3 className="font-extrabold text-text-high text-base group-hover:text-emerald-600 transition-colors leading-snug">
                           {pos.nama_pos}

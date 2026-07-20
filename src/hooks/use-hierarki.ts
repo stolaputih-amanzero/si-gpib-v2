@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
+import { cleanQuotes } from '@/lib/utils';
 
 export interface MupelItem {
   id_mupel: string;
@@ -34,6 +35,7 @@ export interface PosPelkesItem {
   id_pos: string;
   id_induk: string;
   nama_pos: string;
+  kategori?: string | null;
   alamat: string | null;
   latitude: number | null;
   longitude: number | null;
@@ -175,7 +177,7 @@ export function useJemaatByMupel(id_mupel?: string, search?: string) {
       const result: JemaatIndukItem[] = (jemaatData || []).map((j: any) => {
         // 1. Synchronized KMJ Resolution (FK id_kmj -> is_kmj flag -> Jabatan)
         let resolvedKmj = j.kmj
-          ? { id_pendeta: j.kmj.id_pendeta, nama_lengkap: j.kmj.nama_lengkap, no_wa: j.kmj.no_wa }
+          ? { id_pendeta: j.kmj.id_pendeta, nama_lengkap: cleanQuotes(j.kmj.nama_lengkap), no_wa: j.kmj.no_wa }
           : null;
 
         if (!resolvedKmj) {
@@ -187,7 +189,7 @@ export function useJemaatByMupel(id_mupel?: string, search?: string) {
           if (fallbackKmj) {
             resolvedKmj = {
               id_pendeta: fallbackKmj.id_pendeta,
-              nama_lengkap: fallbackKmj.nama_lengkap,
+              nama_lengkap: cleanQuotes(fallbackKmj.nama_lengkap),
               no_wa: fallbackKmj.no_wa,
             };
           }
@@ -202,6 +204,8 @@ export function useJemaatByMupel(id_mupel?: string, search?: string) {
 
         return {
           ...j,
+          nama_induk: cleanQuotes(j.nama_induk),
+          keterangan: cleanQuotes(j.keterangan),
           kmj: resolvedKmj,
           pos_count: pCount,
           pj_count: pjSet.size,
@@ -258,7 +262,7 @@ export function useJemaatDetail(id_induk?: string) {
 
       // Multi-Source KMJ Resolution
       let resolvedKmj = (data as any).kmj
-        ? { id_pendeta: (data as any).kmj.id_pendeta, nama_lengkap: (data as any).kmj.nama_lengkap, no_wa: (data as any).kmj.no_wa }
+        ? { id_pendeta: (data as any).kmj.id_pendeta, nama_lengkap: cleanQuotes((data as any).kmj.nama_lengkap), no_wa: (data as any).kmj.no_wa }
         : null;
 
       if (!resolvedKmj) {
@@ -268,7 +272,7 @@ export function useJemaatDetail(id_induk?: string) {
         if (fallbackKmj) {
           resolvedKmj = {
             id_pendeta: fallbackKmj.id_pendeta,
-            nama_lengkap: fallbackKmj.nama_lengkap,
+            nama_lengkap: cleanQuotes(fallbackKmj.nama_lengkap),
             no_wa: fallbackKmj.no_wa,
           };
         }
@@ -281,6 +285,8 @@ export function useJemaatDetail(id_induk?: string) {
 
       return {
         ...(data as any),
+        nama_induk: cleanQuotes((data as any).nama_induk),
+        keterangan: cleanQuotes((data as any).keterangan),
         kmj: resolvedKmj,
         pos_count: posData?.length || 0,
         pj_count: pjSet.size,
@@ -342,7 +348,7 @@ export function usePosByJemaat(id_induk?: string, search?: string) {
           if (pPj) {
             posPj = {
               id_pendeta: pPj.id_pendeta,
-              nama_lengkap: pPj.nama_lengkap,
+              nama_lengkap: cleanQuotes(pPj.nama_lengkap),
               no_wa: pPj.no_wa,
             };
           }
@@ -352,8 +358,17 @@ export function usePosByJemaat(id_induk?: string, search?: string) {
           posPj = posPj[0] || null;
         }
 
+        if (posPj && posPj.nama_lengkap) {
+          posPj.nama_lengkap = cleanQuotes(posPj.nama_lengkap);
+        }
+
+        const cleanedName = cleanQuotes(p.nama_pos);
+        const derivedKategori = p.kategori || (cleanedName.toLowerCase().startsWith('bajem') ? 'Bajem' : 'Pos Pelkes');
+
         return {
           ...p,
+          nama_pos: cleanedName,
+          kategori: derivedKategori,
           pj: posPj ? (posPj as any) : null,
         };
       });
