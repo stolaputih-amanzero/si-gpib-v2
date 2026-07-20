@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Home, Map, FileText, User, Database, Activity, LogOut, Users, Box, HandHeart, UserCheck, HeartHandshake, Calendar, UserPlus } from 'lucide-react';
+import { Home, Map, FileText, User, Database, Activity, LogOut, Users, Box, HandHeart, UserCheck, HeartHandshake, Calendar, UserPlus, ShieldAlert } from 'lucide-react';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -16,6 +16,7 @@ export default function Sidebar() {
 
   const secondaryNav = [
     { label: 'Pos Pelkes', href: '/dashboard/pos-pelkes', icon: Database },
+    { label: 'Kerawanan & Potensi', href: '/wilayah', icon: ShieldAlert },
     { label: 'Demografi Pelkat', href: '/demografi', icon: Users },
     { label: 'Inventaris Aset', href: '/aset', icon: Box },
     { label: 'Pengajuan Bantuan', href: '/bantuan', icon: HandHeart },
