@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Fingerprint, CheckCircle2, AlertCircle, Loader2, ShieldCheck, RefreshCw } from 'lucide-react';
+import { Fingerprint, AlertCircle, Loader2, ShieldCheck, RefreshCw } from 'lucide-react';
 import { useBiometric } from '@/hooks/use-biometric';
 import { haptic } from '@/lib/haptic/vibrate';
 
