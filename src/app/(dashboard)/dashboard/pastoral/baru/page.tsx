@@ -1,15 +1,16 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mic, MicOff, Save, Calendar, Users, MapPin } from 'lucide-react';
+import { Mic, MicOff, Save, Calendar, Users } from 'lucide-react';
 
 import { useRouter } from 'next/navigation';
 import { useVoiceInput } from '@/hooks/use-voice-input';
 import { logPastoralSchema, LogPastoralInput } from '@/lib/validations/log-pastoral.schema';
 import { createClient } from '@/lib/supabase/client';
 import { useNetworkStatus } from '@/hooks/use-network-status';
+import { PosCascadingSelector } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
 
 export default function LogPastoralBaruPage() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function LogPastoralBaruPage() {
     handleSubmit,
     setValue,
     watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<LogPastoralInput>({
     resolver: zodResolver(logPastoralSchema),
@@ -164,23 +166,20 @@ export default function LogPastoralBaruPage() {
           )}
         </div>
 
-        {/* Pos Pelkes */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-text-high flex items-center gap-2">
-            <MapPin className="w-4 h-4" />
-            Pos Pelkes
-          </label>
-          <select
-            {...register('id_pos')}
-            className="w-full min-h-[44px] px-3 rounded-md border border-border-subtle bg-surface-base text-text-high text-base focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
-          >
-            <option value="">Pilih Pos Pelkes</option>
-            <option value="POS-01">Pos Pelkes Getsemani</option>
-            <option value="POS-02">Pos Pelkes Anugerah</option>
-          </select>
-          {errors.id_pos && (
-            <p className="text-xs text-error">{errors.id_pos.message}</p>
-          )}
+        {/* Pos Pelkes Cascading Selector */}
+        <div className="space-y-1.5 w-full">
+          <Controller
+            name="id_pos"
+            control={control}
+            render={({ field }) => (
+              <PosCascadingSelector
+                value={field.value}
+                onChange={field.onChange}
+                error={errors.id_pos?.message}
+                disabled={isSubmitting}
+              />
+            )}
+          />
         </div>
 
         {/* Kegiatan dengan Voice Input */}

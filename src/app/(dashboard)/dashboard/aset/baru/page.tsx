@@ -1,14 +1,21 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { PackagePlus } from 'lucide-react';
 import { AssetFormTabs } from '@/components/asset/AssetFormTabs';
+import { PosCascadingSelector } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
 
 function AssetBaruContent() {
   const searchParams = useSearchParams();
-  // id_pos bisa didapat dari query params (?id_pos=POS-123)
-  const idPos = searchParams.get('id_pos') || '';
+  const idPosQuery = searchParams.get('id_pos') || '';
+  const [selectedPosId, setSelectedPosId] = useState(idPosQuery);
+
+  useEffect(() => {
+    if (idPosQuery) {
+      setSelectedPosId(idPosQuery);
+    }
+  }, [idPosQuery]);
 
   return (
     <div className="min-h-screen bg-surface-base pb-safe">
@@ -23,21 +30,29 @@ function AssetBaruContent() {
               Tambah Aset Baru
             </h1>
             <p className="text-sm text-text-muted mt-0.5">
-              {idPos ? `Pos Pelkes: ${idPos}` : 'Parameter Pos Pelkes Kosong'}
+              {selectedPosId ? `Pos Pelkes: ${selectedPosId}` : 'Pilih Pos Pelkes pemilik aset'}
             </p>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        {!idPos ? (
-          <div className="p-4 bg-error/10 border border-error/20 rounded-md shadow-sm">
-             <p className="text-sm font-medium text-error">
-               Parameter id_pos tidak ditemukan. Silakan akses halaman ini dari menu Detail Pos Pelkes.
-             </p>
-          </div>
+      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+        {/* Selector jika id_pos belum dipilih */}
+        <div className="bg-surface-elevated p-4 rounded-xl border border-border-subtle shadow-soft space-y-3">
+          <h2 className="text-sm font-semibold text-text-high">Pilih Lokasi Pos Pelkes *</h2>
+          <PosCascadingSelector
+            value={selectedPosId}
+            onChange={setSelectedPosId}
+            defaultPosId={idPosQuery || undefined}
+          />
+        </div>
+
+        {selectedPosId ? (
+          <AssetFormTabs idPos={selectedPosId} />
         ) : (
-          <AssetFormTabs idPos={idPos} />
+          <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 rounded-xl text-xs font-medium text-center">
+            Silakan pilih Mupel, Jemaat, dan Pos Pelkes terlebih dahulu di atas untuk mengisi data aset.
+          </div>
         )}
       </div>
     </div>

@@ -2,11 +2,12 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { MapPin, Camera, Loader2 } from 'lucide-react';
 import { savePosPelkes } from './actions';
+import { JemaatCascadingSelector } from '@/components/hierarki/HierarkiSelector/JemaatCascadingSelector';
 
 const formSchema = z.object({
   id_induk: z.string().min(1, 'Jemaat Induk wajib dipilih'),
@@ -31,6 +32,7 @@ export default function TambahPosPelkesPage() {
     register,
     handleSubmit,
     setValue,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -147,19 +149,19 @@ export default function TambahPosPelkesPage() {
         <div className="bg-surface-elevated p-6 rounded-xl border border-gray-100 shadow-sm space-y-5">
           <h2 className="text-lg font-semibold border-b pb-2">Informasi Dasar</h2>
           
-          <div>
-            <label className="block text-sm font-medium text-text-high">Jemaat Induk</label>
-            <select 
-              {...register('id_induk')}
-              className="mt-1 block w-full px-3 py-3 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm"
-            >
-              <option value="">Pilih Jemaat Induk...</option>
-              <option value="01-01-AP">ANUGERAH - Pangkalan Brandan</option>
-              <option value="01-06-MP">MARANATHA - Pematang Siantar</option>
-              <option value="04-10-IP">IMMANUEL - Pekanbaru</option>
-              <option value="03-01-BB">BAHTERA HAYAT - Batam</option>
-            </select>
-            {errors.id_induk && <p className="mt-1 text-xs text-red-500">{errors.id_induk.message}</p>}
+          <div className="space-y-1.5 w-full">
+            <Controller
+              name="id_induk"
+              control={control}
+              render={({ field }) => (
+                <JemaatCascadingSelector
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={errors.id_induk?.message}
+                  disabled={isSubmitting}
+                />
+              )}
+            />
           </div>
 
           <div>

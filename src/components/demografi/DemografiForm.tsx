@@ -1,15 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { demografiSchema, DemografiInput } from '@/lib/validations/demografi.schema';
 import { KATEGORI_PELKAT } from '@/lib/constants/pelkat';
 import { useUpsertDemografi } from '@/hooks/use-demografi';
 import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { PosCascadingSelector } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
 
 interface DemografiFormProps {
-  id_pos: string;
+  id_pos?: string;
   initialData?: Partial<DemografiInput>;
   onSuccess?: () => void;
 }
@@ -22,6 +23,7 @@ export function DemografiForm({ id_pos, initialData, onSuccess }: DemografiFormP
     register,
     handleSubmit,
     watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<DemografiInput>({
     resolver: zodResolver(demografiSchema),
@@ -67,8 +69,26 @@ export function DemografiForm({ id_pos, initialData, onSuccess }: DemografiFormP
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      {/* Hidden Pos ID */}
-      <input type="hidden" {...register('id_pos')} value={id_pos} />
+      {/* Pos Pelkes Cascading Selector (jika id_pos tidak di-lock) */}
+      {!id_pos ? (
+        <div className="space-y-1.5 w-full">
+          <Controller
+            name="id_pos"
+            control={control}
+            render={({ field }) => (
+              <PosCascadingSelector
+                value={field.value}
+                onChange={field.onChange}
+                error={errors.id_pos?.message}
+                defaultPosId={initialData?.id_pos}
+                disabled={isSubmitting}
+              />
+            )}
+          />
+        </div>
+      ) : (
+        <input type="hidden" {...register('id_pos')} value={id_pos} />
+      )}
 
       {/* Success Notification */}
       {successMsg && (
