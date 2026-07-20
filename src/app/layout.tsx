@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import QueryProvider from '@/components/providers/QueryProvider';
 
 export const metadata: Metadata = {
   title: 'SI GPIB v2.2 - Sistem Informasi GPIB',
@@ -46,7 +47,9 @@ export default function RootLayout({
   return (
     <html lang="id">
       <body className="bg-surface-base text-text-high">
-        {children}
+        <QueryProvider>
+          {children}
+        </QueryProvider>
       </body>
     </html>
   );
