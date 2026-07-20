@@ -15,6 +15,18 @@ interface DemografiRow {
 export default async function Dashboard() {
   const supabase = await createClient();
 
+  // 0. Fetch Current User & Biometric Status
+  const { data: { user } } = await supabase.auth.getUser();
+  let biometricEnabled = false;
+  if (user) {
+    const { data: userData } = await supabase
+      .from('users')
+      .select('biometric_enabled')
+      .eq('id', user.id)
+      .maybeSingle();
+    biometricEnabled = userData?.biometric_enabled || false;
+  }
+
   // 1. Fetch Totals
   const { count: posCount } = await supabase.from('m_pos_pelkes').select('*', { count: 'exact', head: true });
   const { count: jemaatCount } = await supabase.from('m_jemaat_induk').select('*', { count: 'exact', head: true });
@@ -83,14 +95,14 @@ export default async function Dashboard() {
     .limit(5);
 
   return (
-    <div className="min-h-screen bg-surface-base pb-safe">
+    <div className="min-h-screen bg-surface-base pb-28">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-surface-elevated/80 backdrop-blur-md border-b border-border-subtle pt-safe px-4 py-4 md:px-6">
-        <h1 className="text-2xl font-serif font-bold text-brand-primary">Dashboard Utama</h1>
-        <p className="text-sm text-text-muted mt-0.5">Sistem Informasi Pelayanan & Kesaksian GPIB</p>
+      <div className="sticky top-0 z-40 bg-surface-elevated/85 backdrop-blur-md border-b border-border-subtle pt-safe px-4 py-3.5 md:px-6">
+        <h1 className="text-xl md:text-2xl font-serif font-bold text-brand-primary">Dashboard Utama</h1>
+        <p className="text-xs md:text-sm text-text-muted mt-0.5">Sistem Informasi Pelayanan & Kesaksian GPIB</p>
       </div>
 
-      <main className="max-w-6xl mx-auto px-4 py-6 md:px-6 space-y-6">
+      <main className="max-w-6xl mx-auto px-4 py-5 md:px-6 space-y-6">
         {/* Row 1: KPI Cards */}
         <StatCards 
           posCount={posCount || 0}
@@ -110,9 +122,9 @@ export default async function Dashboard() {
         </div>
 
         {/* Row 3: Biometric Setup (Settings/Security) */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
           <div className="lg:col-span-1">
-            <BiometricSetup />
+            <BiometricSetup initialEnabled={biometricEnabled} />
           </div>
         </div>
       </main>
@@ -122,3 +134,4 @@ export default async function Dashboard() {
     </div>
   );
 }
+
