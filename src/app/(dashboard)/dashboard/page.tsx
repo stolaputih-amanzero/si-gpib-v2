@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { BiometricSetup } from "@/components/biometric/BiometricSetup";
 import { StatCards } from "@/components/dashboard/StatCards";
 import { DemografiChart } from "@/components/dashboard/DemografiChart";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
@@ -15,38 +14,42 @@ interface DemografiRow {
 export default async function Dashboard() {
   const supabase = await createClient();
 
-  // 0. Fetch Current User & Biometric Status
-  const { data: { user } } = await supabase.auth.getUser();
-  let biometricEnabled = false;
-  if (user) {
-    const { data: userData } = await supabase
-      .from('users')
-      .select('biometric_enabled')
-      .eq('id', user.id)
-      .maybeSingle();
-    biometricEnabled = userData?.biometric_enabled || false;
-  }
-
-  // 1. Fetch Totals
-  const { count: posCount } = await supabase.from('m_pos_pelkes').select('*', { count: 'exact', head: true });
-  const { count: jemaatCount } = await supabase.from('m_jemaat_induk').select('*', { count: 'exact', head: true });
-
-  // Current month bounds
+  // Current month bounds for pastoral logs
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-  const { count: logCount } = await supabase
-    .from('t_log_pastoral')
-    .select('*', { count: 'exact', head: true })
-    .gte('tgl', startOfMonth)
-    .lte('tgl', endOfMonth);
+  // Execute ALL database queries concurrently in parallel to eliminate network waterfall lag
+  const [
+    { count: posCount },
+    { count: jemaatCount },
+    { count: logCount },
+    { data: demografiData },
+    { data: recentLogs }
+  ] = await Promise.all([
+    supabase.from('m_pos_pelkes').select('*', { count: 'exact', head: true }),
+    supabase.from('m_jemaat_induk').select('*', { count: 'exact', head: true }),
+    supabase
+      .from('t_log_pastoral')
+      .select('*', { count: 'exact', head: true })
+      .gte('tgl', startOfMonth)
+      .lte('tgl', endOfMonth),
+    supabase
+      .from('t_demografi_pelkat')
+      .select('kategori_pelkat, laki, perempuan'),
+    supabase
+      .from('t_log_pastoral')
+      .select(`
+        id_log, tgl, kegiatan,
+        pos_pelkes:m_pos_pelkes(nama_pos),
+        pendeta:m_pendeta(nama_lengkap)
+      `)
+      .order('tgl', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(5)
+  ]);
 
-  // 2. Fetch Demografi for Chart & Total Jiwa
-  const { data: demografiData } = await supabase
-    .from('t_demografi_pelkat')
-    .select('kategori_pelkat, laki, perempuan');
-
+  // Process Demografi Data
   let totalJiwa = 0;
   const chartDataMap: Record<string, number> = {
     'Pelayanan Anak (PA)': 0,
@@ -62,7 +65,6 @@ export default async function Dashboard() {
       const sum = row.laki + row.perempuan;
       totalJiwa += sum;
       
-      // Clean up category string or map it
       let category = row.kategori_pelkat;
       if (category.toLowerCase().includes('anak')) category = 'PA';
       else if (category.toLowerCase().includes('teruna')) category = 'PT';
@@ -70,7 +72,7 @@ export default async function Dashboard() {
       else if (category.toLowerCase().includes('perempuan')) category = 'PKP';
       else if (category.toLowerCase().includes('bapak') || category.toLowerCase().includes('bapa')) category = 'PKB';
       else if (category.toLowerCase().includes('lanjut usia') || category.toLowerCase().includes('lansia')) category = 'PKLU';
-      else category = category.substring(0, 4).toUpperCase(); // fallback abbreviation
+      else category = category.substring(0, 4).toUpperCase();
       
       chartDataMap[category] = (chartDataMap[category] || 0) + sum;
     });
@@ -80,23 +82,11 @@ export default async function Dashboard() {
   const chartData = Object.entries(chartDataMap)
     .map(([name, total]) => ({ name, total }))
     .filter(item => item.total > 0)
-    .sort((a, b) => b.total - a.total); // Sort desc
-
-  // 3. Fetch Recent Logs
-  const { data: recentLogs } = await supabase
-    .from('t_log_pastoral')
-    .select(`
-      id_log, tgl, kegiatan,
-      pos_pelkes:m_pos_pelkes(nama_pos),
-      pendeta:m_pendeta(nama_lengkap)
-    `)
-    .order('tgl', { ascending: false })
-    .order('created_at', { ascending: false })
-    .limit(5);
+    .sort((a, b) => b.total - a.total);
 
   return (
     <div className="min-h-screen bg-surface-base pb-28">
-      {/* Header */}
+      {/* Sticky Header */}
       <div className="sticky top-0 z-40 bg-surface-elevated/85 backdrop-blur-md border-b border-border-subtle pt-safe px-4 py-3.5 md:px-6">
         <h1 className="text-xl md:text-2xl font-serif font-bold text-brand-primary">Dashboard Utama</h1>
         <p className="text-xs md:text-sm text-text-muted mt-0.5">Sistem Informasi Pelayanan & Kesaksian GPIB</p>
@@ -120,13 +110,6 @@ export default async function Dashboard() {
             <RecentActivity logs={recentLogs as any || []} />
           </div>
         </div>
-
-        {/* Row 3: Biometric Setup (Settings/Security) */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
-          <div className="lg:col-span-1">
-            <BiometricSetup initialEnabled={biometricEnabled} />
-          </div>
-        </div>
       </main>
 
       {/* Floating Action Button */}
@@ -134,4 +117,5 @@ export default async function Dashboard() {
     </div>
   );
 }
+
 
