@@ -61,7 +61,7 @@ export default function ProfilPage() {
   const roleFormatted = roleLabels[userRole] || userRole.toUpperCase();
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-surface-base pb-28">
+    <div className="w-full min-h-full bg-surface-base pb-6">
       {/* Mobile Sticky Header */}
       <div className="sticky top-0 z-40 bg-surface-elevated/85 backdrop-blur-md border-b border-border-subtle pt-safe">
         <div className="max-w-xl mx-auto px-4 py-3.5 flex items-center justify-between">

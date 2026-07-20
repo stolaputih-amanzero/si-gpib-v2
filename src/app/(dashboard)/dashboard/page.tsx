@@ -85,7 +85,7 @@ export default async function Dashboard() {
     .sort((a, b) => b.total - a.total);
 
   return (
-    <div className="min-h-screen bg-surface-base pb-28">
+    <div className="w-full min-h-full bg-surface-base pb-6">
       {/* Sticky Header */}
       <div className="sticky top-0 z-40 bg-surface-elevated/85 backdrop-blur-md border-b border-border-subtle pt-safe px-4 py-3.5 md:px-6">
         <h1 className="text-xl md:text-2xl font-serif font-bold text-brand-primary">Dashboard Utama</h1>

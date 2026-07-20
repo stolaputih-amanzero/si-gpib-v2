@@ -16,8 +16,8 @@ export default function DashboardLayout({
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-full relative overflow-hidden">
         {/* Scrollable Content Area - Flush on Mobile so sticky page headers fit seamlessly */}
-        <main className="flex-1 overflow-y-auto pb-20 md:pb-6 px-0 md:px-8">
-          <div className="max-w-6xl mx-auto h-full">
+        <main className="flex-1 overflow-y-auto pb-32 md:pb-8 px-0 md:px-8">
+          <div className="max-w-6xl mx-auto min-h-full">
             {children}
           </div>
         </main>
