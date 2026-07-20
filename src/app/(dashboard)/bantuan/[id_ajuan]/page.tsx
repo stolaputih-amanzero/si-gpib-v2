@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ShareButton } from '@/components/mobile/ShareButton';
 
 export default function PengajuanDetailPage({ params }: { params: Promise<{ id_ajuan: string }> }) {
   const resolvedParams = use(params);
@@ -125,14 +126,22 @@ export default function PengajuanDetailPage({ params }: { params: Promise<{ id_a
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="p-2 rounded-xl text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-            title="Hapus Pengajuan"
-          >
-            <Trash2 size={18} />
-          </button>
+          <div className="flex items-center gap-1">
+            <ShareButton
+              title={`Permohonan Bantuan: ${item.jenis_bantuan}`}
+              text={`Pos Pelkes: ${item.pos?.nama_pos || item.id_pos}\nStatus: ${item.status}\nUrgensi: ${item.urgensi}\nEstimasi Biaya: Rp ${item.biaya?.toLocaleString('id-ID')}`}
+              variant="ghost"
+              iconOnly
+            />
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="p-2 rounded-xl text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+              title="Hapus Pengajuan"
+            >
+              <Trash2 size={18} />
+            </button>
+          </div>
         </div>
       </div>
 

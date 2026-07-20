@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { ShareButton } from '@/components/mobile/ShareButton';
 // --- Types ---
 interface PosDetail {
   id_pos: string;
@@ -138,9 +139,17 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
             <h1 className="text-xl font-serif font-bold text-text-high truncate">{pos.nama_pos}</h1>
             <p className="text-sm text-text-muted truncate">{pos.jemaat_induk?.nama_induk}</p>
           </div>
-          <Badge variant="secondary" className="text-base px-3 py-1">
-            {totalJiwa} Jiwa
-          </Badge>
+          <div className="flex items-center gap-2">
+            <ShareButton
+              title={`Pos Pelkes GPIB: ${pos.nama_pos}`}
+              text={`Jemaat Induk: ${pos.jemaat_induk?.nama_induk || '-'}\nAlamat: ${pos.alamat || '-'}\nTotal Jiwa: ${totalJiwa}`}
+              variant="ghost"
+              iconOnly
+            />
+            <Badge variant="secondary" className="text-base px-3 py-1">
+              {totalJiwa} Jiwa
+            </Badge>
+          </div>
         </div>
       </div>
 
