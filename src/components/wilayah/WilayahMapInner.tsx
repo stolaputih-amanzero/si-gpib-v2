@@ -5,14 +5,45 @@ import { MapContainer, TileLayer, Marker, Popup, LayersControl, LayerGroup } fro
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapPosPelkesItem } from '@/hooks/use-wilayah';
+import { MapPosPelkesItem, MapJemaatItem } from '@/hooks/use-wilayah';
 import { AlertTriangle, Sparkles, MapPin, ExternalLink, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 
-// Configure Leaflet custom marker icons to fix Next.js missing asset paths
-const createMarkerIcon = (hasKerawananKritis: boolean, hasPotensi: boolean) => {
+// Custom Marker Icons (Leaflet DivIcon)
+const createJemaatMarkerIcon = () => {
+  return L.divIcon({
+    className: 'custom-jemaat-divicon',
+    html: `
+      <div style="
+        background-color: #1E40AF;
+        color: #FFFFFF;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 2px solid #FFFFFF;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m18 7 4 2v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9l4-2"/>
+          <path d="M14 22v-4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v4"/>
+          <path d="M18 22V5l-6-3-6 3v17"/>
+          <path d="M12 7v5"/>
+          <path d="M10 9h4"/>
+        </svg>
+      </div>
+    `,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+    popupAnchor: [0, -18],
+  });
+};
+
+const createPosMarkerIcon = (hasKerawananKritis: boolean, hasPotensi: boolean) => {
   let iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png';
-  
+
   if (hasKerawananKritis) {
     iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png';
   } else if (hasPotensi) {
@@ -31,11 +62,12 @@ const createMarkerIcon = (hasKerawananKritis: boolean, hasPotensi: boolean) => {
 
 interface WilayahMapInnerProps {
   data: MapPosPelkesItem[];
+  jemaatData?: MapJemaatItem[];
   selectedPosId?: string;
   onSelectPos?: (id_pos: string) => void;
 }
 
-export default function WilayahMapInner({ data, selectedPosId, onSelectPos }: WilayahMapInnerProps) {
+export default function WilayahMapInner({ data, jemaatData = [], selectedPosId, onSelectPos }: WilayahMapInnerProps) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -46,20 +78,25 @@ export default function WilayahMapInner({ data, selectedPosId, onSelectPos }: Wi
     return (
       <div className="w-full h-[60vh] md:h-[70vh] rounded-2xl bg-surface-sunken animate-pulse flex flex-col items-center justify-center border border-border-subtle text-text-muted gap-2">
         <MapPin className="w-8 h-8 animate-bounce text-brand-primary" />
-        <span className="text-sm font-medium">Memuat Peta Geospatial Wilayah...</span>
+        <span className="text-sm font-medium">Memuat Peta Geospatial Terpadu (Unified Map)...</span>
       </div>
     );
   }
 
-  const displayData = selectedPosId && selectedPosId !== 'all' 
+  const displayPosData = selectedPosId && selectedPosId !== 'all' 
     ? data.filter(item => item.id_pos === selectedPosId) 
     : data;
 
   // Default Map Center (Indonesia archipelago overview)
-  const defaultCenter: [number, number] = displayData.length === 1 
-    ? [displayData[0].latitude, displayData[0].longitude] 
+  const defaultCenter: [number, number] = displayPosData.length === 1 
+    ? [displayPosData[0].latitude, displayPosData[0].longitude] 
+    : jemaatData.length > 0
+    ? [jemaatData[0].latitude, jemaatData[0].longitude]
     : [-0.789275, 113.921327];
-  const defaultZoom = displayData.length === 1 ? 12 : 5;
+
+  const defaultZoom = displayPosData.length === 1 ? 12 : 5;
+
+  const jemaatIcon = createJemaatMarkerIcon();
 
   return (
     <div className="w-full h-[60vh] md:h-[70vh] rounded-2xl overflow-hidden shadow-soft border border-border-subtle relative z-0">
@@ -70,7 +107,7 @@ export default function WilayahMapInner({ data, selectedPosId, onSelectPos }: Wi
         className="w-full h-full z-0"
       >
         <LayersControl position="topright">
-          {/* Base Tile Layer */}
+          {/* Base Tile Layers */}
           <LayersControl.BaseLayer checked name="OpenStreetMap Standard">
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -78,15 +115,76 @@ export default function WilayahMapInner({ data, selectedPosId, onSelectPos }: Wi
             />
           </LayersControl.BaseLayer>
 
-          <LayersControl.BaseLayer name="Satelit (Esri World Imagery)">
+          <LayersControl.BaseLayer name="Satelit (Esri World)">
             <TileLayer
-              attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+              attribution="Tiles &copy; Esri"
               url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
             />
           </LayersControl.BaseLayer>
 
-          {/* Marker Cluster Group */}
-          <LayersControl.Overlay checked name="Pos Pelkes & Potensi/Kerawanan">
+          {/* OVERLAY LAYER 1: JEMAAT INDUK (GEREJA INDUK) */}
+          <LayersControl.Overlay checked name="🏛️ Jemaat Induk (Gereja)">
+            <LayerGroup>
+              <MarkerClusterGroup chunkedLoading maxClusterRadius={35}>
+                {jemaatData.map((jemaat) => (
+                  <Marker
+                    key={`jemaat-${jemaat.id_induk}`}
+                    position={[jemaat.latitude, jemaat.longitude]}
+                    icon={jemaatIcon}
+                  >
+                    <Popup className="custom-jemaat-popup">
+                      <div className="p-2.5 min-w-[240px] max-w-[300px] space-y-2">
+                        <div className="border-b border-border-subtle pb-2">
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300">
+                            {jemaat.id_induk} • Gereja Induk
+                          </span>
+                          <h3 className="font-extrabold text-base text-brand-primary leading-tight mt-1">
+                            {jemaat.nama_induk}
+                          </h3>
+                          <p className="text-xs text-text-muted">Mupel: {jemaat.mupel_nama}</p>
+                        </div>
+
+                        {/* Statistik Grid */}
+                        <div className="grid grid-cols-3 gap-1.5 text-center text-xs">
+                          <div className="bg-surface-sunken p-1.5 rounded-lg border border-border-subtle">
+                            <span className="block text-[9px] font-bold text-text-muted uppercase">Sektor</span>
+                            <span className="font-black text-text-high">{jemaat.jumlah_sektor}</span>
+                          </div>
+                          <div className="bg-surface-sunken p-1.5 rounded-lg border border-border-subtle">
+                            <span className="block text-[9px] font-bold text-text-muted uppercase">KK</span>
+                            <span className="font-black text-text-high">{jemaat.jumlah_kk}</span>
+                          </div>
+                          <div className="bg-surface-sunken p-1.5 rounded-lg border border-border-subtle">
+                            <span className="block text-[9px] font-bold text-text-muted uppercase">Jiwa</span>
+                            <span className="font-black text-text-high">{jemaat.jumlah_jiwa}</span>
+                          </div>
+                        </div>
+
+                        {jemaat.kmj_nama && (
+                          <p className="text-xs text-text-high font-semibold">
+                            KMJ: <span className="font-bold text-brand-primary">{jemaat.kmj_nama}</span>
+                          </p>
+                        )}
+
+                        <div className="pt-2 border-t border-border-subtle">
+                          <Link
+                            href={`/hierarki/${encodeURIComponent(jemaat.id_mupel)}/${encodeURIComponent(jemaat.id_induk)}`}
+                            className="w-full min-h-[36px] bg-blue-700 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-blue-800 transition-all shadow-sm"
+                          >
+                            <span>Lihat Detail Jemaat</span>
+                            <ExternalLink size={12} />
+                          </Link>
+                        </div>
+                      </div>
+                    </Popup>
+                  </Marker>
+                ))}
+              </MarkerClusterGroup>
+            </LayerGroup>
+          </LayersControl.Overlay>
+
+          {/* OVERLAY LAYER 2: POS PELKES & BAJEM */}
+          <LayersControl.Overlay checked name="📍 Pos Pelkes & Bajem">
             <LayerGroup>
               <MarkerClusterGroup
                 chunkedLoading
@@ -94,14 +192,14 @@ export default function WilayahMapInner({ data, selectedPosId, onSelectPos }: Wi
                 spiderfyOnMaxZoom={true}
                 showCoverageOnHover={false}
               >
-                {displayData.map((item) => {
+                {displayPosData.map((item) => {
                   const hasKritis = item.kerawanan_list.some((k) => k.frekuensi === 'Kritis' || k.frekuensi === 'Tinggi');
                   const hasPotensi = item.jumlah_potensi > 0;
-                  const icon = createMarkerIcon(hasKritis, hasPotensi);
+                  const icon = createPosMarkerIcon(hasKritis, hasPotensi);
 
                   return (
                     <Marker
-                      key={item.id_pos}
+                      key={`pos-${item.id_pos}`}
                       position={[item.latitude, item.longitude]}
                       icon={icon}
                       eventHandlers={{
@@ -115,7 +213,10 @@ export default function WilayahMapInner({ data, selectedPosId, onSelectPos }: Wi
                           {/* Header */}
                           <div className="flex items-start justify-between gap-2 border-b border-border-subtle pb-2 mb-2">
                             <div>
-                              <h3 className="font-bold text-sm text-text-high leading-snug">{item.nama_pos}</h3>
+                              <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                                {item.id_pos}
+                              </span>
+                              <h3 className="font-bold text-sm text-text-high leading-snug mt-0.5">{item.nama_pos}</h3>
                               {item.mupel && (
                                 <span className="text-[11px] font-medium text-text-muted">Mupel: {item.mupel}</span>
                               )}

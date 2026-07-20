@@ -388,3 +388,64 @@ export function useDeletePotensi() {
     },
   });
 }
+
+/**
+ * Interface Agregat Jemaat Induk untuk Marker Map
+ */
+export interface MapJemaatItem {
+  id_induk: string;
+  id_mupel: string;
+  nama_induk: string;
+  latitude: number;
+  longitude: number;
+  mupel_nama?: string | null;
+  jumlah_sektor: number;
+  jumlah_kk: number;
+  jumlah_jiwa: number;
+  kmj_nama?: string | null;
+}
+
+/**
+ * Hook Agregat Peta Jemaat Induk
+ */
+export function useJemaatMapData() {
+  const supabase = createClient();
+
+  return useQuery<MapJemaatItem[]>({
+    queryKey: ['jemaat-map-data'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('m_jemaat_induk')
+        .select(`
+          id_induk,
+          id_mupel,
+          nama_induk,
+          latitude,
+          longitude,
+          jumlah_sektor,
+          jumlah_kk,
+          jumlah_jiwa,
+          mupel:m_mupel(nama_mupel),
+          kmj:m_pendeta!id_kmj(nama_lengkap)
+        `)
+        .not('latitude', 'is', null)
+        .not('longitude', 'is', null);
+
+      if (error) throw error;
+      return (data || []).map((j: any) => ({
+        id_induk: j.id_induk,
+        id_mupel: j.id_mupel,
+        nama_induk: j.nama_induk,
+        latitude: Number(j.latitude),
+        longitude: Number(j.longitude),
+        mupel_nama: j.mupel?.nama_mupel || j.id_mupel,
+        jumlah_sektor: j.jumlah_sektor || 0,
+        jumlah_kk: j.jumlah_kk || 0,
+        jumlah_jiwa: j.jumlah_jiwa || 0,
+        kmj_nama: j.kmj?.nama_lengkap || null,
+      }));
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+}
+

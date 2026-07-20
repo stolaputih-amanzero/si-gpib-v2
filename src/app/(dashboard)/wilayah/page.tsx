@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import {
   useWilayahMapData,
+  useJemaatMapData,
   useKerawananList,
   usePotensiList,
   usePosPelkesList,
@@ -44,6 +45,7 @@ export default function WilayahPage() {
 
   // Queries
   const { data: mapData, isLoading: isLoadingMap } = useWilayahMapData();
+  const { data: jemaatMapData } = useJemaatMapData();
   const { data: kerawananList, isLoading: isLoadingKerawanan } = useKerawananList(selectedPosFilter);
   const { data: potensiList, isLoading: isLoadingPotensi } = usePotensiList(selectedPosFilter);
   const { data: posPelkesList } = usePosPelkesList();
@@ -251,7 +253,11 @@ export default function WilayahPage() {
           {isLoadingMap ? (
             <Skeleton className="w-full h-[60vh] md:h-[70vh] rounded-2xl" />
           ) : (
-            <WilayahMap data={mapData || []} selectedPosId={selectedPosFilter !== 'all' ? selectedPosFilter : undefined} />
+            <WilayahMap 
+              data={mapData || []} 
+              jemaatData={jemaatMapData || []} 
+              selectedPosId={selectedPosFilter !== 'all' ? selectedPosFilter : undefined} 
+            />
           )}
         </div>
       )}
