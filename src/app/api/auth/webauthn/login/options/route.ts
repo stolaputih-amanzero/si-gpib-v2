@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateAuthenticationOptions } from '@simplewebauthn/server';
 import type { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { getWebAuthnConfig } from '@/lib/auth/webauthn-config';
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,6 +41,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Tidak ada device biometric terdaftar' }, { status: 400 });
     }
 
+    const { rpID } = getWebAuthnConfig(req);
+
     // 3. Generate Authentication Options
     const options: PublicKeyCredentialRequestOptionsJSON = await generateAuthenticationOptions({
       timeout: 60000,
@@ -49,7 +52,7 @@ export async function POST(req: NextRequest) {
         transports: cred.transports ? (cred.transports as any) : undefined,
       })),
       userVerification: 'preferred',
-      rpID: process.env.NEXT_PUBLIC_RP_ID || 'localhost',
+      rpID,
     });
 
     // 4. Simpan challenge sementara (untuk verifikasi nanti)

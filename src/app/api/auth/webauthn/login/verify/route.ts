@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthenticationResponse } from '@simplewebauthn/server';
 import type { VerifyAuthenticationResponseOpts } from '@simplewebauthn/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { getWebAuthnConfig } from '@/lib/auth/webauthn-config';
 
 export async function POST(req: NextRequest) {
   try {
@@ -38,12 +39,14 @@ export async function POST(req: NextRequest) {
 
     if (credError || !credential) throw new Error('Credential tidak valid');
 
+    const { rpID, origin, appUrl } = getWebAuthnConfig(req);
+
     // 3. Verifikasi respons biometric
     const verification: VerifyAuthenticationResponseOpts = {
       response: body.response,
       expectedChallenge: challengeData.challenge,
-      expectedOrigin: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-      expectedRPID: process.env.NEXT_PUBLIC_RP_ID || 'localhost',
+      expectedOrigin: origin,
+      expectedRPID: rpID,
       credential: {
         id: credentialId,
         publicKey: Buffer.from(credential.public_key, 'base64'),
@@ -85,7 +88,6 @@ export async function POST(req: NextRequest) {
     let redirectUrl = null;
 
     if (userData?.email) {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
       const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
         type: 'magiclink',
         email: userData.email,

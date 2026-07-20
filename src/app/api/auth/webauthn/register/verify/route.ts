@@ -3,6 +3,7 @@ import { verifyRegistrationResponse } from '@simplewebauthn/server';
 import type { VerifyRegistrationResponseOpts } from '@simplewebauthn/server';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { getWebAuthnConfig } from '@/lib/auth/webauthn-config';
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,11 +24,13 @@ export async function POST(req: NextRequest) {
 
     if (!challengeData) throw new Error('Challenge not found');
 
+    const { rpID, origin } = getWebAuthnConfig(req);
+
     const verification: VerifyRegistrationResponseOpts = {
       response: body,
       expectedChallenge: challengeData.challenge,
-      expectedOrigin: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-      expectedRPID: process.env.NEXT_PUBLIC_RP_ID || 'localhost',
+      expectedOrigin: origin,
+      expectedRPID: rpID,
     };
 
     const { verified, registrationInfo } = await verifyRegistrationResponse(verification);

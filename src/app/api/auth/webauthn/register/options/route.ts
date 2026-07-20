@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateRegistrationOptions } from '@simplewebauthn/server';
 import type { PublicKeyCredentialCreationOptionsJSON } from '@simplewebauthn/server';
 import { createClient } from '@/lib/supabase/server';
+import { getWebAuthnConfig } from '@/lib/auth/webauthn-config';
 
-export async function GET(_req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -12,10 +13,12 @@ export async function GET(_req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { rpID } = getWebAuthnConfig(req);
+
     // Generate options
     const options: PublicKeyCredentialCreationOptionsJSON = await generateRegistrationOptions({
       rpName: process.env.NEXT_PUBLIC_RP_NAME || 'SI GPIB',
-      rpID: process.env.NEXT_PUBLIC_RP_ID || 'localhost',
+      rpID,
       userID: Buffer.from(user.id),
       userName: user.email || user.phone || user.id,
       userDisplayName: user.user_metadata?.full_name || 'User GPIB',
