@@ -14,9 +14,9 @@ export interface PengajuanBantuanItem {
   id_ajuan: string;
   id_pos: string;
   jenis_bantuan: string;
-  id_tanah?: string | null;
-  id_bangunan?: string | null;
-  id_aset_b?: string | null;
+  id_aset_tanah?: string | null;
+  id_aset_bangunan?: string | null;
+  id_aset_bergerak?: string | null;
   biaya: number;
   urgensi: 'Rendah' | 'Sedang' | 'Tinggi' | 'Kritis';
   status: 'Draft' | 'Pending_KMJ' | 'Pending_Mupel' | 'Pending_Sinode' | 'Approved' | 'Rejected';
@@ -40,7 +40,7 @@ export interface PengajuanBantuanItem {
     catatan?: string | null;
     created_at?: string;
     approver?: {
-      nama?: string;
+      no_telepon?: string;
       role?: string;
     };
   }>;
@@ -124,18 +124,18 @@ export function useCreatePengajuan() {
 
   return useMutation({
     mutationFn: async (input: PengajuanBantuanInput) => {
-      const id_ajuan = generateId('BTN');
+      const id_ajuan = generateId('AJU');
 
       const payload = {
         id_ajuan,
         id_pos: input.id_pos,
         jenis_bantuan: input.jenis_bantuan,
-        id_tanah: input.kategori_aset === 'TANAH' ? input.id_aset : null,
-        id_bangunan: input.kategori_aset === 'BANGUNAN' ? input.id_aset : null,
-        id_aset_b: input.kategori_aset === 'BERGERAK' ? input.id_aset : null,
+        id_aset_tanah: input.id_aset_tanah || null,
+        id_aset_bangunan: input.id_aset_bangunan || null,
+        id_aset_bergerak: input.id_aset_bergerak || null,
         biaya: input.biaya,
         urgensi: input.urgensi,
-        status: 'Pending_KMJ', // Default initial status for KMJ review
+        status: 'Pending_KMJ', // Initial status for KMJ review
         keterangan: input.keterangan,
       };
 
@@ -150,6 +150,9 @@ export function useCreatePengajuan() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pengajuan-bantuan-list'] });
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate([10, 50, 10]);
+      }
     },
   });
 }
@@ -160,19 +163,19 @@ export function useProcessApproval() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: ApprovalActionInput) => {
-      // 1. Try calling Supabase RPC for atomic execution
+    mutationFn: async (input: ApprovalActionInput & { role_approver?: string }) => {
+      // 1. Call Supabase RPC for atomic execution
       const { error: rpcError } = await supabase.rpc('process_pengajuan_bantuan', {
         p_id_ajuan: input.id_ajuan,
         p_aksi: input.aksi,
         p_catatan: input.catatan,
+        p_role_approver: input.role_approver || 'super_user',
       });
 
-      // 2. Fallback to client-side atomic execution if RPC is not yet created in remote DB
+      // 2. Fallback if RPC is not yet registered
       if (rpcError) {
         console.warn('RPC process_pengajuan_bantuan failed, running fallback:', rpcError.message);
 
-        // Get current item status
         const { data: ajuan, error: fetchErr } = await supabase
           .from('t_pengajuan_bantuan')
           .select('status')
@@ -183,7 +186,7 @@ export function useProcessApproval() {
 
         let nextStatus = 'Pending_KMJ';
         if (input.aksi === 'approve') {
-          if (ajuan.status === 'Pending_KMJ') nextStatus = 'Pending_Mupel';
+          if (ajuan.status === 'Pending_KMJ' || ajuan.status === 'Draft') nextStatus = 'Pending_Mupel';
           else if (ajuan.status === 'Pending_Mupel') nextStatus = 'Pending_Sinode';
           else if (ajuan.status === 'Pending_Sinode') nextStatus = 'Approved';
           else nextStatus = 'Approved';
@@ -198,7 +201,7 @@ export function useProcessApproval() {
           .from('t_approval_bantuan')
           .insert({
             id_ajuan: input.id_ajuan,
-            role_approver: 'admin',
+            role_approver: input.role_approver || 'super_user',
             aksi: input.aksi,
             catatan: input.catatan,
           });
@@ -219,6 +222,14 @@ export function useProcessApproval() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['pengajuan-bantuan-list'] });
       queryClient.invalidateQueries({ queryKey: ['pengajuan-bantuan-detail', variables.id_ajuan] });
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate([10, 50, 10]);
+      }
+    },
+    onError: () => {
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate([50, 100, 50]);
+      }
     },
   });
 }

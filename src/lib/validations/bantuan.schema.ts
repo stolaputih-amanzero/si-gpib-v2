@@ -17,8 +17,9 @@ export type StatusPengajuanType = typeof STATUS_PENGAJUAN[number];
 export const pengajuanBantuanSchema = z.object({
   id_pos: z.string().min(1, 'Pos Pelkes wajib dipilih'),
   jenis_bantuan: z.string().min(3, 'Jenis bantuan minimal 3 karakter').max(150),
-  id_aset: z.string().optional().nullable(), // aset ID (tanah/bangunan/bergerak)
-  kategori_aset: z.enum(['TANAH', 'BANGUNAN', 'BERGERAK']).optional().nullable(),
+  id_aset_tanah: z.string().optional().nullable(),
+  id_aset_bangunan: z.string().optional().nullable(),
+  id_aset_bergerak: z.string().optional().nullable(),
   biaya: z.number().min(0, 'Estimasi biaya tidak boleh negatif'),
   urgensi: z.enum(['Rendah', 'Sedang', 'Tinggi', 'Kritis'], {
     message: 'Pilih tingkat urgensi yang valid',
@@ -31,7 +32,7 @@ export const approvalActionSchema = z.object({
   aksi: z.enum(['approve', 'reject', 'revision'], {
     message: 'Aksi approval tidak valid',
   }),
-  catatan: z.string().min(5, 'Catatan persetujuan/penolakan wajib diisi minimal 5 karakter').max(500),
+  catatan: z.string().min(5, 'Catatan wajib diisi minimal 5 karakter').max(500),
 });
 
 export type PengajuanBantuanInput = z.infer<typeof pengajuanBantuanSchema>;

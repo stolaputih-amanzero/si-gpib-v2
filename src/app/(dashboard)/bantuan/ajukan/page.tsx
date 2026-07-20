@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { 
   pengajuanBantuanSchema, 
@@ -10,9 +10,10 @@ import {
 } from '@/lib/validations/bantuan.schema';
 import { useCreatePengajuan } from '@/hooks/use-bantuan';
 import { useAsetList } from '@/hooks/use-aset';
-import { ArrowLeft, Send, Loader2, CheckCircle2, AlertCircle, MapPin, DollarSign, Box } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, CheckCircle2, AlertCircle, DollarSign, Box } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { PosCascadingSelector } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
 
 export default function AjukanBantuanPage() {
   const router = useRouter();
@@ -26,12 +27,13 @@ export default function AjukanBantuanPage() {
     register,
     handleSubmit,
     watch,
+    control,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<PengajuanBantuanInput>({
     resolver: zodResolver(pengajuanBantuanSchema),
     defaultValues: {
-      id_pos: 'POS-001', // Default sample Pos
+      id_pos: '',
       jenis_bantuan: '',
       biaya: 5000000,
       urgensi: 'Sedang',
@@ -67,7 +69,7 @@ export default function AjukanBantuanPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/bantuan"
-              className="w-10 h-10 rounded-xl bg-surface-sunken flex items-center justify-center text-text-high hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              className="w-10 h-10 rounded-xl bg-surface-sunken flex items-center justify-center text-text-high hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors min-h-[44px] min-w-[44px]"
             >
               <ArrowLeft size={20} />
             </Link>
@@ -99,19 +101,20 @@ export default function AjukanBantuanPage() {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Pos Pelkes Selection */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
-                <MapPin size={15} className="text-brand-primary" />
-                <span>Pos Pelkes Pengaju *</span>
-              </label>
-              <input
-                type="text"
-                {...register('id_pos')}
-                placeholder="ID Pos (misal: POS-001)"
-                className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-sm font-semibold text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
+            {/* Pos Pelkes Cascading Selector */}
+            <div className="space-y-1.5 w-full">
+              <Controller
+                name="id_pos"
+                control={control}
+                render={({ field }) => (
+                  <PosCascadingSelector
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={errors.id_pos?.message}
+                    disabled={isSubmitting}
+                  />
+                )}
               />
-              {errors.id_pos && <p className="text-xs text-error">{errors.id_pos.message}</p>}
             </div>
 
             {/* Jenis Bantuan */}
@@ -139,11 +142,13 @@ export default function AjukanBantuanPage() {
                   onChange={(e) => {
                     const selected = asetList.find((a) => a.id === e.target.value);
                     if (selected) {
-                      setValue('id_aset', selected.id);
-                      setValue('kategori_aset', selected.kategori);
+                      if (selected.kategori === 'TANAH') setValue('id_aset_tanah', selected.id);
+                      else if (selected.kategori === 'BANGUNAN') setValue('id_aset_bangunan', selected.id);
+                      else if (selected.kategori === 'BERGERAK') setValue('id_aset_bergerak', selected.id);
                     } else {
-                      setValue('id_aset', null);
-                      setValue('kategori_aset', null);
+                      setValue('id_aset_tanah', null);
+                      setValue('id_aset_bangunan', null);
+                      setValue('id_aset_bergerak', null);
                     }
                   }}
                   className="w-full min-h-[44px] px-3 rounded-xl border border-border-subtle bg-surface-elevated text-xs font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
