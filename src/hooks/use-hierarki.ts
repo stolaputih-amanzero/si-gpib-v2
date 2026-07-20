@@ -19,6 +19,9 @@ export interface JemaatIndukItem {
   longitude: number | null;
   id_kmj: string | null;
   keterangan: string | null;
+  jumlah_sektor?: number | null;
+  jumlah_kk?: number | null;
+  jumlah_jiwa?: number | null;
   kmj?: {
     id_pendeta?: string;
     nama_lengkap: string;

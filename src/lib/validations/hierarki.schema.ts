@@ -57,6 +57,9 @@ export const jemaatIndukSchema = z.object({
   longitude: z.number().nullable().optional(),
   id_kmj: z.string().nullable().optional(),
   keterangan: z.string().optional(),
+  jumlah_sektor: z.number().int().min(0).default(0),
+  jumlah_kk: z.number().int().min(0).default(0),
+  jumlah_jiwa: z.number().int().min(0).default(0),
 });
 
 export type AssignKmjInput = z.infer<typeof assignKmjSchema>;
