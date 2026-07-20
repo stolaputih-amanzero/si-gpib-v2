@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       allowCredentials: credentials.map((cred) => ({
         id: cred.credential_id,
         type: 'public-key',
-        transports: cred.transports as any,
+        transports: cred.transports ? (cred.transports as any) : undefined,
       })),
       userVerification: 'preferred',
       rpID: process.env.NEXT_PUBLIC_RP_ID || 'localhost',
