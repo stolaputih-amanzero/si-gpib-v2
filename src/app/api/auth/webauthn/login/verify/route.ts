@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthenticationResponse } from '@simplewebauthn/server';
 import type { VerifyAuthenticationResponseOpts } from '@simplewebauthn/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,7 +12,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Data tidak lengkap' }, { status: 400 });
     }
 
-    const supabase = await createClient();
+    const supabase = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     // 1. Ambil challenge terakhir untuk user ini
     const { data: challengeData } = await supabase
@@ -77,15 +80,27 @@ export async function POST(req: NextRequest) {
       keterangan: 'Berhasil login menggunakan Biometric (WebAuthn)',
     });
 
-    // CATATAN PENTING:
-    // Di sini Anda perlu membuat sesi Supabase. 
-    // Karena WebAuthn memverifikasi device, Anda bisa menggunakan Supabase Admin API 
-    // untuk generate magic link atau menggunakan custom JWT (jose) yang dibaca middleware.
-    // Untuk kesederhanaan blueprint ini, kita return success.
-    
+    // 7. Ambil email user dan generate session link (Magic Link)
+    const { data: userData } = await supabase.from('users').select('email').eq('id', userId).single();
+    let redirectUrl = null;
+
+    if (userData?.email) {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email: userData.email,
+        options: { redirectTo: `${appUrl}/dashboard` }
+      });
+
+      if (!linkError && linkData?.properties?.action_link) {
+        redirectUrl = linkData.properties.action_link;
+      }
+    }
+
     return NextResponse.json({ 
       success: true, 
       message: 'Login biometric berhasil',
+      redirectUrl,
       userId 
     });
 
