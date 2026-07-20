@@ -58,8 +58,8 @@ export function usePendetaList(id_induk?: string, search?: string) {
         .select('*, jemaat_induk:m_jemaat_induk(id_induk, nama_induk, mupel:m_mupel(nama_mupel))')
         .order('created_at', { ascending: false });
 
-      if (id_induk) {
-        query = query.eq('id_induk', id_induk);
+      if (id_induk && id_induk !== 'all') {
+        query = query.or(`id_induk.eq.${id_induk},id_induk.is.null`);
       }
 
       const { data, error } = await query;

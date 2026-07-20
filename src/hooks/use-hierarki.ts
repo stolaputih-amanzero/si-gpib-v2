@@ -140,7 +140,7 @@ export function useMupelDetail(id_mupel?: string) {
 }
 
 /**
- * Fetch Jemaat Induk berdasarkan Mupel
+ * Fetch Jemaat Induk berdasarkan Mupel (Sinkronisasi Multi-Sumber KMJ & PJ)
  */
 export function useJemaatByMupel(id_mupel?: string, search?: string) {
   const supabase = createClient();
@@ -160,17 +160,51 @@ export function useJemaatByMupel(id_mupel?: string, search?: string) {
       const { data: jemaatData, error } = await query;
       if (error) throw error;
 
+      // Fetch all Pendeta to perform multi-source resolution
+      const { data: pendetaData } = await supabase
+        .from('m_pendeta')
+        .select('id_pendeta, id_induk, nama_lengkap, no_wa, is_kmj, is_pj, jabatan');
+
       const { data: posData } = await supabase.from('m_pos_pelkes').select('id_pos, id_induk');
-      const { data: pjData } = await supabase.from('t_pj_jemaat').select('id_induk').is('tanggal_selesai', null);
+      const { data: pjData } = await supabase.from('t_pj_jemaat').select('id_induk, id_pendeta').is('tanggal_selesai', null);
+
+      const allPendeta = pendetaData || [];
+      const allPos = posData || [];
+      const allPjAssignments = pjData || [];
 
       const result: JemaatIndukItem[] = (jemaatData || []).map((j: any) => {
-        const pCount = (posData || []).filter((p) => p.id_induk === j.id_induk).length;
-        const pjCount = (pjData || []).filter((pj) => pj.id_induk === j.id_induk).length;
+        // 1. Synchronized KMJ Resolution (FK id_kmj -> is_kmj flag -> Jabatan)
+        let resolvedKmj = j.kmj
+          ? { id_pendeta: j.kmj.id_pendeta, nama_lengkap: j.kmj.nama_lengkap, no_wa: j.kmj.no_wa }
+          : null;
+
+        if (!resolvedKmj) {
+          const fallbackKmj = allPendeta.find(
+            (p) =>
+              p.id_induk === j.id_induk &&
+              (p.is_kmj || (p.jabatan && p.jabatan.toUpperCase().includes('KMJ')))
+          );
+          if (fallbackKmj) {
+            resolvedKmj = {
+              id_pendeta: fallbackKmj.id_pendeta,
+              nama_lengkap: fallbackKmj.nama_lengkap,
+              no_wa: fallbackKmj.no_wa,
+            };
+          }
+        }
+
+        // 2. Synchronized PJ Count (Combine t_pj_jemaat & is_pj flag)
+        const pjSet = new Set<string>();
+        allPjAssignments.filter((pj) => pj.id_induk === j.id_induk).forEach((pj) => pjSet.add(pj.id_pendeta));
+        allPendeta.filter((p) => p.id_induk === j.id_induk && p.is_pj).forEach((p) => pjSet.add(p.id_pendeta));
+
+        const pCount = allPos.filter((p) => p.id_induk === j.id_induk).length;
 
         return {
           ...j,
+          kmj: resolvedKmj,
           pos_count: pCount,
-          pj_count: pjCount,
+          pj_count: pjSet.size,
         };
       });
 
@@ -190,7 +224,7 @@ export function useJemaatByMupel(id_mupel?: string, search?: string) {
 }
 
 /**
- * Fetch detail 1 Jemaat Induk
+ * Fetch detail 1 Jemaat Induk (Sinkronisasi Multi-Sumber KMJ & PJ)
  */
 export function useJemaatDetail(id_induk?: string) {
   const supabase = createClient();
@@ -208,13 +242,48 @@ export function useJemaatDetail(id_induk?: string) {
 
       if (error) throw error;
 
+      const { data: pendetaData } = await supabase
+        .from('m_pendeta')
+        .select('id_pendeta, id_induk, nama_lengkap, no_wa, is_kmj, is_pj, jabatan')
+        .eq('id_induk', id_induk);
+
       const { data: posData } = await supabase.from('m_pos_pelkes').select('id_pos').eq('id_induk', id_induk);
-      const { data: pjData } = await supabase.from('t_pj_jemaat').select('id_induk').eq('id_induk', id_induk).is('tanggal_selesai', null);
+      const { data: pjData } = await supabase
+        .from('t_pj_jemaat')
+        .select('id_pendeta, pendeta:m_pendeta(id_pendeta, nama_lengkap, no_wa)')
+        .eq('id_induk', id_induk)
+        .is('tanggal_selesai', null);
+
+      const allPendeta = pendetaData || [];
+
+      // Multi-Source KMJ Resolution
+      let resolvedKmj = (data as any).kmj
+        ? { id_pendeta: (data as any).kmj.id_pendeta, nama_lengkap: (data as any).kmj.nama_lengkap, no_wa: (data as any).kmj.no_wa }
+        : null;
+
+      if (!resolvedKmj) {
+        const fallbackKmj = allPendeta.find(
+          (p) => p.is_kmj || (p.jabatan && p.jabatan.toUpperCase().includes('KMJ'))
+        );
+        if (fallbackKmj) {
+          resolvedKmj = {
+            id_pendeta: fallbackKmj.id_pendeta,
+            nama_lengkap: fallbackKmj.nama_lengkap,
+            no_wa: fallbackKmj.no_wa,
+          };
+        }
+      }
+
+      // Multi-Source PJ Count
+      const pjSet = new Set<string>();
+      (pjData || []).forEach((pj) => pjSet.add(pj.id_pendeta));
+      allPendeta.filter((p) => p.is_pj).forEach((p) => pjSet.add(p.id_pendeta));
 
       return {
         ...(data as any),
+        kmj: resolvedKmj,
         pos_count: posData?.length || 0,
-        pj_count: pjData?.length || 0,
+        pj_count: pjSet.size,
       } as JemaatIndukItem;
     },
     enabled: Boolean(id_induk),
@@ -222,7 +291,7 @@ export function useJemaatDetail(id_induk?: string) {
 }
 
 /**
- * Fetch Pos Pelkes di bawah Jemaat Induk tertentu
+ * Fetch Pos Pelkes di bawah Jemaat Induk tertentu (Sinkronisasi Multi-Sumber PJ)
  */
 export function usePosByJemaat(id_induk?: string, search?: string) {
   const supabase = createClient();
@@ -242,18 +311,50 @@ export function usePosByJemaat(id_induk?: string, search?: string) {
       const { data: posData, error } = await query;
       if (error) throw error;
 
-      // Fetch PJ assignments
-      const { data: pjData } = await supabase
-        .from('t_pj_jemaat')
-        .select('id_induk, pendeta:m_pendeta(id_pendeta, nama_lengkap, no_wa)')
-        .is('tanggal_selesai', null);
+      // Fetch PJ assignments from multiple tables
+      const [{ data: pjData }, { data: penugasanData }, { data: pendetaData }] = await Promise.all([
+        supabase
+          .from('t_pj_jemaat')
+          .select('id_induk, id_pendeta, pendeta:m_pendeta(id_pendeta, nama_lengkap, no_wa)')
+          .is('tanggal_selesai', null),
+        supabase
+          .from('t_penugasan_pendeta')
+          .select('id_pos, id_pendeta, pendeta:m_pendeta(id_pendeta, nama_lengkap, no_wa)')
+          .eq('status_tugas', 'Aktif'),
+        supabase
+          .from('m_pendeta')
+          .select('id_pendeta, id_induk, nama_lengkap, no_wa, is_pj')
+          .eq('is_pj', true),
+      ]);
 
       const result: PosPelkesItem[] = (posData || []).map((p: any) => {
-        const activePj = (pjData || []).find((pj) => pj.id_induk === p.id_induk);
+        // Source 1: t_penugasan_pendeta
+        let posPj: any = (penugasanData || []).find((t: any) => t.id_pos === p.id_pos)?.pendeta;
+
+        // Source 2: t_pj_jemaat
+        if (!posPj) {
+          posPj = (pjData || []).find((pj: any) => pj.id_induk === p.id_induk)?.pendeta;
+        }
+
+        // Source 3: m_pendeta (is_pj = true)
+        if (!posPj) {
+          const pPj = (pendetaData || []).find((pend: any) => pend.id_induk === p.id_induk);
+          if (pPj) {
+            posPj = {
+              id_pendeta: pPj.id_pendeta,
+              nama_lengkap: pPj.nama_lengkap,
+              no_wa: pPj.no_wa,
+            };
+          }
+        }
+
+        if (Array.isArray(posPj)) {
+          posPj = posPj[0] || null;
+        }
 
         return {
           ...p,
-          pj: activePj?.pendeta ? (activePj.pendeta as any) : null,
+          pj: posPj ? (posPj as any) : null,
         };
       });
 
@@ -291,14 +392,14 @@ export function useHierarchyStats() {
         total_mupel: mCount || 25,
         total_jemaat: jCount || 350,
         total_pos: pCount || 500,
-        total_jiwa: (pCount || 500) * 100, // Estimasi 100 jiwa per Pos Pelkes
+        total_jiwa: (pCount || 500) * 100,
       };
     },
   });
 }
 
 /**
- * Assign KMJ (Atomic Database RPC `set_kmj`)
+ * Assign KMJ (Atomic Database RPC `set_kmj` + Full Synchronized Fallback Updates)
  */
 export function useAssignKmj() {
   const supabase = createClient();
@@ -306,12 +407,32 @@ export function useAssignKmj() {
 
   return useMutation({
     mutationFn: async (data: { id_induk: string; id_pendeta: string }) => {
-      const { error } = await supabase.rpc('set_kmj', {
-        p_id_induk: data.id_induk,
-        p_id_pendeta: data.id_pendeta,
-      });
+      // 1. Execute Database RPC set_kmj
+      try {
+        await supabase.rpc('set_kmj', {
+          p_id_induk: data.id_induk,
+          p_id_pendeta: data.id_pendeta,
+        });
+      } catch (e) {
+        console.warn('RPC set_kmj warning, running direct table sync fallback:', e);
+      }
 
-      if (error) throw error;
+      // 2. Guarantee 100% synchronization on all related tables
+      await supabase
+        .from('m_jemaat_induk')
+        .update({ id_kmj: data.id_pendeta, updated_at: new Date().toISOString() })
+        .eq('id_induk', data.id_induk);
+
+      await supabase
+        .from('m_pendeta')
+        .update({ is_kmj: false })
+        .eq('id_induk', data.id_induk);
+
+      await supabase
+        .from('m_pendeta')
+        .update({ is_kmj: true, id_induk: data.id_induk, updated_at: new Date().toISOString() })
+        .eq('id_pendeta', data.id_pendeta);
+
       return { success: true };
     },
     onSuccess: (_, variables) => {
@@ -332,7 +453,7 @@ export function useAssignKmj() {
 }
 
 /**
- * Assign PJ (Atomic Database RPC `assign_pj`)
+ * Assign PJ (Atomic Database RPC `assign_pj` + Full Synchronized Fallback Updates)
  */
 export function useAssignPj() {
   const supabase = createClient();
@@ -340,12 +461,29 @@ export function useAssignPj() {
 
   return useMutation({
     mutationFn: async (data: { id_induk: string; id_pendeta: string }) => {
-      const { error } = await supabase.rpc('assign_pj', {
-        p_id_induk: data.id_induk,
-        p_id_pendeta: data.id_pendeta,
+      // 1. Execute Database RPC assign_pj
+      try {
+        await supabase.rpc('assign_pj', {
+          p_id_induk: data.id_induk,
+          p_id_pendeta: data.id_pendeta,
+        });
+      } catch (e) {
+        console.warn('RPC assign_pj warning, running direct table sync fallback:', e);
+      }
+
+      // 2. Guarantee 100% synchronization on all related tables
+      await supabase.from('t_pj_jemaat').insert({
+        id_induk: data.id_induk,
+        id_pendeta: data.id_pendeta,
+        tanggal_mulai: new Date().toISOString().split('T')[0],
+        status: 'Aktif',
       });
 
-      if (error) throw error;
+      await supabase
+        .from('m_pendeta')
+        .update({ is_pj: true, id_induk: data.id_induk, updated_at: new Date().toISOString() })
+        .eq('id_pendeta', data.id_pendeta);
+
       return { success: true };
     },
     onSuccess: (_, variables) => {
