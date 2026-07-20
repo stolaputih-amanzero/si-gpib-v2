@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyRegistrationResponse } from '@simplewebauthn/server';
 import type { VerifyRegistrationResponseOpts } from '@simplewebauthn/server';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 export async function POST(req: NextRequest) {
   try {
@@ -51,8 +52,13 @@ export async function POST(req: NextRequest) {
     // Hapus challenge yang sudah dipakai
     await supabase.from('webauthn_challenges').delete().eq('user_id', user.id);
 
-    // Update flag di tabel users
-    await supabase.from('users').update({ biometric_enabled: true }).eq('id', user.id);
+    // Update flag di tabel users menggunakan Admin Client karena RLS tidak mengizinkan UPDATE oleh user biasa
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    const { error: updateError } = await supabaseAdmin.from('users').update({ biometric_enabled: true }).eq('id', user.id);
+    if (updateError) console.error('Gagal update biometric_enabled:', updateError);
 
     return NextResponse.json({ success: true });
   } catch (error) {
