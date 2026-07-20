@@ -17,3 +17,8 @@ export function cleanQuotes(str?: string | null): string {
   }
   return s;
 }
+
+export function formatNumber(num?: number | null): string {
+  if (num === null || num === undefined) return '0';
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}

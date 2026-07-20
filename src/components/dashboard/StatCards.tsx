@@ -1,5 +1,6 @@
 import { MapPin, Users, Building2, CalendarCheck } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { formatNumber } from '@/lib/utils';
 
 interface StatCardsProps {
   posCount: number;
@@ -12,21 +13,21 @@ export function StatCards({ posCount, jemaatCount, totalJiwa, logCount }: StatCa
   const stats = [
     {
       title: 'Pos Pelkes',
-      value: posCount,
+      value: formatNumber(posCount),
       icon: MapPin,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
     },
     {
       title: 'Jemaat Induk',
-      value: jemaatCount,
+      value: formatNumber(jemaatCount),
       icon: Building2,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-100',
     },
     {
       title: 'Total Jiwa',
-      value: totalJiwa.toLocaleString('id-ID'),
+      value: formatNumber(totalJiwa),
       icon: Users,
       color: 'text-amber-600',
       bgColor: 'bg-amber-100',

@@ -3,6 +3,7 @@
 import { useHierarchyStats } from '@/hooks/use-hierarki';
 import { Layers, Church, MapPin, Users } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { formatNumber } from '@/lib/utils';
 
 interface HierarchyStatsProps {
   overrideStats?: {
@@ -44,7 +45,7 @@ export function HierarchyStats({ overrideStats }: HierarchyStatsProps) {
         <div>
           <span className="block text-[11px] font-bold text-text-muted uppercase tracking-wider">Mupel</span>
           <span className="text-base sm:text-lg font-black text-text-high tabular-nums">
-            {stats.total_mupel} Wilayah
+            {formatNumber(stats.total_mupel)} Wilayah
           </span>
         </div>
       </div>
@@ -57,7 +58,7 @@ export function HierarchyStats({ overrideStats }: HierarchyStatsProps) {
         <div>
           <span className="block text-[11px] font-bold text-text-muted uppercase tracking-wider">Jemaat Induk</span>
           <span className="text-base sm:text-lg font-black text-text-high tabular-nums">
-            {stats.total_jemaat} Gereja
+            {formatNumber(stats.total_jemaat)} Gereja
           </span>
         </div>
       </div>
@@ -70,7 +71,7 @@ export function HierarchyStats({ overrideStats }: HierarchyStatsProps) {
         <div>
           <span className="block text-[11px] font-bold text-text-muted uppercase tracking-wider">Pos Pelkes</span>
           <span className="text-base sm:text-lg font-black text-text-high tabular-nums">
-            {stats.total_pos} Pos
+            {formatNumber(stats.total_pos)} Pos
           </span>
         </div>
       </div>
@@ -83,7 +84,7 @@ export function HierarchyStats({ overrideStats }: HierarchyStatsProps) {
         <div>
           <span className="block text-[11px] font-bold text-text-muted uppercase tracking-wider">Estimasi Jiwa</span>
           <span className="text-base sm:text-lg font-black text-text-high tabular-nums">
-            {stats.total_jiwa.toLocaleString('id-ID')}+
+            {formatNumber(stats.total_jiwa)}+
           </span>
         </div>
       </div>

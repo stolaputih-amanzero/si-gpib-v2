@@ -46,8 +46,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id">
-      <body className="bg-surface-base text-text-high">
+    <html lang="id" suppressHydrationWarning>
+      <body className="bg-surface-base text-text-high" suppressHydrationWarning>
         <QueryProvider>
           <NetworkBanner />
           {children}
