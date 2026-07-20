@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'SI GPIB v2.2 - Sistem Informasi GPIB',
-  description: 'Platform Digital Terpadu Pelayanan & Kesaksian Pos Pelkes GPIB di Seluruh Indonesia.',
+  description: 'Platform Digital Terpadu GPIB di Seluruh Indonesia.',
   manifest: '/manifest.json',
   metadataBase: new URL('https://sigpib.amanzero.space'),
   icons: {
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'SI GPIB v2.2 - Sistem Informasi GPIB',
-    description: 'Platform Digital Terpadu Pelayanan & Kesaksian Pos Pelkes GPIB di Seluruh Indonesia.',
+    description: 'Platform Digital Terpadu GPIB di Seluruh Indonesia.',
     url: 'https://sigpib.amanzero.space',
     siteName: 'SI GPIB',
     images: [
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'SI GPIB v2.2 - Sistem Informasi GPIB',
-    description: 'Platform Digital Terpadu Pelayanan & Kesaksian Pos Pelkes GPIB di Seluruh Indonesia.',
+    description: 'Platform Digital Terpadu GPIB di Seluruh Indonesia.',
     images: ['https://sigpib.amanzero.space/og-image-si-gpib.png'],
   },
 };
