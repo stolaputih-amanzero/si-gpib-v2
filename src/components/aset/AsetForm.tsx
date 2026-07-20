@@ -50,7 +50,7 @@ export function AsetForm({
 
   // Unique Draft Storage Key as requested in note #2
   const draftKey = `draft:aset:${id_pos}:${kategori.toLowerCase()}:${initialData?.id || 'new'}`;
-  const { draft, saveDraft, clearDraft, hasRestoredDraft, lastSavedTime } = useFormDraft(
+  const { draft, saveDraft, clearDraft, hasRestoredDraft, relativeSavedTime } = useFormDraft(
     draftKey,
     initialData || {}
   );
@@ -199,12 +199,12 @@ export function AsetForm({
       </div>
 
       {/* Offline Draft Indicator */}
-      {lastSavedTime && (
+      {relativeSavedTime && (
         <div className="flex items-center justify-between p-3 rounded-xl bg-blue-50/60 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 text-xs text-blue-800 dark:text-blue-300">
           <div className="flex items-center gap-1.5">
             <Clock size={14} className="shrink-0 text-blue-500" />
             <span>
-              {hasRestoredDraft ? 'Draf lama dipulihkan' : 'Draf tersimpan otomatis'} ({lastSavedTime})
+              {hasRestoredDraft ? 'Draf lama dipulihkan' : 'Draf tersimpan otomatis'} ({relativeSavedTime})
             </span>
           </div>
           <button

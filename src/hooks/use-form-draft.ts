@@ -1,10 +1,17 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { 
+  saveFormDraft, 
+  getFormDraft, 
+  clearFormDraft, 
+  getDraftRelativeTime,
+  cleanExpiredDrafts 
+} from '@/lib/utils/draft-storage';
 
 /**
- * Hook to auto-save and restore form drafts in localStorage.
- * Format Key: draft:aset:{id_pos}:{kategori}:{id_aset || 'new'}
+ * Enhanced hook to auto-save and restore form drafts in localStorage.
+ * Discards drafts older than 7 days and formats relative time using date-fns.
  */
 export function useFormDraft<T extends Record<string, any>>(
   storageKey: string,
@@ -12,21 +19,18 @@ export function useFormDraft<T extends Record<string, any>>(
 ) {
   const [draft, setDraft] = useState<T>(initialValues);
   const [hasRestoredDraft, setHasRestoredDraft] = useState<boolean>(false);
-  const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
+  const [lastSavedTimestamp, setLastSavedTimestamp] = useState<string | null>(null);
 
-  // Restore draft on mount
+  // Restore draft on mount & clean expired drafts
   useEffect(() => {
     if (!storageKey) return;
-    try {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setDraft(parsed.data);
-        setLastSavedTime(parsed.time);
-        setHasRestoredDraft(true);
-      }
-    } catch (e) {
-      console.warn('Failed to restore draft from localStorage:', e);
+    cleanExpiredDrafts();
+
+    const existingDraft = getFormDraft<T>(storageKey);
+    if (existingDraft) {
+      setDraft(existingDraft.data as T);
+      setLastSavedTimestamp(existingDraft.timestamp);
+      setHasRestoredDraft(true);
     }
   }, [storageKey]);
 
@@ -34,16 +38,8 @@ export function useFormDraft<T extends Record<string, any>>(
   const saveDraft = useCallback(
     (data: Partial<T>) => {
       if (!storageKey) return;
-      try {
-        const payload = {
-          data,
-          time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-        };
-        localStorage.setItem(storageKey, JSON.stringify(payload));
-        setLastSavedTime(payload.time);
-      } catch (e) {
-        console.warn('Failed to save draft to localStorage:', e);
-      }
+      saveFormDraft(storageKey, data);
+      setLastSavedTimestamp(new Date().toISOString());
     },
     [storageKey]
   );
@@ -51,20 +47,21 @@ export function useFormDraft<T extends Record<string, any>>(
   // Clear draft upon successful form submission
   const clearDraft = useCallback(() => {
     if (!storageKey) return;
-    try {
-      localStorage.removeItem(storageKey);
-      setLastSavedTime(null);
-      setHasRestoredDraft(false);
-    } catch (e) {
-      console.warn('Failed to clear draft from localStorage:', e);
-    }
+    clearFormDraft(storageKey);
+    setLastSavedTimestamp(null);
+    setHasRestoredDraft(false);
   }, [storageKey]);
+
+  const relativeSavedTime = lastSavedTimestamp
+    ? getDraftRelativeTime(lastSavedTimestamp)
+    : null;
 
   return {
     draft,
     saveDraft,
     clearDraft,
     hasRestoredDraft,
-    lastSavedTime,
+    lastSavedTimestamp,
+    relativeSavedTime,
   };
 }
