@@ -10,6 +10,7 @@ export interface PosPelkesWilayah {
   nama_pos: string;
   latitude: number | null;
   longitude: number | null;
+  id_induk?: string | null;
   mupel?: string | null;
   jemaat_induk?: string | null;
 }
@@ -79,11 +80,26 @@ export function usePosPelkesList() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('m_pos_pelkes')
-        .select('id_pos, nama_pos, latitude, longitude, mupel, jemaat_induk')
+        .select(`
+          id_pos, 
+          nama_pos, 
+          latitude, 
+          longitude, 
+          id_induk,
+          jemaat:m_jemaat_induk(nama_induk, id_mupel)
+        `)
         .order('nama_pos', { ascending: true });
 
       if (error) throw error;
-      return (data || []) as PosPelkesWilayah[];
+      return (data || []).map((p: any) => ({
+        id_pos: p.id_pos,
+        nama_pos: p.nama_pos,
+        latitude: p.latitude,
+        longitude: p.longitude,
+        id_induk: p.id_induk,
+        jemaat_induk: p.jemaat?.nama_induk || null,
+        mupel: p.jemaat?.id_mupel || null,
+      }));
     },
   });
 }
@@ -99,7 +115,16 @@ export function useKerawananList(id_pos?: string) {
     queryFn: async () => {
       let query = supabase
         .from('t_kerawanan_wilayah')
-        .select('*, pos:m_pos_pelkes(id_pos, nama_pos, latitude, longitude, mupel)')
+        .select(`
+          *, 
+          pos:m_pos_pelkes(
+            id_pos, 
+            nama_pos, 
+            latitude, 
+            longitude,
+            jemaat:m_jemaat_induk(id_mupel)
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (id_pos && id_pos !== 'all') {
@@ -108,7 +133,16 @@ export function useKerawananList(id_pos?: string) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data || []) as KerawananItem[];
+      return (data || []).map((k: any) => ({
+        ...k,
+        pos: k.pos ? {
+          id_pos: k.pos.id_pos,
+          nama_pos: k.pos.nama_pos,
+          latitude: k.pos.latitude,
+          longitude: k.pos.longitude,
+          mupel: k.pos.jemaat?.id_mupel || null,
+        } : null,
+      })) as KerawananItem[];
     },
   });
 }
@@ -124,7 +158,16 @@ export function usePotensiList(id_pos?: string) {
     queryFn: async () => {
       let query = supabase
         .from('t_potensi_wilayah')
-        .select('*, pos:m_pos_pelkes(id_pos, nama_pos, latitude, longitude, mupel)')
+        .select(`
+          *, 
+          pos:m_pos_pelkes(
+            id_pos, 
+            nama_pos, 
+            latitude, 
+            longitude,
+            jemaat:m_jemaat_induk(id_mupel)
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (id_pos && id_pos !== 'all') {
@@ -133,7 +176,16 @@ export function usePotensiList(id_pos?: string) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data || []) as PotensiItem[];
+      return (data || []).map((p: any) => ({
+        ...p,
+        pos: p.pos ? {
+          id_pos: p.pos.id_pos,
+          nama_pos: p.pos.nama_pos,
+          latitude: p.pos.latitude,
+          longitude: p.pos.longitude,
+          mupel: p.pos.jemaat?.id_mupel || null,
+        } : null,
+      })) as PotensiItem[];
     },
   });
 }
@@ -151,7 +203,13 @@ export function useWilayahMapData() {
       // 1. Fetch Pos Pelkes dengan koordinat valid
       const { data: posData, error: posErr } = await supabase
         .from('m_pos_pelkes')
-        .select('id_pos, nama_pos, latitude, longitude, mupel')
+        .select(`
+          id_pos, 
+          nama_pos, 
+          latitude, 
+          longitude,
+          jemaat:m_jemaat_induk(id_mupel)
+        `)
         .not('latitude', 'is', null)
         .not('longitude', 'is', null);
 
@@ -172,8 +230,8 @@ export function useWilayahMapData() {
 
       // 3. Mapping data ke per Pos Pelkes
       const mapItems: MapPosPelkesItem[] = posData
-        .filter((pos) => typeof pos.latitude === 'number' && typeof pos.longitude === 'number')
-        .map((pos) => {
+        .filter((pos: any) => typeof pos.latitude === 'number' && typeof pos.longitude === 'number')
+        .map((pos: any) => {
           const kItems = kerawananList.filter((k) => k.id_pos === pos.id_pos);
           const pItems = potensiList.filter((p) => p.id_pos === pos.id_pos);
 
@@ -182,7 +240,7 @@ export function useWilayahMapData() {
             nama_pos: pos.nama_pos,
             latitude: Number(pos.latitude),
             longitude: Number(pos.longitude),
-            mupel: pos.mupel || null,
+            mupel: pos.jemaat?.id_mupel || null,
             jumlah_kerawanan: kItems.length,
             jumlah_potensi: pItems.length,
             kerawanan_list: kItems,
@@ -217,7 +275,16 @@ export function useCreateKerawanan() {
       const { data, error } = await supabase
         .from('t_kerawanan_wilayah')
         .insert(payload)
-        .select('*, pos:m_pos_pelkes(id_pos, nama_pos, latitude, longitude, mupel)')
+        .select(`
+          *, 
+          pos:m_pos_pelkes(
+            id_pos, 
+            nama_pos, 
+            latitude, 
+            longitude,
+            jemaat:m_jemaat_induk(id_mupel)
+          )
+        `)
         .single();
 
       if (error) throw error;
@@ -252,7 +319,16 @@ export function useCreatePotensi() {
       const { data, error } = await supabase
         .from('t_potensi_wilayah')
         .insert(payload)
-        .select('*, pos:m_pos_pelkes(id_pos, nama_pos, latitude, longitude, mupel)')
+        .select(`
+          *, 
+          pos:m_pos_pelkes(
+            id_pos, 
+            nama_pos, 
+            latitude, 
+            longitude,
+            jemaat:m_jemaat_induk(id_mupel)
+          )
+        `)
         .single();
 
       if (error) throw error;
@@ -280,7 +356,7 @@ export function useDeleteKerawanan() {
         .eq('id_risiko', id_risiko);
 
       if (error) throw error;
-      return id_risiko;
+      return true;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kerawanan-list'] });
@@ -304,7 +380,7 @@ export function useDeletePotensi() {
         .eq('id_potensi', id_potensi);
 
       if (error) throw error;
-      return id_potensi;
+      return true;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['potensi-list'] });
