@@ -3,7 +3,7 @@ import { PosPelkesList } from "./pos-pelkes-list"
 
 export default async function PosPelkesPage() {
   const supabase = await createClient()
-  const { data: posPelkes, error } = await supabase
+  const { data: posPelkes } = await supabase
     .from('m_pos_pelkes')
     .select('id_pos, nama_pos, alamat, tgl_berdiri')
     // No limit for now so client-side search works correctly on all data

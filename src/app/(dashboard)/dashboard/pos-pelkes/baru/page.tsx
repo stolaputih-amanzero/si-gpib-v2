@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { MapPin, Camera, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { MapPin, Camera, Loader2 } from 'lucide-react';
 import { savePosPelkes } from './actions';
 
 const formSchema = z.object({
@@ -30,7 +30,6 @@ export default function TambahPosPelkesPage() {
     register,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -40,8 +39,6 @@ export default function TambahPosPelkesPage() {
     }
   });
 
-  const latitude = watch('latitude');
-  const longitude = watch('longitude');
 
   const getLocation = () => {
     setIsGettingLocation(true);
@@ -52,7 +49,7 @@ export default function TambahPosPelkesPage() {
           setValue('longitude', position.coords.longitude);
           setIsGettingLocation(false);
         },
-        (error) => {
+        () => {
           alert('Gagal mendapatkan lokasi. Pastikan GPS aktif dan izin diberikan.');
           setIsGettingLocation(false);
         },

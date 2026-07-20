@@ -41,8 +41,9 @@ export async function POST(req: NextRequest) {
       expectedChallenge: challengeData.challenge,
       expectedOrigin: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
       expectedRPID: process.env.NEXT_PUBLIC_RP_ID || 'localhost',
-      authenticator: {
-        credentialPublicKey: Buffer.from(credential.public_key, 'base64'),
+      credential: {
+        id: credentialId,
+        publicKey: Buffer.from(credential.public_key, 'base64'),
         counter: credential.counter,
       },
     };

@@ -17,7 +17,7 @@ const logSchema = z.object({
   foto_url: z.string().nullable().optional(), // File path hasil upload ke bucket
 });
 
-export async function submitPastoralLog(prevState: any, formData: FormData) {
+export async function submitPastoralLog(_prevState: any, formData: FormData) {
   try {
     const supabase = await createClient();
 

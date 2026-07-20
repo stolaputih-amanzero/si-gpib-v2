@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { LogForm } from './log-form';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 export const metadata = {
   title: 'Input Log Pastoral | SI GPIB',

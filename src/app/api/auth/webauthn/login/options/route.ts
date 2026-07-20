@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateAuthenticationOptions } from '@simplewebauthn/server';
-import type { AuthenticationOptionsJSON } from '@simplewebauthn/server';
+import type { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/server';
 import { createClient } from '@/lib/supabase/server';
 
 export async function POST(req: NextRequest) {
@@ -38,12 +38,12 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Generate Authentication Options
-    const options: AuthenticationOptionsJSON = await generateAuthenticationOptions({
+    const options: PublicKeyCredentialRequestOptionsJSON = await generateAuthenticationOptions({
       timeout: 60000,
       allowCredentials: credentials.map((cred) => ({
         id: cred.credential_id,
         type: 'public-key',
-        transports: cred.transports as AuthenticationOptionsJSON['allowCredentials'][0]['transports'],
+        transports: cred.transports as any,
       })),
       userVerification: 'preferred',
       rpID: process.env.NEXT_PUBLIC_RP_ID || 'localhost',

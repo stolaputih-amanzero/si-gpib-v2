@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
+import { startRegistration } from '@simplewebauthn/browser';
 
 type BiometricStatus = 'idle' | 'loading' | 'success' | 'error';
 

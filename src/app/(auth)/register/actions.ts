@@ -15,7 +15,7 @@ export async function registerUser(formData: FormData) {
   }
 
   // Use Supabase Auth signUp. The metadata will trigger our DB trigger to insert into public.users
-  const { data, error } = await supabase.auth.signUp({
+  const { error } = await supabase.auth.signUp({
     email,
     password,
     phone, // Supabase native phone field (optional, we can also put it in data)

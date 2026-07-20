@@ -8,7 +8,7 @@ export const metadata = {
 export default async function PetaPage() {
   const supabase = await createClient()
   
-  const { data: posPelkes, error } = await supabase
+  const { data: posPelkes } = await supabase
     .from('m_pos_pelkes')
     .select('id_pos, nama_pos, alamat, latitude, longitude')
     .not('latitude', 'is', null)

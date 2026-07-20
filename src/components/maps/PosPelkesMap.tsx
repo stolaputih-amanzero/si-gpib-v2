@@ -1,16 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import Link from 'next/link';
 import { Navigation } from 'lucide-react';
 
-// Fix for default Leaflet icons in Next.js
-const iconRetinaUrl = '/leaflet/marker-icon-2x.png';
-const iconUrl = '/leaflet/marker-icon.png';
-const shadowUrl = '/leaflet/marker-shadow.png';
 
 const customIcon = L.icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -35,18 +30,7 @@ interface PosPelkesMapProps {
   posPelkesData: PosPelkes[];
 }
 
-// Component to handle moving map to user's location
-function LocationMarker() {
-  const map = useMap();
 
-  useEffect(() => {
-    map.locate().on("locationfound", function (e) {
-      map.flyTo(e.latlng, map.getZoom());
-    });
-  }, [map]);
-
-  return null;
-}
 
 export default function PosPelkesMap({ posPelkesData }: PosPelkesMapProps) {
   // Default center (Indonesia)

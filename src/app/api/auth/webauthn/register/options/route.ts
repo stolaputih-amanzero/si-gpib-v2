@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateRegistrationOptions } from '@simplewebauthn/server';
-import type { RegistrationOptionsJSON } from '@simplewebauthn/server';
+import type { PublicKeyCredentialCreationOptionsJSON } from '@simplewebauthn/server';
 import { createClient } from '@/lib/supabase/server';
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Generate options
-    const options: RegistrationOptionsJSON = await generateRegistrationOptions({
+    const options: PublicKeyCredentialCreationOptionsJSON = await generateRegistrationOptions({
       rpName: process.env.NEXT_PUBLIC_RP_NAME || 'SI GPIB',
       rpID: process.env.NEXT_PUBLIC_RP_ID || 'localhost',
       userID: Buffer.from(user.id),

@@ -15,7 +15,7 @@ const registerSchema = z.object({
     .min(8, 'Minimal 8 karakter')
     .regex(/[A-Z]/, 'Harus mengandung minimal 1 huruf besar')
     .regex(/[0-9]/, 'Harus mengandung minimal 1 angka'),
-  role: z.enum(['super_user', 'admin_mupel', 'kmj', 'pj', 'user']).default('user'),
+  role: z.enum(['super_user', 'admin_mupel', 'kmj', 'pj', 'user']),
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;

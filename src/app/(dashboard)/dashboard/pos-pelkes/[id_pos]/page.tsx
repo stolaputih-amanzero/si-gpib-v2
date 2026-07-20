@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 // --- Types ---
 interface PosDetail {
@@ -102,7 +102,7 @@ async function getLogPastoral(id_pos: string): Promise<LogPastoral[]> {
     .eq('id_pos', id_pos)
     .order('tgl', { ascending: false })
     .limit(10);
-  return data || [];
+  return (data as unknown as LogPastoral[]) || [];
 }
 
 // --- Main Page Component ---

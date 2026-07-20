@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { User, Activity, Users, Database, FileText, Calendar, MapPin, Camera, Info } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
+import { User, Activity, Users, Database, Calendar, Info } from 'lucide-react';
+
 
 export function PosPelkesDetailTabs({ data }: { data: any }) {
   const [activeTab, setActiveTab] = useState('profil');
-  const supabase = createClient();
+
   const storageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pos-pelkes-images/`;
 
   const tabs = [

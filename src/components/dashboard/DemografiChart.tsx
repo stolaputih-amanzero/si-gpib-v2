@@ -46,10 +46,10 @@ export function DemografiChart({ data }: { data: ChartData[] }) {
                 <Tooltip 
                   cursor={{ fill: '#F3F4F6' }}
                   contentStyle={{ borderRadius: '8px', border: '1px solid #E5E7EB', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  formatter={(value: number) => [`${value} Jiwa`, 'Total']}
+                  formatter={(value: any) => [`${value} Jiwa`, 'Total']}
                 />
                 <Bar dataKey="total" radius={[4, 4, 0, 0]} maxBarSize={50}>
-                  {data.map((entry, index) => (
+                  {data.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                   ))}
                 </Bar>

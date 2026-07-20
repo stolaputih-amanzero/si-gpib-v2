@@ -5,7 +5,7 @@ import { login } from './actions';
 import { BiometricLogin } from '@/components/biometric/BiometricLogin';
 
 const initialState = {
-  error: null,
+  error: '',
 };
 
 export default function LoginPage() {
