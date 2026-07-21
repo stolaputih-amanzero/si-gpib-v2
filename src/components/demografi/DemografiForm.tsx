@@ -25,14 +25,17 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
   const [targetScope, setTargetScope] = useState<'pos' | 'jemaat'>('jemaat');
   const [selectedIdPos, setSelectedIdPos] = useState<string>('');
 
-  // 6 Pelkat Rows state
-  const [pelkatRows, setPelkatRows] = useState<Record<PelkatKode, { laki: number; perempuan: number; jml_kk: number }>>({
-    PA: { laki: 0, perempuan: 0, jml_kk: 0 },
-    PT: { laki: 0, perempuan: 0, jml_kk: 0 },
-    GP: { laki: 0, perempuan: 0, jml_kk: 0 },
-    PKP: { laki: 0, perempuan: 0, jml_kk: 0 },
-    PKB: { laki: 0, perempuan: 0, jml_kk: 0 },
-    PKLU: { laki: 0, perempuan: 0, jml_kk: 0 },
+  // Standalone Jumlah KK
+  const [jmlKk, setJmlKk] = useState<number>(0);
+
+  // 6 Pelkat Rows state (Laki & Perempuan)
+  const [pelkatRows, setPelkatRows] = useState<Record<PelkatKode, { laki: number; perempuan: number }>>({
+    PA: { laki: 0, perempuan: 0 },
+    PT: { laki: 0, perempuan: 0 },
+    GP: { laki: 0, perempuan: 0 },
+    PKP: { laki: 0, perempuan: 0 },
+    PKB: { laki: 0, perempuan: 0 },
+    PKLU: { laki: 0, perempuan: 0 },
   });
 
   // Additional Fields
@@ -55,26 +58,30 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
           .eq('id_pos', activeIdPos);
 
         if (data && data.length > 0) {
-          const updatedRows: Record<PelkatKode, { laki: number; perempuan: number; jml_kk: number }> = {
-            PA: { laki: 0, perempuan: 0, jml_kk: 0 },
-            PT: { laki: 0, perempuan: 0, jml_kk: 0 },
-            GP: { laki: 0, perempuan: 0, jml_kk: 0 },
-            PKP: { laki: 0, perempuan: 0, jml_kk: 0 },
-            PKB: { laki: 0, perempuan: 0, jml_kk: 0 },
-            PKLU: { laki: 0, perempuan: 0, jml_kk: 0 },
+          const updatedRows: Record<PelkatKode, { laki: number; perempuan: number }> = {
+            PA: { laki: 0, perempuan: 0 },
+            PT: { laki: 0, perempuan: 0 },
+            GP: { laki: 0, perempuan: 0 },
+            PKP: { laki: 0, perempuan: 0 },
+            PKB: { laki: 0, perempuan: 0 },
+            PKLU: { laki: 0, perempuan: 0 },
           };
 
+          let totalKkFound = 0;
           data.forEach((row) => {
             const kode = row.kategori_pelkat as PelkatKode;
             if (updatedRows[kode]) {
               updatedRows[kode] = {
                 laki: row.laki || 0,
                 perempuan: row.perempuan || 0,
-                jml_kk: row.jml_kk || 0,
               };
+            }
+            if (row.jml_kk && row.jml_kk > 0) {
+              totalKkFound += row.jml_kk;
             }
           });
           setPelkatRows(updatedRows);
+          setJmlKk(totalKkFound);
 
           // Populasikan profesi, pendidikan, keterangan dari baris pertama yang ada
           const first = data[0];
@@ -84,13 +91,14 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
         } else {
           // Reset ke 0 jika tidak ada data tersimpan sebelumnya
           setPelkatRows({
-            PA: { laki: 0, perempuan: 0, jml_kk: 0 },
-            PT: { laki: 0, perempuan: 0, jml_kk: 0 },
-            GP: { laki: 0, perempuan: 0, jml_kk: 0 },
-            PKP: { laki: 0, perempuan: 0, jml_kk: 0 },
-            PKB: { laki: 0, perempuan: 0, jml_kk: 0 },
-            PKLU: { laki: 0, perempuan: 0, jml_kk: 0 },
+            PA: { laki: 0, perempuan: 0 },
+            PT: { laki: 0, perempuan: 0 },
+            GP: { laki: 0, perempuan: 0 },
+            PKP: { laki: 0, perempuan: 0 },
+            PKB: { laki: 0, perempuan: 0 },
+            PKLU: { laki: 0, perempuan: 0 },
           });
+          setJmlKk(0);
           setProfesi('');
           setPendidikan('');
           setKeterangan('');
@@ -100,7 +108,7 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
     }
   }, [activeIdPos]);
 
-  const handleRowChange = (kode: PelkatKode, field: 'laki' | 'perempuan' | 'jml_kk', val: number) => {
+  const handleRowChange = (kode: PelkatKode, field: 'laki' | 'perempuan', val: number) => {
     setPelkatRows((prev) => ({
       ...prev,
       [kode]: {
@@ -141,11 +149,12 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
       const formattedPendidikan = pendidikan ? formatPastoralKegiatanText(pendidikan) : '';
       const formattedKeterangan = keterangan ? formatPastoralKegiatanText(keterangan) : '';
 
-      // Susun payload untuk ke-6 Kategori Pelkat
-      const payloads = Object.entries(pelkatRows).map(([kode, row]) => ({
+      // Susun payload untuk ke-6 Kategori Pelkat. 
+      // jml_kk disimpan pada baris pertama (PA) untuk mencegah duplikasi penjumlahan SQL.
+      const payloads = Object.entries(pelkatRows).map(([kode, row], index) => ({
         id_pos: finalPosId,
         kategori_pelkat: kode as PelkatKode,
-        jml_kk: row.jml_kk,
+        jml_kk: index === 0 ? jmlKk : 0, // KK disimpan pada baris utama (PA)
         laki: row.laki,
         perempuan: row.perempuan,
         profesi: formattedProfesi,
@@ -162,13 +171,12 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
 
       setSuccessMsg('Seluruh data demografi 6 Pelkat berhasil disimpan!');
       if (onSuccess) {
-        // Kirim record gabungan pertama sebagai representasi ke callback
         onSuccess(
           {
             id_pos: finalPosId,
             laki: Object.values(pelkatRows).reduce((sum, r) => sum + r.laki, 0),
             perempuan: Object.values(pelkatRows).reduce((sum, r) => sum + r.perempuan, 0),
-            jml_kk: Object.values(pelkatRows).reduce((sum, r) => sum + r.jml_kk, 0),
+            jml_kk: jmlKk,
             profesi: formattedProfesi,
             pendidikan: formattedPendidikan,
             keterangan: formattedKeterangan,
@@ -188,7 +196,6 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
   const totalLaki = Object.values(pelkatRows).reduce((sum, r) => sum + r.laki, 0);
   const totalPerempuan = Object.values(pelkatRows).reduce((sum, r) => sum + r.perempuan, 0);
   const totalJiwaOverall = totalLaki + totalPerempuan;
-  const totalKkOverall = Object.values(pelkatRows).reduce((sum, r) => sum + r.jml_kk, 0);
 
   return (
     <form onSubmit={handleSubmitAll} className="space-y-4 text-left">
@@ -231,8 +238,8 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
             onChange={(val) => setSelectedIdPos(val)}
             onMetaChange={(meta) => setHierarchyMeta(meta)}
             disabled={batchUpsertMutation.isPending}
-            required={targetScope === 'pos'} // Hanya required jika target lingkup adalah Pos Pelkes
-            hidePos={targetScope === 'jemaat'} // Poka-Yoke: Sembunyikan Pos Pelkes jika target adalah Jemaat Induk
+            required={targetScope === 'pos'}
+            hidePos={targetScope === 'jemaat'}
           />
         </div>
       )}
@@ -251,89 +258,147 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
         </div>
       )}
 
-      {/* 3. 6 Pelkat Rows Grid Input */}
-      <div className="space-y-2">
+      {/* 3. Standalone Jumlah KK (Tersendiri) */}
+      <div className="space-y-1.5">
         <label className="text-xs font-semibold text-text-high flex items-center justify-between">
-          <span>Rincian Data 6 Pelkat GPIB *</span>
-          <span className="text-[10px] text-text-muted font-normal">Input Jumlah Laki, Perempuan & KK</span>
+          <span>Jumlah KK (Kepala Keluarga) *</span>
+          <span className="text-[10px] text-text-muted font-normal">Total KK Wilayah Pelayanan</span>
         </label>
-        
-        <div className="border border-border-subtle rounded-2xl overflow-hidden bg-surface-base">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse min-w-[340px]">
-              <thead>
-                <tr className="bg-surface-sunken/80 border-b border-border-subtle text-text-high font-bold">
-                  <th className="p-3">Pelkat</th>
-                  <th className="p-3 w-20 text-center">Laki</th>
-                  <th className="p-3 w-20 text-center">Perempuan</th>
-                  <th className="p-3 w-20 text-center">Jml KK</th>
-                  <th className="p-3 w-16 text-center">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {KATEGORI_PELKAT.map((pelkat) => {
-                  const kode = pelkat.kode as PelkatKode;
-                  const row = pelkatRows[kode] || { laki: 0, perempuan: 0, jml_kk: 0 };
-                  const totalRow = Number(row.laki) + Number(row.perempuan);
+        <input
+          type="number"
+          min={0}
+          value={jmlKk || ''}
+          onChange={(e) => setJmlKk(Number(e.target.value))}
+          placeholder="0"
+          className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-elevated text-base font-bold text-text-high tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-primary"
+        />
+      </div>
 
-                  return (
-                    <tr key={pelkat.kode} className="border-b border-border-subtle/50 hover:bg-surface-sunken/40">
-                      <td className="p-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl shrink-0">{pelkat.icon}</span>
-                          <div>
-                            <p className="font-bold text-text-high leading-tight">{pelkat.nama}</p>
-                            <p className="text-[10px] text-text-muted leading-tight">{pelkat.kode}</p>
-                          </div>
+      {/* 4. 6 Pelkat Rows Input Header */}
+      <div className="space-y-2.5">
+        <label className="text-xs font-semibold text-text-high flex items-center justify-between">
+          <span>Rincian Jiwa 6 Pelkat GPIB *</span>
+          <span className="text-[10px] text-text-muted font-normal">Input Jumlah Laki-Laki & Perempuan</span>
+        </label>
+
+        {/* MOBILE VIEW: Card Layout (Setiap Pelkat dalam Card lega dengan Laki & Perempuan di baris berikutnya) */}
+        <div className="space-y-2.5 sm:hidden">
+          {KATEGORI_PELKAT.map((pelkat) => {
+            const kode = pelkat.kode as PelkatKode;
+            const row = pelkatRows[kode] || { laki: 0, perempuan: 0 };
+            const totalRow = Number(row.laki) + Number(row.perempuan);
+
+            return (
+              <div key={pelkat.kode} className="bg-surface-base border border-border-subtle/80 p-3.5 rounded-2xl space-y-2.5 shadow-soft">
+                {/* Header Pelkat */}
+                <div className="flex items-center justify-between border-b border-border-subtle/40 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{pelkat.icon}</span>
+                    <div>
+                      <h4 className="font-bold text-text-high text-xs">{pelkat.nama}</h4>
+                      <p className="text-[10px] text-text-muted">{pelkat.kode}</p>
+                    </div>
+                  </div>
+                  <div className="px-2.5 py-1 rounded-lg bg-surface-sunken border border-border-subtle/60 text-right">
+                    <span className="text-[10px] text-text-muted block font-medium">Subtotal</span>
+                    <span className="text-xs font-extrabold text-brand-primary tabular-nums">{totalRow} Jiwa</span>
+                  </div>
+                </div>
+
+                {/* Input Laki & Perempuan on next row (2-column layout) */}
+                <div className="grid grid-cols-2 gap-2.5 pt-0.5">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-blue-600 dark:text-blue-400">Laki-Laki</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={row.laki || ''}
+                      onChange={(e) => handleRowChange(kode, 'laki', Number(e.target.value))}
+                      placeholder="0"
+                      className="w-full min-h-[44px] px-3 text-center rounded-xl border border-blue-200 dark:border-blue-900 bg-surface-elevated text-sm font-bold text-text-high tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-pink-600 dark:text-pink-400">Perempuan</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={row.perempuan || ''}
+                      onChange={(e) => handleRowChange(kode, 'perempuan', Number(e.target.value))}
+                      placeholder="0"
+                      className="w-full min-h-[44px] px-3 text-center rounded-xl border border-pink-200 dark:border-pink-900 bg-surface-elevated text-sm font-bold text-text-high tabular-nums focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* DESKTOP VIEW: Clean Table Layout */}
+        <div className="hidden sm:block border border-border-subtle rounded-2xl overflow-hidden bg-surface-base">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-surface-sunken/80 border-b border-border-subtle text-text-high font-bold">
+                <th className="p-3">Pelkat</th>
+                <th className="p-3 w-28 text-center">Laki-Laki</th>
+                <th className="p-3 w-28 text-center">Perempuan</th>
+                <th className="p-3 w-24 text-center">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {KATEGORI_PELKAT.map((pelkat) => {
+                const kode = pelkat.kode as PelkatKode;
+                const row = pelkatRows[kode] || { laki: 0, perempuan: 0 };
+                const totalRow = Number(row.laki) + Number(row.perempuan);
+
+                return (
+                  <tr key={pelkat.kode} className="border-b border-border-subtle/50 hover:bg-surface-sunken/40">
+                    <td className="p-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl shrink-0">{pelkat.icon}</span>
+                        <div>
+                          <p className="font-bold text-text-high leading-tight">{pelkat.nama}</p>
+                          <p className="text-[10px] text-text-muted leading-tight">{pelkat.kode}</p>
                         </div>
-                      </td>
-                      <td className="p-2">
-                        <input
-                          type="number"
-                          min={0}
-                          value={row.laki || ''}
-                          onChange={(e) => handleRowChange(kode, 'laki', Number(e.target.value))}
-                          placeholder="0"
-                          className="w-full min-h-[38px] px-2 text-center rounded-lg border border-border-subtle bg-surface-elevated text-sm font-bold text-text-high tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-primary"
-                        />
-                      </td>
-                      <td className="p-2">
-                        <input
-                          type="number"
-                          min={0}
-                          value={row.perempuan || ''}
-                          onChange={(e) => handleRowChange(kode, 'perempuan', Number(e.target.value))}
-                          placeholder="0"
-                          className="w-full min-h-[38px] px-2 text-center rounded-lg border border-border-subtle bg-surface-elevated text-sm font-bold text-text-high tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-primary"
-                        />
-                      </td>
-                      <td className="p-2">
-                        <input
-                          type="number"
-                          min={0}
-                          value={row.jml_kk || ''}
-                          onChange={(e) => handleRowChange(kode, 'jml_kk', Number(e.target.value))}
-                          placeholder="0"
-                          className="w-full min-h-[38px] px-2 text-center rounded-lg border border-border-subtle bg-surface-elevated text-sm text-text-high tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-primary"
-                        />
-                      </td>
-                      <td className="p-3 text-center font-bold text-brand-primary tabular-nums">
-                        {totalRow}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                    </td>
+                    <td className="p-2">
+                      <input
+                        type="number"
+                        min={0}
+                        value={row.laki || ''}
+                        onChange={(e) => handleRowChange(kode, 'laki', Number(e.target.value))}
+                        placeholder="0"
+                        className="w-full min-h-[40px] px-2 text-center rounded-lg border border-blue-200 dark:border-blue-900 bg-surface-elevated text-sm font-bold text-text-high tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </td>
+                    <td className="p-2">
+                      <input
+                        type="number"
+                        min={0}
+                        value={row.perempuan || ''}
+                        onChange={(e) => handleRowChange(kode, 'perempuan', Number(e.target.value))}
+                        placeholder="0"
+                        className="w-full min-h-[40px] px-2 text-center rounded-lg border border-pink-200 dark:border-pink-900 bg-surface-elevated text-sm font-bold text-text-high tabular-nums focus:outline-none focus:ring-2 focus:ring-pink-500"
+                      />
+                    </td>
+                    <td className="p-3 text-center font-bold text-brand-primary tabular-nums">
+                      {totalRow} Jiwa
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      {/* 4. Calculated Sum Summary Box */}
+      {/* 5. Calculated Summary Box */}
       <div className="p-3.5 rounded-xl bg-surface-sunken border border-border-subtle grid grid-cols-2 sm:grid-cols-3 gap-3 text-center text-xs">
         <div>
-          <p className="text-text-muted font-medium">Total KK</p>
-          <p className="text-lg font-bold text-text-high mt-0.5 tabular-nums">{totalKkOverall}</p>
+          <p className="text-text-muted font-medium">Total KK Input</p>
+          <p className="text-lg font-bold text-text-high mt-0.5 tabular-nums">{jmlKk} KK</p>
         </div>
         <div>
           <p className="text-text-muted font-medium">Laki + Perempuan</p>
@@ -347,7 +412,7 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
         </div>
       </div>
 
-      {/* 5. Additional Fields (Profesi & Pendidikan dengan masking) */}
+      {/* 6. Additional Fields (Profesi & Pendidikan dengan masking) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-text-high">Dominasi Profesi (Opsional)</label>
@@ -374,7 +439,7 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
         </div>
       </div>
 
-      {/* 6. Keterangan */}
+      {/* 7. Keterangan */}
       <div className="space-y-1.5">
         <label className="text-xs font-semibold text-text-high">Catatan Tambahan / Keterangan</label>
         <textarea
