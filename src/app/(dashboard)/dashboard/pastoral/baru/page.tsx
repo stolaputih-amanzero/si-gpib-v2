@@ -13,6 +13,8 @@ import { PosCascadingSelector, HierarchyMetaInfo } from '@/components/hierarki/H
 import { PastoralPhotoPicker } from '@/components/pastoral/PastoralPhotoPicker';
 import { useToast } from '@/components/ui/toast';
 
+import { formatPastoralKegiatanText } from '@/lib/formatters/pastoral-text';
+
 export default function LogPastoralBaruPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -86,10 +88,11 @@ export default function LogPastoralBaruPage() {
     initFormDefaults();
   }, [setValue]);
 
-  // Auto-fill voice transcript ke field kegiatan
+  // Auto-fill & smart format voice transcript ke field kegiatan
   useEffect(() => {
     if (transcript) {
-      setValue('kegiatan', transcript, { shouldValidate: true });
+      const formatted = formatPastoralKegiatanText(transcript);
+      setValue('kegiatan', formatted, { shouldValidate: true });
     }
   }, [transcript, setValue]);
 
@@ -173,12 +176,14 @@ export default function LogPastoralBaruPage() {
         finalCatatan += `\n[📷 FOTO_BASE64:${photoBase64}]`;
       }
 
+      const formattedKegiatan = formatPastoralKegiatanText(data.kegiatan);
+
       const payload = {
         id_log: idLog,
         id_pos: data.id_pos && data.id_pos.trim() !== '' ? data.id_pos : null,
         id_pendeta: pendetaId,
         tgl: tglStr,
-        kegiatan: data.kegiatan,
+        kegiatan: formattedKegiatan,
         jml_jiwa: data.jml_jiwa ? Number(data.jml_jiwa) : null,
         catatan: finalCatatan,
       };
@@ -321,6 +326,10 @@ export default function LogPastoralBaruPage() {
           </label>
           <textarea
             {...register('kegiatan')}
+            onBlur={(e) => {
+              const formatted = formatPastoralKegiatanText(e.target.value);
+              setValue('kegiatan', formatted, { shouldValidate: true });
+            }}
             rows={4}
             placeholder="Deskripsikan kegiatan pastoral (contoh: Kunjungan Jemaat Sakit, Konseling Keluarga)..."
             className="w-full min-h-[120px] px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-text-high text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"

@@ -32,6 +32,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+import { formatPastoralKegiatanText } from '@/lib/formatters/pastoral-text';
+
 export default function LaporanPastoralPage() {
   const { toast, confirm: confirmModal } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
@@ -215,9 +217,11 @@ export default function LaporanPastoralPage() {
         finalCatatan += `\n[📷 FOTO_BASE64:${editPhotoBase64}]`;
       }
 
+      const formattedKegiatan = formatPastoralKegiatanText(editKegiatan);
+
       await updateMutation.mutateAsync({
         id_log: selectedLog.id_log,
-        kegiatan: editKegiatan,
+        kegiatan: formattedKegiatan,
         tgl: editTgl,
         jml_jiwa: editJmlJiwa !== '' ? Number(editJmlJiwa) : null,
         catatan: finalCatatan,
@@ -598,6 +602,7 @@ export default function LaporanPastoralPage() {
                     rows={3}
                     value={editKegiatan}
                     onChange={(e) => setEditKegiatan(e.target.value)}
+                    onBlur={(e) => setEditKegiatan(formatPastoralKegiatanText(e.target.value))}
                     required
                     placeholder="Deskripsi kegiatan..."
                     className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
