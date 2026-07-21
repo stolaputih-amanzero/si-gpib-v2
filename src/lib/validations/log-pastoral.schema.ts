@@ -4,9 +4,7 @@ export const logPastoralSchema = z.object({
   id_induk: z.string().min(1, 'Jemaat Induk wajib dipilih'),
   id_pos: z.string().optional().nullable(),
   id_pendeta: z.string().min(1, 'Pendeta wajib dipilih'),
-  tgl: z.date({
-    message: 'Tanggal wajib diisi',
-  }),
+  tgl: z.union([z.string().min(1, 'Tanggal wajib diisi'), z.date()]),
   kegiatan: z
     .string()
     .min(3, 'Kegiatan minimal 3 karakter')
@@ -27,8 +25,8 @@ export const logPastoralFilterSchema = z.object({
   id_induk: z.string().optional(),
   id_pos: z.string().optional(),
   id_pendeta: z.string().optional(),
-  tanggal_mulai: z.date().optional(),
-  tanggal_selesai: z.date().optional(),
+  tanggal_mulai: z.union([z.string(), z.date()]).optional(),
+  tanggal_selesai: z.union([z.string(), z.date()]).optional(),
 });
 
 export type LogPastoralFilter = z.infer<typeof logPastoralFilterSchema>;

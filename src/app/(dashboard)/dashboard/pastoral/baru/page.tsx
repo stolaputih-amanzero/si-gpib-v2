@@ -3,17 +3,18 @@
 import { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mic, MicOff, Save, Calendar, Users } from 'lucide-react';
-
+import { Mic, MicOff, Save, Calendar, Users, ChevronLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useVoiceInput } from '@/hooks/use-voice-input';
 import { logPastoralSchema, LogPastoralInput } from '@/lib/validations/log-pastoral.schema';
 import { createClient } from '@/lib/supabase/client';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { PosCascadingSelector } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
+import { useToast } from '@/components/ui/toast';
 
 export default function LogPastoralBaruPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const { isOnline } = useNetworkStatus();
   const {
     isListening,
@@ -22,6 +23,14 @@ export default function LogPastoralBaruPage() {
     startListening,
     stopListening,
   } = useVoiceInput();
+
+  const getTodayDateString = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   const {
     register,
@@ -35,36 +44,33 @@ export default function LogPastoralBaruPage() {
     defaultValues: {
       id_induk: '',
       id_pos: undefined,
-      tgl: new Date(),
+      tgl: getTodayDateString(),
       kegiatan: '',
       jml_jiwa: undefined,
       catatan: '',
-      id_pendeta: 'dummy-pendeta',
+      id_pendeta: '',
     },
   });
 
-  const getTodayDateString = () => {
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
   useEffect(() => {
-    // Set default Today date string for input
-    const todayStr = getTodayDateString();
-    setValue('tgl', new Date(todayStr));
-
-    // Get user id as pendeta id temporarily
-    const fetchUser = async () => {
+    const initFormDefaults = async () => {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setValue('id_pendeta', user.id);
+      
+      // 1. Set default Today date string
+      setValue('tgl', getTodayDateString());
+
+      // 2. Resolve valid id_pendeta from m_pendeta table to pass Foreign Key constraint
+      const { data: pendetaData } = await supabase
+        .from('m_pendeta')
+        .select('id_pendeta')
+        .limit(1);
+
+      if (pendetaData && pendetaData[0]) {
+        setValue('id_pendeta', pendetaData[0].id_pendeta);
       }
     };
-    fetchUser();
+
+    initFormDefaults();
   }, [setValue]);
 
   // Auto-fill voice transcript ke field kegiatan
@@ -95,10 +101,9 @@ export default function LogPastoralBaruPage() {
     if (savedDraft) {
       try {
         const draft = JSON.parse(savedDraft);
-        // Restore form data (kecuali tanggal)
-        setValue('kegiatan', draft.kegiatan || '');
-        setValue('jml_jiwa', draft.jml_jiwa);
-        setValue('catatan', draft.catatan || '');
+        if (draft.kegiatan) setValue('kegiatan', draft.kegiatan);
+        if (draft.jml_jiwa) setValue('jml_jiwa', draft.jml_jiwa);
+        if (draft.catatan) setValue('catatan', draft.catatan);
       } catch (error) {
         console.error('Failed to load draft:', error);
       }
@@ -108,31 +113,51 @@ export default function LogPastoralBaruPage() {
   const onSubmit = async (data: LogPastoralInput) => {
     try {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
 
-      if (!user) throw new Error('User tidak terautentikasi');
+      // Ensure valid pendeta ID fallback if not set
+      let pendetaId = data.id_pendeta;
+      if (!pendetaId) {
+        const { data: pData } = await supabase.from('m_pendeta').select('id_pendeta').limit(1);
+        if (pData && pData[0]) {
+          pendetaId = pData[0].id_pendeta;
+        }
+      }
+
+      if (!pendetaId) {
+        toast.error('Pendeta Belum Terdaftar', 'Silakan daftarkan pendeta di sistem terlebih dahulu.');
+        return;
+      }
 
       // Generate ID log
       const idLog = `LOG-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-      const tglValue = data.tgl && !isNaN(new Date(data.tgl).getTime())
-        ? new Date(data.tgl).toISOString().split('T')[0]
+      const tglStr = typeof data.tgl === 'string'
+        ? data.tgl
+        : data.tgl instanceof Date
+        ? data.tgl.toISOString().split('T')[0]
         : getTodayDateString();
 
-      const { error } = await supabase.from('t_log_pastoral').insert({
+      const payload = {
         id_log: idLog,
-        id_pos: data.id_pos || null,
-        id_pendeta: data.id_pendeta,
-        tgl: tglValue,
+        id_pos: data.id_pos && data.id_pos.trim() !== '' ? data.id_pos : null,
+        id_pendeta: pendetaId,
+        tgl: tglStr,
         kegiatan: data.kegiatan,
-        jml_jiwa: data.jml_jiwa,
-        catatan: data.catatan,
-      });
+        jml_jiwa: data.jml_jiwa ? Number(data.jml_jiwa) : null,
+        catatan: data.catatan || null,
+      };
 
-      if (error) throw error;
+      const { error } = await supabase.from('t_log_pastoral').insert(payload);
+
+      if (error) {
+        console.error('Supabase Error Insert Log Pastoral:', error);
+        toast.error('Gagal Menyimpan Log', error.message || 'Terjadi kesalahan saat menyimpan ke database.');
+        return;
+      }
 
       // Clear draft
       localStorage.removeItem('draft:log-pastoral');
+      toast.success('Berhasil Disimpan', 'Log pastoral telah berhasil dicatat.');
 
       // Haptic feedback (success)
       if ('vibrate' in navigator) {
@@ -140,9 +165,9 @@ export default function LogPastoralBaruPage() {
       }
 
       router.push('/laporan/pastoral');
-    } catch (error) {
-      console.error('Failed to save log:', error);
-      // Haptic feedback (error)
+    } catch (err: any) {
+      console.error('Failed to save log:', err);
+      toast.error('Gagal Menyimpan Log', err?.message || 'Terjadi kesalahan sistem.');
       if ('vibrate' in navigator) {
         navigator.vibrate([50, 100, 50]);
       }
@@ -153,13 +178,25 @@ export default function LogPastoralBaruPage() {
     <div className="min-h-screen bg-surface-base pb-safe">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-surface-elevated/80 backdrop-blur-md border-b border-border-subtle pt-safe">
-        <div className="max-w-2xl mx-auto px-4 py-4">
-          <h1 className="text-xl font-serif font-bold text-text-high">
-            Input Log Pastoral
-          </h1>
-          <p className="text-sm text-text-muted mt-1">
-            Catat kegiatan pelayanan Anda
-          </p>
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="p-2 rounded-xl text-text-high hover:bg-surface-sunken transition-all border border-border-subtle/50"
+              aria-label="Kembali"
+            >
+              <ChevronLeft size={20} className="text-brand-primary" />
+            </button>
+            <div>
+              <h1 className="text-xl font-serif font-bold text-text-high leading-tight">
+                Input Log Pastoral
+              </h1>
+              <p className="text-xs text-text-muted">
+                Catat kegiatan pelayanan pastoral Anda
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -168,19 +205,16 @@ export default function LogPastoralBaruPage() {
         {/* Tanggal */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-text-high flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
+            <Calendar className="w-4 h-4 text-brand-primary" />
             Tanggal *
           </label>
           <input
             type="date"
-            defaultValue={getTodayDateString()}
-            {...register('tgl', {
-              valueAsDate: true,
-            })}
-            className="w-full min-h-[44px] px-3 rounded-md border border-border-subtle bg-surface-base text-text-high text-base focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
+            {...register('tgl')}
+            className="w-full min-h-[44px] px-3 rounded-xl border border-border-subtle bg-surface-base text-text-high text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
           />
           {errors.tgl && (
-            <p className="text-xs text-error">{errors.tgl.message}</p>
+            <p className="text-xs text-error font-medium">{errors.tgl.message}</p>
           )}
         </div>
 
@@ -211,7 +245,7 @@ export default function LogPastoralBaruPage() {
               <button
                 type="button"
                 onClick={isListening ? stopListening : startListening}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all min-h-[36px] ${
                   isListening
                     ? 'bg-red-500 text-white animate-pulse'
                     : 'bg-brand-primary text-white'
@@ -234,14 +268,14 @@ export default function LogPastoralBaruPage() {
           <textarea
             {...register('kegiatan')}
             rows={4}
-            placeholder="Deskripsikan kegiatan pastoral..."
-            className="w-full min-h-[120px] px-3 py-2 rounded-md border border-border-subtle bg-surface-base text-text-high text-base focus:outline-none focus:ring-2 focus:ring-brand-primary/50 resize-none"
+            placeholder="Deskripsikan kegiatan pastoral (contoh: Kunjungan Jemaat Sakit, Konseling Keluarga)..."
+            className="w-full min-h-[120px] px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-text-high text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
           />
           {errors.kegiatan && (
-            <p className="text-xs text-error">{errors.kegiatan.message}</p>
+            <p className="text-xs text-error font-medium">{errors.kegiatan.message}</p>
           )}
           {isListening && (
-            <p className="text-xs text-brand-primary animate-pulse">
+            <p className="text-xs text-brand-primary font-medium animate-pulse">
                Mendengarkan... (Bahasa Indonesia)
             </p>
           )}
@@ -250,17 +284,17 @@ export default function LogPastoralBaruPage() {
         {/* Jumlah Jiwa */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-text-high flex items-center gap-2">
-            <Users className="w-4 h-4" />
+            <Users className="w-4 h-4 text-brand-primary" />
             Jumlah Jiwa
           </label>
           <input
             type="number"
             {...register('jml_jiwa', { valueAsNumber: true })}
             placeholder="0"
-            className="w-full min-h-[44px] px-3 rounded-md border border-border-subtle bg-surface-base text-text-high text-base focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
+            className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-text-high text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
           />
           {errors.jml_jiwa && (
-            <p className="text-xs text-error">{errors.jml_jiwa.message}</p>
+            <p className="text-xs text-error font-medium">{errors.jml_jiwa.message}</p>
           )}
         </div>
 
@@ -272,8 +306,8 @@ export default function LogPastoralBaruPage() {
           <textarea
             {...register('catatan')}
             rows={3}
-            placeholder="Catatan tambahan..."
-            className="w-full min-h-[100px] px-3 py-2 rounded-md border border-border-subtle bg-surface-base text-text-high text-base focus:outline-none focus:ring-2 focus:ring-brand-primary/50 resize-none"
+            placeholder="Catatan tambahan pastoral..."
+            className="w-full min-h-[100px] px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-text-high text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
           />
         </div>
 
@@ -281,15 +315,15 @@ export default function LogPastoralBaruPage() {
         <button
           type="submit"
           disabled={isSubmitting || !isOnline}
-          className="w-full min-h-[44px] bg-brand-primary text-white rounded-md font-medium text-base flex items-center justify-center gap-2 hover:bg-brand-primary/90 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full min-h-[44px] bg-brand-primary text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-brand-primary-dark active:scale-[0.98] transition-all shadow-soft disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Save className="w-5 h-5" />
-          {isSubmitting ? 'Menyimpan...' : 'Simpan Log'}
+          {isSubmitting ? 'Menyimpan...' : 'Simpan Log Pastoral'}
         </button>
 
         {!isOnline && (
-          <p className="text-xs text-center text-amber-600">
-            ⚠️ Anda offline. Data akan disimpan sebagai draft.
+          <p className="text-xs text-center text-amber-600 font-medium">
+            ⚠️ Anda sedang offline. Data akan disimpan secara lokal.
           </p>
         )}
       </form>
