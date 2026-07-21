@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MupelSelect } from './MupelSelect';
 import { JemaatSelect } from './JemaatSelect';
 import { PosSelect } from './PosSelect';
@@ -52,6 +52,18 @@ export function PosCascadingSelector({
   const [selectedMupel, setSelectedMupel] = useState<string>('');
   const [selectedJemaat, setSelectedJemaat] = useState<string>('');
 
+  // Refs for callbacks to prevent infinite re-render loops from inline prop functions
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
+  const onJemaatChangeRef = useRef(onJemaatChange);
+  onJemaatChangeRef.current = onJemaatChange;
+
+  const onMetaChangeRef = useRef(onMetaChange);
+  onMetaChangeRef.current = onMetaChange;
+
+  const lastSentMetaRef = useRef<string>('');
+
   // 1. Dapatkan auth user & role untuk Poka-Yoke Auto-Selection & Locking
   const { data: userAuth } = useUserMupelAuth();
 
@@ -86,37 +98,49 @@ export function PosCascadingSelector({
     if (posHierarchy) {
       const mupelId = posHierarchy.jemaat_induk?.id_mupel || '';
       const jemaatId = posHierarchy.id_induk || '';
-      setSelectedMupel(mupelId);
-      setSelectedJemaat(jemaatId);
-      if (onJemaatChange && jemaatId) {
-        onJemaatChange(jemaatId);
+      if (mupelId && selectedMupel !== mupelId) {
+        setSelectedMupel(mupelId);
       }
-      if (value !== posHierarchy.id_pos) {
-        onChange(posHierarchy.id_pos);
+      if (jemaatId && selectedJemaat !== jemaatId) {
+        setSelectedJemaat(jemaatId);
+        if (onJemaatChangeRef.current) {
+          onJemaatChangeRef.current(jemaatId);
+        }
+      }
+      if (posHierarchy.id_pos && value !== posHierarchy.id_pos) {
+        onChangeRef.current(posHierarchy.id_pos);
       }
     } 
     // Priority 2: Reverse Lookup Jemaat Data if id_pos is null
     else if (jemaatHierarchy) {
       const mupelId = jemaatHierarchy.id_mupel || '';
       const jemaatId = jemaatHierarchy.id_induk || '';
-      setSelectedMupel(mupelId);
-      setSelectedJemaat(jemaatId);
-      if (onJemaatChange && jemaatId) {
-        onJemaatChange(jemaatId);
+      if (mupelId && selectedMupel !== mupelId) {
+        setSelectedMupel(mupelId);
+      }
+      if (jemaatId && selectedJemaat !== jemaatId) {
+        setSelectedJemaat(jemaatId);
+        if (onJemaatChangeRef.current) {
+          onJemaatChangeRef.current(jemaatId);
+        }
       }
     }
     // Priority 3: Poka-Yoke Auto-fill berdasarkan Role & Penugasan User
     else if (userAuth) {
       if (userAuth.id_mupel && (!selectedMupel || isMupelLocked)) {
-        setSelectedMupel(userAuth.id_mupel);
+        if (selectedMupel !== userAuth.id_mupel) {
+          setSelectedMupel(userAuth.id_mupel);
+        }
       }
       if (userAuth.id_induk && (!selectedJemaat || isJemaatLocked)) {
-        setSelectedJemaat(userAuth.id_induk);
-        if (onJemaatChange) onJemaatChange(userAuth.id_induk);
+        if (selectedJemaat !== userAuth.id_induk) {
+          setSelectedJemaat(userAuth.id_induk);
+          if (onJemaatChangeRef.current) onJemaatChangeRef.current(userAuth.id_induk);
+        }
       }
       if (userAuth.id_pos && (!value || isPosLocked)) {
         if (value !== userAuth.id_pos) {
-          onChange(userAuth.id_pos);
+          onChangeRef.current(userAuth.id_pos);
         }
       }
     }
@@ -128,38 +152,44 @@ export function PosCascadingSelector({
     isJemaatLocked,
     isPosLocked,
     value,
-    onChange,
-    onJemaatChange,
     selectedMupel,
     selectedJemaat,
   ]);
 
   // Effect: Send meta hierarchy info (Names) to parent form
   useEffect(() => {
-    if (onMetaChange) {
+    if (onMetaChangeRef.current) {
       const mupelObj = mupelList?.find((m) => m.id === selectedMupel);
       const jemaatObj = jemaatList?.find((j) => j.id === selectedJemaat);
       const posObj = posList?.find((p) => p.id === value);
 
-      onMetaChange({
+      const meta: HierarchyMetaInfo = {
         id_mupel: selectedMupel,
         id_induk: selectedJemaat,
         id_pos: value || undefined,
         mupelName: mupelObj?.nama || posHierarchy?.jemaat_induk?.mupel?.nama_mupel,
         jemaatName: jemaatObj?.nama || posHierarchy?.jemaat_induk?.nama_induk,
         posName: posObj?.nama || posHierarchy?.nama_pos,
-      });
+      };
+
+      const metaKey = JSON.stringify(meta);
+      if (lastSentMetaRef.current !== metaKey) {
+        lastSentMetaRef.current = metaKey;
+        onMetaChangeRef.current(meta);
+      }
     }
-  }, [selectedMupel, selectedJemaat, value, mupelList, jemaatList, posList, posHierarchy, onMetaChange]);
+  }, [selectedMupel, selectedJemaat, value, mupelList, jemaatList, posList, posHierarchy]);
 
   // Auto-select first pos when hidePos is true (Jemaat Induk scope)
   useEffect(() => {
     if (hidePos && selectedJemaat && posList && posList.length > 0) {
       if (!value || !posList.some((p) => p.id === value)) {
-        onChange(posList[0].id);
+        if (value !== posList[0].id) {
+          onChangeRef.current(posList[0].id);
+        }
       }
     }
-  }, [hidePos, selectedJemaat, posList, value, onChange]);
+  }, [hidePos, selectedJemaat, posList, value]);
 
   // Handlers
   const handleMupelChange = (mupelId: string) => {
