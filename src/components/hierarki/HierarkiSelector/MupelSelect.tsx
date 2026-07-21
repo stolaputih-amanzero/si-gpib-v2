@@ -8,9 +8,10 @@ interface MupelSelectProps {
   onChange: (value: string) => void;
   disabled?: boolean;
   error?: string;
+  required?: boolean;
 }
 
-export function MupelSelect({ value, onChange, disabled, error }: MupelSelectProps) {
+export function MupelSelect({ value, onChange, disabled, error, required = true }: MupelSelectProps) {
   const { data: mupelOptions, isLoading } = useMupelOptions();
 
   const options: SelectOption[] =
@@ -22,7 +23,7 @@ export function MupelSelect({ value, onChange, disabled, error }: MupelSelectPro
 
   return (
     <SearchableSelect
-      label="Mupel *"
+      label={required ? "Mupel *" : "Mupel (Opsional)"}
       value={value}
       onChange={onChange}
       options={options}

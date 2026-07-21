@@ -104,7 +104,7 @@ export default function LogPastoralBaruPage() {
 
       const { error } = await supabase.from('t_log_pastoral').insert({
         id_log: idLog,
-        id_pos: data.id_pos,
+        id_pos: data.id_pos || null,
         id_pendeta: data.id_pendeta,
         tgl: data.tgl.toISOString().split('T')[0],
         kegiatan: data.kegiatan,
@@ -177,6 +177,7 @@ export default function LogPastoralBaruPage() {
                 onChange={field.onChange}
                 error={errors.id_pos?.message}
                 disabled={isSubmitting}
+                required={false}
               />
             )}
           />

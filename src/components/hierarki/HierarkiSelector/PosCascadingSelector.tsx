@@ -7,11 +7,12 @@ import { PosSelect } from './PosSelect';
 import { useUserMupelAuth, usePosReverseLookup } from '@/hooks/use-hierarki-selector';
 
 interface PosCascadingSelectorProps {
-  value: string;
+  value?: string | null;
   onChange: (value: string) => void;
   error?: string;
   disabled?: boolean;
   defaultPosId?: string; // Untuk mode Edit
+  required?: boolean;
 }
 
 export function PosCascadingSelector({
@@ -20,6 +21,7 @@ export function PosCascadingSelector({
   error,
   disabled,
   defaultPosId,
+  required = true,
 }: PosCascadingSelectorProps) {
   const [selectedMupel, setSelectedMupel] = useState<string>('');
   const [selectedJemaat, setSelectedJemaat] = useState<string>('');
@@ -77,19 +79,22 @@ export function PosCascadingSelector({
         value={selectedMupel}
         onChange={handleMupelChange}
         disabled={disabled || isMupelLocked}
+        required={required}
       />
       <JemaatSelect
         id_mupel={selectedMupel}
         value={selectedJemaat}
         onChange={handleJemaatChange}
         disabled={disabled}
+        required={required}
       />
       <PosSelect
         id_induk={selectedJemaat}
-        value={value}
+        value={value || ''}
         onChange={onChange}
         disabled={disabled}
         error={error}
+        required={required}
       />
     </div>
   );

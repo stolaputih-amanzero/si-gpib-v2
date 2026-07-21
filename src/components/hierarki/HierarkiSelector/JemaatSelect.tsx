@@ -9,9 +9,10 @@ interface JemaatSelectProps {
   onChange: (value: string) => void;
   disabled?: boolean;
   error?: string;
+  required?: boolean;
 }
 
-export function JemaatSelect({ id_mupel, value, onChange, disabled, error }: JemaatSelectProps) {
+export function JemaatSelect({ id_mupel, value, onChange, disabled, error, required = true }: JemaatSelectProps) {
   const { data: jemaatOptions, isLoading } = useJemaatOptions(id_mupel);
 
   const options: SelectOption[] =
@@ -23,7 +24,7 @@ export function JemaatSelect({ id_mupel, value, onChange, disabled, error }: Jem
 
   return (
     <SearchableSelect
-      label="Jemaat Induk *"
+      label={required ? "Jemaat Induk *" : "Jemaat Induk (Opsional)"}
       value={value}
       onChange={onChange}
       options={options}

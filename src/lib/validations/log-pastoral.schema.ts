@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const logPastoralSchema = z.object({
-  id_pos: z.string().min(1, 'Pos Pelkes wajib dipilih'),
+  id_pos: z.string().optional().nullable(),
   id_pendeta: z.string().min(1, 'Pendeta wajib dipilih'),
   tgl: z.date({
     message: 'Tanggal wajib diisi',
