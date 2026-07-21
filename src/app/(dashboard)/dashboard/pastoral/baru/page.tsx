@@ -42,7 +42,19 @@ export default function LogPastoralBaruPage() {
   });
 
 
+  const getTodayDateString = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   useEffect(() => {
+    // Set default Today date string for input
+    const todayStr = getTodayDateString();
+    setValue('tgl', new Date(todayStr));
+
     // Get user id as pendeta id temporarily
     const fetchUser = async () => {
       const supabase = createClient();
@@ -102,11 +114,15 @@ export default function LogPastoralBaruPage() {
       // Generate ID log
       const idLog = `LOG-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
+      const tglValue = data.tgl && !isNaN(new Date(data.tgl).getTime())
+        ? new Date(data.tgl).toISOString().split('T')[0]
+        : getTodayDateString();
+
       const { error } = await supabase.from('t_log_pastoral').insert({
         id_log: idLog,
         id_pos: data.id_pos || null,
         id_pendeta: data.id_pendeta,
-        tgl: data.tgl.toISOString().split('T')[0],
+        tgl: tglValue,
         kegiatan: data.kegiatan,
         jml_jiwa: data.jml_jiwa,
         catatan: data.catatan,
@@ -156,6 +172,7 @@ export default function LogPastoralBaruPage() {
           </label>
           <input
             type="date"
+            defaultValue={getTodayDateString()}
             {...register('tgl', {
               valueAsDate: true,
             })}
