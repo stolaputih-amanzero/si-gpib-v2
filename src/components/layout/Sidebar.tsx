@@ -5,39 +5,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
-  Home,
-  Map,
-  FileText,
-  User,
-  Database,
-  Activity,
   LogOut,
-  Users,
-  Box,
-  HandHeart,
-  UserCheck,
-  HeartHandshake,
-  Calendar,
-  UserPlus,
-  ShieldAlert,
-  GitFork,
-  BarChart3,
   ChevronRight,
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
 
-interface NavItem {
-  label: string;
-  href: string;
-  icon: any;
-  badge?: string;
-}
-
-interface NavGroup {
-  title: string;
-  items: NavItem[];
-}
+import { NAVIGATION_GROUPS, NavItem } from '@/lib/constants/navigation';
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -59,44 +33,7 @@ export function Sidebar() {
     }
   };
 
-  const navigationGroups: NavGroup[] = [
-    {
-      title: 'Utama',
-      items: [
-        { label: 'Beranda', href: '/dashboard', icon: Home },
-        { label: 'Analitik & KPI', href: '/analitik', icon: BarChart3, badge: 'Baru' },
-        { label: 'Peta Sebaran', href: '/dashboard/peta', icon: Map },
-        { label: 'Hierarki GPIB', href: '/hierarki', icon: GitFork },
-      ],
-    },
-    {
-      title: 'Pelayanan Pos',
-      items: [
-        { label: 'Pos Pelkes & Bajem', href: '/dashboard/pos-pelkes', icon: Database },
-        { label: 'Log Pastoral', href: '/dashboard/pastoral', icon: FileText },
-        { label: 'Kerawanan & Potensi', href: '/wilayah', icon: ShieldAlert },
-        { label: 'Demografi Pelkat', href: '/demografi', icon: Users },
-        { label: 'Jadwal Ibadah', href: '/jadwal', icon: Calendar },
-      ],
-    },
-    {
-      title: 'Sumber Daya & Aset',
-      items: [
-        { label: 'Pengajuan Bantuan', href: '/bantuan', icon: HandHeart },
-        { label: 'Inventaris Aset', href: '/aset', icon: Box },
-        { label: 'Manajemen Pendeta', href: '/pendeta', icon: UserPlus },
-        { label: 'Pelayan Pos', href: '/pelayan', icon: UserCheck },
-        { label: 'Relawan', href: '/relawan', icon: HeartHandshake },
-      ],
-    },
-    {
-      title: 'Sistem & Akun',
-      items: [
-        { label: 'Aktivitas Log', href: '/dashboard/aktivitas', icon: Activity },
-        { label: 'Profil Saya', href: '/dashboard/profil', icon: User },
-      ],
-    },
-  ];
+  const navigationGroups = NAVIGATION_GROUPS;
 
   const renderItem = (item: NavItem) => {
     const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
