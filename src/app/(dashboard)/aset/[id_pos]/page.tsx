@@ -55,7 +55,7 @@ export default function AsetPosDetailPage({ params }: { params: Promise<{ id_pos
           </div>
 
           <Link
-            href={`/aset/${id_pos}/tanah`}
+            href={`/dashboard/aset/baru?id_pos=${id_pos}`}
             className="px-3.5 py-2 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-blue-800 transition-all flex items-center gap-1.5 shadow-sm min-h-[44px]"
           >
             <Plus size={16} />

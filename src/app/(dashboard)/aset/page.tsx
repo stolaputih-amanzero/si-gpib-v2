@@ -45,7 +45,7 @@ export default function AsetOverviewPage() {
           </div>
 
           <Link
-            href="/dashboard/pos-pelkes"
+            href="/dashboard/aset/baru"
             className="px-3.5 py-2 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-blue-800 transition-all flex items-center gap-1.5 shadow-sm min-h-[44px]"
           >
             <Plus size={16} />
