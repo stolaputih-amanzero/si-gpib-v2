@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { PosPelkesList } from "./pos-pelkes-list"
+import { HierarkiNavTabs } from "@/components/hierarki/HierarkiNavTabs"
 
 export default async function PosPelkesPage() {
   const supabase = await createClient()
@@ -10,8 +11,11 @@ export default async function PosPelkesPage() {
 
   return (
     <div className="p-4 space-y-6">
+      {/* Unified Hierarki Navigation Tabs for Mobile */}
+      <HierarkiNavTabs />
+
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-brand-primary">Pos Pelkes</h1>
+        <h1 className="text-2xl font-bold text-brand-primary">Pos Pelkes & Bajem</h1>
       </div>
       
       <PosPelkesList initialData={posPelkes || []} />

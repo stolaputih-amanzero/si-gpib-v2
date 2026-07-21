@@ -10,6 +10,8 @@ import { MupelFormModal } from '@/components/hierarki/MupelFormModal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Layers, Search, LayoutList, GitFork, AlertCircle, Plus } from 'lucide-react';
 
+import { HierarkiNavTabs } from '@/components/hierarki/HierarkiNavTabs';
+
 const HierarchyTree = dynamic(
   () => import('@/components/hierarki/HierarchyTree').then((mod) => mod.HierarchyTree),
   {
@@ -42,6 +44,9 @@ export default function HierarkiEntryPage() {
     <div className="space-y-6 pb-12">
       {/* Breadcrumb Nav */}
       <BreadcrumbNav items={[]} />
+
+      {/* Unified Hierarki Navigation Tabs for Mobile */}
+      <HierarkiNavTabs />
 
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-elevated p-5 rounded-2xl border border-border-subtle shadow-soft">
