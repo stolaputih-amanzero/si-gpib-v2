@@ -9,6 +9,7 @@ import { KATEGORI_PELKAT } from '@/lib/constants/pelkat';
 import { Plus, Filter, Users, Search, X, MapPin, Building, Layers, Clock, UserCheck, Share2, Edit3, Compass, ExternalLink } from 'lucide-react';
 import { HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
 import { createClient } from '@/lib/supabase/client';
+import { shareToWhatsApp } from '@/lib/share/share-to-whatsapp';
 
 interface DemografiDetailItem {
   id_pos: string;
@@ -284,11 +285,11 @@ export default function LaporanDemografiPage() {
     }
   };
 
-  const handleShareWhatsApp = (detail: DemografiDetailItem) => {
+  const handleShareWhatsApp = async (detail: DemografiDetailItem) => {
     const tglFormatted = formatDateTimeIndonesian(detail.updated_at);
     const updatedUser = detail.updated_by || currentUserEmail || 'Pengguna System';
 
-    // Construct Google Maps URL (Lat/Long or Search Query)
+    // Construct Google Maps URL
     let mapsUrl = '';
     if (detail.latitude && detail.longitude) {
       mapsUrl = `https://www.google.com/maps?q=${detail.latitude},${detail.longitude}`;
@@ -300,31 +301,29 @@ export default function LaporanDemografiPage() {
     }
 
     const lines = [
-      `*LAPORAN DEMOGRAFI PELKAT GPIB*`,
-      `================================`,
       `Mupel            : ${detail.mupelName || '-'}`,
       `Jemaat Induk     : ${detail.jemaatName || '-'}`,
       `Pos Pelkes/Bajem : ${detail.posName || '-'}`,
       `Tanggal Update   : ${tglFormatted}`,
       `Diperbarui Oleh  : ${updatedUser}`,
       ``,
-      `*LOKASI & GOOGLE MAPS:*`,
-      `- Peta Lokasi (Maps) : ${mapsUrl}`,
+      `📍 *LOKASI & GOOGLE MAPS:*`,
+      `Peta Lokasi: ${mapsUrl}`,
     ];
 
     if (detail.alamat) {
-      lines.push(`- Alamat Wilayah     : ${detail.alamat}`);
+      lines.push(`Alamat: ${detail.alamat}`);
     }
 
     lines.push(
       ``,
-      `*RINGKASAN DEMOGRAFI:*`,
+      `📊 *RINGKASAN DEMOGRAFI:*`,
       `- Total Kepala Keluarga (KK): ${detail.total_kk} KK`,
-      `- Total Jiwa (L+P)         : ${detail.total_jiwa} Jiwa`,
-      `  * Laki-Laki               : ${detail.total_laki} Jiwa`,
-      `  * Perempuan               : ${detail.total_perempuan} Jiwa`,
+      `- Total Jiwa (L+P): ${detail.total_jiwa} Jiwa`,
+      `  * Laki-Laki: ${detail.total_laki} Jiwa`,
+      `  * Perempuan: ${detail.total_perempuan} Jiwa`,
       ``,
-      `*RINCIAN KATEGORI PELKAT:*`,
+      `📋 *RINCIAN 6 KATEGORI PELKAT:*`,
     );
 
     KATEGORI_PELKAT.forEach((p, idx) => {
@@ -332,20 +331,20 @@ export default function LaporanDemografiPage() {
       const totalRow = (rec.laki || 0) + (rec.perempuan || 0);
       const lakiTxt = p.kode === 'PKP' ? '-' : `${rec.laki || 0} L`;
       const prTxt = p.kode === 'PKB' ? '-' : `${rec.perempuan || 0} P`;
-      lines.push(`${idx + 1}. ${p.kode.padEnd(4)}: ${lakiTxt.padEnd(6)} | ${prTxt.padEnd(6)} | Total: ${totalRow} Jiwa`);
+      lines.push(`${idx + 1}. ${p.kode}: ${lakiTxt} | ${prTxt} | Total: ${totalRow} Jiwa`);
     });
 
     lines.push(``);
-    lines.push(`*KETERANGAN TAMBAHAN:*`);
-    lines.push(`- Dominasi Profesi : ${detail.profesi || '-'}`);
+    lines.push(`📝 *KETERANGAN TAMBAHAN:*`);
+    lines.push(`- Dominasi Profesi: ${detail.profesi || '-'}`);
     lines.push(`- Tingkat Pendidikan: ${detail.pendidikan || '-'}`);
-    lines.push(`- Catatan          : ${detail.keterangan || '-'}`);
-    lines.push(``);
-    lines.push(`Demikian laporan demografi ini disampaikan untuk dipergunakan sebagaimana mestinya. Terima kasih.`);
+    lines.push(`- Catatan: ${detail.keterangan || '-'}`);
 
-    const fullMsg = lines.join('\n');
-    const encodedText = encodeURIComponent(fullMsg);
-    window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+    await shareToWhatsApp({
+      title: 'LAPORAN DEMOGRAFI PELKAT GPIB',
+      text: lines.join('\n'),
+      url: mapsUrl,
+    });
   };
 
   return (
@@ -720,35 +719,35 @@ export default function LaporanDemografiPage() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-border-subtle">
+              {/* Action Buttons (1 Single Row - Consistent Professional Log Pastoral Style) */}
+              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border-subtle">
                 <button
                   type="button"
                   onClick={() => handleShareWhatsApp(activeDetailModal)}
-                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-soft min-h-[44px]"
+                  className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all min-h-[44px] flex items-center justify-center gap-1.5 shadow-soft"
+                  title="Bagikan Laporan Demografi ke WhatsApp"
                 >
                   <Share2 size={16} />
                   <span>Share WA</span>
                 </button>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleEditFromDetail(activeDetailModal)}
-                    className="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-soft min-h-[44px]"
-                  >
-                    <Edit3 size={16} />
-                    <span>Edit Data</span>
-                  </button>
+                <button
+                  type="button"
+                  onClick={() => handleEditFromDetail(activeDetailModal)}
+                  className="py-2.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all min-h-[44px] flex items-center justify-center gap-1.5 shadow-soft"
+                  title="Edit Data Demografi"
+                >
+                  <Edit3 size={16} />
+                  <span>Edit Data</span>
+                </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setActiveDetailModal(null)}
-                    className="px-4 py-2.5 rounded-xl bg-surface-sunken text-text-high text-xs font-bold hover:bg-surface-sunken/80 transition-all min-h-[44px]"
-                  >
-                    Tutup Detail
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveDetailModal(null)}
+                  className="py-2.5 px-3 rounded-xl border border-border-subtle text-xs font-bold text-text-high hover:bg-surface-sunken transition-all min-h-[44px] flex items-center justify-center"
+                >
+                  Tutup Detail
+                </button>
               </div>
             </div>
           </div>
