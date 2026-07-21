@@ -68,26 +68,30 @@ export async function addWatermarkToImage(
         // 1. Draw original photo
         ctx.drawImage(img, 0, 0);
 
-        // 2. Format Hierarchy Text line
-        const validPosName = options?.posName && options.posName !== 'Pelayanan Jemaat Direct' ? options.posName : null;
-        const hierarchyParts = [options?.mupelName, options?.jemaatName, validPosName].filter(Boolean);
-        const hierarchyLineText = hierarchyParts.length > 0 ? `🏛️ WILAYAH: ${hierarchyParts.join(' | ')}` : null;
+        // 2. Format Line 1: GPS (lat: xxx | long: xxx)
+        let gpsText = 'lat: - | long: -';
+        if (latitude != null && longitude != null) {
+          gpsText = `lat: ${latitude.toFixed(5)} | long: ${longitude.toFixed(5)}`;
+        }
 
-        // 3. Calculate dynamic dimensions for watermark banner
-        const lineCount = hierarchyLineText ? 3 : 2;
-        const bannerHeight = Math.max(lineCount * 30 + 20, canvas.height * (hierarchyLineText ? 0.22 : 0.16));
-        const fontSize = Math.max(16, canvas.height * 0.034);
-        const subFontSize = Math.max(13, canvas.height * 0.026);
+        // 3. Format Line 2: Hierarchy ([nama Mupel] | [nama Jemaat] | [nama Pos Pelkes])
+        const validPosName =
+          options?.posName &&
+          options.posName !== 'Pelayanan Jemaat Direct' &&
+          options.posName !== '-' &&
+          !options.posName.toLowerCase().startsWith('jemaat ')
+            ? options.posName
+            : null;
 
-        // 4. Draw dark translucent banner background at bottom
-        ctx.fillStyle = 'rgba(10, 15, 30, 0.88)'; // Deep Slate Navy
-        ctx.fillRect(0, canvas.height - bannerHeight, canvas.width, bannerHeight);
+        const hierarchyParts = [
+          options?.mupelName,
+          options?.jemaatName,
+          validPosName,
+        ].filter(Boolean);
 
-        // 5. Gold Accent Line at top of banner
-        ctx.fillStyle = '#c5a855';
-        ctx.fillRect(0, canvas.height - bannerHeight, canvas.width, Math.max(4, canvas.height * 0.007));
+        const hierarchyText = hierarchyParts.length > 0 ? hierarchyParts.join(' | ') : '-';
 
-        // 6. Format Timestamp string
+        // 4. Format Line 3: Timestamp (timestamp YYYY-MM-DD HH:mm:ss)
         const now = new Date();
         const year = now.getFullYear();
         const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -96,45 +100,40 @@ export async function addWatermarkToImage(
         const mins = String(now.getMinutes()).padStart(2, '0');
         const secs = String(now.getSeconds()).padStart(2, '0');
 
-        const timeStampText = `🕒 TANGGAL & WAKTU: ${year}-${month}-${day} ${hours}:${mins}:${secs} WIB`;
+        const timeStampText = `timestamp: ${year}-${month}-${day} ${hours}:${mins}:${secs}`;
 
-        // 7. Format GPS Text
-        let gpsText = '📌 GPS LOKASI: Sinyal Geolocation Tidak Terdeteksi';
-        if (latitude != null && longitude != null) {
-          gpsText = `📌 GPS LOKASI: Lat ${latitude.toFixed(5)}, Long ${longitude.toFixed(5)}`;
-        }
+        // 5. Calculate compact, clean dimensions (Small, non-intrusive text)
+        const fontSize = Math.max(11, Math.round(canvas.height * 0.016));
+        const lineGap = Math.round(fontSize * 1.35);
+        const paddingY = Math.max(6, Math.round(canvas.height * 0.01));
+        const paddingX = Math.max(10, Math.round(canvas.width * 0.015));
+        const bannerHeight = paddingY * 2 + 3 * lineGap;
 
-        const tagText = options?.label || 'SI GPIB PASTORAL LOG';
+        // 6. Draw clean, subtle translucent dark overlay at bottom
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+        ctx.fillRect(0, canvas.height - bannerHeight, canvas.width, bannerHeight);
 
-        // 8. Render Text lines onto Canvas with High Contrast
-        const paddingX = Math.max(16, canvas.width * 0.035);
-        const startY = canvas.height - bannerHeight + fontSize * 1.2;
+        // Subtle thin top border line
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.fillRect(0, canvas.height - bannerHeight, canvas.width, Math.max(1, Math.round(canvas.height * 0.0015)));
 
-        ctx.shadowColor = 'rgba(0,0,0,0.85)';
-        ctx.shadowBlur = 4;
+        // 7. Render Text lines (Simple, Clean, Small font)
+        const startY = canvas.height - bannerHeight + paddingY + fontSize;
 
-        // Line 1: GPS Text Line (Bold White)
+        ctx.shadowColor = 'rgba(0,0,0,0.8)';
+        ctx.shadowBlur = 3;
         ctx.fillStyle = '#ffffff';
-        ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+        ctx.font = `500 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+
+        // Line 1: lat / long
         ctx.fillText(gpsText, paddingX, startY);
 
-        // Line 2: Timestamp Line (Cyan Light)
-        ctx.fillStyle = '#67e8f9';
-        ctx.font = `bold ${subFontSize}px Arial, sans-serif`;
-        ctx.fillText(timeStampText, paddingX, startY + fontSize * 1.25);
+        // Line 2: Hierarchy
+        ctx.fillText(hierarchyText, paddingX, startY + lineGap);
 
-        // Line 3: Hierarchy Line if present (Warm Amber Gold)
-        if (hierarchyLineText) {
-          ctx.fillStyle = '#fde047'; // Warm Bright Amber
-          ctx.font = `bold ${subFontSize}px Arial, sans-serif`;
-          ctx.fillText(hierarchyLineText, paddingX, startY + fontSize * 2.35);
-        }
-
-        // Render SI GPIB tag at top right of banner
-        ctx.fillStyle = '#f59e0b'; // Warm Amber Gold
-        ctx.font = `bold ${subFontSize}px Arial, sans-serif`;
-        const tagWidth = ctx.measureText(tagText).width;
-        ctx.fillText(tagText, canvas.width - paddingX - tagWidth, startY);
+        // Line 3: Timestamp
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillText(timeStampText, paddingX, startY + lineGap * 2);
 
         // Reset shadow
         ctx.shadowBlur = 0;
