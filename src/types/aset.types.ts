@@ -93,6 +93,8 @@ export interface AsetGenericItem {
   pos_nama?: string;
   jemaat_induk?: string;
   mupel_nama?: string;
+  updated_at?: string | null;
+  updated_by?: string | null;
   lampiran_count: number;
   lampiran?: LampiranAset[];
   raw?: any;

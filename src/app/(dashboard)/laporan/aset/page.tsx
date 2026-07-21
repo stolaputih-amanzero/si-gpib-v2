@@ -1,6 +1,4 @@
-'use client';
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAsetList, useDeleteAset } from '@/hooks/use-aset';
 import { AsetTabs } from '@/components/aset/AsetTabs';
 import { AsetCard } from '@/components/aset/AsetCard';
@@ -11,9 +9,28 @@ import { getKategoriInfo } from '@/lib/constants/aset';
 import { shareAsetWA } from '@/lib/share/share-aset-wa';
 import { 
   Plus, Search, Box, X, MapPin, Building, 
-  FileText, ExternalLink, Edit2, Trash2, Share2 
+  FileText, ExternalLink, Edit2, Trash2, Share2, Clock, UserCheck 
 } from 'lucide-react';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
+
+function formatDateTimeIndonesian(dateString?: string | null) {
+  if (!dateString) return '-';
+  try {
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return '-';
+    
+    return d.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }) + ' WIB';
+  } catch {
+    return dateString;
+  }
+}
 
 export default function LaporanAsetPage() {
   const { toast, confirm: confirmModal } = useToast();
@@ -25,6 +42,35 @@ export default function LaporanAsetPage() {
   const [selectedEdit, setSelectedEdit] = useState<AsetGenericItem | null>(null);
   const [activePreviewImage, setActivePreviewImage] = useState<string | null>(null);
   const [activeHeroItem, setActiveHeroItem] = useState<any | null>(null);
+  const [currentUserEmail, setCurrentUserEmail] = useState<string>('');
+
+  const supabase = createClient();
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const userMeta = user.user_metadata || {};
+        const { data: userRow } = await supabase
+          .from('users')
+          .select('email, no_telepon')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        const displayUser =
+          userRow?.email ||
+          user.email ||
+          userMeta.full_name ||
+          userMeta.name ||
+          userRow?.no_telepon ||
+          user.phone ||
+          'Pengguna System';
+
+        setCurrentUserEmail(displayUser);
+      }
+    };
+    fetchCurrentUser();
+  }, [supabase]);
 
   const { data: asetList, isLoading } = useAsetList({
     kategori: activeCategory || undefined,
@@ -467,6 +513,29 @@ export default function LaporanAsetPage() {
                   </div>
                 );
               })()}
+
+              {/* Audit Metadata: Tanggal Terakhir Diperbarui & User Peng-Update */}
+              <div className="space-y-1.5 p-3 rounded-xl bg-surface-sunken/60 border border-border-subtle/50 text-xs">
+                <div className="flex items-center justify-between text-text-muted">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <Clock size={14} className="text-brand-primary shrink-0" />
+                    Terakhir Diperbarui:
+                  </span>
+                  <span className="font-semibold text-text-high tabular-nums">
+                    {formatDateTimeIndonesian(selectedDetail.updated_at || selectedDetail.raw?.updated_at || selectedDetail.raw?.created_at)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-text-muted border-t border-border-subtle/30 pt-1.5">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <UserCheck size={14} className="text-emerald-500 shrink-0" />
+                    Diperbarui Oleh:
+                  </span>
+                  <span className="font-bold text-text-high font-mono text-[11px]">
+                    {selectedDetail.updated_by || selectedDetail.raw?.updated_by || currentUserEmail || 'Pengguna System'}
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Modal Footer */}

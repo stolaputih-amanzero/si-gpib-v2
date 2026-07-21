@@ -9,6 +9,24 @@ export function getFullPhotoUrl(url?: string | null): string | undefined {
   return url;
 }
 
+function formatDateTimeIndonesian(dateString?: string | null) {
+  if (!dateString) return '-';
+  try {
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return '-';
+    
+    return d.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }) + ' WIB';
+  } catch {
+    return dateString;
+  }
+}
+
 export function generateAsetWaText(item: any): string {
   const isTanah = item.kategori === 'TANAH';
   const isBangunan = item.kategori === 'BANGUNAN';
@@ -27,6 +45,8 @@ export function generateAsetWaText(item: any): string {
       : '-';
 
   const kondisiVal = item.kondisi || item.raw?.kondisi || 'Baik';
+  const updatedAtStr = formatDateTimeIndonesian(item.updated_at || item.raw?.updated_at || item.raw?.created_at);
+  const updatedByStr = item.updated_by || item.raw?.updated_by || 'Admin Aset';
 
   const lines: string[] = [
     `*INVENTARIS ASET GPIB*`,
@@ -77,6 +97,10 @@ export function generateAsetWaText(item: any): string {
   } else {
     lines.push(`*Lokasi GPS*: -`);
   }
+
+  lines.push(``);
+  lines.push(`*Terakhir Diperbarui*: ${updatedAtStr}`);
+  lines.push(`*Diperbarui Oleh*: ${updatedByStr}`);
 
   if (fullPhotoUrl) {
     lines.push(``);
