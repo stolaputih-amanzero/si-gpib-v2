@@ -26,8 +26,9 @@ import {
   Box,
   ShieldAlert,
   Activity,
-  Layers,
   Crown,
+  GitFork,
+  Database,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -56,10 +57,9 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Hierarki',
     icon: Church,
     items: [
-      { label: 'Peta Sebaran', href: '/hierarki', icon: Map },
-      { label: 'Daftar Mupel', href: '/hierarki/mupel', icon: Church },
-      { label: 'Jemaat Induk', href: '/hierarki/jemaat', icon: Layers },
-      { label: 'Pos Pelkes', href: '/hierarki/pos', icon: Map },
+      { label: 'Peta Sebaran', href: '/dashboard/peta', icon: Map },
+      { label: 'Struktur Hierarki', href: '/hierarki', icon: GitFork },
+      { label: 'Pos Pelkes & Bajem', href: '/dashboard/pos-pelkes', icon: Database },
     ],
   },
   {
