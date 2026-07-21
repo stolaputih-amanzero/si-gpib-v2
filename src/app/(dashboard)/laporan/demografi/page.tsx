@@ -4,13 +4,14 @@ import { useState } from 'react';
 import { useDemografiList } from '@/hooks/use-demografi';
 import { DemografiCard } from '@/components/demografi/DemografiCard';
 import { DemografiChart } from '@/components/demografi/DemografiChart';
+import { DemografiForm } from '@/components/demografi/DemografiForm';
 import { KATEGORI_PELKAT } from '@/lib/constants/pelkat';
-import { Plus, Filter, Users, Search } from 'lucide-react';
-import Link from 'next/link';
+import { Plus, Filter, Users, Search, X } from 'lucide-react';
 
 export default function LaporanDemografiPage() {
   const [selectedPelkat, setSelectedPelkat] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [showFormModal, setShowFormModal] = useState<boolean>(false);
 
   const { data: demografiList, isLoading } = useDemografiList({
     kategori_pelkat: selectedPelkat || undefined,
@@ -56,21 +57,22 @@ export default function LaporanDemografiPage() {
   }));
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-6 pb-12">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-xl md:text-2xl font-serif font-bold text-brand-primary">Demografi Pelkat</h1>
           <p className="text-xs md:text-sm text-text-muted mt-0.5">Pendataan Jemaat per Kategori Pelayanan GPIB</p>
         </div>
-        <Link
-          href="/hierarki"
-          className="px-4 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-brand-primary-dark transition-all flex items-center gap-2 shadow-soft min-h-[44px]"
+        <button
+          type="button"
+          onClick={() => setShowFormModal(true)}
+          className="px-4 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-brand-primary-dark transition-all flex items-center gap-2 shadow-soft min-h-[44px] shrink-0"
         >
           <Plus size={18} />
-          <span className="hidden sm:inline">Input Per Pos</span>
+          <span className="hidden sm:inline">Input Data Demografi</span>
           <span className="sm:hidden">Input</span>
-        </Link>
+        </button>
       </div>
 
       {/* KPI Cards Row */}
@@ -179,11 +181,41 @@ export default function LaporanDemografiPage() {
             <p className="text-xs text-text-muted">
               {searchQuery || selectedPelkat 
                 ? 'Tidak ada data demografi yang sesuai dengan filter.' 
-                : 'Pilih Pos Pelkes untuk mulai memasukkan data demografi Pelkat.'}
+                : 'Klik tombol "+ Input Data Demografi" di atas untuk mulai menambahkan data.'}
             </p>
           </div>
         )}
       </div>
+
+      {/* Input Demografi Modal */}
+      {showFormModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-surface-elevated w-full max-w-lg rounded-t-3xl sm:rounded-2xl p-5 border border-border-subtle shadow-heavy max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
+            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+              <div>
+                <h2 className="text-base font-serif font-bold text-brand-primary flex items-center gap-2">
+                  <Users size={18} />
+                  <span>Input Demografi Pelkat Baru</span>
+                </h2>
+                <p className="text-xs text-text-muted mt-0.5">
+                  Pilih Wilayah Pos Pelkes & Kategori Pelkat GPIB
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowFormModal(false)}
+                className="w-9 h-9 rounded-full bg-surface-sunken flex items-center justify-center text-text-muted hover:text-text-high min-h-[44px] min-w-[44px]"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <DemografiForm 
+              onSuccess={() => setShowFormModal(false)} 
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
