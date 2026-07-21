@@ -289,15 +289,15 @@ export default function LaporanDemografiPage() {
     const tglFormatted = formatDateTimeIndonesian(detail.updated_at);
     const updatedUser = detail.updated_by || currentUserEmail || 'Pengguna System';
 
-    // Construct Google Maps URL
+    // Construct Google Maps URL (Clean URL without https:// protocol to suppress WhatsApp thumbnail card)
     let mapsUrl = '';
     if (detail.latitude && detail.longitude) {
-      mapsUrl = `https://www.google.com/maps?q=${detail.latitude},${detail.longitude}`;
+      mapsUrl = `google.com/maps?q=${detail.latitude},${detail.longitude}`;
     } else {
       const locName = detail.posName && detail.posName !== '-' 
         ? `GPIB ${detail.posName}` 
         : `GPIB ${detail.jemaatName}`;
-      mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locName)}`;
+      mapsUrl = `google.com/maps/search/?api=1&query=${encodeURIComponent(locName)}`;
     }
 
     const lines = [
@@ -331,7 +331,7 @@ export default function LaporanDemografiPage() {
       ``,
       `📍 *LOKASI & GOOGLE MAPS*`,
       `Peta Lokasi Google Maps:`,
-      `<${mapsUrl}>`,
+      mapsUrl,
     );
 
     if (detail.alamat) {
