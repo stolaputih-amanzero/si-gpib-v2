@@ -33,13 +33,22 @@ export function useDemografiList(filter: DemografiFilter) {
         .from('t_demografi_pelkat')
         .select(`
           *,
-          pos:m_pos_pelkes(nama_pos, id_induk, jemaat_induk:m_jemaat_induk(nama_induk, id_mupel))
+          pos:m_pos_pelkes(
+            nama_pos,
+            kategori,
+            id_induk,
+            jemaat_induk:m_jemaat_induk(
+              nama_induk,
+              id_mupel,
+              mupel:m_mupel(nama_mupel)
+            )
+          )
         `);
       
       if (filter.id_pos) query = query.eq('id_pos', filter.id_pos);
       if (filter.kategori_pelkat) query = query.eq('kategori_pelkat', filter.kategori_pelkat);
       
-      const { data, error } = await query.limit(200);
+      const { data, error } = await query.limit(500);
       if (error) throw error;
       return data;
     },

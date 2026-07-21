@@ -11,10 +11,10 @@ import { HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCas
 
 interface DemografiDetailItem {
   id_pos: string;
-  kategori_pelkat: string;
-  laki: number;
-  perempuan: number;
-  jml_kk: number;
+  total_kk: number;
+  total_laki: number;
+  total_perempuan: number;
+  total_jiwa: number;
   profesi?: string | null;
   pendidikan?: string | null;
   keterangan?: string | null;
@@ -23,6 +23,7 @@ interface DemografiDetailItem {
   mupelName?: string;
   updated_at?: string | null;
   updated_by?: string | null;
+  pelkatRecords: Record<string, { laki: number; perempuan: number; jml_kk: number }>;
 }
 
 interface GroupedDemografiEntity {
@@ -38,7 +39,7 @@ interface GroupedDemografiEntity {
   updated_by?: string | null;
   filledPelkatCodes: string[];
   missingPelkatCodes: string[];
-  rawItem: any;
+  pelkatRecords: Record<string, { laki: number; perempuan: number; jml_kk: number; profesi?: string; pendidikan?: string; keterangan?: string }>;
 }
 
 function formatDateTimeIndonesian(dateString?: string | null) {
@@ -124,7 +125,7 @@ export default function LaporanDemografiPage() {
         updated_by: item.updated_by,
         filledPelkatCodes: [],
         missingPelkatCodes: [],
-        rawItem: item,
+        pelkatRecords: {},
       };
     }
 
@@ -152,6 +153,15 @@ export default function LaporanDemografiPage() {
         entity.filledPelkatCodes.push(item.kategori_pelkat);
       }
     }
+
+    entity.pelkatRecords[item.kategori_pelkat] = {
+      laki,
+      perempuan,
+      jml_kk: item.jml_kk || 0,
+      profesi: item.profesi,
+      pendidikan: item.pendidikan,
+      keterangan: item.keterangan,
+    };
   });
 
   const ALL_PELKAT_CODES = ['PA', 'PT', 'GP', 'PKP', 'PKB', 'PKLU'];
@@ -169,51 +179,52 @@ export default function LaporanDemografiPage() {
     perempuan: values.perempuan,
   }));
 
-  const handleFormSuccess = (savedData: any, metaInfo?: HierarchyMetaInfo | null) => {
-    setShowFormModal(false);
+  const handleOpenDetailFromGroupedEntity = (entity: GroupedDemografiEntity) => {
+    const rawPosName = entity.nama_pos || '';
+    const jemaatNama = entity.jemaat_induk || '-';
     
-    // Auto-transition to Detail Modal View for the newly saved record
-    const posNama = metaInfo?.posName || savedData.pos?.nama_pos;
-    const jemaatNama = metaInfo?.jemaatName || savedData.pos?.jemaat_induk?.nama_induk;
-    const mupelNama = metaInfo?.mupelName || savedData.pos?.jemaat_induk?.mupel?.nama_mupel;
+    // Poka-Yoke check if Pos Pelkes is a direct Jemaat Induk scope
+    const isDirectJemaat =
+      rawPosName.toLowerCase().startsWith('jemaat ') ||
+      rawPosName.toLowerCase() === jemaatNama.toLowerCase() ||
+      rawPosName === 'Pelayanan Jemaat Direct';
+
+    let profesiVal = '';
+    let pendidikanVal = '';
+    let keteranganVal = '';
+
+    Object.values(entity.pelkatRecords).forEach((rec: any) => {
+      if (rec.profesi && !profesiVal) profesiVal = rec.profesi;
+      if (rec.pendidikan && !pendidikanVal) pendidikanVal = rec.pendidikan;
+      if (rec.keterangan && !keteranganVal) keteranganVal = rec.keterangan;
+    });
 
     setActiveDetailModal({
-      id_pos: savedData.id_pos,
-      kategori_pelkat: savedData.kategori_pelkat || 'PA',
-      laki: savedData.laki || 0,
-      perempuan: savedData.perempuan || 0,
-      jml_kk: savedData.jml_kk || 0,
-      profesi: savedData.profesi,
-      pendidikan: savedData.pendidikan,
-      keterangan: savedData.keterangan,
-      posName: posNama && posNama !== 'Pelayanan Jemaat Direct' ? posNama : '-',
-      jemaatName: jemaatNama || '-',
-      mupelName: mupelNama || '-',
-      updated_at: savedData.updated_at || new Date().toISOString(),
-      updated_by: savedData.updated_by || 'Admin Demografi',
+      id_pos: entity.id_pos,
+      total_kk: entity.total_kk,
+      total_laki: entity.total_laki,
+      total_perempuan: entity.total_perempuan,
+      total_jiwa: entity.total_jiwa,
+      profesi: profesiVal,
+      pendidikan: pendidikanVal,
+      keterangan: keteranganVal,
+      posName: isDirectJemaat ? '-' : rawPosName,
+      jemaatName: jemaatNama,
+      mupelName: entity.mupel || '-',
+      updated_at: entity.updated_at,
+      updated_by: entity.updated_by,
+      pelkatRecords: entity.pelkatRecords,
     });
   };
 
-  const handleOpenDetailFromCard = (item: any) => {
-    const posNama = item.pos?.nama_pos;
-    const jemaatNama = item.pos?.jemaat_induk?.nama_induk;
-    const mupelNama = item.pos?.jemaat_induk?.mupel?.nama_mupel;
-
-    setActiveDetailModal({
-      id_pos: item.id_pos,
-      kategori_pelkat: item.kategori_pelkat,
-      laki: item.laki || 0,
-      perempuan: item.perempuan || 0,
-      jml_kk: item.jml_kk || 0,
-      profesi: item.profesi,
-      pendidikan: item.pendidikan,
-      keterangan: item.keterangan,
-      posName: posNama && posNama !== 'Pelayanan Jemaat Direct' ? posNama : '-',
-      jemaatName: jemaatNama || '-',
-      mupelName: mupelNama || '-',
-      updated_at: item.updated_at || item.created_at || new Date().toISOString(),
-      updated_by: item.updated_by || 'Admin Demografi',
-    });
+  const handleFormSuccess = (savedData: any, _metaInfo?: HierarchyMetaInfo | null) => {
+    setShowFormModal(false);
+    
+    // Auto-open detail modal for saved entity
+    const entity = groupedEntitiesMap[savedData.id_pos];
+    if (entity) {
+      handleOpenDetailFromGroupedEntity(entity);
+    }
   };
 
   return (
@@ -335,7 +346,7 @@ export default function LaporanDemografiPage() {
                 updated_at={item.updated_at}
                 filledPelkatCodes={item.filledPelkatCodes}
                 missingPelkatCodes={item.missingPelkatCodes}
-                onClick={() => handleOpenDetailFromCard(item.rawItem)}
+                onClick={() => handleOpenDetailFromGroupedEntity(item)}
               />
             ))}
           </div>
@@ -382,7 +393,7 @@ export default function LaporanDemografiPage() {
         </div>
       )}
 
-      {/* Detail Demografi Modal */}
+      {/* Detail Demografi Modal (Multi-Pelkat Breakdown) */}
       {activeDetailModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
           <div className="bg-surface-elevated w-full max-w-lg rounded-t-3xl sm:rounded-2xl p-5 border border-border-subtle shadow-heavy max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
@@ -394,7 +405,7 @@ export default function LaporanDemografiPage() {
                   <span>Detail Demografi Pelkat</span>
                 </h2>
                 <p className="text-xs text-text-muted mt-0.5">
-                  Kategori: <strong className="text-text-high font-mono">{activeDetailModal.kategori_pelkat}</strong>
+                  Wilayah: <strong className="text-text-high font-semibold">{activeDetailModal.jemaatName}</strong>
                 </p>
               </div>
               <button
@@ -407,46 +418,24 @@ export default function LaporanDemografiPage() {
             </div>
 
             {/* Modal Content */}
-            <div className="space-y-4">
-              {/* Pelkat Badge & Summary Header */}
-              <div className="bg-surface-sunken/60 p-3.5 rounded-2xl border border-border-subtle/80 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-3xl">
-                    {KATEGORI_PELKAT.find((k) => k.kode === activeDetailModal.kategori_pelkat)?.icon || '👥'}
-                  </span>
-                  <div>
-                    <h3 className="font-bold text-text-high text-sm">
-                      {KATEGORI_PELKAT.find((k) => k.kode === activeDetailModal.kategori_pelkat)?.nama || activeDetailModal.kategori_pelkat}
-                    </h3>
-                    <p className="text-[11px] text-text-muted">
-                      {KATEGORI_PELKAT.find((k) => k.kode === activeDetailModal.kategori_pelkat)?.deskripsi}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-2xl font-serif font-extrabold text-brand-primary tabular-nums">
-                    {(activeDetailModal.laki || 0) + (activeDetailModal.perempuan || 0)}{' '}
-                    <span className="text-xs font-normal text-text-muted">Jiwa</span>
-                  </p>
-                  <p className="text-[11px] text-text-muted">{activeDetailModal.jml_kk || 0} KK</p>
-                </div>
-              </div>
-
+            <div className="space-y-4 text-left">
               {/* 3-Level Hierarchy Breakdown */}
               <div className="bg-surface-base p-3.5 rounded-2xl border border-border-subtle/80 space-y-2 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-text-muted flex items-center gap-1.5 font-medium">
-                    <MapPin size={14} className="text-brand-primary" /> Pos Pelkes / Bajem:
-                  </span>
-                  <span className="font-bold text-text-high">
-                    {activeDetailModal.posName && activeDetailModal.posName !== 'Pelayanan Jemaat Direct' ? activeDetailModal.posName : '-'}
-                  </span>
-                </div>
+                {activeDetailModal.mupelName && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-text-muted flex items-center gap-1.5 font-medium">
+                      <Layers size={14} className="text-purple-500" /> Mupel:
+                    </span>
+                    <span className="font-bold text-text-high">
+                      {activeDetailModal.mupelName}
+                    </span>
+                  </div>
+                )}
 
                 {activeDetailModal.jemaatName && (
                   <div className="flex items-center justify-between border-t border-border-subtle/40 pt-2">
-                    <span className="text-text-muted flex items-center gap-1.5">
-                      <Building size={14} className="text-blue-500" /> Jemaat Induk Terkait:
+                    <span className="text-text-muted flex items-center gap-1.5 font-medium">
+                      <Building size={14} className="text-blue-500" /> Jemaat Induk:
                     </span>
                     <span className="font-bold text-text-high">
                       {activeDetailModal.jemaatName}
@@ -454,31 +443,78 @@ export default function LaporanDemografiPage() {
                   </div>
                 )}
 
-                {activeDetailModal.mupelName && (
-                  <div className="flex items-center justify-between border-t border-border-subtle/40 pt-2">
-                    <span className="text-text-muted flex items-center gap-1.5">
-                      <Layers size={14} className="text-purple-500" /> Mupel Terkait:
-                    </span>
-                    <span className="font-bold text-text-high">
-                      {activeDetailModal.mupelName}
-                    </span>
-                  </div>
-                )}
+                <div className="flex items-center justify-between border-t border-border-subtle/40 pt-2">
+                  <span className="text-text-muted flex items-center gap-1.5 font-medium">
+                    <MapPin size={14} className="text-brand-primary" /> Pos Pelkes / Bajem:
+                  </span>
+                  <span className="font-bold text-text-high">
+                    {activeDetailModal.posName || '-'}
+                  </span>
+                </div>
               </div>
 
-              {/* Gender Breakdown Grid */}
-              <div className="grid grid-cols-2 gap-3 text-center">
-                <div className="bg-blue-50/70 dark:bg-blue-950/40 p-3 rounded-xl border border-blue-100 dark:border-blue-900/40">
-                  <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Laki-Laki</p>
-                  <p className="text-xl font-bold text-blue-700 dark:text-blue-300 tabular-nums mt-0.5">
-                    {activeDetailModal.laki || 0}
-                  </p>
+              {/* Summary KPI Totals */}
+              <div className="grid grid-cols-3 gap-2.5 text-center text-xs">
+                <div className="bg-surface-sunken p-2.5 rounded-xl border border-border-subtle/60">
+                  <p className="text-[10px] text-text-muted font-medium uppercase tracking-wider">Total KK</p>
+                  <p className="text-base font-extrabold text-text-high tabular-nums mt-0.5">{activeDetailModal.total_kk} KK</p>
                 </div>
-                <div className="bg-pink-50/70 dark:bg-pink-950/40 p-3 rounded-xl border border-pink-100 dark:border-pink-900/40">
-                  <p className="text-xs font-semibold text-pink-600 dark:text-pink-400">Perempuan</p>
-                  <p className="text-xl font-bold text-pink-700 dark:text-pink-300 tabular-nums mt-0.5">
-                    {activeDetailModal.perempuan || 0}
-                  </p>
+                <div className="bg-blue-50/70 dark:bg-blue-950/40 p-2.5 rounded-xl border border-blue-100 dark:border-blue-900/40">
+                  <p className="text-[10px] text-blue-600 dark:text-blue-400 font-medium uppercase tracking-wider">Laki-Laki</p>
+                  <p className="text-base font-extrabold text-blue-700 dark:text-blue-300 tabular-nums mt-0.5">{activeDetailModal.total_laki} L</p>
+                </div>
+                <div className="bg-pink-50/70 dark:bg-pink-950/40 p-2.5 rounded-xl border border-pink-100 dark:border-pink-900/40">
+                  <p className="text-[10px] text-pink-600 dark:text-pink-400 font-medium uppercase tracking-wider">Perempuan</p>
+                  <p className="text-base font-extrabold text-pink-700 dark:text-pink-300 tabular-nums mt-0.5">{activeDetailModal.total_perempuan} P</p>
+                </div>
+              </div>
+
+              {/* 6 Pelkat Breakdown Table */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold text-text-high flex items-center gap-1.5">
+                    <Users size={14} className="text-brand-primary" />
+                    Rincian 6 Kategori Pelkat GPIB
+                  </h3>
+                  <span className="text-[10px] text-text-muted">PA, PT, GP, PKP, PKB, PKLU</span>
+                </div>
+
+                <div className="border border-border-subtle rounded-2xl overflow-hidden bg-surface-base">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-surface-sunken/80 border-b border-border-subtle text-text-high font-bold">
+                        <th className="p-2.5">Pelkat</th>
+                        <th className="p-2.5 text-center">Laki</th>
+                        <th className="p-2.5 text-center">Perempuan</th>
+                        <th className="p-2.5 text-center">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {KATEGORI_PELKAT.map((pelkat) => {
+                        const rec = activeDetailModal.pelkatRecords[pelkat.kode] || { laki: 0, perempuan: 0 };
+                        const sumRow = (rec.laki || 0) + (rec.perempuan || 0);
+
+                        return (
+                          <tr key={pelkat.kode} className="border-b border-border-subtle/40 hover:bg-surface-sunken/40">
+                            <td className="p-2.5 font-medium flex items-center gap-1.5">
+                              <span className="text-base">{pelkat.icon}</span>
+                              <span className="font-bold text-text-high">{pelkat.nama}</span>
+                              <span className="text-[10px] text-text-muted font-mono">({pelkat.kode})</span>
+                            </td>
+                            <td className="p-2.5 text-center font-bold text-blue-600 dark:text-blue-400 tabular-nums">
+                              {pelkat.kode === 'PKP' ? '-' : rec.laki || 0}
+                            </td>
+                            <td className="p-2.5 text-center font-bold text-pink-600 dark:text-pink-400 tabular-nums">
+                              {pelkat.kode === 'PKB' ? '-' : rec.perempuan || 0}
+                            </td>
+                            <td className="p-2.5 text-center font-extrabold text-brand-primary tabular-nums">
+                              {sumRow} Jiwa
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
