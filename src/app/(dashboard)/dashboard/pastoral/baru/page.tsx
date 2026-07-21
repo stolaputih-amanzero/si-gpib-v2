@@ -156,11 +156,9 @@ export default function LogPastoralBaruPage() {
       const jamStr = data.jam || getNowTimeString();
 
       // Combine time prefix and hierarchy metadata into catatan
-      let finalCatatan = data.catatan ? data.catatan.trim() : '';
+      let rawCatatanFormatted = data.catatan ? formatPastoralKegiatanText(data.catatan) : '';
       const timeTag = `[⏰ Jam Pelayanan: ${jamStr} WIB]`;
-      if (!finalCatatan.includes('Jam Pelayanan:')) {
-        finalCatatan = finalCatatan ? `${timeTag}\n${finalCatatan}` : timeTag;
-      }
+      let finalCatatan = rawCatatanFormatted ? `${timeTag}\n${rawCatatanFormatted}` : timeTag;
 
       // Format hierarchy metadata tag
       const mupelName = hierarchyMeta?.mupelName || 'Mupel GPIB';
@@ -376,6 +374,10 @@ export default function LogPastoralBaruPage() {
           </label>
           <textarea
             {...register('catatan')}
+            onBlur={(e) => {
+              const formatted = formatPastoralKegiatanText(e.target.value);
+              setValue('catatan', formatted);
+            }}
             rows={3}
             placeholder="Catatan tambahan pastoral..."
             className="w-full min-h-[100px] px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-text-high text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"

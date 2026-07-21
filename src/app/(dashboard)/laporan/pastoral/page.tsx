@@ -202,7 +202,7 @@ export default function LaporanPastoralPage() {
 
     try {
       const jamStr = editJam || '09:00';
-      let finalCatatan = editCatatan ? editCatatan.trim() : '';
+      let rawCatatanFormatted = editCatatan ? formatPastoralKegiatanText(editCatatan) : '';
       const timeTag = `[⏰ Jam Pelayanan: ${jamStr} WIB]`;
 
       // Construct hierarchy tag if meta info is resolved
@@ -211,7 +211,10 @@ export default function LaporanPastoralPage() {
       const posName = editHierarchyMeta?.posName || selectedLog.pos?.nama_pos || 'Pelayanan Jemaat Direct';
       const hierarchyTag = `[🏛️ HIERARKI: ${mupelName} | ${jemaatName} | ${posName}]`;
 
-      finalCatatan = `${timeTag}\n${hierarchyTag}\n${finalCatatan}`;
+      let finalCatatan = `${timeTag}\n${hierarchyTag}`;
+      if (rawCatatanFormatted) {
+        finalCatatan += `\n${rawCatatanFormatted}`;
+      }
 
       if (editPhotoBase64) {
         finalCatatan += `\n[📷 FOTO_BASE64:${editPhotoBase64}]`;
@@ -640,6 +643,7 @@ export default function LaporanPastoralPage() {
                     rows={3}
                     value={editCatatan}
                     onChange={(e) => setEditCatatan(e.target.value)}
+                    onBlur={(e) => setEditCatatan(formatPastoralKegiatanText(e.target.value))}
                     placeholder="Catatan hasil kunjungan..."
                     className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
                   />
