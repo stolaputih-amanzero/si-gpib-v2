@@ -5,12 +5,48 @@ export interface WatermarkOptions {
 }
 
 /**
- * Stamps image with GPS Geolocation coordinates and Date-Time Watermark
+ * Promise helper to get fresh real-time GPS coordinates directly from device
+ */
+async function getCurrentGpsLocation(): Promise<{ lat: number | null; lng: number | null }> {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined' || !('geolocation' in navigator)) {
+      resolve({ lat: null, lng: null });
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        resolve({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        });
+      },
+      (err) => {
+        console.warn('GPS location fetch warning:', err);
+        resolve({ lat: null, lng: null });
+      },
+      { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
+    );
+  });
+}
+
+/**
+ * Stamps photo image with high-contrast GPS Geolocation coordinates & Date-Time Watermark
  */
 export async function addWatermarkToImage(
   file: File,
   options?: WatermarkOptions
 ): Promise<File> {
+  // Fetch real-time GPS if options lat/lng is missing
+  let latitude = options?.lat;
+  let longitude = options?.lng;
+
+  if (latitude == null || longitude == null) {
+    const gps = await getCurrentGpsLocation();
+    latitude = gps.lat;
+    longitude = gps.lng;
+  }
+
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -30,16 +66,17 @@ export async function addWatermarkToImage(
         ctx.drawImage(img, 0, 0);
 
         // 2. Calculate dynamic dimensions for watermark banner
-        const bannerHeight = Math.max(70, canvas.height * 0.12);
-        const fontSize = Math.max(16, canvas.height * 0.03);
+        const bannerHeight = Math.max(90, canvas.height * 0.15);
+        const fontSize = Math.max(18, canvas.height * 0.032);
+        const subFontSize = Math.max(14, canvas.height * 0.025);
 
-        // 3. Draw dark translucent banner background
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.80)'; // Navy Slate
+        // 3. Draw dark translucent banner background at bottom
+        ctx.fillStyle = 'rgba(10, 15, 30, 0.88)'; // Deep Slate Navy
         ctx.fillRect(0, canvas.height - bannerHeight, canvas.width, bannerHeight);
 
         // 4. Gold Accent Line at top of banner
         ctx.fillStyle = '#c5a855';
-        ctx.fillRect(0, canvas.height - bannerHeight, canvas.width, Math.max(4, canvas.height * 0.006));
+        ctx.fillRect(0, canvas.height - bannerHeight, canvas.width, Math.max(5, canvas.height * 0.008));
 
         // 5. Format Timestamp string
         const now = new Date();
@@ -50,39 +87,46 @@ export async function addWatermarkToImage(
         const mins = String(now.getMinutes()).padStart(2, '0');
         const secs = String(now.getSeconds()).padStart(2, '0');
 
-        const timeStampText = `🕒 ${year}-${month}-${day} ${hours}:${mins}:${secs} WIB`;
+        const timeStampText = `🕒 TANGGAL & WAKTU: ${year}-${month}-${day} ${hours}:${mins}:${secs} WIB`;
 
         // 6. Format GPS Text
-        let gpsText = '📌 GPS: Sinyal Tidak Terdeteksi';
-        if (options?.lat != null && options?.lng != null) {
-          gpsText = `📌 GPS: ${options.lat.toFixed(5)}, ${options.lng.toFixed(5)}`;
+        let gpsText = '📌 GPS LOKASI: Sinyal Geolocation Tidak Terdeteksi';
+        if (latitude != null && longitude != null) {
+          gpsText = `📌 GPS LOKASI: Lat ${latitude.toFixed(5)}, Long ${longitude.toFixed(5)}`;
         }
 
-        const tagText = options?.label || 'SI GPIB Pastoral Log';
+        const tagText = options?.label || 'SI GPIB PASTORAL LOG';
 
-        // 7. Render Text onto Canvas
-        const paddingX = Math.max(16, canvas.width * 0.03);
-        const startY = canvas.height - bannerHeight + fontSize * 1.2;
+        // 7. Render Text onto Canvas with High Contrast
+        const paddingX = Math.max(20, canvas.width * 0.035);
+        const startY = canvas.height - bannerHeight + fontSize * 1.3;
 
+        // GPS Text Line (Bold White)
         ctx.fillStyle = '#ffffff';
-        ctx.font = `bold ${fontSize}px sans-serif`;
+        ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+        ctx.shadowColor = 'rgba(0,0,0,0.8)';
+        ctx.shadowBlur = 4;
         ctx.fillText(gpsText, paddingX, startY);
 
-        ctx.fillStyle = '#e2e8f0';
-        ctx.font = `medium ${fontSize * 0.9}px sans-serif`;
-        ctx.fillText(timeStampText, paddingX, startY + fontSize * 1.3);
+        // Timestamp Line (Cyan Light)
+        ctx.fillStyle = '#67e8f9';
+        ctx.font = `bold ${subFontSize}px Arial, sans-serif`;
+        ctx.fillText(timeStampText, paddingX, startY + fontSize * 1.35);
 
-        // Render SI GPIB tag at right
-        ctx.fillStyle = '#c5a855';
-        ctx.font = `bold ${fontSize * 0.85}px sans-serif`;
+        // Render SI GPIB tag at top right of banner
+        ctx.fillStyle = '#f59e0b'; // Warm Amber Gold
+        ctx.font = `bold ${subFontSize}px Arial, sans-serif`;
         const tagWidth = ctx.measureText(tagText).width;
-        ctx.fillText(tagText, canvas.width - paddingX - tagWidth, startY + fontSize * 1.3);
+        ctx.fillText(tagText, canvas.width - paddingX - tagWidth, startY);
+
+        // Reset shadow
+        ctx.shadowBlur = 0;
 
         // 8. Convert to compressed JPEG blob
         canvas.toBlob(
           (blob) => {
             if (blob) {
-              const stampedFile = new File([blob], file.name || 'pastoral-photo.jpg', {
+              const stampedFile = new File([blob], file.name || 'pastoral-photo-stamped.jpg', {
                 type: 'image/jpeg',
                 lastModified: Date.now(),
               });
@@ -92,7 +136,7 @@ export async function addWatermarkToImage(
             }
           },
           'image/jpeg',
-          0.85
+          0.88
         );
       };
       img.onerror = () => resolve(file);
