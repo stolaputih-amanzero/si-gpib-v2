@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import QueryProvider from '@/components/providers/QueryProvider';
+import { ToastProvider } from '@/components/ui/toast';
 import { NetworkBanner } from '@/components/mobile/NetworkBanner';
 import { MobileSplashScreen } from '@/components/mobile/MobileSplashScreen';
 
@@ -50,12 +51,13 @@ export default function RootLayout({
     <html lang="id" suppressHydrationWarning>
       <body className="bg-surface-base text-text-high" suppressHydrationWarning>
         <QueryProvider>
-          <MobileSplashScreen />
-          <NetworkBanner />
-          {children}
+          <ToastProvider>
+            <MobileSplashScreen />
+            <NetworkBanner />
+            {children}
+          </ToastProvider>
         </QueryProvider>
       </body>
     </html>
   );
 }
-

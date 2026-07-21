@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
+import { useUser } from '@/hooks/use-user';
+import { useToast } from '@/components/ui/toast';
 import {
   Home,
   Map,
@@ -100,6 +102,9 @@ export const NAV_GROUPS: NavGroup[] = [
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { logout } = useUser();
+  const { confirm, toast } = useToast();
+
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<string[]>([
     'Beranda',
@@ -131,6 +136,20 @@ export function Sidebar() {
         ? prev.filter((g) => g !== groupLabel)
         : [...prev, groupLabel]
     );
+  };
+
+  const handleLogoutClick = () => {
+    confirm({
+      title: 'Konfirmasi Keluar Sesi',
+      message: 'Apakah Anda yakin ingin keluar dari akun SI GPIB?',
+      confirmText: 'Ya, Keluar',
+      cancelText: 'Batal',
+      variant: 'danger',
+      onConfirm: async () => {
+        toast.info('Mengakhiri Sesi...', 'Mengeluarkan akun dari sistem SI GPIB.');
+        await logout();
+      },
+    });
   };
 
   return (
@@ -292,11 +311,7 @@ export function Sidebar() {
       <div className="p-3 border-t border-border-subtle bg-surface-elevated shrink-0">
         <button
           type="button"
-          onClick={() => {
-            if (confirm('Apakah Anda yakin ingin keluar dari sesi SI GPIB?')) {
-              window.location.href = '/login';
-            }
-          }}
+          onClick={handleLogoutClick}
           className={cn(
             'group relative flex items-center w-full min-h-[44px] text-xs font-bold text-red-600 dark:text-red-400 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors',
             isCollapsed ? 'justify-center p-2.5' : 'justify-between px-3.5 py-2.5'

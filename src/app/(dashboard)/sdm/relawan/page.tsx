@@ -4,9 +4,11 @@ import { useState } from 'react';
 import { useRelawanList, useDeleteRelawan, RelawanItem } from '@/hooks/use-relawan';
 import { RelawanCard } from '@/components/relawan/RelawanCard';
 import { RelawanForm } from '@/components/relawan/RelawanForm';
+import { useToast } from '@/components/ui/toast';
 import { Plus, Search, HeartHandshake } from 'lucide-react';
 
 export default function RelawanPage() {
+  const { toast, confirm: confirmModal } = useToast();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedPos, setSelectedPos] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -29,10 +31,21 @@ export default function RelawanPage() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id_relawan: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus data relawan ini?')) {
-      await deleteMutation.mutateAsync(id_relawan);
-    }
+  const handleDelete = (id_relawan: string) => {
+    confirmModal({
+      title: 'Hapus Data Relawan',
+      message: 'Apakah Anda yakin ingin menghapus data relawan ini?',
+      confirmText: 'Hapus Relawan',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteMutation.mutateAsync(id_relawan);
+          toast.success('Berhasil Dihapus', 'Data relawan telah dihapus.');
+        } catch {
+          toast.error('Gagal Menghapus', 'Terjadi kesalahan saat menghapus data.');
+        }
+      },
+    });
   };
 
   const totalRelawan = relawanList?.length || 0;
@@ -146,7 +159,10 @@ export default function RelawanPage() {
 
             <RelawanForm
               initialData={editingItem}
-              onSuccess={() => setShowModal(false)}
+              onSuccess={() => {
+                setShowModal(false);
+                toast.success('Berhasil Disimpan', 'Data relawan telah diperbarui.');
+              }}
             />
           </div>
         </div>

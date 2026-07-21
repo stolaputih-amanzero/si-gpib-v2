@@ -1,12 +1,51 @@
 'use client';
 
 import { useState } from 'react';
-import { Shield, Bell, Fingerprint, LogOut, ChevronRight, Check } from 'lucide-react';
+import { useUser } from '@/hooks/use-user';
+import { useToast } from '@/components/ui/toast';
+import { Shield, Bell, Fingerprint, LogOut, ChevronRight, Check, User as UserIcon, RefreshCw } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
 export default function SettingsHubPage() {
+  const { user, nama, email, role, avatarUrl, isLoading, logout } = useUser();
+  const { toast, confirm } = useToast();
+  
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
+
+  const handleToggleBiometrics = () => {
+    const nextState = !biometricsEnabled;
+    setBiometricsEnabled(nextState);
+    if (nextState) {
+      toast.success('Biometrik Ditingkatkan', 'Fitur Passkey / FaceID siap digunakan untuk login berikutnya.');
+    } else {
+      toast.info('Biometrik Dinonaktifkan', 'Anda dapat mengaktifkannya kembali kapan saja.');
+    }
+  };
+
+  const handleToggleNotifications = () => {
+    const nextState = !notificationsEnabled;
+    setNotificationsEnabled(nextState);
+    if (nextState) {
+      toast.success('Notifikasi Aktif', 'Pemberitahuan penting akan dikirimkan ke perangkat Anda.');
+    } else {
+      toast.info('Notifikasi Hening', 'Notifikasi sistem telah dibisukan.');
+    }
+  };
+
+  const handleLogoutClick = () => {
+    confirm({
+      title: 'Konfirmasi Keluar Sesi',
+      message: 'Apakah Anda yakin ingin keluar dari akun SI GPIB?',
+      confirmText: 'Ya, Keluar',
+      cancelText: 'Batal',
+      variant: 'danger',
+      onConfirm: async () => {
+        toast.info('Mengakhiri Sesi...', 'Mengeluarkan akun dari sistem SI GPIB.');
+        await logout();
+      },
+    });
+  };
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -19,21 +58,35 @@ export default function SettingsHubPage() {
         </p>
       </div>
 
-      {/* Profil User Card */}
+      {/* Dynamic Profile Card */}
       <Card>
         <CardHeader>
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold text-xl">
-              GPIB
+            <div className="w-16 h-16 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold text-xl overflow-hidden shrink-0 border border-brand-primary/20">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={nama} className="w-full h-full object-cover" />
+              ) : (
+                <UserIcon className="w-8 h-8 text-brand-primary" />
+              )}
             </div>
-            <div>
-              <CardTitle>Pengguna Pelayan SI GPIB</CardTitle>
-              <CardDescription className="mt-0.5">
-                Role: Pengurus Pos Pelkes / Presbiter
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <CardTitle className="truncate">{isLoading ? 'Memuat Profil...' : nama}</CardTitle>
+                {isLoading && <RefreshCw className="w-3.5 h-3.5 animate-spin text-text-muted" />}
+              </div>
+              <CardDescription className="truncate mt-0.5 font-mono text-xs">
+                {email}
               </CardDescription>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 mt-2">
-                <Check className="w-3 h-3" /> Akun Terverifikasi
-              </span>
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
+                  {role}
+                </span>
+                {user && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
+                    <Check className="w-3 h-3" /> Sesi Terverifikasi
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -45,20 +98,20 @@ export default function SettingsHubPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
+              <div className="flex items-center gap-3 min-w-0 pr-4">
+                <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0">
                   <Fingerprint className="w-5 h-5" />
                 </div>
-                <div>
-                  <CardTitle className="text-base">Keamanan Biometrik (Passkey)</CardTitle>
-                  <CardDescription>
-                    Masuk ke SI GPIB menggunakan FaceID / TouchID
+                <div className="min-w-0">
+                  <CardTitle className="text-base truncate">Keamanan Biometrik (Passkey)</CardTitle>
+                  <CardDescription className="line-clamp-1">
+                    Masuk cepat ke SI GPIB menggunakan FaceID / TouchID
                   </CardDescription>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setBiometricsEnabled(!biometricsEnabled)}
+                onClick={handleToggleBiometrics}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                   biometricsEnabled ? 'bg-brand-primary' : 'bg-surface-sunken border-border-strong'
                 }`}
@@ -77,20 +130,20 @@ export default function SettingsHubPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+              <div className="flex items-center gap-3 min-w-0 pr-4">
+                <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
                   <Bell className="w-5 h-5" />
                 </div>
-                <div>
-                  <CardTitle className="text-base">Notifikasi Sistem</CardTitle>
-                  <CardDescription>
+                <div className="min-w-0">
+                  <CardTitle className="text-base truncate">Notifikasi Sistem</CardTitle>
+                  <CardDescription className="line-clamp-1">
                     Pemberitahuan bantuan, permohonan pos, & pengingat ibadah
                   </CardDescription>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+                onClick={handleToggleNotifications}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                   notificationsEnabled ? 'bg-brand-primary' : 'bg-surface-sunken border-border-strong'
                 }`}
@@ -110,7 +163,8 @@ export default function SettingsHubPage() {
           <CardContent className="p-0 divide-y divide-border-subtle">
             <button
               type="button"
-              className="flex items-center justify-between w-full p-4 hover:bg-surface-sunken transition-colors text-left"
+              onClick={() => toast.info('Ubah Kata Sandi', 'Fitur ubah sandi dikirim via email konfirmasi.')}
+              className="flex items-center justify-between w-full p-4 hover:bg-surface-sunken transition-colors text-left min-h-[52px]"
             >
               <div className="flex items-center gap-3">
                 <Shield className="w-5 h-5 text-text-muted" />
@@ -121,16 +175,12 @@ export default function SettingsHubPage() {
 
             <button
               type="button"
-              onClick={() => {
-                if (confirm('Apakah Anda yakin ingin keluar dari sesi aplikasi?')) {
-                  window.location.href = '/login';
-                }
-              }}
-              className="flex items-center justify-between w-full p-4 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-left text-red-600 dark:text-red-400 font-semibold"
+              onClick={handleLogoutClick}
+              className="flex items-center justify-between w-full p-4 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-left text-red-600 dark:text-red-400 font-semibold min-h-[52px]"
             >
               <div className="flex items-center gap-3">
                 <LogOut className="w-5 h-5" />
-                <span className="text-sm">Keluar Sesi</span>
+                <span className="text-sm">Keluar Sesi (Logout)</span>
               </div>
               <ChevronRight className="w-4 h-4" />
             </button>

@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { usePendetaList, useDeletePendeta, PendetaItem, usePendetaKontrakSegeraBerakhir } from '@/hooks/use-pendeta';
 import { PendetaCard } from '@/components/pendeta/PendetaCard';
 import { PendetaForm } from '@/components/pendeta/PendetaForm';
+import { useToast } from '@/components/ui/toast';
 import { Plus, Search, UserCheck, Crown, ShieldCheck, AlertTriangle, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function PendetaPage() {
+  const { toast, confirm: confirmModal } = useToast();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedInduk, setSelectedInduk] = useState<string>('');
   const [jenisFilter, setJenisFilter] = useState<'all' | 'Organik' | 'Non-Organik'>('all');
@@ -33,10 +35,21 @@ export default function PendetaPage() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id_pendeta: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus data pendeta ini?')) {
-      await deleteMutation.mutateAsync(id_pendeta);
-    }
+  const handleDelete = (id_pendeta: string) => {
+    confirmModal({
+      title: 'Hapus Data Pendeta',
+      message: 'Apakah Anda yakin ingin menghapus data pendeta ini dari sistem?',
+      confirmText: 'Hapus Data',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteMutation.mutateAsync(id_pendeta);
+          toast.success('Berhasil Dihapus', 'Data pendeta telah dihapus dari sistem.');
+        } catch {
+          toast.error('Gagal Menghapus', 'Terjadi kesalahan saat menghapus data.');
+        }
+      },
+    });
   };
 
   const totalPendeta = pendetaList?.length || 0;
@@ -216,7 +229,10 @@ export default function PendetaPage() {
 
             <PendetaForm
               initialData={editingItem}
-              onSuccess={() => setShowModal(false)}
+              onSuccess={() => {
+                setShowModal(false);
+                toast.success('Berhasil Disimpan', 'Data pendeta berhasil diperbarui.');
+              }}
             />
           </div>
         </div>

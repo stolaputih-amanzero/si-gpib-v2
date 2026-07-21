@@ -4,9 +4,11 @@ import { useState } from 'react';
 import { usePelayanList, useDeletePelayan, PelayanItem } from '@/hooks/use-pelayan';
 import { PelayanCard } from '@/components/pelayan/PelayanCard';
 import { PelayanForm } from '@/components/pelayan/PelayanForm';
+import { useToast } from '@/components/ui/toast';
 import { Plus, Search, Users } from 'lucide-react';
 
 export default function PelayanPage() {
+  const { toast, confirm: confirmModal } = useToast();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedPos, setSelectedPos] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -29,10 +31,21 @@ export default function PelayanPage() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id_pelayan: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus data pelayan ini?')) {
-      await deleteMutation.mutateAsync(id_pelayan);
-    }
+  const handleDelete = (id_pelayan: string) => {
+    confirmModal({
+      title: 'Hapus Pelayan Pos',
+      message: 'Apakah Anda yakin ingin menghapus data pelayan ini?',
+      confirmText: 'Hapus Pelayan',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteMutation.mutateAsync(id_pelayan);
+          toast.success('Berhasil Dihapus', 'Data pelayan telah dihapus.');
+        } catch {
+          toast.error('Gagal Menghapus', 'Terjadi kesalahan saat menghapus data.');
+        }
+      },
+    });
   };
 
   const totalPelayan = pelayanList?.length || 0;
@@ -152,7 +165,10 @@ export default function PelayanPage() {
 
             <PelayanForm
               initialData={editingItem}
-              onSuccess={() => setShowModal(false)}
+              onSuccess={() => {
+                setShowModal(false);
+                toast.success('Berhasil Disimpan', 'Data pelayan telah diperbarui.');
+              }}
             />
           </div>
         </div>

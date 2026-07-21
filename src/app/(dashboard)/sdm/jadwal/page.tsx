@@ -4,9 +4,11 @@ import { useState } from 'react';
 import { useJadwalList, useDeleteJadwal, JadwalItem } from '@/hooks/use-jadwal';
 import { JadwalCard } from '@/components/jadwal/JadwalCard';
 import { JadwalForm } from '@/components/jadwal/JadwalForm';
+import { useToast } from '@/components/ui/toast';
 import { Plus, Search, Calendar } from 'lucide-react';
 
 export default function JadwalPage() {
+  const { toast, confirm: confirmModal } = useToast();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedPos, setSelectedPos] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -29,10 +31,21 @@ export default function JadwalPage() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id_ibadah: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus jadwal ibadah ini?')) {
-      await deleteMutation.mutateAsync(id_ibadah);
-    }
+  const handleDelete = (id_ibadah: string) => {
+    confirmModal({
+      title: 'Hapus Jadwal Ibadah',
+      message: 'Apakah Anda yakin ingin menghapus jadwal ibadah ini?',
+      confirmText: 'Hapus Jadwal',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteMutation.mutateAsync(id_ibadah);
+          toast.success('Berhasil Dihapus', 'Jadwal ibadah telah dihapus.');
+        } catch {
+          toast.error('Gagal Menghapus', 'Terjadi kesalahan saat menghapus data.');
+        }
+      },
+    });
   };
 
   const totalJadwal = jadwalList?.length || 0;
@@ -146,7 +159,10 @@ export default function JadwalPage() {
 
             <JadwalForm
               initialData={editingItem}
-              onSuccess={() => setShowModal(false)}
+              onSuccess={() => {
+                setShowModal(false);
+                toast.success('Berhasil Disimpan', 'Jadwal ibadah telah diperbarui.');
+              }}
             />
           </div>
         </div>

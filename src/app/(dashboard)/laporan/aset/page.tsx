@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { useAsetList, useDeleteAset } from '@/hooks/use-aset';
 import { AsetTabs } from '@/components/aset/AsetTabs';
 import { AsetCard } from '@/components/aset/AsetCard';
+import { useToast } from '@/components/ui/toast';
 import { Plus, Search, Box } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LaporanAsetPage() {
+  const { toast, confirm: confirmModal } = useToast();
   const [activeCategory, setActiveCategory] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedPos] = useState<string>('');
@@ -20,10 +22,21 @@ export default function LaporanAsetPage() {
 
   const deleteMutation = useDeleteAset();
 
-  const handleDelete = async (id: string, kategori: 'TANAH' | 'BANGUNAN' | 'BERGERAK') => {
-    if (confirm('Apakah Anda yakin ingin menghapus data aset ini? Dokumen lampiran juga akan terhapus.')) {
-      await deleteMutation.mutateAsync({ id, kategori });
-    }
+  const handleDelete = (id: string, kategori: 'TANAH' | 'BANGUNAN' | 'BERGERAK') => {
+    confirmModal({
+      title: 'Hapus Inventaris Aset',
+      message: 'Apakah Anda yakin ingin menghapus data aset ini? Dokumen lampiran juga akan terhapus.',
+      confirmText: 'Hapus Aset',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteMutation.mutateAsync({ id, kategori });
+          toast.success('Berhasil Dihapus', 'Data aset telah dihapus dari inventaris.');
+        } catch {
+          toast.error('Gagal Menghapus', 'Terjadi kesalahan saat menghapus aset.');
+        }
+      },
+    });
   };
 
   const counts = {
