@@ -28,6 +28,7 @@ import {
   Building,
   Layers,
   Download,
+  Share2,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -88,6 +89,39 @@ export default function LaporanPastoralPage() {
     }
 
     return { jamStr, photoBase64, hierarchyInfo, cleanNotes: cleanNotes.trim() };
+  };
+
+  const handleShareWhatsApp = (e: React.MouseEvent, log: LogPastoralItem) => {
+    e.stopPropagation();
+    const { jamStr, hierarchyInfo, cleanNotes } = extractMetaFromCatatan(log.catatan);
+
+    const posNama = log.pos?.nama_pos || hierarchyInfo?.posName || 'Pelayanan Jemaat Direct';
+    const posKategori = log.pos?.kategori || 'Pos Pelkes';
+    const jemaatNama = log.pos?.jemaat_induk?.nama_induk || hierarchyInfo?.jemaatName || '-';
+    const mupelNama = log.pos?.jemaat_induk?.mupel?.nama_mupel || hierarchyInfo?.mupelName || '-';
+    const pendetaNama = log.pendeta?.nama_lengkap || '-';
+
+    const lines = [
+      `📋 *LAPORAN KEGIATAN PASTORAL GPIB*`,
+      `──────────────────────`,
+      `✝️ *Kegiatan:* ${log.kegiatan}`,
+      `📅 *Tanggal:* ${log.tgl}`,
+      `⏰ *Waktu:* ${jamStr || '09:00'} WIB`,
+      log.jml_jiwa ? `👥 *Jiwa Dilayani:* ${log.jml_jiwa} Jiwa` : null,
+      ``,
+      `📍 *LOKASI PELAYANAN HIERARKI:*`,
+      `• *Pos Pelkes / Bajem:* ${posNama}${posNama !== 'Pelayanan Jemaat Direct' ? ` (${posKategori})` : ''}`,
+      `• *Jemaat Induk:* ${jemaatNama}`,
+      `• *Mupel:* ${mupelNama}`,
+      ``,
+      `👤 *Pelayan Pendeta:* ${pendetaNama}`,
+      cleanNotes ? `\n📝 *Catatan Pelayanan:*\n"${cleanNotes}"` : null,
+      `──────────────────────`,
+      `_Dikirim melalui Aplikasi Sistem Informasi GPIB v2_`,
+    ].filter(Boolean).join('\n');
+
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(lines)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const handleOpenDetailModal = (log: LogPastoralItem) => {
@@ -300,6 +334,14 @@ export default function LaporanPastoralPage() {
                     <div className="flex items-center gap-1 shrink-0">
                       <button
                         type="button"
+                        onClick={(e) => handleShareWhatsApp(e, log)}
+                        className="p-2 rounded-xl text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
+                        title="Bagikan ke WhatsApp"
+                      >
+                        <Share2 size={16} />
+                      </button>
+                      <button
+                        type="button"
                         onClick={(e) => handleOpenEditDirect(e, log)}
                         className="p-2 rounded-xl text-text-muted hover:text-brand-primary hover:bg-brand-primary/10 transition-colors"
                         title="Edit Log Pastoral"
@@ -387,9 +429,20 @@ export default function LaporanPastoralPage() {
                     </p>
                   )}
 
-                  <div className="flex items-center justify-end text-[11px] font-semibold text-brand-primary gap-1 group-hover:translate-x-0.5 transition-transform pt-0.5">
-                    <Eye size={12} />
-                    <span>Lihat Detail Hierarki & Foto</span>
+                  <div className="flex items-center justify-between pt-0.5">
+                    <button
+                      type="button"
+                      onClick={(e) => handleShareWhatsApp(e, log)}
+                      className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
+                    >
+                      <Share2 size={12} />
+                      <span>Share WA</span>
+                    </button>
+
+                    <div className="flex items-center text-[11px] font-semibold text-brand-primary gap-1 group-hover:translate-x-0.5 transition-transform">
+                      <Eye size={12} />
+                      <span>Lihat Detail Hierarki & Foto</span>
+                    </div>
                   </div>
                 </div>
               );
@@ -669,11 +722,21 @@ export default function LaporanPastoralPage() {
                 <div className="flex items-center gap-2 pt-3 border-t border-border-subtle">
                   <button
                     type="button"
+                    onClick={(e) => handleShareWhatsApp(e, selectedLog)}
+                    className="py-2.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all min-h-[44px] flex items-center gap-1.5 shadow-soft"
+                    title="Bagikan ke WhatsApp"
+                  >
+                    <Share2 size={16} />
+                    <span className="hidden sm:inline">Bagikan WA</span>
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={(e) => handleDelete(e, selectedLog.id_log, selectedLog.kegiatan)}
-                    className="py-2.5 px-4 rounded-xl border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-50 dark:hover:bg-red-950/40 transition-all min-h-[44px] flex items-center gap-1.5"
+                    className="py-2.5 px-3.5 rounded-xl border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-50 dark:hover:bg-red-950/40 transition-all min-h-[44px] flex items-center gap-1.5"
                   >
                     <Trash2 size={16} />
-                    <span>Hapus Log</span>
+                    <span className="hidden sm:inline">Hapus Log</span>
                   </button>
 
                   <button
@@ -682,7 +745,7 @@ export default function LaporanPastoralPage() {
                     className="flex-1 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] flex items-center justify-center gap-2"
                   >
                     <Edit size={16} />
-                    <span>Edit Log & Hierarki</span>
+                    <span>Edit Log & Foto</span>
                   </button>
                 </div>
               </div>
