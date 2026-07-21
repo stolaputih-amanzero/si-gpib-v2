@@ -163,7 +163,7 @@ export default function LogPastoralBaruPage() {
       // Format hierarchy metadata tag
       const mupelName = hierarchyMeta?.mupelName || 'Mupel GPIB';
       const jemaatName = hierarchyMeta?.jemaatName || 'Jemaat Induk';
-      const posName = hierarchyMeta?.posName || 'Pelayanan Jemaat Direct';
+      const posName = hierarchyMeta?.posName && hierarchyMeta.posName !== 'Pelayanan Jemaat Direct' ? hierarchyMeta.posName : '-';
       const hierarchyTag = `[🏛️ HIERARKI: ${mupelName} | ${jemaatName} | ${posName}]`;
 
       if (!finalCatatan.includes('HIERARKI:')) {

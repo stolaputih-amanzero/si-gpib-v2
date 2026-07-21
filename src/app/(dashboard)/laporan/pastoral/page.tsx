@@ -125,14 +125,14 @@ export default function LaporanPastoralPage() {
     e.stopPropagation();
     const { jamStr, photoBase64, hierarchyInfo, cleanNotes } = extractMetaFromCatatan(log.catatan);
 
-    const posNama = log.pos?.nama_pos || hierarchyInfo?.posName || 'Pelayanan Jemaat Direct';
+    const posNama = log.pos?.nama_pos || hierarchyInfo?.posName;
     const posKategori = log.pos?.kategori || 'Pos Pelkes';
     const jemaatNama = log.pos?.jemaat_induk?.nama_induk || hierarchyInfo?.jemaatName || '-';
     const mupelNama = log.pos?.jemaat_induk?.mupel?.nama_mupel || hierarchyInfo?.mupelName || '-';
     const pendetaNama = log.pendeta?.nama_lengkap || '-';
 
     const tglFormatted = formatIndonesianDate(log.tgl);
-    const posFormatted = posNama !== 'Pelayanan Jemaat Direct' ? `${posNama} (${posKategori})` : 'Pelayanan Jemaat Direct';
+    const posFormatted = posNama && posNama !== 'Pelayanan Jemaat Direct' ? `${posNama} (${posKategori})` : '-';
 
     const lines = [
       `*LAPORAN PELAYANAN PASTORAL*`,
@@ -470,7 +470,7 @@ export default function LaporanPastoralPage() {
                         <MapPin size={13} className="text-brand-primary" /> Pos Pelkes / Bajem:
                       </span>
                       <span className="font-bold text-text-high truncate max-w-[180px]">
-                        {posNama && posNama !== 'Pelayanan Jemaat Direct' ? `${posNama} (${posKategori})` : 'Pelayanan Jemaat Direct'}
+                        {posNama && posNama !== 'Pelayanan Jemaat Direct' ? `${posNama} (${posKategori})` : '-'}
                       </span>
                     </div>
 
@@ -755,7 +755,7 @@ export default function LaporanPastoralPage() {
                           <MapPin size={14} className="text-brand-primary" /> Pos Pelkes / Bajem:
                         </span>
                         <span className="font-bold text-text-high">
-                          {posNama && posNama !== 'Pelayanan Jemaat Direct' ? `${posNama} (${posKategori})` : 'Pelayanan Jemaat Direct'}
+                          {posNama && posNama !== 'Pelayanan Jemaat Direct' ? `${posNama} (${posKategori})` : '-'}
                         </span>
                       </div>
 

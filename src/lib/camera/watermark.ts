@@ -69,7 +69,8 @@ export async function addWatermarkToImage(
         ctx.drawImage(img, 0, 0);
 
         // 2. Format Hierarchy Text line
-        const hierarchyParts = [options?.mupelName, options?.jemaatName, options?.posName].filter(Boolean);
+        const validPosName = options?.posName && options.posName !== 'Pelayanan Jemaat Direct' ? options.posName : null;
+        const hierarchyParts = [options?.mupelName, options?.jemaatName, validPosName].filter(Boolean);
         const hierarchyLineText = hierarchyParts.length > 0 ? `🏛️ WILAYAH: ${hierarchyParts.join(' | ')}` : null;
 
         // 3. Calculate dynamic dimensions for watermark banner
