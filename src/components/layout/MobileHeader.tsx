@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { ChevronLeft, Layers, MoreVertical } from 'lucide-react';
+import { ChevronLeft, Layers } from 'lucide-react';
 
 // Pathname mapping to human readable page titles
 const PAGE_TITLES: Record<string, string> = {
@@ -77,19 +77,6 @@ export function MobileHeader() {
           <h1 className="font-serif font-bold text-base sm:text-lg text-text-high truncate leading-snug min-w-0">
             {title}
           </h1>
-        </div>
-
-        {/* Optional Action Menu / Context Button */}
-        <div className="flex items-center shrink-0 ml-2">
-          <button
-            type="button"
-            onClick={() => router.push('/settings')}
-            className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-xl text-text-muted hover:text-text-high hover:bg-surface-sunken active:scale-95 transition-all"
-            aria-label="Pengaturan"
-            title="Pengaturan"
-          >
-            <MoreVertical className="w-5 h-5" />
-          </button>
         </div>
       </div>
     </header>
