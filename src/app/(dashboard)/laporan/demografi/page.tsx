@@ -6,7 +6,7 @@ import { DemografiCard } from '@/components/demografi/DemografiCard';
 import { DemografiChart } from '@/components/demografi/DemografiChart';
 import { DemografiForm } from '@/components/demografi/DemografiForm';
 import { KATEGORI_PELKAT } from '@/lib/constants/pelkat';
-import { Plus, Filter, Users, Search, X, MapPin, Building, Layers, Clock, UserCheck, Share2, Edit3 } from 'lucide-react';
+import { Plus, Filter, Users, Search, X, MapPin, Building, Layers, Clock, UserCheck, Share2, Edit3, Compass, ExternalLink } from 'lucide-react';
 import { HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
 import { createClient } from '@/lib/supabase/client';
 
@@ -22,6 +22,9 @@ interface DemografiDetailItem {
   posName?: string;
   jemaatName?: string;
   mupelName?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  alamat?: string | null;
   updated_at?: string | null;
   updated_by?: string | null;
   pelkatRecords: Record<string, { laki: number; perempuan: number; jml_kk: number }>;
@@ -32,6 +35,9 @@ interface GroupedDemografiEntity {
   nama_pos: string;
   jemaat_induk?: string;
   mupel?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  alamat?: string | null;
   total_kk: number;
   total_laki: number;
   total_perempuan: number;
@@ -141,6 +147,9 @@ export default function LaporanDemografiPage() {
     const posName = item.pos?.nama_pos || item.id_pos;
     const jemaatName = item.pos?.jemaat_induk?.nama_induk || '-';
     const mupelName = item.pos?.jemaat_induk?.mupel?.nama_mupel || '-';
+    const lat = item.pos?.latitude || item.pos?.jemaat_induk?.latitude || null;
+    const lng = item.pos?.longitude || item.pos?.jemaat_induk?.longitude || null;
+    const alamatStr = item.pos?.alamat || item.pos?.jemaat_induk?.alamat || null;
 
     if (!groupedEntitiesMap[idPos]) {
       groupedEntitiesMap[idPos] = {
@@ -148,6 +157,9 @@ export default function LaporanDemografiPage() {
         nama_pos: posName,
         jemaat_induk: jemaatName,
         mupel: mupelName,
+        latitude: lat,
+        longitude: lng,
+        alamat: alamatStr,
         total_kk: 0,
         total_laki: 0,
         total_perempuan: 0,
@@ -242,6 +254,9 @@ export default function LaporanDemografiPage() {
       posName: isDirectJemaat ? '-' : rawPosName,
       jemaatName: jemaatNama,
       mupelName: entity.mupel || '-',
+      latitude: entity.latitude,
+      longitude: entity.longitude,
+      alamat: entity.alamat,
       updated_at: entity.updated_at,
       updated_by: entity.updated_by || currentUserEmail || 'Pengguna System',
       pelkatRecords: entity.pelkatRecords,
@@ -273,6 +288,17 @@ export default function LaporanDemografiPage() {
     const tglFormatted = formatDateTimeIndonesian(detail.updated_at);
     const updatedUser = detail.updated_by || currentUserEmail || 'Pengguna System';
 
+    // Construct Google Maps URL (Lat/Long or Search Query)
+    let mapsUrl = '';
+    if (detail.latitude && detail.longitude) {
+      mapsUrl = `https://www.google.com/maps?q=${detail.latitude},${detail.longitude}`;
+    } else {
+      const locName = detail.posName && detail.posName !== '-' 
+        ? `GPIB ${detail.posName}` 
+        : `GPIB ${detail.jemaatName}`;
+      mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locName)}`;
+    }
+
     const lines = [
       `*LAPORAN DEMOGRAFI PELKAT GPIB*`,
       `================================`,
@@ -282,6 +308,16 @@ export default function LaporanDemografiPage() {
       `Tanggal Update   : ${tglFormatted}`,
       `Diperbarui Oleh  : ${updatedUser}`,
       ``,
+      `*LOKASI & GOOGLE MAPS:*`,
+      `- Peta Lokasi (Maps) : ${mapsUrl}`,
+    ];
+
+    if (detail.alamat) {
+      lines.push(`- Alamat Wilayah     : ${detail.alamat}`);
+    }
+
+    lines.push(
+      ``,
       `*RINGKASAN DEMOGRAFI:*`,
       `- Total Kepala Keluarga (KK): ${detail.total_kk} KK`,
       `- Total Jiwa (L+P)         : ${detail.total_jiwa} Jiwa`,
@@ -289,7 +325,7 @@ export default function LaporanDemografiPage() {
       `  * Perempuan               : ${detail.total_perempuan} Jiwa`,
       ``,
       `*RINCIAN KATEGORI PELKAT:*`,
-    ];
+    );
 
     KATEGORI_PELKAT.forEach((p, idx) => {
       const rec = detail.pelkatRecords[p.kode] || { laki: 0, perempuan: 0 };
@@ -537,6 +573,43 @@ export default function LaporanDemografiPage() {
                     {activeDetailModal.posName || '-'}
                   </span>
                 </div>
+
+                {/* Direct Clickable Google Maps Link */}
+                {activeDetailModal.latitude && activeDetailModal.longitude ? (
+                  <div className="flex items-center justify-between border-t border-border-subtle/40 pt-2 text-[11px]">
+                    <span className="text-text-muted flex items-center gap-1.5 font-medium">
+                      <Compass size={14} className="text-emerald-500" /> Google Maps:
+                    </span>
+                    <a
+                      href={`https://www.google.com/maps?q=${activeDetailModal.latitude},${activeDetailModal.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono text-brand-primary font-bold hover:underline flex items-center gap-1"
+                    >
+                      <span>{activeDetailModal.latitude.toFixed(5)}, {activeDetailModal.longitude.toFixed(5)}</span>
+                      <ExternalLink size={12} />
+                    </a>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between border-t border-border-subtle/40 pt-2 text-[11px]">
+                    <span className="text-text-muted flex items-center gap-1.5 font-medium">
+                      <Compass size={14} className="text-emerald-500" /> Google Maps:
+                    </span>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                        activeDetailModal.posName && activeDetailModal.posName !== '-'
+                          ? `GPIB ${activeDetailModal.posName}`
+                          : `GPIB ${activeDetailModal.jemaatName}`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold text-brand-primary hover:underline flex items-center gap-1"
+                    >
+                      <span>Buka di Maps</span>
+                      <ExternalLink size={12} />
+                    </a>
+                  </div>
+                )}
               </div>
 
               {/* Summary KPI Totals */}

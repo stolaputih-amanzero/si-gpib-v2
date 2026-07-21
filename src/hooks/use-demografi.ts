@@ -36,9 +36,15 @@ export function useDemografiList(filter: DemografiFilter) {
           pos:m_pos_pelkes(
             nama_pos,
             kategori,
+            alamat,
+            latitude,
+            longitude,
             id_induk,
             jemaat_induk:m_jemaat_induk(
               nama_induk,
+              alamat,
+              latitude,
+              longitude,
               id_mupel,
               mupel:m_mupel(nama_mupel)
             )
