@@ -335,9 +335,10 @@ export default function LogPastoralBaruPage() {
           )}
         </div>
 
-        {/* Foto Dokumentasi (Kamera / Galeri dengan GPS & Timestamp Watermark) */}
+        {/* Foto Dokumentasi (Kamera / Galeri dengan GPS, Timestamp & Hierarki Watermark) */}
         <PastoralPhotoPicker
           photo={null}
+          hierarchyMeta={hierarchyMeta}
           onPhotoChange={(_, base64) => setPhotoBase64(base64 || null)}
           disabled={isSubmitting}
         />

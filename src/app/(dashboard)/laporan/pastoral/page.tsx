@@ -504,6 +504,7 @@ export default function LaporanPastoralPage() {
                 <PastoralPhotoPicker
                   photo={null}
                   photoUrl={editPhotoBase64}
+                  hierarchyMeta={editHierarchyMeta}
                   onPhotoChange={(_, base64) => setEditPhotoBase64(base64 || null)}
                   disabled={updateMutation.isPending}
                 />

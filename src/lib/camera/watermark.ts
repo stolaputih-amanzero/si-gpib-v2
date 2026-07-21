@@ -1,6 +1,9 @@
 export interface WatermarkOptions {
   lat?: number | null;
   lng?: number | null;
+  mupelName?: string | null;
+  jemaatName?: string | null;
+  posName?: string | null;
   label?: string;
 }
 
@@ -31,7 +34,7 @@ async function getCurrentGpsLocation(): Promise<{ lat: number | null; lng: numbe
 }
 
 /**
- * Stamps photo image with high-contrast GPS Geolocation coordinates & Date-Time Watermark
+ * Stamps photo image with high-contrast GPS Geolocation coordinates, Date-Time & Hierarchy Watermark
  */
 export async function addWatermarkToImage(
   file: File,
@@ -65,20 +68,25 @@ export async function addWatermarkToImage(
         // 1. Draw original photo
         ctx.drawImage(img, 0, 0);
 
-        // 2. Calculate dynamic dimensions for watermark banner
-        const bannerHeight = Math.max(90, canvas.height * 0.15);
-        const fontSize = Math.max(18, canvas.height * 0.032);
-        const subFontSize = Math.max(14, canvas.height * 0.025);
+        // 2. Format Hierarchy Text line
+        const hierarchyParts = [options?.mupelName, options?.jemaatName, options?.posName].filter(Boolean);
+        const hierarchyLineText = hierarchyParts.length > 0 ? `🏛️ WILAYAH: ${hierarchyParts.join(' | ')}` : null;
 
-        // 3. Draw dark translucent banner background at bottom
+        // 3. Calculate dynamic dimensions for watermark banner
+        const lineCount = hierarchyLineText ? 3 : 2;
+        const bannerHeight = Math.max(lineCount * 36 + 24, canvas.height * (hierarchyLineText ? 0.20 : 0.15));
+        const fontSize = Math.max(18, canvas.height * 0.032);
+        const subFontSize = Math.max(14, canvas.height * 0.024);
+
+        // 4. Draw dark translucent banner background at bottom
         ctx.fillStyle = 'rgba(10, 15, 30, 0.88)'; // Deep Slate Navy
         ctx.fillRect(0, canvas.height - bannerHeight, canvas.width, bannerHeight);
 
-        // 4. Gold Accent Line at top of banner
+        // 5. Gold Accent Line at top of banner
         ctx.fillStyle = '#c5a855';
         ctx.fillRect(0, canvas.height - bannerHeight, canvas.width, Math.max(5, canvas.height * 0.008));
 
-        // 5. Format Timestamp string
+        // 6. Format Timestamp string
         const now = new Date();
         const year = now.getFullYear();
         const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -89,7 +97,7 @@ export async function addWatermarkToImage(
 
         const timeStampText = `🕒 TANGGAL & WAKTU: ${year}-${month}-${day} ${hours}:${mins}:${secs} WIB`;
 
-        // 6. Format GPS Text
+        // 7. Format GPS Text
         let gpsText = '📌 GPS LOKASI: Sinyal Geolocation Tidak Terdeteksi';
         if (latitude != null && longitude != null) {
           gpsText = `📌 GPS LOKASI: Lat ${latitude.toFixed(5)}, Long ${longitude.toFixed(5)}`;
@@ -97,21 +105,29 @@ export async function addWatermarkToImage(
 
         const tagText = options?.label || 'SI GPIB PASTORAL LOG';
 
-        // 7. Render Text onto Canvas with High Contrast
+        // 8. Render Text lines onto Canvas with High Contrast
         const paddingX = Math.max(20, canvas.width * 0.035);
-        const startY = canvas.height - bannerHeight + fontSize * 1.3;
+        const startY = canvas.height - bannerHeight + fontSize * 1.25;
 
-        // GPS Text Line (Bold White)
+        ctx.shadowColor = 'rgba(0,0,0,0.85)';
+        ctx.shadowBlur = 4;
+
+        // Line 1: GPS Text Line (Bold White)
         ctx.fillStyle = '#ffffff';
         ctx.font = `bold ${fontSize}px Arial, sans-serif`;
-        ctx.shadowColor = 'rgba(0,0,0,0.8)';
-        ctx.shadowBlur = 4;
         ctx.fillText(gpsText, paddingX, startY);
 
-        // Timestamp Line (Cyan Light)
+        // Line 2: Timestamp Line (Cyan Light)
         ctx.fillStyle = '#67e8f9';
         ctx.font = `bold ${subFontSize}px Arial, sans-serif`;
-        ctx.fillText(timeStampText, paddingX, startY + fontSize * 1.35);
+        ctx.fillText(timeStampText, paddingX, startY + fontSize * 1.25);
+
+        // Line 3: Hierarchy Line if present (Warm Amber Gold)
+        if (hierarchyLineText) {
+          ctx.fillStyle = '#fde047'; // Warm Bright Amber
+          ctx.font = `bold ${subFontSize}px Arial, sans-serif`;
+          ctx.fillText(hierarchyLineText, paddingX, startY + fontSize * 2.4);
+        }
 
         // Render SI GPIB tag at top right of banner
         ctx.fillStyle = '#f59e0b'; // Warm Amber Gold
@@ -122,7 +138,7 @@ export async function addWatermarkToImage(
         // Reset shadow
         ctx.shadowBlur = 0;
 
-        // 8. Convert to compressed JPEG blob
+        // 9. Convert to compressed JPEG blob
         canvas.toBlob(
           (blob) => {
             if (blob) {

@@ -6,15 +6,23 @@ import { useGeolocation } from '@/hooks/use-geolocation';
 import { addWatermarkToImage } from '@/lib/camera/watermark';
 import { compressImage } from '@/lib/camera/compress';
 
+export interface HierarchyWatermarkMeta {
+  mupelName?: string;
+  jemaatName?: string;
+  posName?: string;
+}
+
 interface PastoralPhotoPickerProps {
   photo?: File | null;
   photoUrl?: string | null;
+  hierarchyMeta?: HierarchyWatermarkMeta | null;
   onPhotoChange: (file: File | null, base64Url?: string | null) => void;
   disabled?: boolean;
 }
 
 export function PastoralPhotoPicker({
   photoUrl,
+  hierarchyMeta,
   onPhotoChange,
   disabled,
 }: PastoralPhotoPickerProps) {
@@ -44,10 +52,13 @@ export function PastoralPhotoPicker({
       // 1. Compress Image
       const compressed = await compressImage(rawFile);
 
-      // 2. Add high-contrast GPS & Timestamp watermark directly onto canvas photo image
+      // 2. Add high-contrast GPS, Timestamp & Hierarchy watermark directly onto canvas photo image
       const finalFile = await addWatermarkToImage(compressed, {
         lat,
         lng,
+        mupelName: hierarchyMeta?.mupelName,
+        jemaatName: hierarchyMeta?.jemaatName,
+        posName: hierarchyMeta?.posName,
         label: 'SI GPIB PASTORAL LOG',
       });
 
@@ -78,7 +89,7 @@ export function PastoralPhotoPicker({
       <div className="flex items-center justify-between">
         <label className="text-xs font-bold text-text-high uppercase tracking-wider flex items-center gap-1.5">
           <Camera size={16} className="text-brand-primary" />
-          <span>Foto Dokumentasi Pastoral (Stempel GPS & Waktu)</span>
+          <span>Foto Dokumentasi Pastoral (GPS & Hierarki Stamped)</span>
         </label>
         <span className="text-[11px] text-text-muted">Opsional</span>
       </div>
@@ -119,7 +130,7 @@ export function PastoralPhotoPicker({
 
           {/* Watermark Status Tag */}
           <div className="absolute top-2.5 left-2.5 p-1.5 px-2.5 bg-black/75 backdrop-blur-sm rounded-lg text-[10px] text-amber-300 font-bold flex items-center gap-1 border border-amber-500/30">
-            <CheckCircle2 size={12} /> Stempel GPS & Timestamp Pada Foto Canvas
+            <CheckCircle2 size={12} /> Stempel GPS, Waktu & Hierarki Wilayah Aktif
           </div>
         </div>
       ) : (
