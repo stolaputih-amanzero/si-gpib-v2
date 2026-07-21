@@ -104,7 +104,7 @@ export default function LaporanDemografiPage() {
     fetchCurrentUser();
   }, [supabase]);
 
-  const { data: demografiList, isLoading } = useDemografiList({
+  const { data: demografiList, isLoading, refetch } = useDemografiList({
     kategori_pelkat: selectedPelkat || undefined,
   });
 
@@ -275,10 +275,88 @@ export default function LaporanDemografiPage() {
     setShowFormModal(true);
   };
 
-  const handleFormSuccess = (savedData: any, _metaInfo?: HierarchyMetaInfo | null) => {
+  const handleFormSuccess = async (savedData: any, _metaInfo?: HierarchyMetaInfo | null) => {
     setShowFormModal(false);
     
-    // Auto-open detail modal for saved entity
+    // Explicitly refetch query to guarantee fresh data from DB before opening detail modal
+    const { data: freshList } = await refetch();
+
+    if (freshList && savedData?.id_pos) {
+      const targetIdPos = savedData.id_pos;
+      const freshEntitiesMap: Record<string, GroupedDemografiEntity> = {};
+
+      freshList.forEach((item: any) => {
+        const idPos = item.id_pos;
+        const posName = item.pos?.nama_pos || item.id_pos;
+        const jemaatName = item.pos?.jemaat_induk?.nama_induk || '-';
+        const mupelName = item.pos?.jemaat_induk?.mupel?.nama_mupel || '-';
+        const lat = item.pos?.latitude || item.pos?.jemaat_induk?.latitude || null;
+        const lng = item.pos?.longitude || item.pos?.jemaat_induk?.longitude || null;
+        const alamatStr = item.pos?.alamat || item.pos?.jemaat_induk?.alamat || null;
+
+        if (!freshEntitiesMap[idPos]) {
+          freshEntitiesMap[idPos] = {
+            id_pos: idPos,
+            nama_pos: posName,
+            jemaat_induk: jemaatName,
+            mupel: mupelName,
+            latitude: lat,
+            longitude: lng,
+            alamat: alamatStr,
+            total_kk: 0,
+            total_laki: 0,
+            total_perempuan: 0,
+            total_jiwa: 0,
+            updated_at: item.updated_at || item.created_at,
+            updated_by: item.updated_by,
+            filledPelkatCodes: [],
+            missingPelkatCodes: [],
+            pelkatRecords: {},
+          };
+        }
+
+        const entity = freshEntitiesMap[idPos];
+
+        if (item.updated_at && (!entity.updated_at || new Date(item.updated_at) > new Date(entity.updated_at))) {
+          entity.updated_at = item.updated_at;
+          if (item.updated_by) entity.updated_by = item.updated_by;
+        }
+
+        const laki = item.laki || 0;
+        const perempuan = item.perempuan || 0;
+        const sumJiwa = laki + perempuan;
+
+        entity.total_laki += laki;
+        entity.total_perempuan += perempuan;
+        entity.total_jiwa += sumJiwa;
+        if (item.jml_kk && item.jml_kk > entity.total_kk) {
+          entity.total_kk = item.jml_kk;
+        }
+
+        if (sumJiwa > 0 || item.jml_kk > 0) {
+          if (!entity.filledPelkatCodes.includes(item.kategori_pelkat)) {
+            entity.filledPelkatCodes.push(item.kategori_pelkat);
+          }
+        }
+
+        entity.pelkatRecords[item.kategori_pelkat] = {
+          laki,
+          perempuan,
+          jml_kk: item.jml_kk || 0,
+          profesi: item.profesi,
+          pendidikan: item.pendidikan,
+          keterangan: item.keterangan,
+        };
+      });
+
+      const freshEntity = freshEntitiesMap[targetIdPos];
+      if (freshEntity) {
+        handleOpenDetailFromGroupedEntity(freshEntity);
+        return;
+      }
+    }
+
+    // Fallback if fresh entity isn't matched
     const entity = groupedEntitiesMap[savedData.id_pos];
     if (entity) {
       handleOpenDetailFromGroupedEntity(entity);
