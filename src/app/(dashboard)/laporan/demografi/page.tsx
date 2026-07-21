@@ -301,34 +301,18 @@ export default function LaporanDemografiPage() {
     }
 
     const lines = [
-      `Mupel            : ${detail.mupelName || '-'}`,
-      `Jemaat Induk     : ${detail.jemaatName || '-'}`,
-      `Pos Pelkes/Bajem : ${detail.posName || '-'}`,
-      `Tanggal Update   : ${tglFormatted}`,
-      `Diperbarui Oleh  : ${updatedUser}`,
-      ``,
-      `📍 *LOKASI & GOOGLE MAPS*`,
-      `--------------------------------`,
-      `Peta Lokasi:`,
-      mapsUrl,
-    ];
-
-    if (detail.alamat) {
-      lines.push(`Alamat: ${detail.alamat}`);
-    }
-
-    lines.push(
+      `Mupel: ${detail.mupelName || '-'}`,
+      `Jemaat Induk: ${detail.jemaatName || '-'}`,
+      `Pos Pelkes/Bajem: ${detail.posName || '-'}`,
+      `Tanggal Update: ${tglFormatted}`,
+      `Diperbarui Oleh: ${updatedUser}`,
       ``,
       `📊 *RINGKASAN DEMOGRAFI*`,
-      `--------------------------------`,
       `- Total Kepala Keluarga (KK): ${detail.total_kk} KK`,
-      `- Total Jiwa (L+P): ${detail.total_jiwa} Jiwa`,
-      `  * Laki-Laki: ${detail.total_laki} Jiwa`,
-      `  * Perempuan: ${detail.total_perempuan} Jiwa`,
+      `- Total Jiwa (L+P): ${detail.total_jiwa} Jiwa (${detail.total_laki} L | ${detail.total_perempuan} P)`,
       ``,
       `📋 *RINCIAN 6 KATEGORI PELKAT*`,
-      `--------------------------------`,
-    );
+    ];
 
     KATEGORI_PELKAT.forEach((p, idx) => {
       const rec = detail.pelkatRecords[p.kode] || { laki: 0, perempuan: 0 };
@@ -341,11 +325,18 @@ export default function LaporanDemografiPage() {
     lines.push(
       ``,
       `📝 *KETERANGAN TAMBAHAN*`,
-      `--------------------------------`,
       `- Dominasi Profesi: ${detail.profesi || '-'}`,
       `- Tingkat Pendidikan: ${detail.pendidikan || '-'}`,
       `- Catatan: ${detail.keterangan || '-'}`,
+      ``,
+      `📍 *LOKASI & GOOGLE MAPS*`,
+      `Peta Lokasi Google Maps:`,
+      mapsUrl,
     );
+
+    if (detail.alamat) {
+      lines.push(`Alamat Wilayah: ${detail.alamat}`);
+    }
 
     await shareToWhatsApp({
       title: 'LAPORAN DEMOGRAFI PELKAT GPIB',
