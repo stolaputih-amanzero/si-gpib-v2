@@ -307,8 +307,10 @@ export default function LaporanDemografiPage() {
       `Tanggal Update   : ${tglFormatted}`,
       `Diperbarui Oleh  : ${updatedUser}`,
       ``,
-      `📍 *LOKASI & GOOGLE MAPS:*`,
-      `Peta Lokasi: ${mapsUrl}`,
+      `📍 *LOKASI & GOOGLE MAPS*`,
+      `--------------------------------`,
+      `Peta Lokasi:`,
+      mapsUrl,
     ];
 
     if (detail.alamat) {
@@ -317,13 +319,15 @@ export default function LaporanDemografiPage() {
 
     lines.push(
       ``,
-      `📊 *RINGKASAN DEMOGRAFI:*`,
+      `📊 *RINGKASAN DEMOGRAFI*`,
+      `--------------------------------`,
       `- Total Kepala Keluarga (KK): ${detail.total_kk} KK`,
       `- Total Jiwa (L+P): ${detail.total_jiwa} Jiwa`,
       `  * Laki-Laki: ${detail.total_laki} Jiwa`,
       `  * Perempuan: ${detail.total_perempuan} Jiwa`,
       ``,
-      `📋 *RINCIAN 6 KATEGORI PELKAT:*`,
+      `📋 *RINCIAN 6 KATEGORI PELKAT*`,
+      `--------------------------------`,
     );
 
     KATEGORI_PELKAT.forEach((p, idx) => {
@@ -334,16 +338,18 @@ export default function LaporanDemografiPage() {
       lines.push(`${idx + 1}. ${p.kode}: ${lakiTxt} | ${prTxt} | Total: ${totalRow} Jiwa`);
     });
 
-    lines.push(``);
-    lines.push(`📝 *KETERANGAN TAMBAHAN:*`);
-    lines.push(`- Dominasi Profesi: ${detail.profesi || '-'}`);
-    lines.push(`- Tingkat Pendidikan: ${detail.pendidikan || '-'}`);
-    lines.push(`- Catatan: ${detail.keterangan || '-'}`);
+    lines.push(
+      ``,
+      `📝 *KETERANGAN TAMBAHAN*`,
+      `--------------------------------`,
+      `- Dominasi Profesi: ${detail.profesi || '-'}`,
+      `- Tingkat Pendidikan: ${detail.pendidikan || '-'}`,
+      `- Catatan: ${detail.keterangan || '-'}`,
+    );
 
     await shareToWhatsApp({
       title: 'LAPORAN DEMOGRAFI PELKAT GPIB',
       text: lines.join('\n'),
-      url: mapsUrl,
     });
   };
 
