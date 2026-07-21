@@ -1,9 +1,27 @@
 'use client';
 
 import { useState } from 'react';
-import { useLogPastoralList, useDeleteLogPastoral } from '@/hooks/use-log-pastoral';
+import {
+  useLogPastoralList,
+  useDeleteLogPastoral,
+  useUpdateLogPastoral,
+  LogPastoralItem,
+} from '@/hooks/use-log-pastoral';
 import { useToast } from '@/components/ui/toast';
-import { FileText, Plus, Search, Calendar, Users, MapPin, Trash2, HeartHandshake } from 'lucide-react';
+import {
+  FileText,
+  Plus,
+  Search,
+  Calendar,
+  Users,
+  MapPin,
+  Trash2,
+  HeartHandshake,
+  Edit,
+  X,
+  Save,
+  Eye,
+} from 'lucide-react';
 import Link from 'next/link';
 
 export default function LaporanPastoralPage() {
@@ -11,10 +29,58 @@ export default function LaporanPastoralPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPos] = useState('');
 
+  // Selected Log state for Detail & Edit Modal
+  const [selectedLog, setSelectedLog] = useState<LogPastoralItem | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Modal Edit Form state
+  const [editKegiatan, setEditKegiatan] = useState('');
+  const [editTgl, setEditTgl] = useState('');
+  const [editJmlJiwa, setEditJmlJiwa] = useState<number | ''>('');
+  const [editCatatan, setEditCatatan] = useState('');
+
   const { data: pastoralLogs, isLoading } = useLogPastoralList(searchQuery, selectedPos);
   const deleteMutation = useDeleteLogPastoral();
+  const updateMutation = useUpdateLogPastoral();
 
-  const handleDelete = (id_log: string, kegiatan: string) => {
+  const handleOpenDetailModal = (log: LogPastoralItem) => {
+    setSelectedLog(log);
+    setEditKegiatan(log.kegiatan);
+    setEditTgl(log.tgl);
+    setEditJmlJiwa(log.jml_jiwa ?? '');
+    setEditCatatan(log.catatan || '');
+    setIsEditing(false);
+  };
+
+  const handleOpenEditDirect = (e: React.MouseEvent, log: LogPastoralItem) => {
+    e.stopPropagation();
+    handleOpenDetailModal(log);
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedLog) return;
+
+    try {
+      await updateMutation.mutateAsync({
+        id_log: selectedLog.id_log,
+        kegiatan: editKegiatan,
+        tgl: editTgl,
+        jml_jiwa: editJmlJiwa !== '' ? Number(editJmlJiwa) : null,
+        catatan: editCatatan || null,
+      });
+
+      toast.success('Log Pastoral Diperbarui', 'Data kegiatan pastoral telah berhasil diperbarui.');
+      setSelectedLog(null);
+      setIsEditing(false);
+    } catch (error: any) {
+      toast.error('Gagal Memperbarui', error?.message || 'Terjadi kesalahan saat menyimpan perubahan.');
+    }
+  };
+
+  const handleDelete = (e: React.MouseEvent, id_log: string, kegiatan: string) => {
+    e.stopPropagation();
     confirmModal({
       title: 'Hapus Log Pastoral',
       message: `Apakah Anda yakin ingin menghapus catatan kegiatan "${kegiatan}"?`,
@@ -24,6 +90,9 @@ export default function LaporanPastoralPage() {
         try {
           await deleteMutation.mutateAsync(id_log);
           toast.success('Berhasil Dihapus', 'Catatan log pastoral telah dihapus.');
+          if (selectedLog?.id_log === id_log) {
+            setSelectedLog(null);
+          }
         } catch {
           toast.error('Gagal Menghapus', 'Terjadi kesalahan saat menghapus data.');
         }
@@ -42,7 +111,7 @@ export default function LaporanPastoralPage() {
   const totalJiwaServed = pastoralLogs?.reduce((sum, l) => sum + (l.jml_jiwa || 0), 0) || 0;
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-6 pb-12">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -100,7 +169,7 @@ export default function LaporanPastoralPage() {
             Riwayat Kegiatan Pastoral ({pastoralLogs?.length || 0})
           </h2>
           <span className="text-xs text-text-muted">
-            {isLoading ? 'Memuat...' : `${totalLogs} Catatan`}
+            {isLoading ? 'Memuat...' : 'Klik kartu untuk melihat detail & edit'}
           </span>
         </div>
 
@@ -118,11 +187,12 @@ export default function LaporanPastoralPage() {
             {pastoralLogs.map((log) => (
               <div
                 key={log.id_log}
-                className="bg-surface-elevated p-4.5 rounded-2xl border border-border-subtle shadow-soft space-y-3 hover:border-brand-primary/40 transition-colors"
+                onClick={() => handleOpenDetailModal(log)}
+                className="bg-surface-elevated p-4.5 rounded-2xl border border-border-subtle shadow-soft space-y-3 hover:border-brand-primary hover:shadow-medium transition-all cursor-pointer group relative"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-1 min-w-0">
-                    <h3 className="font-serif font-bold text-base text-text-high leading-snug truncate">
+                    <h3 className="font-serif font-bold text-base text-text-high leading-snug truncate group-hover:text-brand-primary transition-colors">
                       {log.kegiatan}
                     </h3>
                     <div className="flex items-center gap-2 text-xs text-text-muted flex-wrap">
@@ -139,21 +209,32 @@ export default function LaporanPastoralPage() {
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(log.id_log, log.kegiatan)}
-                    className="p-2 rounded-xl text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors shrink-0"
-                    title="Hapus Log"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  {/* Card Actions */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={(e) => handleOpenEditDirect(e, log)}
+                      className="p-2 rounded-xl text-text-muted hover:text-brand-primary hover:bg-brand-primary/10 transition-colors"
+                      title="Edit Log Pastoral"
+                    >
+                      <Edit size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => handleDelete(e, log.id_log, log.kegiatan)}
+                      className="p-2 rounded-xl text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+                      title="Hapus Log"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Details Meta */}
                 <div className="bg-surface-base p-2.5 rounded-xl border border-border-subtle/60 text-xs space-y-1">
                   <div className="flex items-center justify-between text-text-muted">
                     <span className="flex items-center gap-1">
-                      <MapPin size={13} className="text-brand-primary" /> Pos Pelkes:
+                      <MapPin size={13} className="text-brand-primary" /> Pos Pelkes / Wilayah:
                     </span>
                     <span className="font-semibold text-text-high truncate max-w-[180px]">
                       {log.pos?.nama_pos || 'Jemaat Induk Direct'}
@@ -171,12 +252,17 @@ export default function LaporanPastoralPage() {
                   )}
                 </div>
 
-                {/* Catatan */}
+                {/* Catatan Snippet */}
                 {log.catatan && (
-                  <p className="text-xs text-text-high italic bg-surface-sunken/60 p-2.5 rounded-xl border border-border-subtle/40">
+                  <p className="text-xs text-text-high italic bg-surface-sunken/60 p-2.5 rounded-xl border border-border-subtle/40 line-clamp-2">
                     "{log.catatan}"
                   </p>
                 )}
+
+                <div className="flex items-center justify-end text-[11px] font-semibold text-brand-primary gap-1 group-hover:translate-x-0.5 transition-transform pt-0.5">
+                  <Eye size={12} />
+                  <span>Lihat Detail & Edit</span>
+                </div>
               </div>
             ))}
           </div>
@@ -197,6 +283,186 @@ export default function LaporanPastoralPage() {
           </div>
         )}
       </div>
+
+      {/* Modal Detail & Edit Log Pastoral */}
+      {selectedLog && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-surface-elevated w-full max-w-lg rounded-t-3xl sm:rounded-2xl p-5 border border-border-subtle shadow-heavy max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+              <div>
+                <h2 className="text-base font-serif font-bold text-brand-primary flex items-center gap-2">
+                  <FileText size={18} />
+                  <span>{isEditing ? 'Edit Log Pastoral' : 'Detail Log Pastoral'}</span>
+                </h2>
+                <p className="text-xs text-text-muted mt-0.5">
+                  ID Log: <strong className="text-text-high font-mono">{selectedLog.id_log}</strong>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedLog(null)}
+                className="w-9 h-9 rounded-full bg-surface-sunken flex items-center justify-center text-text-muted hover:text-text-high min-h-[44px] min-w-[44px]"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal View / Form */}
+            {isEditing ? (
+              <form onSubmit={handleSaveEdit} className="space-y-4">
+                {/* Tanggal */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
+                    <Calendar size={14} className="text-brand-primary" />
+                    Tanggal Kegiatan *
+                  </label>
+                  <input
+                    type="date"
+                    value={editTgl}
+                    onChange={(e) => setEditTgl(e.target.value)}
+                    required
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  />
+                </div>
+
+                {/* Kegiatan */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text-high">Kegiatan Pastoral *</label>
+                  <textarea
+                    rows={3}
+                    value={editKegiatan}
+                    onChange={(e) => setEditKegiatan(e.target.value)}
+                    required
+                    placeholder="Deskripsi kegiatan..."
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
+                  />
+                </div>
+
+                {/* Jumlah Jiwa */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
+                    <Users size={14} className="text-brand-primary" />
+                    Jumlah Jiwa Dilayani
+                  </label>
+                  <input
+                    type="number"
+                    value={editJmlJiwa}
+                    onChange={(e) => setEditJmlJiwa(e.target.value === '' ? '' : Number(e.target.value))}
+                    placeholder="0"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  />
+                </div>
+
+                {/* Catatan */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text-high">Catatan Pastoral (Opsional)</label>
+                  <textarea
+                    rows={3}
+                    value={editCatatan}
+                    onChange={(e) => setEditCatatan(e.target.value)}
+                    placeholder="Catatan hasil kunjungan..."
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
+                  />
+                </div>
+
+                {/* Modal Edit Action Buttons */}
+                <div className="flex items-center gap-2 pt-3 border-t border-border-subtle">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(false)}
+                    className="flex-1 py-2.5 rounded-xl border border-border-subtle text-xs font-bold text-text-high hover:bg-surface-sunken transition-all min-h-[44px]"
+                  >
+                    Batal Edit
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={updateMutation.isPending}
+                    className="flex-1 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <Save size={16} />
+                    <span>{updateMutation.isPending ? 'Menyimpan...' : 'Simpan Perubahan'}</span>
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="space-y-4">
+                {/* Detail Information */}
+                <div className="space-y-2">
+                  <h3 className="font-serif font-bold text-lg text-text-high">
+                    {selectedLog.kegiatan}
+                  </h3>
+                  <div className="flex items-center gap-3 text-xs text-text-muted flex-wrap">
+                    <span className="inline-flex items-center gap-1 font-medium bg-surface-sunken px-2.5 py-1 rounded-lg">
+                      <Calendar size={14} className="text-brand-primary" />
+                      Tanggal: {selectedLog.tgl}
+                    </span>
+                    {selectedLog.jml_jiwa ? (
+                      <span className="inline-flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-2.5 py-1 rounded-lg">
+                        <Users size={14} />
+                        {selectedLog.jml_jiwa} Jiwa Dilayani
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="bg-surface-base p-3.5 rounded-2xl border border-border-subtle/80 space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-text-muted flex items-center gap-1.5">
+                      <MapPin size={14} className="text-brand-primary" /> Pos Pelkes / Wilayah:
+                    </span>
+                    <span className="font-bold text-text-high">
+                      {selectedLog.pos?.nama_pos || 'Jemaat Induk Direct'}
+                    </span>
+                  </div>
+                  {selectedLog.pendeta && (
+                    <div className="flex items-center justify-between border-t border-border-subtle/40 pt-2">
+                      <span className="text-text-muted flex items-center gap-1.5">
+                        <HeartHandshake size={14} className="text-brand-primary" /> Pelayan Pendeta:
+                      </span>
+                      <span className="font-bold text-text-high">
+                        {selectedLog.pendeta.nama_lengkap}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {selectedLog.catatan ? (
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-text-high">Catatan Tambahan:</label>
+                    <p className="text-xs text-text-high italic bg-surface-sunken/60 p-3 rounded-xl border border-border-subtle/60 leading-relaxed whitespace-pre-line">
+                      "{selectedLog.catatan}"
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-xs text-text-muted italic">Tidak ada catatan tambahan.</p>
+                )}
+
+                {/* Modal View Action Buttons */}
+                <div className="flex items-center gap-2 pt-3 border-t border-border-subtle">
+                  <button
+                    type="button"
+                    onClick={(e) => handleDelete(e, selectedLog.id_log, selectedLog.kegiatan)}
+                    className="py-2.5 px-4 rounded-xl border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-50 dark:hover:bg-red-950/40 transition-all min-h-[44px] flex items-center gap-1.5"
+                  >
+                    <Trash2 size={16} />
+                    <span>Hapus Log</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(true)}
+                    className="flex-1 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] flex items-center justify-center gap-2"
+                  >
+                    <Edit size={16} />
+                    <span>Edit Log Pastoral</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

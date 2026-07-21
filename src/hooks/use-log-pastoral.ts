@@ -20,6 +20,15 @@ export interface LogPastoralItem {
   } | null;
 }
 
+export interface UpdateLogPastoralPayload {
+  id_log: string;
+  tgl: string;
+  kegiatan: string;
+  jml_jiwa?: number | null;
+  catatan?: string | null;
+  id_pos?: string | null;
+}
+
 export function useLogPastoralList(search?: string, id_pos?: string) {
   const supabase = createClient();
 
@@ -76,6 +85,37 @@ export function useLogPastoralList(search?: string, id_pos?: string) {
       return result;
     },
     staleTime: 1000 * 60 * 2, // 2 mins cache
+  });
+}
+
+export function useUpdateLogPastoral() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: UpdateLogPastoralPayload) => {
+      const { data, error } = await supabase
+        .from('t_log_pastoral')
+        .update({
+          tgl: payload.tgl,
+          kegiatan: payload.kegiatan,
+          jml_jiwa: payload.jml_jiwa ? Number(payload.jml_jiwa) : null,
+          catatan: payload.catatan || null,
+          id_pos: payload.id_pos || null,
+        })
+        .eq('id_log', payload.id_log)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['log-pastoral-list'] });
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate([10, 50, 10]);
+      }
+    },
   });
 }
 
