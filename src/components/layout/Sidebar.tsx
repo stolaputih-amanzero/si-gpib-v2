@@ -27,6 +27,7 @@ import {
   ShieldAlert,
   Activity,
   Layers,
+  Crown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -95,6 +96,7 @@ export const NAV_GROUPS: NavGroup[] = [
     icon: Settings,
     items: [
       { label: 'Profil & Sistem', href: '/settings', icon: Settings },
+      { label: 'Manajemen User & Role', href: '/settings/users', icon: Crown },
     ],
   },
 ];

@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { useUser } from '@/hooks/use-user';
 import { useToast } from '@/components/ui/toast';
-import { Shield, Bell, Fingerprint, LogOut, ChevronRight, Check, User as UserIcon, RefreshCw } from 'lucide-react';
+import { Shield, Bell, Fingerprint, LogOut, ChevronRight, Check, User as UserIcon, RefreshCw, Crown } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import Link from 'next/link';
 
 export default function SettingsHubPage() {
   const { user, nama, email, role, avatarUrl, isLoading, logout } = useUser();
@@ -54,7 +55,7 @@ export default function SettingsHubPage() {
           Pengaturan & Profil Pengguna
         </h1>
         <p className="text-xs md:text-sm text-text-muted mt-1">
-          Kelola profil akun, keamanan biometrik, notifikasi, dan sesi aplikasi SI GPIB.
+          Kelola profil akun, keamanan biometrik, otorisasi RBAC, dan sesi aplikasi SI GPIB.
         </p>
       </div>
 
@@ -64,6 +65,7 @@ export default function SettingsHubPage() {
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold text-xl overflow-hidden shrink-0 border border-brand-primary/20">
               {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img src={avatarUrl} alt={nama} className="w-full h-full object-cover" />
               ) : (
                 <UserIcon className="w-8 h-8 text-brand-primary" />
@@ -78,7 +80,7 @@ export default function SettingsHubPage() {
                 {email}
               </CardDescription>
               <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
+                <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-brand-primary/10 text-brand-primary border border-brand-primary/20 uppercase">
                   {role}
                 </span>
                 {user && (
@@ -94,6 +96,36 @@ export default function SettingsHubPage() {
 
       {/* Settings Sections */}
       <div className="space-y-4">
+        {/* Superadmin User & Role Management Hub */}
+        <Card className="border-purple-500/30 bg-purple-500/5 dark:bg-purple-950/10">
+          <CardHeader>
+            <Link
+              href="/settings/users"
+              className="flex items-center justify-between w-full group min-h-[44px]"
+            >
+              <div className="flex items-center gap-3 min-w-0 pr-4">
+                <div className="p-2.5 rounded-xl bg-purple-500/20 text-purple-600 dark:text-purple-300 shrink-0 group-hover:scale-105 transition-transform">
+                  <Crown className="w-5 h-5" />
+                </div>
+                <div className="min-w-0 text-left">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-base truncate group-hover:text-purple-600 transition-colors">
+                      Manajemen User & Role (Superadmin)
+                    </CardTitle>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-purple-500 text-white">
+                      Superuser
+                    </span>
+                  </div>
+                  <CardDescription className="line-clamp-1 mt-0.5">
+                    Atur otorisasi akun pengguna, penetapan role, dan penguncian Poka-Yoke RBAC
+                  </CardDescription>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-purple-500 group-hover:translate-x-1 transition-transform shrink-0" />
+            </Link>
+          </CardHeader>
+        </Card>
+
         {/* Biometric & Security */}
         <Card>
           <CardHeader>
