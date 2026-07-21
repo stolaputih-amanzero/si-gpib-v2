@@ -91,9 +91,22 @@ export default function LaporanPastoralPage() {
     return { jamStr, photoBase64, hierarchyInfo, cleanNotes: cleanNotes.trim() };
   };
 
-  const handleShareWhatsApp = (e: React.MouseEvent, log: LogPastoralItem) => {
+  // Convert Base64 Data URL to File object for native Web Share API
+  const base64ToFile = (base64Data: string, filename: string): File => {
+    const arr = base64Data.split(',');
+    const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
+  };
+
+  const handleShareWhatsApp = async (e: React.MouseEvent, log: LogPastoralItem) => {
     e.stopPropagation();
-    const { jamStr, hierarchyInfo, cleanNotes } = extractMetaFromCatatan(log.catatan);
+    const { jamStr, photoBase64, hierarchyInfo, cleanNotes } = extractMetaFromCatatan(log.catatan);
 
     const posNama = log.pos?.nama_pos || hierarchyInfo?.posName || 'Pelayanan Jemaat Direct';
     const posKategori = log.pos?.kategori || 'Pos Pelkes';
@@ -120,6 +133,24 @@ export default function LaporanPastoralPage() {
       `_Dikirim melalui Aplikasi Sistem Informasi GPIB v2_`,
     ].filter(Boolean).join('\n');
 
+    // 1. Try native OS Web Share API with attached photo file
+    if (photoBase64 && typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        const photoFile = base64ToFile(photoBase64, 'foto-pastoral-stamped.jpg');
+        if (navigator.canShare && navigator.canShare({ files: [photoFile] })) {
+          await navigator.share({
+            title: `Laporan Pastoral - ${log.kegiatan}`,
+            text: lines,
+            files: [photoFile],
+          });
+          return;
+        }
+      } catch (shareErr) {
+        console.warn('Native file share skipped or cancelled:', shareErr);
+      }
+    }
+
+    // 2. Fallback to direct WhatsApp API text link
     const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(lines)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
@@ -336,7 +367,7 @@ export default function LaporanPastoralPage() {
                         type="button"
                         onClick={(e) => handleShareWhatsApp(e, log)}
                         className="p-2 rounded-xl text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
-                        title="Bagikan ke WhatsApp"
+                        title="Bagikan Laporan (Foto & Teks) ke WhatsApp"
                       >
                         <Share2 size={16} />
                       </button>
@@ -436,7 +467,7 @@ export default function LaporanPastoralPage() {
                       className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
                     >
                       <Share2 size={12} />
-                      <span>Share WA</span>
+                      <span>Share WA (Foto + Teks)</span>
                     </button>
 
                     <div className="flex items-center text-[11px] font-semibold text-brand-primary gap-1 group-hover:translate-x-0.5 transition-transform">
@@ -724,7 +755,7 @@ export default function LaporanPastoralPage() {
                     type="button"
                     onClick={(e) => handleShareWhatsApp(e, selectedLog)}
                     className="py-2.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all min-h-[44px] flex items-center gap-1.5 shadow-soft"
-                    title="Bagikan ke WhatsApp"
+                    title="Bagikan Laporan & Lampiran Foto ke WhatsApp"
                   >
                     <Share2 size={16} />
                     <span className="hidden sm:inline">Bagikan WA</span>
