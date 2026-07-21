@@ -14,9 +14,13 @@ export interface LogPastoralItem {
     id_pos: string;
     nama_pos: string;
     kategori?: string;
+    latitude?: number | null;
+    longitude?: number | null;
     jemaat_induk?: {
       id_induk: string;
       nama_induk: string;
+      latitude?: number | null;
+      longitude?: number | null;
       mupel?: {
         id_mupel: string;
         nama_mupel: string;
@@ -59,9 +63,13 @@ export function useLogPastoralList(search?: string, id_pos?: string) {
             id_pos,
             nama_pos,
             kategori,
+            latitude,
+            longitude,
             jemaat_induk:m_jemaat_induk(
               id_induk,
               nama_induk,
+              latitude,
+              longitude,
               mupel:m_mupel(id_mupel, nama_mupel)
             )
           ),

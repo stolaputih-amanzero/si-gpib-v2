@@ -307,11 +307,11 @@ export default function LaporanDemografiPage() {
       `Tanggal Update: ${tglFormatted}`,
       `Diperbarui Oleh: ${updatedUser}`,
       ``,
-      `📊 *RINGKASAN DEMOGRAFI*`,
+      `*RINGKASAN DEMOGRAFI*`,
       `- Total Kepala Keluarga (KK): ${detail.total_kk} KK`,
       `- Total Jiwa (L+P): ${detail.total_jiwa} Jiwa (${detail.total_laki} L | ${detail.total_perempuan} P)`,
       ``,
-      `📋 *RINCIAN 6 KATEGORI PELKAT*`,
+      `*RINCIAN 6 KATEGORI PELKAT*`,
     ];
 
     KATEGORI_PELKAT.forEach((p, idx) => {
@@ -324,12 +324,12 @@ export default function LaporanDemografiPage() {
 
     lines.push(
       ``,
-      `📝 *KETERANGAN TAMBAHAN*`,
+      `*KETERANGAN TAMBAHAN*`,
       `- Dominasi Profesi: ${detail.profesi || '-'}`,
       `- Tingkat Pendidikan: ${detail.pendidikan || '-'}`,
       `- Catatan: ${detail.keterangan || '-'}`,
       ``,
-      `📍 *LOKASI & GOOGLE MAPS*`,
+      `*LOKASI & GOOGLE MAPS*`,
       `Peta Lokasi Google Maps:`,
       mapsUrl,
     );

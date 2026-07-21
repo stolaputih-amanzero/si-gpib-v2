@@ -132,28 +132,47 @@ export default function LaporanPastoralPage() {
     const pendetaNama = log.pendeta?.nama_lengkap || '-';
 
     const tglFormatted = formatIndonesianDate(log.tgl);
+    const lat = log.pos?.latitude || log.pos?.jemaat_induk?.latitude || null;
+    const lng = log.pos?.longitude || log.pos?.jemaat_induk?.longitude || null;
+
+    let mapsUrl = '';
+    if (lat && lng) {
+      mapsUrl = `google.com/maps?q=${lat},${lng}`;
+    } else {
+      const locName = posNama && posNama !== '-' && posNama !== 'Pelayanan Jemaat Direct'
+        ? `GPIB ${posNama}`
+        : `GPIB ${jemaatNama}`;
+      mapsUrl = `google.com/maps/search/?api=1&query=${encodeURIComponent(locName)}`;
+    }
+
     const posFormatted = posNama && posNama !== 'Pelayanan Jemaat Direct' ? `${posNama} (${posKategori})` : '-';
 
-    const lines = [
+    const linesArr = [
       `*LAPORAN PELAYANAN PASTORAL*`,
       `Gereja Protestan di Indonesia bagian Barat (GPIB)`,
       ``,
       `*INFORMASI KEGIATAN*`,
-      `• Kegiatan: ${log.kegiatan}`,
-      `• Waktu: ${tglFormatted} | Pkl. ${jamStr || '09:00'} WIB`,
-      log.jml_jiwa ? `• Jiwa Dilayani: ${log.jml_jiwa} Jiwa` : null,
+      `Kegiatan: ${log.kegiatan}`,
+      `Waktu: ${tglFormatted} | Pkl. ${jamStr || '09:00'} WIB`,
+      log.jml_jiwa ? `Jumlah Jiwa Dilayani: ${log.jml_jiwa} Jiwa` : null,
       ``,
       `*WILAYAH PELAYANAN*`,
-      `• Pos Pelkes / Bajem: ${posFormatted}`,
-      `• Jemaat Induk: ${jemaatNama}`,
-      `• Mupel: ${mupelNama}`,
+      `Pos Pelkes / Bajem: ${posFormatted}`,
+      `Jemaat Induk: ${jemaatNama}`,
+      `Mupel: ${mupelNama}`,
       ``,
       `*PELAYAN & CATATAN*`,
-      `• Pelayan Pendeta: ${pendetaNama}`,
-      cleanNotes ? `• Catatan Pelayanan:\n"${cleanNotes}"` : null,
+      `Pelayan Pendeta: ${pendetaNama}`,
+      cleanNotes ? `Catatan Pelayanan:\n"${cleanNotes}"` : null,
       ``,
-      `_Aplikasi Sistem Informasi GPIB v2.2_`,
-    ].filter((item) => item !== null).join('\n');
+      `*LOKASI & GOOGLE MAPS*`,
+      `Peta Lokasi Google Maps:`,
+      mapsUrl,
+      ``,
+      `_Dibagikan dari SI GPIB v2.2_`,
+    ];
+
+    const lines = linesArr.filter((item) => item !== null).join('\n');
 
     // 1. Try native OS Web Share API with attached photo file
     if (photoBase64 && typeof navigator !== 'undefined' && navigator.share) {
