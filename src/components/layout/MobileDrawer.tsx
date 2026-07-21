@@ -133,7 +133,9 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                 <div className="grid grid-cols-1 gap-1.5">
                   {group.items.map((item: NavItem) => {
                     const isActive =
-                      pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+                      item.href === '/hierarki' || item.href === '/dashboard' || item.href === '/bantuan' || item.href === '/settings' || item.href === '/laporan'
+                        ? pathname === item.href
+                        : pathname === item.href || pathname.startsWith(item.href + '/');
                     const Icon = item.icon;
 
                     return (

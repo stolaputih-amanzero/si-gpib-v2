@@ -282,8 +282,9 @@ export function Sidebar() {
                 <div className="ml-3 pl-3 border-l-2 border-border-subtle/60 space-y-1 my-1">
                   {group.items.map((item) => {
                     const isItemActive =
-                      pathname === item.href ||
-                      (item.href !== '/dashboard' && pathname.startsWith(item.href));
+                      item.href === '/hierarki' || item.href === '/dashboard' || item.href === '/bantuan' || item.href === '/settings' || item.href === '/laporan'
+                        ? pathname === item.href
+                        : pathname === item.href || pathname.startsWith(item.href + '/');
                     const ItemIcon = item.icon;
 
                     return (
