@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useDemografiList } from '@/hooks/use-demografi';
+import { useDemografiList, useDeleteDemografiByPos } from '@/hooks/use-demografi';
 import { DemografiCard } from '@/components/demografi/DemografiCard';
 import { DemografiChart } from '@/components/demografi/DemografiChart';
 import { DemografiForm } from '@/components/demografi/DemografiForm';
 import { KATEGORI_PELKAT } from '@/lib/constants/pelkat';
-import { Plus, Filter, Users, Search, X, MapPin, Building, Layers, Clock, UserCheck, Share2, Edit3, Compass, ExternalLink } from 'lucide-react';
+import { Plus, Filter, Users, Search, X, MapPin, Building, Layers, Clock, UserCheck, Share2, Edit3, Compass, ExternalLink, Trash2 } from 'lucide-react';
 import { HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
 import { createClient } from '@/lib/supabase/client';
 import { shareToWhatsApp } from '@/lib/share/share-to-whatsapp';
@@ -269,10 +269,25 @@ export default function LaporanDemografiPage() {
     setShowFormModal(true);
   };
 
+  const deleteByPosMutation = useDeleteDemografiByPos();
+
   const handleEditFromDetail = (detail: DemografiDetailItem) => {
     setFormEditIdPos(detail.id_pos);
     setActiveDetailModal(null);
     setShowFormModal(true);
+  };
+
+  const handleDeleteFromDetail = async (detail: DemografiDetailItem) => {
+    const posLabel = detail.posName || detail.id_pos;
+    if (confirm(`Apakah Anda yakin ingin menghapus seluruh data demografi untuk ${posLabel}?`)) {
+      try {
+        await deleteByPosMutation.mutateAsync(detail.id_pos);
+        setActiveDetailModal(null);
+        refetch();
+      } catch (err: any) {
+        alert('Gagal menghapus data demografi: ' + (err.message || 'Terjadi kesalahan'));
+      }
+    }
   };
 
   const handleFormSuccess = async (savedData: any, _metaInfo?: HierarchyMetaInfo | null) => {
@@ -794,34 +809,36 @@ export default function LaporanDemografiPage() {
                 </div>
               </div>
 
-              {/* Action Buttons (Clean Text Style - Matching Log Pastoral) */}
-              <div className="flex items-center justify-between gap-3 pt-3 border-t border-border-subtle text-xs">
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 pt-3 border-t border-border-subtle">
                 <button
                   type="button"
                   onClick={() => handleShareWhatsApp(activeDetailModal)}
-                  className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1.5 min-h-[44px] px-1"
+                  className="py-2.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all min-h-[44px] flex items-center justify-center gap-1.5 shadow-soft shrink-0"
                   title="Bagikan Laporan Demografi ke WhatsApp"
                 >
                   <Share2 size={16} />
-                  <span>Share WA</span>
+                  <span>WA</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleDeleteFromDetail(activeDetailModal)}
+                  disabled={deleteByPosMutation.isPending}
+                  className="py-2.5 px-3.5 rounded-xl border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-50 dark:hover:bg-red-950/40 transition-all min-h-[44px] flex items-center justify-center gap-1.5 shrink-0 disabled:opacity-50"
+                  title="Hapus Data Demografi"
+                >
+                  <Trash2 size={16} />
+                  <span>{deleteByPosMutation.isPending ? '...' : 'Hapus'}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleEditFromDetail(activeDetailModal)}
-                  className="font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1.5 min-h-[44px] px-1"
-                  title="Edit Data Demografi"
+                  className="flex-1 py-2.5 px-3.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] flex items-center justify-center gap-2"
                 >
                   <Edit3 size={16} />
-                  <span>Edit Data</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveDetailModal(null)}
-                  className="px-4 py-2.5 rounded-xl border border-border-subtle font-bold text-text-high hover:bg-surface-sunken transition-all min-h-[44px]"
-                >
-                  Tutup Detail
+                  <span>Edit</span>
                 </button>
               </div>
             </div>

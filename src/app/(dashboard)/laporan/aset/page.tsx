@@ -478,7 +478,7 @@ export default function LaporanAsetPage() {
                 title="Bagikan Laporan Aset ke WhatsApp"
               >
                 <Share2 size={16} />
-                <span>Bagikan WA</span>
+                <span>WA</span>
               </button>
 
               <button
@@ -501,7 +501,7 @@ export default function LaporanAsetPage() {
                 className="flex-1 py-2.5 px-3.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] flex items-center justify-center gap-2"
               >
                 <Edit2 size={16} />
-                <span>Edit Data</span>
+                <span>Edit</span>
               </button>
             </div>
           </div>

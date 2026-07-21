@@ -148,6 +148,28 @@ export function useBatchUpsertDemografi() {
   });
 }
 
+// Delete all demografi records for a Pos
+export function useDeleteDemografiByPos() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id_pos: string) => {
+      const { error } = await supabase
+        .from('t_demografi_pelkat')
+        .delete()
+        .eq('id_pos', id_pos);
+
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: (_, id_pos) => {
+      queryClient.invalidateQueries({ queryKey: ['demografi', id_pos] });
+      queryClient.invalidateQueries({ queryKey: ['demografi-list'] });
+    },
+  });
+}
+
 // Delete demografi record
 export function useDeleteDemografi() {
   const supabase = createClient();

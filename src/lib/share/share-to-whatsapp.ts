@@ -12,7 +12,7 @@ export interface ShareData {
 export async function shareToWhatsApp(data: ShareData): Promise<boolean> {
   // Format pesan dengan styling WhatsApp (bold menggunakan *)
   const hasUrlInText = data.url && data.text.includes(data.url);
-  const urlSuffix = data.url && !hasUrlInText ? `\n\n🔗 ${data.url}` : '';
+  const urlSuffix = data.url && !hasUrlInText ? `\n\nTautan: ${data.url}` : '';
   const message = `*${data.title}*\n\n${data.text}${urlSuffix}\n\n_Dibagikan dari SI GPIB v2.2_`;
 
   // 1. Coba Web Share API (Native di Mobile)

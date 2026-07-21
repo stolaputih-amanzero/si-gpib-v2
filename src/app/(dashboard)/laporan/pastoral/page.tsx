@@ -914,20 +914,21 @@ export default function LaporanPastoralPage() {
                   <button
                     type="button"
                     onClick={(e) => handleShareWhatsApp(e, selectedLog)}
-                    className="py-2.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all min-h-[44px] flex items-center gap-1.5 shadow-soft"
+                    className="py-2.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all min-h-[44px] flex items-center gap-1.5 shadow-soft shrink-0"
                     title="Bagikan Laporan & Lampiran Foto ke WhatsApp"
                   >
                     <Share2 size={16} />
-                    <span className="hidden sm:inline">Bagikan WA</span>
+                    <span>WA</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={(e) => handleDelete(e, selectedLog.id_log, selectedLog.kegiatan)}
-                    className="py-2.5 px-3.5 rounded-xl border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-50 dark:hover:bg-red-950/40 transition-all min-h-[44px] flex items-center gap-1.5"
+                    className="py-2.5 px-3.5 rounded-xl border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-50 dark:hover:bg-red-950/40 transition-all min-h-[44px] flex items-center gap-1.5 shrink-0"
+                    title="Hapus Log Pastoral"
                   >
                     <Trash2 size={16} />
-                    <span className="hidden sm:inline">Hapus Log</span>
+                    <span>Hapus</span>
                   </button>
 
                   <button
@@ -936,7 +937,7 @@ export default function LaporanPastoralPage() {
                     className="flex-1 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] flex items-center justify-center gap-2"
                   >
                     <Edit size={16} />
-                    <span>Edit Log & Foto</span>
+                    <span>Edit</span>
                   </button>
                 </div>
               </div>

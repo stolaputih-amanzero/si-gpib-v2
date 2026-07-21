@@ -29,17 +29,17 @@ export function generateAsetWaText(item: any): string {
   const kondisiVal = item.kondisi || item.raw?.kondisi || 'Baik';
 
   const lines: string[] = [
-    `📦 *INVENTARIS ASET GPIB*`,
-    `----------------------------------------`,
-    `📌 *Kategori*: ${categoryLabel}`,
-    `🏷️ *Judul Aset*: ${item.judul || '-'}`,
+    `*INVENTARIS ASET GPIB*`,
     ``,
-    `🏛️ *HIERARKI & WILAYAH*`,
+    `*Kategori*: ${categoryLabel}`,
+    `*Judul Aset*: ${item.judul || '-'}`,
+    ``,
+    `*HIERARKI & WILAYAH*`,
     `• Mupel: ${item.mupel_nama || item.raw?.pos?.jemaat_induk?.mupel?.nama_mupel || '-'}`,
     `• Jemaat Induk: ${item.jemaat_induk || item.raw?.pos?.jemaat_induk?.nama_induk || '-'}`,
     `• Pos Pelkes: ${displayPosNama}`,
     ``,
-    `📑 *SPESIFIKASI ASET*`,
+    `*SPESIFIKASI ASET*`,
   ];
 
   if (isTanah) {
@@ -64,7 +64,7 @@ export function generateAsetWaText(item: any): string {
 
   if (item.keterangan) {
     lines.push(``);
-    lines.push(`📝 *Keterangan*: ${item.keterangan}`);
+    lines.push(`*Keterangan*: ${item.keterangan}`);
   }
 
   const lat = item.latitude ?? item.raw?.latitude ?? item.raw?.pos?.latitude ?? null;
@@ -73,14 +73,14 @@ export function generateAsetWaText(item: any): string {
   lines.push(``);
   if (lat != null && lng != null) {
     // GPS location strictly without https:// so WA does not unfurl maps over the photo preview
-    lines.push(`📍 *Lokasi GPS*: maps.google.com/?q=${lat},${lng}`);
+    lines.push(`*Lokasi GPS*: maps.google.com/?q=${lat},${lng}`);
   } else {
-    lines.push(`📍 *Lokasi GPS*: -`);
+    lines.push(`*Lokasi GPS*: -`);
   }
 
   if (fullPhotoUrl) {
     lines.push(``);
-    lines.push(`📷 *Foto Utama*: ${fullPhotoUrl}`);
+    lines.push(`*Foto Utama*: ${fullPhotoUrl}`);
   }
 
   return lines.join('\n');
