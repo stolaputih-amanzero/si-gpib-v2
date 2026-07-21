@@ -232,7 +232,35 @@ export default function LaporanPastoralPage() {
       });
 
       toast.success('Log Pastoral Diperbarui', 'Data kegiatan & lokasi hierarki telah diperbarui.');
-      setSelectedLog(null);
+
+      // Update active selectedLog state with fresh values and switch mode back to Detail View
+      setSelectedLog((prev) =>
+        prev
+          ? {
+              ...prev,
+              tgl: editTgl,
+              kegiatan: formattedKegiatan,
+              jml_jiwa: editJmlJiwa !== '' ? Number(editJmlJiwa) : null,
+              catatan: finalCatatan,
+              id_pos: editIdPos || null,
+              pos: editHierarchyMeta?.posName
+                ? {
+                    id_pos: editIdPos || prev.pos?.id_pos || '',
+                    nama_pos: editHierarchyMeta.posName,
+                    kategori: prev.pos?.kategori || 'Pos Pelkes',
+                    jemaat_induk: {
+                      id_induk: editHierarchyMeta.id_induk || prev.pos?.jemaat_induk?.id_induk || '',
+                      nama_induk: editHierarchyMeta.jemaatName || prev.pos?.jemaat_induk?.nama_induk || '',
+                      mupel: {
+                        id_mupel: editHierarchyMeta.id_mupel || prev.pos?.jemaat_induk?.mupel?.id_mupel || '',
+                        nama_mupel: editHierarchyMeta.mupelName || prev.pos?.jemaat_induk?.mupel?.nama_mupel || '',
+                      },
+                    },
+                  }
+                : prev.pos,
+            }
+          : null
+      );
       setIsEditing(false);
     } catch (error: any) {
       toast.error('Gagal Memperbarui', error?.message || 'Terjadi kesalahan saat menyimpan perubahan.');
