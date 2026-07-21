@@ -11,7 +11,9 @@ export interface ShareData {
  */
 export async function shareToWhatsApp(data: ShareData): Promise<boolean> {
   // Format pesan dengan styling WhatsApp (bold menggunakan *)
-  const message = `*${data.title}*\n\n${data.text}${data.url ? `\n\n🔗 ${data.url}` : ''}\n\n_Dibagikan dari SI GPIB v2.2_`;
+  const hasUrlInText = data.url && data.text.includes(data.url);
+  const urlSuffix = data.url && !hasUrlInText ? `\n\n🔗 ${data.url}` : '';
+  const message = `*${data.title}*\n\n${data.text}${urlSuffix}\n\n_Dibagikan dari SI GPIB v2.2_`;
 
   // 1. Coba Web Share API (Native di Mobile)
   if (typeof navigator !== 'undefined' && navigator.share) {
@@ -19,7 +21,6 @@ export async function shareToWhatsApp(data: ShareData): Promise<boolean> {
       await navigator.share({
         title: data.title,
         text: message,
-        url: data.url,
       });
       return true;
     } catch (err) {

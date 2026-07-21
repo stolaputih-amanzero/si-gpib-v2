@@ -91,7 +91,7 @@ function AssetBaruContent() {
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Selector Target Lingkup & Cascading Selector */}
         <div className="bg-surface-elevated p-4 sm:p-5 rounded-2xl border border-border-subtle shadow-soft space-y-4">
-          {/* Target Lingkup Aset (Jemaat Induk vs Pos Pelkes) */}
+          {/* Target Lingkup Utama (Jemaat Induk vs Pos Pelkes) */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-text-high">Target Lingkup Aset *</label>
             <div className="grid grid-cols-2 gap-2 bg-surface-sunken p-1 rounded-xl">
@@ -120,7 +120,7 @@ function AssetBaruContent() {
             </div>
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <div className="flex items-center justify-between mb-1">
               <h2 className="text-xs font-bold text-text-high uppercase tracking-wider flex items-center gap-1.5">
                 <Building size={14} className="text-brand-primary" />
@@ -137,6 +137,7 @@ function AssetBaruContent() {
               value={selectedPosId}
               onChange={setSelectedPosId}
               onMetaChange={setHierarchyMeta}
+              onJemaatChange={() => setSelectedPosId('')}
               defaultPosId={idPosQuery || undefined}
               required={targetScope === 'pos'}
               hidePos={targetScope === 'jemaat'}

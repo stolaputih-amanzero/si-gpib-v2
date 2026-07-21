@@ -19,28 +19,80 @@ import {
 } from '@/lib/constants/aset';
 import { 
   useCreateAsetTanah, 
+  useUpdateAsetTanah,
   useCreateAsetBangunan, 
-  useCreateAsetBergerak 
+  useUpdateAsetBangunan,
+  useCreateAsetBergerak,
+  useUpdateAsetBergerak,
+  useDeleteLampiranAset,
+  useUpdateLampiranKeterangan
 } from '@/hooks/use-aset';
 import { useFormDraft } from '@/hooks/use-form-draft';
 import { CameraCapture } from './CameraCapture';
-import { Loader2, CheckCircle2, AlertCircle, Save, Clock } from 'lucide-react';
+import { PosCascadingSelector, HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
+import { Loader2, CheckCircle2, AlertCircle, Save, Clock, Building } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface AsetFormProps {
-  id_pos: string;
+  id_pos?: string;
   defaultKategori?: KategoriAsetKode;
   initialData?: any;
   onSuccess?: () => void;
+  showHierarchySelector?: boolean;
 }
 
 export function AsetForm({
-  id_pos,
+  id_pos: initialPosId = '',
   defaultKategori = 'TANAH',
   initialData,
   onSuccess,
+  showHierarchySelector = true,
 }: AsetFormProps) {
   const router = useRouter();
+  const [currentPosId, setCurrentPosId] = useState<string>(
+    initialData?.id_pos || initialPosId
+  );
+  const [targetScope, setTargetScope] = useState<'jemaat' | 'pos'>(
+    initialData?.pos?.nama_pos?.startsWith('Jemaat ') ? 'jemaat' : 'pos'
+  );
+  const [hierarchyMeta, setHierarchyMeta] = useState<HierarchyMetaInfo | null>(null);
+  const [existingLampiran, setExistingLampiran] = useState<any[]>(initialData?.lampiran || []);
+
+  useEffect(() => {
+    if (initialData?.lampiran) {
+      setExistingLampiran(initialData.lampiran);
+    }
+  }, [initialData]);
+
+  const deleteLampiranMutation = useDeleteLampiranAset();
+  const updateLampiranKeteranganMutation = useUpdateLampiranKeterangan();
+
+  const handleDeleteExistingAttachment = async (id_lampiran: string) => {
+    try {
+      await deleteLampiranMutation.mutateAsync(id_lampiran);
+      setExistingLampiran((prev) => prev.filter((a) => a.id_lampiran !== id_lampiran));
+    } catch (err: any) {
+      console.error('Failed to delete attachment:', err);
+    }
+  };
+
+  const handleUpdateExistingAttachmentCaption = (id_lampiran: string, keterangan: string) => {
+    setExistingLampiran((prev) =>
+      prev.map((a) => (a.id_lampiran === id_lampiran ? { ...a, keterangan } : a))
+    );
+  };
+
+  const saveExistingLampiranCaptions = async () => {
+    if (existingLampiran && existingLampiran.length > 0) {
+      for (const att of existingLampiran) {
+        await updateLampiranKeteranganMutation.mutateAsync({
+          id_lampiran: att.id_lampiran,
+          keterangan: att.keterangan || null,
+        });
+      }
+    }
+  };
+
   const [kategori, setKategori] = useState<KategoriAsetKode>(
     initialData?.kategori || defaultKategori
   );
@@ -49,22 +101,25 @@ export function AsetForm({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Unique Draft Storage Key as requested in note #2
-  const draftKey = `draft:aset:${id_pos}:${kategori.toLowerCase()}:${initialData?.id || 'new'}`;
+  const draftKey = `draft:aset:${currentPosId || 'unknown'}:${kategori.toLowerCase()}:${initialData?.id_tanah || initialData?.id_bangunan || initialData?.id_aset_b || 'new'}`;
   const { draft, saveDraft, clearDraft, hasRestoredDraft, relativeSavedTime } = useFormDraft(
     draftKey,
     initialData || {}
   );
 
-  // Create Mutations
+  // Mutations
   const createTanahMutation = useCreateAsetTanah();
+  const updateTanahMutation = useUpdateAsetTanah();
   const createBangunanMutation = useCreateAsetBangunan();
+  const updateBangunanMutation = useUpdateAsetBangunan();
   const createBergerakMutation = useCreateAsetBergerak();
+  const updateBergerakMutation = useUpdateAsetBergerak();
 
   // --- FORM TANAH ---
   const formTanah = useForm<AsetTanahInput>({
     resolver: zodResolver(asetTanahSchema),
     defaultValues: {
-      id_pos,
+      id_pos: currentPosId,
       luas_m2: draft?.luas_m2 || initialData?.luas_m2 || 100,
       thn_perolehan: draft?.thn_perolehan || initialData?.thn_perolehan || new Date().getFullYear(),
       status_hukum: draft?.status_hukum || initialData?.status_hukum || STATUS_HUKUM_TANAH_OPTIONS[0].value,
@@ -80,8 +135,9 @@ export function AsetForm({
   const formBangunan = useForm<AsetBangunanInput>({
     resolver: zodResolver(asetBangunanSchema),
     defaultValues: {
-      id_pos,
-      fungsi: draft?.fungsi || initialData?.fungsi || 'Gereja / Gedung Pastori',
+      id_pos: currentPosId,
+      nama_bangunan: draft?.nama_bangunan || initialData?.nama_bangunan || '',
+      fungsi: draft?.fungsi || initialData?.fungsi || 'Gereja Utama',
       kondisi: draft?.kondisi || initialData?.kondisi || KONDISI_ASET_OPTIONS[1].value,
       thn_berdiri: draft?.thn_berdiri || initialData?.thn_berdiri || new Date().getFullYear(),
       keterangan: draft?.keterangan || initialData?.keterangan || '',
@@ -94,15 +150,37 @@ export function AsetForm({
   const formBergerak = useForm<AsetBergerakInput>({
     resolver: zodResolver(asetBergerakSchema),
     defaultValues: {
-      id_pos,
+      id_pos: currentPosId,
       jenis: draft?.jenis || initialData?.jenis || 'Sepeda Motor Dinas',
       merk_tipe: draft?.merk_tipe || initialData?.merk_tipe || '',
+      kondisi: draft?.kondisi || initialData?.kondisi || KONDISI_ASET_OPTIONS[1].value,
       thn_perolehan: draft?.thn_perolehan || initialData?.thn_perolehan || new Date().getFullYear(),
       no_polisi: draft?.no_polisi || initialData?.no_polisi || '',
       tgl_pajak: draft?.tgl_pajak || initialData?.tgl_pajak || '',
       keterangan: draft?.keterangan || initialData?.keterangan || '',
+      latitude: draft?.latitude || initialData?.latitude || null,
+      longitude: draft?.longitude || initialData?.longitude || null,
     },
   });
+
+  // Keep id_pos in sync when currentPosId changes
+  useEffect(() => {
+    if (currentPosId) {
+      formTanah.setValue('id_pos', currentPosId);
+      formBangunan.setValue('id_pos', currentPosId);
+      formBergerak.setValue('id_pos', currentPosId);
+    }
+  }, [currentPosId, formTanah, formBangunan, formBergerak]);
+
+  // Sync initialData when passed for editing
+  useEffect(() => {
+    if (initialData) {
+      if (initialData.id_pos) setCurrentPosId(initialData.id_pos);
+      if (initialData.luas_m2) formTanah.reset({ ...initialData, id_pos: initialData.id_pos });
+      if (initialData.fungsi) formBangunan.reset({ ...initialData, id_pos: initialData.id_pos });
+      if (initialData.merk_tipe) formBergerak.reset({ ...initialData, id_pos: initialData.id_pos });
+    }
+  }, [initialData, formTanah, formBangunan, formBergerak]);
 
   // Auto-save form draft on change
   useEffect(() => {
@@ -119,20 +197,34 @@ export function AsetForm({
 
   const isSubmitting = 
     createTanahMutation.isPending || 
+    updateTanahMutation.isPending || 
     createBangunanMutation.isPending || 
-    createBergerakMutation.isPending;
+    updateBangunanMutation.isPending || 
+    createBergerakMutation.isPending ||
+    updateBergerakMutation.isPending;
 
   // Submit Handler Tanah
   const onSubmitTanah = async (data: AsetTanahInput) => {
     setSuccessMsg(null);
     setErrorMsg(null);
     try {
-      await createTanahMutation.mutateAsync({ data, files });
-      clearDraft();
+      const finalPosId = currentPosId || initialPosId;
+      if (!finalPosId) throw new Error('Wilayah lokasi aset (Pos Pelkes/Jemaat) wajib dipilih.');
+      const payload = { ...data, id_pos: finalPosId };
+
+      if (initialData?.id_tanah) {
+        await updateTanahMutation.mutateAsync({ id_tanah: initialData.id_tanah, data: payload, files });
+        await saveExistingLampiranCaptions();
+        setSuccessMsg('Aset Tanah berhasil diperbarui!');
+      } else {
+        await createTanahMutation.mutateAsync({ data: payload, files });
+        clearDraft();
+        setSuccessMsg('Aset Tanah berhasil disimpan!');
+      }
+
       if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([10, 50, 10]);
-      setSuccessMsg('Aset Tanah berhasil disimpan!');
       if (onSuccess) onSuccess();
-      else router.push(`/aset/${id_pos}`);
+      else router.push('/laporan/aset');
     } catch (err: any) {
       if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([50, 100, 50]);
       setErrorMsg(err.message || 'Gagal menyimpan aset tanah.');
@@ -144,12 +236,23 @@ export function AsetForm({
     setSuccessMsg(null);
     setErrorMsg(null);
     try {
-      await createBangunanMutation.mutateAsync({ data, files });
-      clearDraft();
+      const finalPosId = currentPosId || initialPosId;
+      if (!finalPosId) throw new Error('Wilayah lokasi aset (Pos Pelkes/Jemaat) wajib dipilih.');
+      const payload = { ...data, id_pos: finalPosId };
+
+      if (initialData?.id_bangunan) {
+        await updateBangunanMutation.mutateAsync({ id_bangunan: initialData.id_bangunan, data: payload, files });
+        await saveExistingLampiranCaptions();
+        setSuccessMsg('Aset Bangunan berhasil diperbarui!');
+      } else {
+        await createBangunanMutation.mutateAsync({ data: payload, files });
+        clearDraft();
+        setSuccessMsg('Aset Bangunan berhasil disimpan!');
+      }
+
       if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([10, 50, 10]);
-      setSuccessMsg('Aset Bangunan berhasil disimpan!');
       if (onSuccess) onSuccess();
-      else router.push(`/aset/${id_pos}`);
+      else router.push('/laporan/aset');
     } catch (err: any) {
       if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([50, 100, 50]);
       setErrorMsg(err.message || 'Gagal menyimpan aset bangunan.');
@@ -161,12 +264,23 @@ export function AsetForm({
     setSuccessMsg(null);
     setErrorMsg(null);
     try {
-      await createBergerakMutation.mutateAsync({ data, files });
-      clearDraft();
+      const finalPosId = currentPosId || initialPosId;
+      if (!finalPosId) throw new Error('Wilayah lokasi aset (Pos Pelkes/Jemaat) wajib dipilih.');
+      const payload = { ...data, id_pos: finalPosId };
+
+      if (initialData?.id_aset_b) {
+        await updateBergerakMutation.mutateAsync({ id_aset_b: initialData.id_aset_b, data: payload, files });
+        await saveExistingLampiranCaptions();
+        setSuccessMsg('Aset Bergerak berhasil diperbarui!');
+      } else {
+        await createBergerakMutation.mutateAsync({ data: payload, files });
+        clearDraft();
+        setSuccessMsg('Aset Bergerak berhasil disimpan!');
+      }
+
       if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([10, 50, 10]);
-      setSuccessMsg('Aset Bergerak berhasil disimpan!');
       if (onSuccess) onSuccess();
-      else router.push(`/aset/${id_pos}`);
+      else router.push('/laporan/aset');
     } catch (err: any) {
       if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([50, 100, 50]);
       setErrorMsg(err.message || 'Gagal menyimpan aset bergerak.');
@@ -175,6 +289,63 @@ export function AsetForm({
 
   return (
     <div className="space-y-6">
+      {/* Target Scope & Cascading Hierarchy Selector */}
+      {showHierarchySelector && (
+        <div className="bg-surface-elevated p-4 sm:p-5 rounded-2xl border border-border-subtle shadow-soft space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-text-high">Target Lingkup Aset *</label>
+            <div className="grid grid-cols-2 gap-2 bg-surface-sunken p-1 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setTargetScope('jemaat')}
+                className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  targetScope === 'jemaat'
+                    ? 'bg-surface-elevated text-brand-primary shadow-soft'
+                    : 'text-text-muted hover:text-text-high'
+                }`}
+              >
+                <span>⛪ Jemaat Induk</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setTargetScope('pos')}
+                className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  targetScope === 'pos'
+                    ? 'bg-surface-elevated text-brand-primary shadow-soft'
+                    : 'text-text-muted hover:text-text-high'
+                }`}
+              >
+                <span>📍 Pos Pelkes / Bajem</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-xs font-bold text-text-high uppercase tracking-wider flex items-center gap-1.5">
+                <Building size={14} className="text-brand-primary" />
+                <span>Pilih Wilayah Lokasi Aset *</span>
+              </h2>
+              <span className="text-[11px] font-semibold text-text-muted">
+                {targetScope === 'jemaat'
+                  ? 'Pos Pelkes Opsional (Level Jemaat)'
+                  : 'Pos Pelkes Wajib Dipilih (Compulsory)'}
+              </span>
+            </div>
+
+            <PosCascadingSelector
+              value={currentPosId}
+              onChange={setCurrentPosId}
+              onMetaChange={setHierarchyMeta}
+              onJemaatChange={() => setCurrentPosId('')}
+              defaultPosId={initialData?.id_pos || initialPosId}
+              required={targetScope === 'pos'}
+              hidePos={targetScope === 'jemaat'}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Category Selector Tabs */}
       <div className="flex items-center gap-2 p-1 bg-surface-sunken rounded-xl border border-border-subtle">
         {KATEGORI_ASET.map((k) => {
@@ -307,10 +478,14 @@ export function AsetForm({
           <CameraCapture
             files={files}
             onFilesChange={setFiles}
+            existingAttachments={existingLampiran}
+            onDeleteExistingAttachment={handleDeleteExistingAttachment}
+            onUpdateExistingAttachmentCaption={handleUpdateExistingAttachmentCaption}
             lat={formTanah.watch('latitude')}
             lng={formTanah.watch('longitude')}
             onLatChange={(val) => formTanah.setValue('latitude', val)}
             onLngChange={(val) => formTanah.setValue('longitude', val)}
+            hierarchyMeta={hierarchyMeta}
             label="Foto Lahan Tanah & Sertifikat"
           />
 
@@ -347,12 +522,25 @@ export function AsetForm({
       {/* --- FORM ASET BANGUNAN --- */}
       {kategori === 'BANGUNAN' && (
         <form onSubmit={formBangunan.handleSubmit(onSubmitBangunan)} className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-text-high">Nama Bangunan / Gedung *</label>
+            <input
+              type="text"
+              placeholder="Misal: Gedung Gereja Immanuel, Rumah Pastori 1, Gedung Serba Guna"
+              {...formBangunan.register('nama_bangunan')}
+              className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-elevated text-sm font-semibold text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
+            />
+            {formBangunan.formState.errors.nama_bangunan && (
+              <p className="text-xs text-error">{formBangunan.formState.errors.nama_bangunan.message}</p>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-text-high">Fungsi Utama Bangunan *</label>
               <input
                 type="text"
-                placeholder="Misal: Gedung Gereja Utama, Rumah Pastori, Gedung Sekolah Minggu"
+                placeholder="Misal: Ibadah Utama, Pastori, Sekolah Minggu, Kantor Jemaat"
                 {...formBangunan.register('fungsi')}
                 className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-elevated text-sm font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
               />
@@ -389,10 +577,14 @@ export function AsetForm({
           <CameraCapture
             files={files}
             onFilesChange={setFiles}
+            existingAttachments={existingLampiran}
+            onDeleteExistingAttachment={handleDeleteExistingAttachment}
+            onUpdateExistingAttachmentCaption={handleUpdateExistingAttachmentCaption}
             lat={formBangunan.watch('latitude')}
             lng={formBangunan.watch('longitude')}
             onLatChange={(val) => formBangunan.setValue('latitude', val)}
             onLngChange={(val) => formBangunan.setValue('longitude', val)}
+            hierarchyMeta={hierarchyMeta}
             label="Foto Bangunan & IMB"
           />
 
@@ -457,7 +649,21 @@ export function AsetForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-text-high">Kondisi Aset *</label>
+              <select
+                {...formBergerak.register('kondisi')}
+                className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-elevated text-sm font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
+              >
+                {KONDISI_ASET_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-text-high">Tahun Perolehan *</label>
               <input
@@ -491,10 +697,14 @@ export function AsetForm({
           <CameraCapture
             files={files}
             onFilesChange={setFiles}
-            lat={null}
-            lng={null}
-            onLatChange={() => {}}
-            onLngChange={() => {}}
+            existingAttachments={existingLampiran}
+            onDeleteExistingAttachment={handleDeleteExistingAttachment}
+            onUpdateExistingAttachmentCaption={handleUpdateExistingAttachmentCaption}
+            lat={formBergerak.watch('latitude')}
+            lng={formBergerak.watch('longitude')}
+            onLatChange={(val) => formBergerak.setValue('latitude', val)}
+            onLngChange={(val) => formBergerak.setValue('longitude', val)}
+            hierarchyMeta={hierarchyMeta}
             label="Foto Unit Kendaraan & STNK/BPKB"
           />
 

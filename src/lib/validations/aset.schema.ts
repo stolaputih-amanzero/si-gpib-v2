@@ -14,6 +14,7 @@ export const asetTanahSchema = z.object({
 
 export const asetBangunanSchema = z.object({
   id_pos: z.string().min(1, 'Pos Pelkes wajib dipilih'),
+  nama_bangunan: z.string().min(1, 'Nama bangunan wajib diisi'),
   fungsi: z.string().min(1, 'Fungsi bangunan wajib diisi'),
   kondisi: z.string().min(1, 'Kondisi wajib diisi'),
   thn_berdiri: z.number().int().min(1900, 'Tahun berdiri tidak valid').max(new Date().getFullYear() + 1, 'Tahun tidak boleh melebihi tahun sekarang'),
@@ -26,10 +27,13 @@ export const asetBergerakSchema = z.object({
   id_pos: z.string().min(1, 'Pos Pelkes wajib dipilih'),
   jenis: z.string().min(1, 'Jenis aset bergerak wajib diisi'),
   merk_tipe: z.string().min(1, 'Merk/Tipe wajib diisi'),
+  kondisi: z.string().min(1, 'Kondisi wajib diisi'),
   thn_perolehan: z.number().int().min(1900, 'Tahun perolehan tidak valid').max(new Date().getFullYear() + 1, 'Tahun tidak boleh melebihi tahun sekarang'),
   no_polisi: z.string().max(20, 'Maksimal 20 karakter').optional().nullable(),
   tgl_pajak: z.string().optional().nullable(),
   keterangan: z.string().max(500, 'Maksimal 500 karakter').optional().nullable(),
+  latitude: z.number().optional().nullable(),
+  longitude: z.number().optional().nullable(),
 });
 
 export type AsetTanahInput = z.infer<typeof asetTanahSchema>;

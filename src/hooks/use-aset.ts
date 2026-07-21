@@ -19,9 +19,9 @@ export function useAsetList(filter?: AsetFilter) {
   return useQuery({
     queryKey: ['aset-list', filter],
     queryFn: async () => {
-      let tanahQuery = supabase.from('t_aset_tanah').select('*, pos:m_pos_pelkes(nama_pos, jemaat_induk:m_jemaat_induk(nama_induk)), lampiran:t_lampiran_aset(*)');
-      let bangunanQuery = supabase.from('t_aset_bangunan').select('*, pos:m_pos_pelkes(nama_pos, jemaat_induk:m_jemaat_induk(nama_induk)), lampiran:t_lampiran_aset(*)');
-      let bergerakQuery = supabase.from('t_aset_bergerak').select('*, pos:m_pos_pelkes(nama_pos, jemaat_induk:m_jemaat_induk(nama_induk)), lampiran:t_lampiran_aset(*)');
+      let tanahQuery = supabase.from('t_aset_tanah').select('*, pos:m_pos_pelkes(nama_pos, jemaat_induk:m_jemaat_induk(nama_induk, mupel:m_mupel(nama_mupel))), lampiran:t_lampiran_aset(*)');
+      let bangunanQuery = supabase.from('t_aset_bangunan').select('*, pos:m_pos_pelkes(nama_pos, jemaat_induk:m_jemaat_induk(nama_induk, mupel:m_mupel(nama_mupel))), lampiran:t_lampiran_aset(*)');
+      let bergerakQuery = supabase.from('t_aset_bergerak').select('*, pos:m_pos_pelkes(nama_pos, jemaat_induk:m_jemaat_induk(nama_induk, mupel:m_mupel(nama_mupel))), lampiran:t_lampiran_aset(*)');
 
       if (filter?.id_pos) {
         tanahQuery = tanahQuery.eq('id_pos', filter.id_pos);
@@ -39,6 +39,13 @@ export function useAsetList(filter?: AsetFilter) {
       if (e2) throw e2;
       if (e3) throw e3;
 
+      const findThumbnail = (lampiran: any[]) => {
+        const img = (lampiran || []).find((f: any) =>
+          f.tipe_file?.startsWith('image/') || f.file_path?.match(/\.(jpg|jpeg|png|webp)$/i)
+        );
+        return img?.file_path || null;
+      };
+
       // Map to generic items
       const tanahItems = (tanahData || []).map((t: any) => ({
         id: t.id_tanah,
@@ -49,12 +56,13 @@ export function useAsetList(filter?: AsetFilter) {
         kondisi: t.kondisi,
         tahun: t.thn_perolehan,
         keterangan: t.keterangan,
-        latitude: t.latitude,
-        longitude: t.longitude,
+        latitude: t.latitude || t.pos?.latitude || null,
+        longitude: t.longitude || t.pos?.longitude || null,
         pos_nama: t.pos?.nama_pos || t.id_pos,
         jemaat_induk: t.pos?.jemaat_induk?.nama_induk,
+        mupel_nama: t.pos?.jemaat_induk?.mupel?.nama_mupel,
         lampiran_count: t.lampiran?.length || 0,
-        thumbnail_url: t.lampiran?.[0]?.file_path || null,
+        thumbnail_url: findThumbnail(t.lampiran),
         lampiran: t.lampiran || [],
         raw: t,
       }));
@@ -63,17 +71,18 @@ export function useAsetList(filter?: AsetFilter) {
         id: b.id_bangunan,
         id_pos: b.id_pos,
         kategori: 'BANGUNAN' as const,
-        judul: `Gedung / Bangunan ${b.fungsi}`,
+        judul: b.nama_bangunan ? b.nama_bangunan : `Gedung / Bangunan ${b.fungsi}`,
         subjudul: `Fungsi: ${b.fungsi} • Kondisi: ${b.kondisi || '-'}`,
         kondisi: b.kondisi,
         tahun: b.thn_berdiri,
         keterangan: b.keterangan,
-        latitude: b.latitude,
-        longitude: b.longitude,
+        latitude: b.latitude || b.pos?.latitude || null,
+        longitude: b.longitude || b.pos?.longitude || null,
         pos_nama: b.pos?.nama_pos || b.id_pos,
         jemaat_induk: b.pos?.jemaat_induk?.nama_induk,
+        mupel_nama: b.pos?.jemaat_induk?.mupel?.nama_mupel,
         lampiran_count: b.lampiran?.length || 0,
-        thumbnail_url: b.lampiran?.[0]?.file_path || null,
+        thumbnail_url: findThumbnail(b.lampiran),
         lampiran: b.lampiran || [],
         raw: b,
       }));
@@ -84,13 +93,16 @@ export function useAsetList(filter?: AsetFilter) {
         kategori: 'BERGERAK' as const,
         judul: `${bg.jenis} - ${bg.merk_tipe}`,
         subjudul: bg.no_polisi ? `No. Polisi: ${bg.no_polisi}` : `Merk/Tipe: ${bg.merk_tipe}`,
-        kondisi: bg.keterangan?.includes('Rusak') ? 'Rusak' : 'Baik',
+        kondisi: bg.kondisi || 'Baik',
         tahun: bg.thn_perolehan,
         keterangan: bg.keterangan,
+        latitude: bg.latitude || bg.pos?.latitude || null,
+        longitude: bg.longitude || bg.pos?.longitude || null,
         pos_nama: bg.pos?.nama_pos || bg.id_pos,
         jemaat_induk: bg.pos?.jemaat_induk?.nama_induk,
+        mupel_nama: bg.pos?.jemaat_induk?.mupel?.nama_mupel,
         lampiran_count: bg.lampiran?.length || 0,
-        thumbnail_url: bg.lampiran?.[0]?.file_path || null,
+        thumbnail_url: findThumbnail(bg.lampiran),
         lampiran: bg.lampiran || [],
         raw: bg,
       }));
@@ -106,7 +118,8 @@ export function useAsetList(filter?: AsetFilter) {
         allItems = allItems.filter(i => 
           i.judul.toLowerCase().includes(query) ||
           i.pos_nama.toLowerCase().includes(query) ||
-          i.subjudul.toLowerCase().includes(query)
+          i.subjudul.toLowerCase().includes(query) ||
+          (i.jemaat_induk && i.jemaat_induk.toLowerCase().includes(query))
         );
       }
 
@@ -149,6 +162,7 @@ async function uploadAttachment(
 
   // 2. Insert record into t_lampiran_aset
   const lampiranId = generateId('LMP');
+  const photoKeterangan = (file as any).keterangan || null;
   const { error: insertError } = await supabase.from('t_lampiran_aset').insert({
     id_lampiran: lampiranId,
     id_tanah: assetKey.id_tanah || null,
@@ -158,6 +172,7 @@ async function uploadAttachment(
     file_path: publicUrl,
     tipe_file: file.type,
     ukuran_file: (file.size / (1024 * 1024)).toFixed(2),
+    keterangan: photoKeterangan,
   });
 
   if (insertError) throw insertError;
@@ -208,6 +223,49 @@ export function useCreateAsetTanah() {
   });
 }
 
+// Update Aset Tanah
+export function useUpdateAsetTanah() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id_tanah, data, files }: { id_tanah: string; data: AsetTanahInput; files?: File[] }) => {
+      const payload = {
+        id_pos: data.id_pos,
+        luas_m2: data.luas_m2,
+        thn_perolehan: data.thn_perolehan,
+        status_hukum: data.status_hukum,
+        kondisi: data.kondisi,
+        potensi_sda: data.potensi_sda || null,
+        keterangan: data.keterangan || null,
+        latitude: data.latitude || null,
+        longitude: data.longitude || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { data: result, error } = await supabase
+        .from('t_aset_tanah')
+        .update(payload)
+        .eq('id_tanah', id_tanah)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (files && files.length > 0) {
+        for (const file of files) {
+          await uploadAttachment(supabase, file, { id_tanah });
+        }
+      }
+
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['aset-list'] });
+    },
+  });
+}
+
 // Atomic 2-Step Mutation: Create Aset Bangunan + Upload Photos
 export function useCreateAsetBangunan() {
   const supabase = createClient();
@@ -220,6 +278,7 @@ export function useCreateAsetBangunan() {
       const payload = {
         id_bangunan,
         id_pos: data.id_pos,
+        nama_bangunan: data.nama_bangunan,
         fungsi: data.fungsi,
         kondisi: data.kondisi,
         thn_berdiri: data.thn_berdiri,
@@ -231,6 +290,48 @@ export function useCreateAsetBangunan() {
       const { data: result, error } = await supabase
         .from('t_aset_bangunan')
         .insert(payload)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (files && files.length > 0) {
+        for (const file of files) {
+          await uploadAttachment(supabase, file, { id_bangunan });
+        }
+      }
+
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['aset-list'] });
+    },
+  });
+}
+
+// Update Aset Bangunan
+export function useUpdateAsetBangunan() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id_bangunan, data, files }: { id_bangunan: string; data: AsetBangunanInput; files?: File[] }) => {
+      const payload = {
+        id_pos: data.id_pos,
+        nama_bangunan: data.nama_bangunan,
+        fungsi: data.fungsi,
+        kondisi: data.kondisi,
+        thn_berdiri: data.thn_berdiri,
+        keterangan: data.keterangan || null,
+        latitude: data.latitude || null,
+        longitude: data.longitude || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { data: result, error } = await supabase
+        .from('t_aset_bangunan')
+        .update(payload)
+        .eq('id_bangunan', id_bangunan)
         .select()
         .single();
 
@@ -264,15 +365,62 @@ export function useCreateAsetBergerak() {
         id_pos: data.id_pos,
         jenis: data.jenis,
         merk_tipe: data.merk_tipe,
+        kondisi: data.kondisi,
         thn_perolehan: data.thn_perolehan,
         no_polisi: data.no_polisi || null,
         tgl_pajak: data.tgl_pajak || null,
         keterangan: data.keterangan || null,
+        latitude: data.latitude || null,
+        longitude: data.longitude || null,
       };
 
       const { data: result, error } = await supabase
         .from('t_aset_bergerak')
         .insert(payload)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (files && files.length > 0) {
+        for (const file of files) {
+          await uploadAttachment(supabase, file, { id_aset_b });
+        }
+      }
+
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['aset-list'] });
+    },
+  });
+}
+
+// Update Aset Bergerak
+export function useUpdateAsetBergerak() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id_aset_b, data, files }: { id_aset_b: string; data: AsetBergerakInput; files?: File[] }) => {
+      const payload = {
+        id_pos: data.id_pos,
+        jenis: data.jenis,
+        merk_tipe: data.merk_tipe,
+        kondisi: data.kondisi,
+        thn_perolehan: data.thn_perolehan,
+        no_polisi: data.no_polisi || null,
+        tgl_pajak: data.tgl_pajak || null,
+        keterangan: data.keterangan || null,
+        latitude: data.latitude || null,
+        longitude: data.longitude || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { data: result, error } = await supabase
+        .from('t_aset_bergerak')
+        .update(payload)
+        .eq('id_aset_b', id_aset_b)
         .select()
         .single();
 
@@ -311,6 +459,43 @@ export function useDeleteAset() {
         error = res.error;
       }
 
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['aset-list'] });
+    },
+  });
+}
+
+// Delete Attachment File from t_lampiran_aset
+export function useDeleteLampiranAset() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id_lampiran: string) => {
+      const { error } = await supabase.from('t_lampiran_aset').delete().eq('id_lampiran', id_lampiran);
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['aset-list'] });
+    },
+  });
+}
+
+// Update Attachment Caption in t_lampiran_aset
+export function useUpdateLampiranKeterangan() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id_lampiran, keterangan }: { id_lampiran: string; keterangan: string | null }) => {
+      const { error } = await supabase
+        .from('t_lampiran_aset')
+        .update({ keterangan })
+        .eq('id_lampiran', id_lampiran);
       if (error) throw error;
       return true;
     },

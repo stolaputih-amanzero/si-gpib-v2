@@ -91,5 +91,9 @@ export interface AsetGenericItem {
   latitude?: number | null;
   longitude?: number | null;
   pos_nama?: string;
+  jemaat_induk?: string;
+  mupel_nama?: string;
   lampiran_count: number;
+  lampiran?: LampiranAset[];
+  raw?: any;
 }
