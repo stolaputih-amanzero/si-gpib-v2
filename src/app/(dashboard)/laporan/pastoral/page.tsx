@@ -181,19 +181,19 @@ export default function LaporanPastoralPage() {
   return (
     <div className="w-full space-y-6 pb-12">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl md:text-2xl font-serif font-bold text-brand-primary">Log Pastoral & Kunjungan</h1>
-          <p className="text-xs md:text-sm text-text-muted mt-0.5">Catatan Pelayanan Pastoral, Konseling & Waktu Kunjungan Jemaat</p>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl md:text-2xl font-serif font-bold text-brand-primary truncate">Log Pastoral & Kunjungan</h1>
+          <p className="text-xs md:text-sm text-text-muted mt-0.5 truncate sm:whitespace-normal">Catatan Pelayanan Pastoral, Konseling & Waktu Kunjungan Jemaat</p>
         </div>
 
         <Link
           href="/laporan/pastoral/baru"
-          className="px-4 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-brand-primary-dark transition-all flex items-center gap-2 shadow-soft min-h-[44px]"
+          className="px-3.5 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all flex items-center gap-1.5 shadow-soft min-h-[44px] shrink-0"
         >
-          <Plus size={18} />
-          <span className="hidden sm:inline">+ Catat Kunjungan</span>
-          <span className="sm:hidden">+ Log</span>
+          <Plus size={18} className="shrink-0" />
+          <span className="hidden sm:inline">Catat Kunjungan</span>
+          <span className="sm:hidden">Log</span>
         </Link>
       </div>
 
