@@ -471,13 +471,10 @@ export default function LaporanDemografiPage() {
 
               {/* 6 Pelkat Breakdown Table */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold text-text-high flex items-center gap-1.5">
-                    <Users size={14} className="text-brand-primary" />
-                    Rincian 6 Kategori Pelkat GPIB
-                  </h3>
-                  <span className="text-[10px] text-text-muted">PA, PT, GP, PKP, PKB, PKLU</span>
-                </div>
+                <h3 className="text-xs font-bold text-text-high flex items-center gap-1.5">
+                  <Users size={14} className="text-brand-primary" />
+                  Rincian 6 Kategori Pelkat GPIB
+                </h3>
 
                 <div className="border border-border-subtle rounded-2xl overflow-hidden bg-surface-base">
                   <table className="w-full text-left text-xs border-collapse">
@@ -496,10 +493,9 @@ export default function LaporanDemografiPage() {
 
                         return (
                           <tr key={pelkat.kode} className="border-b border-border-subtle/40 hover:bg-surface-sunken/40">
-                            <td className="p-2.5 font-medium flex items-center gap-1.5">
+                            <td className="p-2.5 font-medium flex items-center gap-2">
                               <span className="text-base">{pelkat.icon}</span>
-                              <span className="font-bold text-text-high">{pelkat.nama}</span>
-                              <span className="text-[10px] text-text-muted font-mono">({pelkat.kode})</span>
+                              <span className="font-extrabold text-text-high text-xs tracking-wide">{pelkat.kode}</span>
                             </td>
                             <td className="p-2.5 text-center font-bold text-blue-600 dark:text-blue-400 tabular-nums">
                               {pelkat.kode === 'PKP' ? '-' : rec.laki || 0}
