@@ -1,14 +1,22 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useMupelList, MupelItem } from '@/hooks/use-hierarki';
 import { HierarchyStats } from '@/components/hierarki/HierarchyStats';
 import { MupelCard } from '@/components/hierarki/MupelCard';
-import { HierarchyTree } from '@/components/hierarki/HierarchyTree';
 import { BreadcrumbNav } from '@/components/hierarki/BreadcrumbNav';
 import { MupelFormModal } from '@/components/hierarki/MupelFormModal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Layers, Search, LayoutList, GitFork, AlertCircle, Plus } from 'lucide-react';
+
+const HierarchyTree = dynamic(
+  () => import('@/components/hierarki/HierarchyTree').then((mod) => mod.HierarchyTree),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-64 rounded-2xl w-full" />,
+  }
+);
 
 type ViewMode = 'list' | 'tree';
 

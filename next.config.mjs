@@ -10,6 +10,8 @@ const withPWA = withPWAInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  compress: true,
+  poweredByHeader: false,
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
@@ -21,10 +23,17 @@ const nextConfig = {
     ],
   },
   experimental: {
+    optimizePackageImports: [
+      'lucide-react',
+      'date-fns',
+      'recharts',
+      'leaflet',
+      '@tanstack/react-query',
+    ],
     serverActions: {
       bodySizeLimit: '10mb',
     },
-  }
+  },
 };
 
 export default withPWA(nextConfig);
