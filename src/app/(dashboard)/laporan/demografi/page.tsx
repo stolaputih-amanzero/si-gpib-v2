@@ -25,6 +25,22 @@ interface DemografiDetailItem {
   updated_by?: string | null;
 }
 
+interface GroupedDemografiEntity {
+  id_pos: string;
+  nama_pos: string;
+  jemaat_induk?: string;
+  mupel?: string;
+  total_kk: number;
+  total_laki: number;
+  total_perempuan: number;
+  total_jiwa: number;
+  updated_at?: string | null;
+  updated_by?: string | null;
+  filledPelkatCodes: string[];
+  missingPelkatCodes: string[];
+  rawItem: any;
+}
+
 function formatDateTimeIndonesian(dateString?: string | null) {
   if (!dateString) return '-';
   try {
@@ -63,6 +79,7 @@ export default function LaporanDemografiPage() {
     );
   });
 
+  // Calculate Overall Totals
   let totalJiwaOverall = 0;
   let totalLakiOverall = 0;
   let totalPerempuanOverall = 0;
@@ -73,7 +90,10 @@ export default function LaporanDemografiPage() {
     chartDataMap[k.kode] = { laki: 0, perempuan: 0 };
   });
 
-  demografiList?.forEach((item: any) => {
+  // Grouping Demografi List by Entity (id_pos)
+  const groupedEntitiesMap: Record<string, GroupedDemografiEntity> = {};
+
+  filteredList?.forEach((item: any) => {
     const sum = (item.laki || 0) + (item.perempuan || 0);
     totalJiwaOverall += sum;
     totalLakiOverall += item.laki || 0;
@@ -84,6 +104,63 @@ export default function LaporanDemografiPage() {
       chartDataMap[item.kategori_pelkat].laki += item.laki || 0;
       chartDataMap[item.kategori_pelkat].perempuan += item.perempuan || 0;
     }
+
+    const idPos = item.id_pos;
+    const posName = item.pos?.nama_pos || item.id_pos;
+    const jemaatName = item.pos?.jemaat_induk?.nama_induk || '-';
+    const mupelName = item.pos?.jemaat_induk?.mupel?.nama_mupel || '-';
+
+    if (!groupedEntitiesMap[idPos]) {
+      groupedEntitiesMap[idPos] = {
+        id_pos: idPos,
+        nama_pos: posName,
+        jemaat_induk: jemaatName,
+        mupel: mupelName,
+        total_kk: 0,
+        total_laki: 0,
+        total_perempuan: 0,
+        total_jiwa: 0,
+        updated_at: item.updated_at || item.created_at,
+        updated_by: item.updated_by,
+        filledPelkatCodes: [],
+        missingPelkatCodes: [],
+        rawItem: item,
+      };
+    }
+
+    const entity = groupedEntitiesMap[idPos];
+
+    // Pick latest updated_at
+    if (item.updated_at && (!entity.updated_at || new Date(item.updated_at) > new Date(entity.updated_at))) {
+      entity.updated_at = item.updated_at;
+      entity.updated_by = item.updated_by || entity.updated_by;
+    }
+
+    const laki = item.laki || 0;
+    const perempuan = item.perempuan || 0;
+    const sumJiwa = laki + perempuan;
+
+    entity.total_laki += laki;
+    entity.total_perempuan += perempuan;
+    entity.total_jiwa += sumJiwa;
+    if (item.jml_kk && item.jml_kk > entity.total_kk) {
+      entity.total_kk = item.jml_kk;
+    }
+
+    if (sumJiwa > 0 || item.jml_kk > 0) {
+      if (!entity.filledPelkatCodes.includes(item.kategori_pelkat)) {
+        entity.filledPelkatCodes.push(item.kategori_pelkat);
+      }
+    }
+  });
+
+  const ALL_PELKAT_CODES = ['PA', 'PT', 'GP', 'PKP', 'PKB', 'PKLU'];
+  const groupedList = Object.values(groupedEntitiesMap).map((entity) => {
+    const missing = ALL_PELKAT_CODES.filter((c) => !entity.filledPelkatCodes.includes(c));
+    return {
+      ...entity,
+      missingPelkatCodes: missing,
+    };
   });
 
   const chartData = Object.entries(chartDataMap).map(([kategori_pelkat, values]) => ({
@@ -202,7 +279,7 @@ export default function LaporanDemografiPage() {
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
             <input
               type="text"
-              placeholder="Cari nama Pos Pelkes..."
+              placeholder="Cari nama Pos Pelkes atau Jemaat Induk..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
@@ -224,12 +301,12 @@ export default function LaporanDemografiPage() {
         </div>
       </div>
 
-      {/* Data List */}
+      {/* Data List (Grouped Entity Summary Cards) */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-text-high">Daftar Data Demografi</h2>
+          <h2 className="text-base font-semibold text-text-high">Daftar Wilayah Pendataan Demografi</h2>
           <span className="text-xs text-text-muted">
-            {filteredList ? `${filteredList.length} Catatan` : 'Memuat...'}
+            {groupedList ? `${groupedList.length} Wilayah` : 'Memuat...'}
           </span>
         </div>
 
@@ -242,19 +319,23 @@ export default function LaporanDemografiPage() {
               </div>
             ))}
           </div>
-        ) : filteredList && filteredList.length > 0 ? (
+        ) : groupedList && groupedList.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {filteredList.map((item: any) => (
+            {groupedList.map((item) => (
               <DemografiCard
-                key={`${item.id_pos}-${item.kategori_pelkat}`}
+                key={item.id_pos}
                 id_pos={item.id_pos}
-                nama_pos={item.pos?.nama_pos || item.id_pos}
-                jemaat_induk={item.pos?.jemaat_induk?.nama_induk}
-                kategori_pelkat={item.kategori_pelkat}
-                jml_kk={item.jml_kk || 0}
-                laki={item.laki || 0}
-                perempuan={item.perempuan || 0}
-                onClick={() => handleOpenDetailFromCard(item)}
+                nama_pos={item.nama_pos}
+                jemaat_induk={item.jemaat_induk}
+                mupel={item.mupel}
+                total_kk={item.total_kk}
+                total_laki={item.total_laki}
+                total_perempuan={item.total_perempuan}
+                total_jiwa={item.total_jiwa}
+                updated_at={item.updated_at}
+                filledPelkatCodes={item.filledPelkatCodes}
+                missingPelkatCodes={item.missingPelkatCodes}
+                onClick={() => handleOpenDetailFromCard(item.rawItem)}
               />
             ))}
           </div>
