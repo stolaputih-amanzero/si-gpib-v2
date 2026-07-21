@@ -1,28 +1,69 @@
 @import "tailwindcss";
 
 @theme {
-  --color-surface-base: oklch(0.985 0.005 90);
-  --color-surface-elevated: oklch(1 0 0);
-  --color-brand-primary: oklch(0.25 0.06 260);
-  --color-accent-valor: oklch(0.75 0.14 85);
-  --color-text-high: oklch(0.2 0.02 260);
-  --color-text-muted: oklch(0.5 0.02 260);
-  --color-error: oklch(0.6 0.18 20);
+  /* Colors */
+  --color-brand-primary: #1E40AF;
+  --color-brand-primary-light: #3B82F6;
+  --color-brand-primary-dark: #1E3A8A;
+  --color-accent-gold: #F59E0B;
+  --color-accent-gold-light: #FCD34D;
+  --color-accent-gold-dark: #D97706;
 
-  --font-sans: 'Geist', system-ui, sans-serif;
-  --font-serif: 'Playfair Display', Georgia, serif;
+  /* Semantic Colors */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+
+  /* Surface Colors */
+  --color-surface-base: #F9FAFB;
+  --color-surface-elevated: #FFFFFF;
+  --color-surface-sunken: #F3F4F6;
+
+  /* Text Colors */
+  --color-text-high: #111827;
+  --color-text-medium: #4B5563;
+  --color-text-muted: #6B7280;
+  --color-text-disabled: #9CA3AF;
+
+  /* Border Colors */
+  --color-border-subtle: #E5E7EB;
+  --color-border-strong: #D1D5DB;
+
+  /* Shadows */
+  --shadow-soft: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-heavy: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Merriweather', 'Playfair Display', Georgia, serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
 }
 
 :root {
-  background-color: var(--color-surface-base);
-  color: var(--color-text-high);
+  background-color: var(--color-surface-base, #F9FAFB);
+  color: var(--color-text-high, #111827);
+  -webkit-tap-highlight-color: transparent;
 }
 
 @media (prefers-color-scheme: dark) {
-  @theme {
-    --color-brand-primary: oklch(0.75 0.1 260);
-    --color-accent-valor: oklch(0.80 0.15 85);
+  :root {
+    --color-surface-base: #0F172A;
+    --color-surface-elevated: #1E293B;
+    --color-surface-sunken: #020617;
+    --color-text-high: #F8FAFC;
+    --color-text-medium: #CBD5E1;
+    --color-text-muted: #94A3B8;
+    --color-border-subtle: #334155;
+    --color-border-strong: #475569;
   }
 }
 
@@ -31,4 +72,84 @@ body {
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-family: var(--font-sans);
+}
+
+/* Custom Keyframe Animations */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0.8;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-down {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Safe Area Utilities for Mobile (iOS Notch & Home Bar) */
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.pt-safe {
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+}
+
+.min-h-touch {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Accessibility: Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
