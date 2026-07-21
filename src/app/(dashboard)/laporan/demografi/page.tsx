@@ -6,12 +6,28 @@ import { DemografiCard } from '@/components/demografi/DemografiCard';
 import { DemografiChart } from '@/components/demografi/DemografiChart';
 import { DemografiForm } from '@/components/demografi/DemografiForm';
 import { KATEGORI_PELKAT } from '@/lib/constants/pelkat';
-import { Plus, Filter, Users, Search, X } from 'lucide-react';
+import { Plus, Filter, Users, Search, X, MapPin, Building, Layers } from 'lucide-react';
+import { HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
+
+interface DemografiDetailItem {
+  id_pos: string;
+  kategori_pelkat: string;
+  laki: number;
+  perempuan: number;
+  jml_kk: number;
+  profesi?: string | null;
+  pendidikan?: string | null;
+  keterangan?: string | null;
+  posName?: string;
+  jemaatName?: string;
+  mupelName?: string;
+}
 
 export default function LaporanDemografiPage() {
   const [selectedPelkat, setSelectedPelkat] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showFormModal, setShowFormModal] = useState<boolean>(false);
+  const [activeDetailModal, setActiveDetailModal] = useState<DemografiDetailItem | null>(null);
 
   const { data: demografiList, isLoading } = useDemografiList({
     kategori_pelkat: selectedPelkat || undefined,
@@ -55,6 +71,49 @@ export default function LaporanDemografiPage() {
     laki: values.laki,
     perempuan: values.perempuan,
   }));
+
+  const handleFormSuccess = (savedData: any, metaInfo?: HierarchyMetaInfo | null) => {
+    setShowFormModal(false);
+    
+    // Auto-transition to Detail Modal View for the newly saved record
+    const posNama = metaInfo?.posName || savedData.pos?.nama_pos;
+    const jemaatNama = metaInfo?.jemaatName || savedData.pos?.jemaat_induk?.nama_induk;
+    const mupelNama = metaInfo?.mupelName || savedData.pos?.jemaat_induk?.mupel?.nama_mupel;
+
+    setActiveDetailModal({
+      id_pos: savedData.id_pos,
+      kategori_pelkat: savedData.kategori_pelkat,
+      laki: savedData.laki || 0,
+      perempuan: savedData.perempuan || 0,
+      jml_kk: savedData.jml_kk || 0,
+      profesi: savedData.profesi,
+      pendidikan: savedData.pendidikan,
+      keterangan: savedData.keterangan,
+      posName: posNama && posNama !== 'Pelayanan Jemaat Direct' ? posNama : '-',
+      jemaatName: jemaatNama || '-',
+      mupelName: mupelNama || '-',
+    });
+  };
+
+  const handleOpenDetailFromCard = (item: any) => {
+    const posNama = item.pos?.nama_pos;
+    const jemaatNama = item.pos?.jemaat_induk?.nama_induk;
+    const mupelNama = item.pos?.jemaat_induk?.mupel?.nama_mupel;
+
+    setActiveDetailModal({
+      id_pos: item.id_pos,
+      kategori_pelkat: item.kategori_pelkat,
+      laki: item.laki || 0,
+      perempuan: item.perempuan || 0,
+      jml_kk: item.jml_kk || 0,
+      profesi: item.profesi,
+      pendidikan: item.pendidikan,
+      keterangan: item.keterangan,
+      posName: posNama && posNama !== 'Pelayanan Jemaat Direct' ? posNama : '-',
+      jemaatName: jemaatNama || '-',
+      mupelName: mupelNama || '-',
+    });
+  };
 
   return (
     <div className="w-full space-y-6 pb-12">
@@ -171,6 +230,7 @@ export default function LaporanDemografiPage() {
                 jml_kk={item.jml_kk || 0}
                 laki={item.laki || 0}
                 perempuan={item.perempuan || 0}
+                onClick={() => handleOpenDetailFromCard(item)}
               />
             ))}
           </div>
@@ -198,7 +258,7 @@ export default function LaporanDemografiPage() {
                   <span>Input Demografi Pelkat Baru</span>
                 </h2>
                 <p className="text-xs text-text-muted mt-0.5">
-                  Pilih Wilayah Pos Pelkes & Kategori Pelkat GPIB
+                  Pilih Wilayah Jemaat Induk, Pos Pelkes (Opsional) & Pelkat
                 </p>
               </div>
               <button
@@ -211,8 +271,147 @@ export default function LaporanDemografiPage() {
             </div>
 
             <DemografiForm 
-              onSuccess={() => setShowFormModal(false)} 
+              onSuccess={handleFormSuccess} 
             />
+          </div>
+        </div>
+      )}
+
+      {/* Detail Demografi Modal */}
+      {activeDetailModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-surface-elevated w-full max-w-lg rounded-t-3xl sm:rounded-2xl p-5 border border-border-subtle shadow-heavy max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+              <div>
+                <h2 className="text-base font-serif font-bold text-brand-primary flex items-center gap-2">
+                  <Users size={18} />
+                  <span>Detail Demografi Pelkat</span>
+                </h2>
+                <p className="text-xs text-text-muted mt-0.5">
+                  Kategori: <strong className="text-text-high font-mono">{activeDetailModal.kategori_pelkat}</strong>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveDetailModal(null)}
+                className="w-9 h-9 rounded-full bg-surface-sunken flex items-center justify-center text-text-muted hover:text-text-high min-h-[44px] min-w-[44px]"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="space-y-4">
+              {/* Pelkat Badge & Summary Header */}
+              <div className="bg-surface-sunken/60 p-3.5 rounded-2xl border border-border-subtle/80 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-3xl">
+                    {KATEGORI_PELKAT.find((k) => k.kode === activeDetailModal.kategori_pelkat)?.icon || '👥'}
+                  </span>
+                  <div>
+                    <h3 className="font-bold text-text-high text-sm">
+                      {KATEGORI_PELKAT.find((k) => k.kode === activeDetailModal.kategori_pelkat)?.nama || activeDetailModal.kategori_pelkat}
+                    </h3>
+                    <p className="text-[11px] text-text-muted">
+                      {KATEGORI_PELKAT.find((k) => k.kode === activeDetailModal.kategori_pelkat)?.deskripsi}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-serif font-extrabold text-brand-primary tabular-nums">
+                    {(activeDetailModal.laki || 0) + (activeDetailModal.perempuan || 0)}{' '}
+                    <span className="text-xs font-normal text-text-muted">Jiwa</span>
+                  </p>
+                  <p className="text-[11px] text-text-muted">{activeDetailModal.jml_kk || 0} KK</p>
+                </div>
+              </div>
+
+              {/* 3-Level Hierarchy Breakdown */}
+              <div className="bg-surface-base p-3.5 rounded-2xl border border-border-subtle/80 space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-text-muted flex items-center gap-1.5 font-medium">
+                    <MapPin size={14} className="text-brand-primary" /> Pos Pelkes / Bajem:
+                  </span>
+                  <span className="font-bold text-text-high">
+                    {activeDetailModal.posName && activeDetailModal.posName !== 'Pelayanan Jemaat Direct' ? activeDetailModal.posName : '-'}
+                  </span>
+                </div>
+
+                {activeDetailModal.jemaatName && (
+                  <div className="flex items-center justify-between border-t border-border-subtle/40 pt-2">
+                    <span className="text-text-muted flex items-center gap-1.5">
+                      <Building size={14} className="text-blue-500" /> Jemaat Induk Terkait:
+                    </span>
+                    <span className="font-bold text-text-high">
+                      {activeDetailModal.jemaatName}
+                    </span>
+                  </div>
+                )}
+
+                {activeDetailModal.mupelName && (
+                  <div className="flex items-center justify-between border-t border-border-subtle/40 pt-2">
+                    <span className="text-text-muted flex items-center gap-1.5">
+                      <Layers size={14} className="text-purple-500" /> Mupel Terkait:
+                    </span>
+                    <span className="font-bold text-text-high">
+                      {activeDetailModal.mupelName}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Gender Breakdown Grid */}
+              <div className="grid grid-cols-2 gap-3 text-center">
+                <div className="bg-blue-50/70 dark:bg-blue-950/40 p-3 rounded-xl border border-blue-100 dark:border-blue-900/40">
+                  <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Laki-Laki</p>
+                  <p className="text-xl font-bold text-blue-700 dark:text-blue-300 tabular-nums mt-0.5">
+                    {activeDetailModal.laki || 0}
+                  </p>
+                </div>
+                <div className="bg-pink-50/70 dark:bg-pink-950/40 p-3 rounded-xl border border-pink-100 dark:border-pink-900/40">
+                  <p className="text-xs font-semibold text-pink-600 dark:text-pink-400">Perempuan</p>
+                  <p className="text-xl font-bold text-pink-700 dark:text-pink-300 tabular-nums mt-0.5">
+                    {activeDetailModal.perempuan || 0}
+                  </p>
+                </div>
+              </div>
+
+              {/* Profesi & Pendidikan */}
+              <div className="grid grid-cols-2 gap-3 text-xs bg-surface-base p-3 rounded-xl border border-border-subtle/60">
+                <div>
+                  <p className="text-text-muted font-medium">Dominasi Profesi:</p>
+                  <p className="font-semibold text-text-high mt-0.5">{activeDetailModal.profesi || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-text-muted font-medium">Tingkat Pendidikan:</p>
+                  <p className="font-semibold text-text-high mt-0.5">{activeDetailModal.pendidikan || '-'}</p>
+                </div>
+              </div>
+
+              {/* Keterangan */}
+              {activeDetailModal.keterangan ? (
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-text-high">Catatan / Keterangan:</label>
+                  <p className="text-xs text-text-high italic bg-surface-sunken/60 p-3 rounded-xl border border-border-subtle/60 leading-relaxed whitespace-pre-line">
+                    "{activeDetailModal.keterangan}"
+                  </p>
+                </div>
+              ) : (
+                <p className="text-xs text-text-muted italic">Tidak ada catatan tambahan.</p>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-border-subtle">
+                <button
+                  type="button"
+                  onClick={() => setActiveDetailModal(null)}
+                  className="px-5 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark transition-all min-h-[44px]"
+                >
+                  Tutup Detail
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

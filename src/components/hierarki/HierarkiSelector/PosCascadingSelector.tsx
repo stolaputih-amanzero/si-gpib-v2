@@ -48,7 +48,7 @@ export function PosCascadingSelector({
   const [selectedJemaat, setSelectedJemaat] = useState<string>('');
 
   // 1. Dapatkan auth user & role untuk Poka-Yoke Auto-Selection & Locking
-  const { data: userAuth, isLoading: isLoadingAuth } = useUserMupelAuth();
+  const { data: userAuth } = useUserMupelAuth();
 
   // Fetch option lists to get human readable names
   const { data: mupelList } = useMupelOptions();
@@ -147,7 +147,7 @@ export function PosCascadingSelector({
     onChange(''); // Reset Pos
   };
 
-  if (isLookingUp || isLoadingAuth) {
+  if (defaultPosId && isLookingUp) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 animate-pulse">
         <div className="h-[44px] bg-surface-sunken rounded-xl w-full"></div>

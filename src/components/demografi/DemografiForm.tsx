@@ -7,28 +7,32 @@ import { demografiSchema, DemografiInput } from '@/lib/validations/demografi.sch
 import { KATEGORI_PELKAT } from '@/lib/constants/pelkat';
 import { useUpsertDemografi } from '@/hooks/use-demografi';
 import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
-import { PosCascadingSelector } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
+import { PosCascadingSelector, HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
+import { formatPastoralKegiatanText } from '@/lib/formatters/pastoral-text';
+import { createClient } from '@/lib/supabase/client';
 
 interface DemografiFormProps {
   id_pos?: string;
   initialData?: Partial<DemografiInput>;
-  onSuccess?: () => void;
+  onSuccess?: (savedData: DemografiInput, metaInfo?: HierarchyMetaInfo | null) => void;
 }
 
 export function DemografiForm({ id_pos, initialData, onSuccess }: DemografiFormProps) {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [hierarchyMeta, setHierarchyMeta] = useState<HierarchyMetaInfo | null>(null);
 
   const {
     register,
     handleSubmit,
     watch,
     control,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<DemografiInput>({
     resolver: zodResolver(demografiSchema),
     defaultValues: {
-      id_pos,
+      id_pos: id_pos || initialData?.id_pos || '',
       kategori_pelkat: (initialData?.kategori_pelkat as any) || 'PA',
       jml_kk: initialData?.jml_kk || 0,
       laki: initialData?.laki || 0,
@@ -49,7 +53,40 @@ export function DemografiForm({ id_pos, initialData, onSuccess }: DemografiFormP
     setErrorMsg(null);
 
     try {
-      await upsertMutation.mutateAsync(data);
+      let targetPosId = data.id_pos;
+
+      // Jika Pos Pelkes tidak dipilih (opsional), cari default pos milik id_induk yang dipilih
+      if ((!targetPosId || targetPosId.trim() === '') && hierarchyMeta?.id_induk) {
+        const supabase = createClient();
+        const { data: posRows } = await supabase
+          .from('m_pos_pelkes')
+          .select('id_pos')
+          .eq('id_induk', hierarchyMeta.id_induk)
+          .limit(1);
+
+        if (posRows && posRows[0]) {
+          targetPosId = posRows[0].id_pos;
+        }
+      }
+
+      if (!targetPosId || targetPosId.trim() === '') {
+        throw new Error('Silakan pilih Wilayah Jemaat Induk & Pos Pelkes terkait terlebih dahulu.');
+      }
+
+      // Aplikasikan Smart Masking / Kapitalisasi pada Profesi, Pendidikan, & Catatan Keterangan
+      const formattedProfesi = data.profesi ? formatPastoralKegiatanText(data.profesi) : '';
+      const formattedPendidikan = data.pendidikan ? formatPastoralKegiatanText(data.pendidikan) : '';
+      const formattedKeterangan = data.keterangan ? formatPastoralKegiatanText(data.keterangan) : '';
+
+      const finalPayload: DemografiInput = {
+        ...data,
+        id_pos: targetPosId,
+        profesi: formattedProfesi,
+        pendidikan: formattedPendidikan,
+        keterangan: formattedKeterangan,
+      };
+
+      await upsertMutation.mutateAsync(finalPayload);
 
       // Haptic feedback for mobile devices
       if (typeof window !== 'undefined' && 'vibrate' in navigator) {
@@ -57,7 +94,9 @@ export function DemografiForm({ id_pos, initialData, onSuccess }: DemografiFormP
       }
 
       setSuccessMsg('Data demografi berhasil disimpan!');
-      if (onSuccess) onSuccess();
+      if (onSuccess) {
+        onSuccess(finalPayload, hierarchyMeta);
+      }
 
     } catch (error: any) {
       if (typeof window !== 'undefined' && 'vibrate' in navigator) {
@@ -79,9 +118,11 @@ export function DemografiForm({ id_pos, initialData, onSuccess }: DemografiFormP
               <PosCascadingSelector
                 value={field.value}
                 onChange={field.onChange}
+                onMetaChange={(meta) => setHierarchyMeta(meta)}
                 error={errors.id_pos?.message}
                 defaultPosId={initialData?.id_pos}
                 disabled={isSubmitting}
+                required={false}
               />
             )}
           />
@@ -199,6 +240,7 @@ export function DemografiForm({ id_pos, initialData, onSuccess }: DemografiFormP
             type="text"
             placeholder="Misal: Petani, PNS, Wiraswasta"
             {...register('profesi')}
+            onBlur={(e) => setValue('profesi', formatPastoralKegiatanText(e.target.value))}
             className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-elevated text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
           />
         </div>
@@ -211,6 +253,7 @@ export function DemografiForm({ id_pos, initialData, onSuccess }: DemografiFormP
             type="text"
             placeholder="Misal: SMA, Sarjana"
             {...register('pendidikan')}
+            onBlur={(e) => setValue('pendidikan', formatPastoralKegiatanText(e.target.value))}
             className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-elevated text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
           />
         </div>
@@ -225,6 +268,7 @@ export function DemografiForm({ id_pos, initialData, onSuccess }: DemografiFormP
           rows={2}
           placeholder="Catatan khusus mengenai kategori pelkat ini..."
           {...register('keterangan')}
+          onBlur={(e) => setValue('keterangan', formatPastoralKegiatanText(e.target.value))}
           className="w-full p-3 rounded-xl border border-border-subtle bg-surface-elevated text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
         />
       </div>
