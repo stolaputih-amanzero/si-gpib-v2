@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mic, MicOff, Save, Calendar, Users, ChevronLeft } from 'lucide-react';
+import { Mic, MicOff, Save, Calendar, Clock, Users, ChevronLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useVoiceInput } from '@/hooks/use-voice-input';
 import { logPastoralSchema, LogPastoralInput } from '@/lib/validations/log-pastoral.schema';
@@ -32,6 +32,13 @@ export default function LogPastoralBaruPage() {
     return `${year}-${month}-${day}`;
   };
 
+  const getNowTimeString = () => {
+    const d = new Date();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
   const {
     register,
     handleSubmit,
@@ -45,6 +52,7 @@ export default function LogPastoralBaruPage() {
       id_induk: '',
       id_pos: undefined,
       tgl: getTodayDateString(),
+      jam: getNowTimeString(),
       kegiatan: '',
       jml_jiwa: undefined,
       catatan: '',
@@ -56,8 +64,9 @@ export default function LogPastoralBaruPage() {
     const initFormDefaults = async () => {
       const supabase = createClient();
       
-      // 1. Set default Today date string
+      // 1. Set default Today date & current local time string
       setValue('tgl', getTodayDateString());
+      setValue('jam', getNowTimeString());
 
       // 2. Resolve valid id_pendeta from m_pendeta table to pass Foreign Key constraint
       const { data: pendetaData } = await supabase
@@ -137,6 +146,15 @@ export default function LogPastoralBaruPage() {
         ? data.tgl.toISOString().split('T')[0]
         : getTodayDateString();
 
+      const jamStr = data.jam || getNowTimeString();
+
+      // Combine time prefix cleanly into catatan if present
+      let finalCatatan = data.catatan ? data.catatan.trim() : '';
+      const timeTag = `[⏰ Jam Pelayanan: ${jamStr} WIB]`;
+      if (!finalCatatan.includes('Jam Pelayanan:')) {
+        finalCatatan = finalCatatan ? `${timeTag}\n${finalCatatan}` : timeTag;
+      }
+
       const payload = {
         id_log: idLog,
         id_pos: data.id_pos && data.id_pos.trim() !== '' ? data.id_pos : null,
@@ -144,7 +162,7 @@ export default function LogPastoralBaruPage() {
         tgl: tglStr,
         kegiatan: data.kegiatan,
         jml_jiwa: data.jml_jiwa ? Number(data.jml_jiwa) : null,
-        catatan: data.catatan || null,
+        catatan: finalCatatan,
       };
 
       const { error } = await supabase.from('t_log_pastoral').insert(payload);
@@ -157,7 +175,7 @@ export default function LogPastoralBaruPage() {
 
       // Clear draft
       localStorage.removeItem('draft:log-pastoral');
-      toast.success('Berhasil Disimpan', 'Log pastoral telah berhasil dicatat.');
+      toast.success('Berhasil Disimpan', `Log pastoral tanggal ${tglStr} jam ${jamStr} WIB telah dicatat.`);
 
       // Haptic feedback (success)
       if ('vibrate' in navigator) {
@@ -193,7 +211,7 @@ export default function LogPastoralBaruPage() {
                 Input Log Pastoral
               </h1>
               <p className="text-xs text-text-muted">
-                Catat kegiatan pelayanan pastoral Anda
+                Catat kegiatan pelayanan pastoral & waktu kunjungan Anda
               </p>
             </div>
           </div>
@@ -202,20 +220,37 @@ export default function LogPastoralBaruPage() {
 
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-        {/* Tanggal */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-text-high flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-brand-primary" />
-            Tanggal *
-          </label>
-          <input
-            type="date"
-            {...register('tgl')}
-            className="w-full min-h-[44px] px-3 rounded-xl border border-border-subtle bg-surface-base text-text-high text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
-          />
-          {errors.tgl && (
-            <p className="text-xs text-error font-medium">{errors.tgl.message}</p>
-          )}
+        {/* Tanggal & Waktu / Jam (Side by Side) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-text-high flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-brand-primary" />
+              Tanggal Pelayanan *
+            </label>
+            <input
+              type="date"
+              {...register('tgl')}
+              className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-text-high text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+            />
+            {errors.tgl && (
+              <p className="text-xs text-error font-medium">{errors.tgl.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-text-high flex items-center gap-2">
+              <Clock className="w-4 h-4 text-brand-primary" />
+              Waktu / Jam Pelayanan *
+            </label>
+            <input
+              type="time"
+              {...register('jam')}
+              className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-text-high text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+            />
+            {errors.jam && (
+              <p className="text-xs text-error font-medium">{errors.jam.message}</p>
+            )}
+          </div>
         </div>
 
         {/* Pos Pelkes Cascading Selector (Mupel & Jemaat Mandatory, Pos Pelkes Optional) */}
@@ -285,7 +320,7 @@ export default function LogPastoralBaruPage() {
         <div className="space-y-2">
           <label className="text-sm font-medium text-text-high flex items-center gap-2">
             <Users className="w-4 h-4 text-brand-primary" />
-            Jumlah Jiwa
+            Jumlah Jiwa Dilayani
           </label>
           <input
             type="number"
@@ -301,7 +336,7 @@ export default function LogPastoralBaruPage() {
         {/* Catatan */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-text-high">
-            Catatan (Opsional)
+            Catatan Pastoral (Opsional)
           </label>
           <textarea
             {...register('catatan')}

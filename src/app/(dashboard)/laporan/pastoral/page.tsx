@@ -13,6 +13,7 @@ import {
   Plus,
   Search,
   Calendar,
+  Clock,
   Users,
   MapPin,
   Trash2,
@@ -36,6 +37,7 @@ export default function LaporanPastoralPage() {
   // Modal Edit Form state
   const [editKegiatan, setEditKegiatan] = useState('');
   const [editTgl, setEditTgl] = useState('');
+  const [editJam, setEditJam] = useState('');
   const [editJmlJiwa, setEditJmlJiwa] = useState<number | ''>('');
   const [editCatatan, setEditCatatan] = useState('');
 
@@ -43,12 +45,25 @@ export default function LaporanPastoralPage() {
   const deleteMutation = useDeleteLogPastoral();
   const updateMutation = useUpdateLogPastoral();
 
+  // Helper to extract time tag from catatan
+  const extractTimeFromCatatan = (catatan?: string | null) => {
+    if (!catatan) return { jamStr: '09:00', cleanNotes: '' };
+    const match = catatan.match(/\[⏰ Jam Pelayanan:\s*([\d:]+)\s*WIB\]/);
+    if (match && match[1]) {
+      const cleanNotes = catatan.replace(/\[⏰ Jam Pelayanan:\s*[\d:]+\s*WIB\]\n?/, '').trim();
+      return { jamStr: match[1], cleanNotes };
+    }
+    return { jamStr: '', cleanNotes: catatan };
+  };
+
   const handleOpenDetailModal = (log: LogPastoralItem) => {
+    const { jamStr, cleanNotes } = extractTimeFromCatatan(log.catatan);
     setSelectedLog(log);
     setEditKegiatan(log.kegiatan);
     setEditTgl(log.tgl);
+    setEditJam(jamStr || '09:00');
     setEditJmlJiwa(log.jml_jiwa ?? '');
-    setEditCatatan(log.catatan || '');
+    setEditCatatan(cleanNotes);
     setIsEditing(false);
   };
 
@@ -63,15 +78,20 @@ export default function LaporanPastoralPage() {
     if (!selectedLog) return;
 
     try {
+      const jamStr = editJam || '09:00';
+      let finalCatatan = editCatatan ? editCatatan.trim() : '';
+      const timeTag = `[⏰ Jam Pelayanan: ${jamStr} WIB]`;
+      finalCatatan = finalCatatan ? `${timeTag}\n${finalCatatan}` : timeTag;
+
       await updateMutation.mutateAsync({
         id_log: selectedLog.id_log,
         kegiatan: editKegiatan,
         tgl: editTgl,
         jml_jiwa: editJmlJiwa !== '' ? Number(editJmlJiwa) : null,
-        catatan: editCatatan || null,
+        catatan: finalCatatan,
       });
 
-      toast.success('Log Pastoral Diperbarui', 'Data kegiatan pastoral telah berhasil diperbarui.');
+      toast.success('Log Pastoral Diperbarui', 'Data kegiatan & waktu pelayanan telah diperbarui.');
       setSelectedLog(null);
       setIsEditing(false);
     } catch (error: any) {
@@ -116,7 +136,7 @@ export default function LaporanPastoralPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl md:text-2xl font-serif font-bold text-brand-primary">Log Pastoral & Kunjungan</h1>
-          <p className="text-xs md:text-sm text-text-muted mt-0.5">Catatan Pelayanan Pastoral, Konseling & Kunjungan Rumah Jemaat Pos</p>
+          <p className="text-xs md:text-sm text-text-muted mt-0.5">Catatan Pelayanan Pastoral, Konseling & Waktu Kunjungan Jemaat</p>
         </div>
 
         <Link
@@ -154,7 +174,7 @@ export default function LaporanPastoralPage() {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
           <input
             type="text"
-            placeholder="Cari log pastoral (kegiatan, catatan, pos pelkes, pendeta)..."
+            placeholder="Cari log pastoral (kegiatan, jam, pos pelkes, pendeta)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
@@ -184,87 +204,97 @@ export default function LaporanPastoralPage() {
           </div>
         ) : pastoralLogs && pastoralLogs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {pastoralLogs.map((log) => (
-              <div
-                key={log.id_log}
-                onClick={() => handleOpenDetailModal(log)}
-                className="bg-surface-elevated p-4.5 rounded-2xl border border-border-subtle shadow-soft space-y-3 hover:border-brand-primary hover:shadow-medium transition-all cursor-pointer group relative"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1 min-w-0">
-                    <h3 className="font-serif font-bold text-base text-text-high leading-snug truncate group-hover:text-brand-primary transition-colors">
-                      {log.kegiatan}
-                    </h3>
-                    <div className="flex items-center gap-2 text-xs text-text-muted flex-wrap">
-                      <span className="inline-flex items-center gap-1">
-                        <Calendar size={13} className="text-brand-primary" />
-                        {log.tgl}
-                      </span>
-                      {log.jml_jiwa ? (
-                        <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
-                          <Users size={12} />
-                          {log.jml_jiwa} Jiwa
+            {pastoralLogs.map((log) => {
+              const { jamStr, cleanNotes } = extractTimeFromCatatan(log.catatan);
+
+              return (
+                <div
+                  key={log.id_log}
+                  onClick={() => handleOpenDetailModal(log)}
+                  className="bg-surface-elevated p-4.5 rounded-2xl border border-border-subtle shadow-soft space-y-3 hover:border-brand-primary hover:shadow-medium transition-all cursor-pointer group relative"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1 min-w-0">
+                      <h3 className="font-serif font-bold text-base text-text-high leading-snug truncate group-hover:text-brand-primary transition-colors">
+                        {log.kegiatan}
+                      </h3>
+                      <div className="flex items-center gap-2 text-xs text-text-muted flex-wrap">
+                        <span className="inline-flex items-center gap-1 font-medium bg-surface-sunken px-2 py-0.5 rounded-md">
+                          <Calendar size={13} className="text-brand-primary" />
+                          {log.tgl}
                         </span>
-                      ) : null}
+                        {jamStr ? (
+                          <span className="inline-flex items-center gap-1 font-semibold text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-md">
+                            <Clock size={12} />
+                            {jamStr} WIB
+                          </span>
+                        ) : null}
+                        {log.jml_jiwa ? (
+                          <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                            <Users size={12} />
+                            {log.jml_jiwa} Jiwa
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    {/* Card Actions */}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={(e) => handleOpenEditDirect(e, log)}
+                        className="p-2 rounded-xl text-text-muted hover:text-brand-primary hover:bg-brand-primary/10 transition-colors"
+                        title="Edit Log Pastoral"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => handleDelete(e, log.id_log, log.kegiatan)}
+                        className="p-2 rounded-xl text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+                        title="Hapus Log"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </div>
 
-                  {/* Card Actions */}
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      type="button"
-                      onClick={(e) => handleOpenEditDirect(e, log)}
-                      className="p-2 rounded-xl text-text-muted hover:text-brand-primary hover:bg-brand-primary/10 transition-colors"
-                      title="Edit Log Pastoral"
-                    >
-                      <Edit size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => handleDelete(e, log.id_log, log.kegiatan)}
-                      className="p-2 rounded-xl text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
-                      title="Hapus Log"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Details Meta */}
-                <div className="bg-surface-base p-2.5 rounded-xl border border-border-subtle/60 text-xs space-y-1">
-                  <div className="flex items-center justify-between text-text-muted">
-                    <span className="flex items-center gap-1">
-                      <MapPin size={13} className="text-brand-primary" /> Pos Pelkes / Wilayah:
-                    </span>
-                    <span className="font-semibold text-text-high truncate max-w-[180px]">
-                      {log.pos?.nama_pos || 'Jemaat Induk Direct'}
-                    </span>
-                  </div>
-                  {log.pendeta && (
+                  {/* Details Meta */}
+                  <div className="bg-surface-base p-2.5 rounded-xl border border-border-subtle/60 text-xs space-y-1">
                     <div className="flex items-center justify-between text-text-muted">
                       <span className="flex items-center gap-1">
-                        <HeartHandshake size={13} className="text-brand-primary" /> Pelayan:
+                        <MapPin size={13} className="text-brand-primary" /> Pos Pelkes / Wilayah:
                       </span>
                       <span className="font-semibold text-text-high truncate max-w-[180px]">
-                        {log.pendeta.nama_lengkap}
+                        {log.pos?.nama_pos || 'Jemaat Induk Direct'}
                       </span>
                     </div>
+                    {log.pendeta && (
+                      <div className="flex items-center justify-between text-text-muted">
+                        <span className="flex items-center gap-1">
+                          <HeartHandshake size={13} className="text-brand-primary" /> Pelayan:
+                        </span>
+                        <span className="font-semibold text-text-high truncate max-w-[180px]">
+                          {log.pendeta.nama_lengkap}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Catatan Snippet */}
+                  {cleanNotes && (
+                    <p className="text-xs text-text-high italic bg-surface-sunken/60 p-2.5 rounded-xl border border-border-subtle/40 line-clamp-2">
+                      "{cleanNotes}"
+                    </p>
                   )}
-                </div>
 
-                {/* Catatan Snippet */}
-                {log.catatan && (
-                  <p className="text-xs text-text-high italic bg-surface-sunken/60 p-2.5 rounded-xl border border-border-subtle/40 line-clamp-2">
-                    "{log.catatan}"
-                  </p>
-                )}
-
-                <div className="flex items-center justify-end text-[11px] font-semibold text-brand-primary gap-1 group-hover:translate-x-0.5 transition-transform pt-0.5">
-                  <Eye size={12} />
-                  <span>Lihat Detail & Edit</span>
+                  <div className="flex items-center justify-end text-[11px] font-semibold text-brand-primary gap-1 group-hover:translate-x-0.5 transition-transform pt-0.5">
+                    <Eye size={12} />
+                    <span>Lihat Detail & Edit</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="bg-surface-elevated rounded-2xl p-10 text-center border border-border-subtle space-y-3">
@@ -311,19 +341,35 @@ export default function LaporanPastoralPage() {
             {/* Modal View / Form */}
             {isEditing ? (
               <form onSubmit={handleSaveEdit} className="space-y-4">
-                {/* Tanggal */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
-                    <Calendar size={14} className="text-brand-primary" />
-                    Tanggal Kegiatan *
-                  </label>
-                  <input
-                    type="date"
-                    value={editTgl}
-                    onChange={(e) => setEditTgl(e.target.value)}
-                    required
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
-                  />
+                {/* Tanggal & Jam */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
+                      <Calendar size={14} className="text-brand-primary" />
+                      Tanggal *
+                    </label>
+                    <input
+                      type="date"
+                      value={editTgl}
+                      onChange={(e) => setEditTgl(e.target.value)}
+                      required
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
+                      <Clock size={14} className="text-brand-primary" />
+                      Waktu / Jam *
+                    </label>
+                    <input
+                      type="time"
+                      value={editJam}
+                      onChange={(e) => setEditJam(e.target.value)}
+                      required
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                    />
+                  </div>
                 </div>
 
                 {/* Kegiatan */}
@@ -392,10 +438,14 @@ export default function LaporanPastoralPage() {
                   <h3 className="font-serif font-bold text-lg text-text-high">
                     {selectedLog.kegiatan}
                   </h3>
-                  <div className="flex items-center gap-3 text-xs text-text-muted flex-wrap">
+                  <div className="flex items-center gap-2.5 text-xs text-text-muted flex-wrap">
                     <span className="inline-flex items-center gap-1 font-medium bg-surface-sunken px-2.5 py-1 rounded-lg">
                       <Calendar size={14} className="text-brand-primary" />
                       Tanggal: {selectedLog.tgl}
+                    </span>
+                    <span className="inline-flex items-center gap-1 font-semibold text-brand-primary bg-brand-primary/10 px-2.5 py-1 rounded-lg">
+                      <Clock size={14} />
+                      Waktu: {extractTimeFromCatatan(selectedLog.catatan).jamStr || '09:00'} WIB
                     </span>
                     {selectedLog.jml_jiwa ? (
                       <span className="inline-flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-2.5 py-1 rounded-lg">
@@ -427,11 +477,11 @@ export default function LaporanPastoralPage() {
                   )}
                 </div>
 
-                {selectedLog.catatan ? (
+                {extractTimeFromCatatan(selectedLog.catatan).cleanNotes ? (
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-text-high">Catatan Tambahan:</label>
                     <p className="text-xs text-text-high italic bg-surface-sunken/60 p-3 rounded-xl border border-border-subtle/60 leading-relaxed whitespace-pre-line">
-                      "{selectedLog.catatan}"
+                      "{extractTimeFromCatatan(selectedLog.catatan).cleanNotes}"
                     </p>
                   </div>
                 ) : (
@@ -455,7 +505,7 @@ export default function LaporanPastoralPage() {
                     className="flex-1 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] flex items-center justify-center gap-2"
                   >
                     <Edit size={16} />
-                    <span>Edit Log Pastoral</span>
+                    <span>Edit Log & Waktu</span>
                   </button>
                 </div>
               </div>
