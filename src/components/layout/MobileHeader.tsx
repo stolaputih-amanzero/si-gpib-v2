@@ -1,7 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { ChevronLeft, Layers } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { ChevronLeft, Layers, RotateCw } from 'lucide-react';
+import { useToast } from '@/components/ui/toast';
 
 // Pathname mapping to human readable page titles
 const PAGE_TITLES: Record<string, string> = {
@@ -21,6 +24,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/bantuan': 'Pengajuan Bantuan',
   '/bantuan/ajukan': 'Ajukan Bantuan Baru',
   '/settings': 'Pengaturan',
+  '/settings/users': 'Manajemen User & Role',
   '/dashboard/profil': 'Profil Saya',
   '/analitik': 'Analitik & KPI',
   '/wilayah': 'Kerawanan & Potensi',
@@ -29,6 +33,9 @@ const PAGE_TITLES: Record<string, string> = {
 export function MobileHeader() {
   const pathname = usePathname();
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Find exact title match or fallback to closest matching prefix or generic label
   let title = PAGE_TITLES[pathname];
@@ -48,10 +55,32 @@ export function MobileHeader() {
 
   const isRoot = pathname === '/dashboard' || pathname === '/';
 
+  const handleRefreshData = async () => {
+    setIsRefreshing(true);
+    try {
+      // 1. Invalidate all React Query cache to re-fetch fresh data
+      await queryClient.invalidateQueries();
+      // 2. Trigger Next.js router revalidation
+      router.refresh();
+
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate([10, 30, 10]);
+      }
+
+      toast.success('Data Diperbarui', 'Data aplikasi berhasil disegarkan secara real-time.');
+    } catch {
+      toast.error('Gagal Memperbarui', 'Terjadi kesalahan saat menyegarkan data.');
+    } finally {
+      setTimeout(() => {
+        setIsRefreshing(false);
+      }, 500);
+    }
+  };
+
   return (
-    <header className="sticky top-0 z-40 w-full bg-surface-elevated/95 backdrop-blur-md border-b border-border-subtle md:hidden shadow-soft">
+    <header className="sticky top-0 z-40 w-full bg-surface-elevated/95 backdrop-blur-md border-b border-border-subtle md:hidden shadow-soft select-none">
       <div className="flex items-center justify-between h-14 px-3 pt-safe">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
           {/* Back Button (shown on all sub-pages) */}
           {!isRoot && (
             <button
@@ -77,6 +106,20 @@ export function MobileHeader() {
           <h1 className="font-serif font-bold text-base sm:text-lg text-text-high truncate leading-snug min-w-0">
             {title}
           </h1>
+        </div>
+
+        {/* Quick Refresh Button for Mobile / Android PWA */}
+        <div className="flex items-center shrink-0">
+          <button
+            type="button"
+            onClick={handleRefreshData}
+            disabled={isRefreshing}
+            className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-xl text-brand-primary hover:bg-brand-primary/10 active:scale-95 transition-all border border-border-subtle/40 disabled:opacity-50"
+            aria-label="Segarkan Data"
+            title="Segarkan Data Real-Time"
+          >
+            <RotateCw size={18} className={isRefreshing ? 'animate-spin text-brand-primary' : ''} />
+          </button>
         </div>
       </div>
     </header>

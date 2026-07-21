@@ -144,7 +144,7 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overscroll-behavior-y: contain; /* Prevent pull-to-refresh in PWA */
+  overscroll-behavior-y: auto; /* Enable native Android PWA pull-to-refresh */
   margin: 0;
   padding: 0;
 }
@@ -166,7 +166,7 @@ html {
 }
 
 html, body {
-  overscroll-behavior-y: contain;
+  overscroll-behavior-y: auto;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
