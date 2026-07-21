@@ -13,6 +13,15 @@ interface AsetCardProps {
 export function AsetCard({ item, onSelect, onEdit, onDelete, onShareWa }: AsetCardProps) {
   const kategoriInfo = getKategoriInfo(item.kategori);
 
+  const displayPosNama =
+    item.pos_nama &&
+    !item.pos_nama.toLowerCase().startsWith('jemaat ') &&
+    item.pos_nama !== item.jemaat_induk &&
+    item.pos_nama !== 'Pelayanan Jemaat Direct' &&
+    item.pos_nama !== '-'
+      ? item.pos_nama
+      : null;
+
   return (
     <div 
       onClick={() => onSelect && onSelect(item)}
@@ -33,9 +42,9 @@ export function AsetCard({ item, onSelect, onEdit, onDelete, onShareWa }: AsetCa
 
         {/* Content Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
             <span
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold shrink-0"
               style={{
                 backgroundColor: `${kategoriInfo?.warna || '#3B82F6'}1A`,
                 color: kategoriInfo?.warna || '#3B82F6',
@@ -44,39 +53,37 @@ export function AsetCard({ item, onSelect, onEdit, onDelete, onShareWa }: AsetCa
               <span>{kategoriInfo?.icon}</span>
               <span>{kategoriInfo?.nama || item.kategori}</span>
             </span>
+
+            {displayPosNama && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-brand-primary/10 text-brand-primary border border-brand-primary/20 truncate max-w-[140px]" title={displayPosNama}>
+                <MapPin size={11} className="shrink-0" />
+                <span className="truncate">{displayPosNama}</span>
+              </span>
+            )}
+
             {item.kondisi && (
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-surface-sunken font-medium text-text-muted border border-border-subtle">
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-surface-sunken font-medium text-text-muted border border-border-subtle shrink-0">
                 {item.kondisi}
               </span>
             )}
           </div>
 
-          <h3 className="font-bold text-text-high text-base truncate mt-1">{item.judul}</h3>
+          <h3 className="font-bold text-text-high text-base truncate mt-1.5">{item.judul}</h3>
           <p className="text-xs text-text-muted truncate mt-0.5">{item.subjudul}</p>
         </div>
       </div>
 
       {/* Meta Footer */}
-      <div className="flex items-center justify-between pt-2 border-t border-border-subtle text-xs text-text-muted">
-        <div className="flex items-center gap-3">
-          {item.pos_nama &&
-            !item.pos_nama.toLowerCase().startsWith('jemaat ') &&
-            item.pos_nama !== item.jemaat_induk &&
-            item.pos_nama !== 'Pelayanan Jemaat Direct' &&
-            item.pos_nama !== '-' && (
-              <span className="flex items-center gap-1 truncate max-w-[140px]" title={item.pos_nama}>
-                <MapPin size={13} className="shrink-0 text-brand-primary" />
-                <span className="truncate">{item.pos_nama}</span>
-              </span>
-            )}
+      <div className="flex items-center justify-between pt-2.5 border-t border-border-subtle text-xs text-text-muted">
+        <div className="flex items-center gap-3 shrink-0">
           {item.tahun && (
-            <span className="flex items-center gap-1">
-              <Calendar size={13} className="shrink-0" />
+            <span className="flex items-center gap-1 font-medium">
+              <Calendar size={13} className="shrink-0 text-text-muted" />
               <span>{item.tahun}</span>
             </span>
           )}
           {item.lampiran_count > 0 && (
-            <span className="flex items-center gap-1 font-medium text-brand-primary">
+            <span className="flex items-center gap-1 font-semibold text-brand-primary">
               <Paperclip size={13} />
               <span>{item.lampiran_count}</span>
             </span>
@@ -84,45 +91,45 @@ export function AsetCard({ item, onSelect, onEdit, onDelete, onShareWa }: AsetCa
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
           {onShareWa && (
             <button
               type="button"
               onClick={() => onShareWa(item)}
-              className="p-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+              className="p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg transition-colors min-h-[34px] min-w-[34px] flex items-center justify-center"
               title="Bagikan ke WhatsApp"
             >
-              <Share2 size={16} />
+              <Share2 size={15} />
             </button>
           )}
           {onSelect && (
             <button
               type="button"
               onClick={() => onSelect(item)}
-              className="p-2 text-text-muted hover:text-brand-primary hover:bg-surface-sunken rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+              className="p-1.5 text-text-muted hover:text-brand-primary hover:bg-surface-sunken rounded-lg transition-colors min-h-[34px] min-w-[34px] flex items-center justify-center"
               title="Lihat Detail Aset"
             >
-              <Eye size={16} />
+              <Eye size={15} />
             </button>
           )}
           {onEdit && (
             <button
               type="button"
               onClick={() => onEdit(item)}
-              className="p-2 text-text-muted hover:text-brand-primary hover:bg-surface-sunken rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+              className="p-1.5 text-text-muted hover:text-brand-primary hover:bg-surface-sunken rounded-lg transition-colors min-h-[34px] min-w-[34px] flex items-center justify-center"
               title="Edit Aset"
             >
-              <Edit2 size={16} />
+              <Edit2 size={15} />
             </button>
           )}
           {onDelete && (
             <button
               type="button"
               onClick={() => onDelete(item.id, item.kategori)}
-              className="p-2 text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+              className="p-1.5 text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors min-h-[34px] min-w-[34px] flex items-center justify-center"
               title="Hapus Aset"
             >
-              <Trash2 size={16} />
+              <Trash2 size={15} />
             </button>
           )}
         </div>
