@@ -33,8 +33,8 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
     PA: { laki: 0, perempuan: 0 },
     PT: { laki: 0, perempuan: 0 },
     GP: { laki: 0, perempuan: 0 },
-    PKP: { laki: 0, perempuan: 0 },
-    PKB: { laki: 0, perempuan: 0 },
+    PKP: { laki: 0, perempuan: 0 }, // PKP: Laki-Laki selalu 0
+    PKB: { laki: 0, perempuan: 0 }, // PKB: Perempuan selalu 0
     PKLU: { laki: 0, perempuan: 0 },
   });
 
@@ -72,8 +72,8 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
             const kode = row.kategori_pelkat as PelkatKode;
             if (updatedRows[kode]) {
               updatedRows[kode] = {
-                laki: row.laki || 0,
-                perempuan: row.perempuan || 0,
+                laki: kode === 'PKP' ? 0 : (row.laki || 0), // Poka-Yoke: Enforce 0 for PKP male
+                perempuan: kode === 'PKB' ? 0 : (row.perempuan || 0), // Poka-Yoke: Enforce 0 for PKB female
               };
             }
             if (row.jml_kk && row.jml_kk > 0) {
@@ -109,6 +109,10 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
   }, [activeIdPos]);
 
   const handleRowChange = (kode: PelkatKode, field: 'laki' | 'perempuan', val: number) => {
+    // Poka-Yoke Enforcement
+    if (kode === 'PKP' && field === 'laki') return;
+    if (kode === 'PKB' && field === 'perempuan') return;
+
     setPelkatRows((prev) => ({
       ...prev,
       [kode]: {
@@ -149,18 +153,20 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
       const formattedPendidikan = pendidikan ? formatPastoralKegiatanText(pendidikan) : '';
       const formattedKeterangan = keterangan ? formatPastoralKegiatanText(keterangan) : '';
 
-      // Susun payload untuk ke-6 Kategori Pelkat. 
-      // jml_kk disimpan pada baris pertama (PA) untuk mencegah duplikasi penjumlahan SQL.
-      const payloads = Object.entries(pelkatRows).map(([kode, row], index) => ({
-        id_pos: finalPosId,
-        kategori_pelkat: kode as PelkatKode,
-        jml_kk: index === 0 ? jmlKk : 0, // KK disimpan pada baris utama (PA)
-        laki: row.laki,
-        perempuan: row.perempuan,
-        profesi: formattedProfesi,
-        pendidikan: formattedPendidikan,
-        keterangan: formattedKeterangan,
-      }));
+      // Susun payload untuk ke-6 Kategori Pelkat (dengan aturan Poka-Yoke PKP & PKB)
+      const payloads = Object.entries(pelkatRows).map(([kodeKey, row], index) => {
+        const kode = kodeKey as PelkatKode;
+        return {
+          id_pos: finalPosId,
+          kategori_pelkat: kode,
+          jml_kk: index === 0 ? jmlKk : 0, // KK disimpan pada baris utama (PA)
+          laki: kode === 'PKP' ? 0 : row.laki,
+          perempuan: kode === 'PKB' ? 0 : row.perempuan,
+          profesi: formattedProfesi,
+          pendidikan: formattedPendidikan,
+          keterangan: formattedKeterangan,
+        };
+      });
 
       await batchUpsertMutation.mutateAsync(payloads);
 
@@ -281,12 +287,15 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
           <span className="text-[10px] text-text-muted font-normal">Input Jumlah Laki-Laki & Perempuan</span>
         </label>
 
-        {/* MOBILE VIEW: Card Layout (Setiap Pelkat dalam Card lega dengan Laki & Perempuan di baris berikutnya) */}
+        {/* MOBILE VIEW: Card Layout (Setiap Pelkat dalam Card lega dengan Poka-Yoke Disabled state) */}
         <div className="space-y-2.5 sm:hidden">
           {KATEGORI_PELKAT.map((pelkat) => {
             const kode = pelkat.kode as PelkatKode;
             const row = pelkatRows[kode] || { laki: 0, perempuan: 0 };
-            const totalRow = Number(row.laki) + Number(row.perempuan);
+
+            const isPkp = kode === 'PKP'; // PKP: Male disabled
+            const isPkb = kode === 'PKB'; // PKB: Female disabled
+            const totalRow = (isPkp ? 0 : Number(row.laki)) + (isPkb ? 0 : Number(row.perempuan));
 
             return (
               <div key={pelkat.kode} className="bg-surface-base border border-border-subtle/80 p-3.5 rounded-2xl space-y-2.5 shadow-soft">
@@ -305,28 +314,43 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
                   </div>
                 </div>
 
-                {/* Input Laki & Perempuan on next row (2-column layout) */}
+                {/* Input Laki & Perempuan on next row (2-column layout dengan Poka-Yoke disabled) */}
                 <div className="grid grid-cols-2 gap-2.5 pt-0.5">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-blue-600 dark:text-blue-400">Laki-Laki</label>
+                    <label className={`text-[11px] font-semibold ${isPkp ? 'text-text-muted' : 'text-blue-600 dark:text-blue-400'}`}>
+                      {isPkp ? 'Laki-Laki (🔒 N/A - PKP)' : 'Laki-Laki'}
+                    </label>
                     <input
                       type="number"
                       min={0}
-                      value={row.laki || ''}
+                      disabled={isPkp}
+                      value={isPkp ? 0 : (row.laki || '')}
                       onChange={(e) => handleRowChange(kode, 'laki', Number(e.target.value))}
-                      placeholder="0"
-                      className="w-full min-h-[44px] px-3 text-center rounded-xl border border-blue-200 dark:border-blue-900 bg-surface-elevated text-sm font-bold text-text-high tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={isPkp ? '0' : '0'}
+                      className={`w-full min-h-[44px] px-3 text-center rounded-xl border text-sm font-bold tabular-nums focus:outline-none ${
+                        isPkp
+                          ? 'bg-surface-sunken border-border-subtle text-text-muted opacity-60 cursor-not-allowed'
+                          : 'border-blue-200 dark:border-blue-900 bg-surface-elevated text-text-high focus:ring-2 focus:ring-blue-500'
+                      }`}
                     />
                   </div>
+
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-pink-600 dark:text-pink-400">Perempuan</label>
+                    <label className={`text-[11px] font-semibold ${isPkb ? 'text-text-muted' : 'text-pink-600 dark:text-pink-400'}`}>
+                      {isPkb ? 'Perempuan (🔒 N/A - PKB)' : 'Perempuan'}
+                    </label>
                     <input
                       type="number"
                       min={0}
-                      value={row.perempuan || ''}
+                      disabled={isPkb}
+                      value={isPkb ? 0 : (row.perempuan || '')}
                       onChange={(e) => handleRowChange(kode, 'perempuan', Number(e.target.value))}
-                      placeholder="0"
-                      className="w-full min-h-[44px] px-3 text-center rounded-xl border border-pink-200 dark:border-pink-900 bg-surface-elevated text-sm font-bold text-text-high tabular-nums focus:outline-none focus:ring-2 focus:ring-pink-500"
+                      placeholder={isPkb ? '0' : '0'}
+                      className={`w-full min-h-[44px] px-3 text-center rounded-xl border text-sm font-bold tabular-nums focus:outline-none ${
+                        isPkb
+                          ? 'bg-surface-sunken border-border-subtle text-text-muted opacity-60 cursor-not-allowed'
+                          : 'border-pink-200 dark:border-pink-900 bg-surface-elevated text-text-high focus:ring-2 focus:ring-pink-500'
+                      }`}
                     />
                   </div>
                 </div>
@@ -335,14 +359,14 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
           })}
         </div>
 
-        {/* DESKTOP VIEW: Clean Table Layout */}
+        {/* DESKTOP VIEW: Clean Table Layout dengan Poka-Yoke disabled */}
         <div className="hidden sm:block border border-border-subtle rounded-2xl overflow-hidden bg-surface-base">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-surface-sunken/80 border-b border-border-subtle text-text-high font-bold">
                 <th className="p-3">Pelkat</th>
-                <th className="p-3 w-28 text-center">Laki-Laki</th>
-                <th className="p-3 w-28 text-center">Perempuan</th>
+                <th className="p-3 w-32 text-center">Laki-Laki</th>
+                <th className="p-3 w-32 text-center">Perempuan</th>
                 <th className="p-3 w-24 text-center">Subtotal</th>
               </tr>
             </thead>
@@ -350,7 +374,10 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
               {KATEGORI_PELKAT.map((pelkat) => {
                 const kode = pelkat.kode as PelkatKode;
                 const row = pelkatRows[kode] || { laki: 0, perempuan: 0 };
-                const totalRow = Number(row.laki) + Number(row.perempuan);
+
+                const isPkp = kode === 'PKP'; // PKP: Male disabled
+                const isPkb = kode === 'PKB'; // PKB: Female disabled
+                const totalRow = (isPkp ? 0 : Number(row.laki)) + (isPkb ? 0 : Number(row.perempuan));
 
                 return (
                   <tr key={pelkat.kode} className="border-b border-border-subtle/50 hover:bg-surface-sunken/40">
@@ -367,20 +394,30 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
                       <input
                         type="number"
                         min={0}
-                        value={row.laki || ''}
+                        disabled={isPkp}
+                        value={isPkp ? 0 : (row.laki || '')}
                         onChange={(e) => handleRowChange(kode, 'laki', Number(e.target.value))}
-                        placeholder="0"
-                        className="w-full min-h-[40px] px-2 text-center rounded-lg border border-blue-200 dark:border-blue-900 bg-surface-elevated text-sm font-bold text-text-high tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder={isPkp ? '0' : '0'}
+                        className={`w-full min-h-[40px] px-2 text-center rounded-lg border text-sm font-bold tabular-nums focus:outline-none ${
+                          isPkp
+                            ? 'bg-surface-sunken border-border-subtle text-text-muted opacity-60 cursor-not-allowed'
+                            : 'border-blue-200 dark:border-blue-900 bg-surface-elevated text-text-high focus:ring-2 focus:ring-blue-500'
+                        }`}
                       />
                     </td>
                     <td className="p-2">
                       <input
                         type="number"
                         min={0}
-                        value={row.perempuan || ''}
+                        disabled={isPkb}
+                        value={isPkb ? 0 : (row.perempuan || '')}
                         onChange={(e) => handleRowChange(kode, 'perempuan', Number(e.target.value))}
-                        placeholder="0"
-                        className="w-full min-h-[40px] px-2 text-center rounded-lg border border-pink-200 dark:border-pink-900 bg-surface-elevated text-sm font-bold text-text-high tabular-nums focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        placeholder={isPkb ? '0' : '0'}
+                        className={`w-full min-h-[40px] px-2 text-center rounded-lg border text-sm font-bold tabular-nums focus:outline-none ${
+                          isPkb
+                            ? 'bg-surface-sunken border-border-subtle text-text-muted opacity-60 cursor-not-allowed'
+                            : 'border-pink-200 dark:border-pink-900 bg-surface-elevated text-text-high focus:ring-2 focus:ring-pink-500'
+                        }`}
                       />
                     </td>
                     <td className="p-3 text-center font-bold text-brand-primary tabular-nums">
