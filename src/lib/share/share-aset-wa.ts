@@ -50,6 +50,14 @@ export function generateAsetWaText(item: any): string {
 
   const lines: string[] = [
     `*INVENTARIS ASET GPIB*`,
+  ];
+
+  // Primary URL placed FIRST so WhatsApp unfurls image thumbnail preview immediately
+  if (fullPhotoUrl) {
+    lines.push(`*Foto Utama*: ${fullPhotoUrl}`);
+  }
+
+  lines.push(
     ``,
     `*Kategori*: ${categoryLabel}`,
     `*Judul Aset*: ${item.judul || '-'}`,
@@ -59,8 +67,8 @@ export function generateAsetWaText(item: any): string {
     `• Jemaat Induk: ${item.jemaat_induk || item.raw?.pos?.jemaat_induk?.nama_induk || '-'}`,
     `• Pos Pelkes: ${displayPosNama}`,
     ``,
-    `*SPESIFIKASI ASET*`,
-  ];
+    `*SPESIFIKASI ASET*`
+  );
 
   if (isTanah) {
     lines.push(`• Luas Lahan: ${item.raw?.luas_m2 || '-'} m²`);
@@ -101,11 +109,6 @@ export function generateAsetWaText(item: any): string {
   lines.push(``);
   lines.push(`*Terakhir Diperbarui*: ${updatedAtStr}`);
   lines.push(`*Diperbarui Oleh*: ${updatedByStr}`);
-
-  if (fullPhotoUrl) {
-    lines.push(``);
-    lines.push(`*Foto Utama*: ${fullPhotoUrl}`);
-  }
 
   return lines.join('\n');
 }

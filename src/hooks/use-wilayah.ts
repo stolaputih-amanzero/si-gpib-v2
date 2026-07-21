@@ -15,6 +15,17 @@ export interface PosPelkesWilayah {
   jemaat_induk?: string | null;
 }
 
+export interface KerawananLampiran {
+  id_lampiran: string;
+  id_risiko: string;
+  nama_file: string;
+  file_path: string;
+  tipe_file?: string;
+  ukuran_file?: number;
+  keterangan?: string | null;
+  created_at?: string;
+}
+
 /**
  * Interface Data Kerawanan Wilayah
  */
@@ -25,9 +36,158 @@ export interface KerawananItem {
   jenis_risiko: string;
   frekuensi: 'Rendah' | 'Sedang' | 'Tinggi' | 'Kritis';
   keterangan: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  updated_by?: string | null;
   created_at: string;
   updated_at: string;
   pos?: PosPelkesWilayah | null;
+  lampiran?: KerawananLampiran[];
+}
+
+/**
+ * Helper to upload attachment file to Supabase Storage & insert record into t_lampiran_kerawanan
+ */
+async function uploadKerawananAttachment(
+  supabase: any,
+  file: File,
+  id_risiko: string
+) {
+  const fileExt = file.name.split('.').pop() || 'jpg';
+  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+  const filePath = `kerawanan/${fileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('assets-images')
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: true,
+    });
+
+  if (uploadError) throw uploadError;
+
+  const { data: publicUrlData } = supabase.storage
+    .from('assets-images')
+    .getPublicUrl(filePath);
+
+  const publicUrl = publicUrlData?.publicUrl || filePath;
+
+  const lampiranId = generateId('LMP');
+  const photoKeterangan = (file as any).keterangan || null;
+  const { error: insertError } = await supabase.from('t_lampiran_kerawanan').insert({
+    id_lampiran: lampiranId,
+    id_risiko,
+    nama_file: file.name,
+    file_path: publicUrl,
+    tipe_file: file.type,
+    ukuran_file: (file.size / (1024 * 1024)).toFixed(2),
+    keterangan: photoKeterangan,
+  });
+
+  if (insertError) throw insertError;
+}
+
+/**
+ * Helper to upload attachment file to Supabase Storage & insert record into t_lampiran_potensi
+ */
+async function uploadPotensiAttachment(
+  supabase: any,
+  file: File,
+  id_potensi: string
+) {
+  const fileExt = file.name.split('.').pop() || 'jpg';
+  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+  const filePath = `potensi/${fileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('assets-images')
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: true,
+    });
+
+  if (uploadError) throw uploadError;
+
+  const { data: publicUrlData } = supabase.storage
+    .from('assets-images')
+    .getPublicUrl(filePath);
+
+  const publicUrl = publicUrlData?.publicUrl || filePath;
+
+  const lampiranId = generateId('LMP');
+  const photoKeterangan = (file as any).keterangan || null;
+  const { error: insertError } = await supabase.from('t_lampiran_potensi').insert({
+    id_lampiran: lampiranId,
+    id_potensi,
+    nama_file: file.name,
+    file_path: publicUrl,
+    tipe_file: file.type,
+    ukuran_file: (file.size / (1024 * 1024)).toFixed(2),
+    keterangan: photoKeterangan,
+  });
+
+  if (insertError) throw insertError;
+}
+
+/**
+ * Hook untuk mengambil daftar data Kerawanan Wilayah (US-13.1)
+ */
+export function useKerawananList(id_pos?: string) {
+  const supabase = createClient();
+
+  return useQuery<KerawananItem[]>({
+    queryKey: ['kerawanan-list', id_pos || 'all'],
+    queryFn: async () => {
+      let query = supabase
+        .from('t_kerawanan_wilayah')
+        .select(`
+          *, 
+          pos:m_pos_pelkes(
+            id_pos, 
+            nama_pos, 
+            latitude, 
+            longitude,
+            jemaat_induk:m_jemaat_induk(
+              nama_induk, 
+              id_mupel,
+              mupel:m_mupel(nama_mupel)
+            )
+          ),
+          lampiran:t_lampiran_kerawanan(*)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (id_pos && id_pos !== 'all') {
+        query = query.eq('id_pos', id_pos);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data || []).map((k: any) => ({
+        ...k,
+        pos: k.pos ? {
+          id_pos: k.pos.id_pos,
+          nama_pos: k.pos.nama_pos,
+          latitude: k.pos.latitude,
+          longitude: k.pos.longitude,
+          jemaat_induk: k.pos.jemaat_induk?.nama_induk || null,
+          mupel: k.pos.jemaat_induk?.mupel?.nama_mupel || k.pos.jemaat_induk?.id_mupel || null,
+        } : null,
+        lampiran: k.lampiran || [],
+      })) as KerawananItem[];
+    },
+  });
+}
+
+export interface PotensiLampiran {
+  id_lampiran: string;
+  id_potensi: string;
+  nama_file: string;
+  file_path: string;
+  tipe_file?: string;
+  ukuran_file?: number;
+  keterangan?: string | null;
+  created_at?: string;
 }
 
 /**
@@ -40,9 +200,13 @@ export interface PotensiItem {
   kategori: string;
   deskripsi: string;
   keterangan: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  updated_by?: string | null;
   created_at: string;
   updated_at: string;
   pos?: PosPelkesWilayah | null;
+  lampiran?: PotensiLampiran[];
 }
 
 /**
@@ -63,7 +227,7 @@ export interface MapPosPelkesItem {
 /**
  * Helper untuk generate ID unik di Client-Side
  */
-function generateId(prefix: 'RIS' | 'POT'): string {
+function generateId(prefix: 'RIS' | 'POT' | 'LMP' | string): string {
   const timestamp = Date.now();
   const randomStr = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
   return `${prefix}-${timestamp}-${randomStr}`;
@@ -86,7 +250,11 @@ export function usePosPelkesList() {
           latitude, 
           longitude, 
           id_induk,
-          jemaat:m_jemaat_induk(nama_induk, id_mupel)
+          jemaat_induk:m_jemaat_induk(
+            nama_induk, 
+            id_mupel,
+            mupel:m_mupel(nama_mupel)
+          )
         `)
         .order('nama_pos', { ascending: true });
 
@@ -97,8 +265,8 @@ export function usePosPelkesList() {
         latitude: p.latitude,
         longitude: p.longitude,
         id_induk: p.id_induk,
-        jemaat_induk: p.jemaat?.nama_induk || null,
-        mupel: p.jemaat?.id_mupel || null,
+        jemaat_induk: p.jemaat_induk?.nama_induk || null,
+        mupel: p.jemaat_induk?.mupel?.nama_mupel || p.jemaat_induk?.id_mupel || null,
       }));
     },
     staleTime: 1000 * 60 * 60, // 1 hour memory cache for instant dropdowns
@@ -106,52 +274,6 @@ export function usePosPelkesList() {
   });
 }
 
-/**
- * Hook untuk mengambil daftar data Kerawanan Wilayah (US-13.1)
- */
-export function useKerawananList(id_pos?: string) {
-  const supabase = createClient();
-
-  return useQuery<KerawananItem[]>({
-    queryKey: ['kerawanan-list', id_pos || 'all'],
-    queryFn: async () => {
-      let query = supabase
-        .from('t_kerawanan_wilayah')
-        .select(`
-          *, 
-          pos:m_pos_pelkes(
-            id_pos, 
-            nama_pos, 
-            latitude, 
-            longitude,
-            jemaat:m_jemaat_induk(id_mupel)
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (id_pos && id_pos !== 'all') {
-        query = query.eq('id_pos', id_pos);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return (data || []).map((k: any) => ({
-        ...k,
-        pos: k.pos ? {
-          id_pos: k.pos.id_pos,
-          nama_pos: k.pos.nama_pos,
-          latitude: k.pos.latitude,
-          longitude: k.pos.longitude,
-          mupel: k.pos.jemaat?.id_mupel || null,
-        } : null,
-      })) as KerawananItem[];
-    },
-  });
-}
-
-/**
- * Hook untuk mengambil daftar data Potensi Wilayah (US-13.2)
- */
 export function usePotensiList(id_pos?: string) {
   const supabase = createClient();
 
@@ -167,8 +289,13 @@ export function usePotensiList(id_pos?: string) {
             nama_pos, 
             latitude, 
             longitude,
-            jemaat:m_jemaat_induk(id_mupel)
-          )
+            jemaat_induk:m_jemaat_induk(
+              nama_induk, 
+              id_mupel,
+              mupel:m_mupel(nama_mupel)
+            )
+          ),
+          lampiran:t_lampiran_potensi(*)
         `)
         .order('created_at', { ascending: false });
 
@@ -185,8 +312,10 @@ export function usePotensiList(id_pos?: string) {
           nama_pos: p.pos.nama_pos,
           latitude: p.pos.latitude,
           longitude: p.pos.longitude,
-          mupel: p.pos.jemaat?.id_mupel || null,
+          jemaat_induk: p.pos.jemaat_induk?.nama_induk || null,
+          mupel: p.pos.jemaat_induk?.mupel?.nama_mupel || p.pos.jemaat_induk?.id_mupel || null,
         } : null,
+        lampiran: p.lampiran || [],
       })) as PotensiItem[];
     },
   });
@@ -210,7 +339,7 @@ export function useWilayahMapData() {
           nama_pos, 
           latitude, 
           longitude,
-          jemaat:m_jemaat_induk(id_mupel)
+          jemaat_induk:m_jemaat_induk(nama_induk, id_mupel)
         `)
         .not('latitude', 'is', null)
         .not('longitude', 'is', null);
@@ -242,7 +371,7 @@ export function useWilayahMapData() {
             nama_pos: pos.nama_pos,
             latitude: Number(pos.latitude),
             longitude: Number(pos.longitude),
-            mupel: pos.jemaat?.id_mupel || null,
+            mupel: pos.jemaat_induk?.id_mupel || null,
             jumlah_kerawanan: kItems.length,
             jumlah_potensi: pItems.length,
             kerawanan_list: kItems,
@@ -256,41 +385,42 @@ export function useWilayahMapData() {
 }
 
 /**
- * Mutation Hook: Tambah Kerawanan Wilayah baru
+ * Mutation Hook: Tambah Kerawanan Wilayah baru + Upload Foto
  */
 export function useCreateKerawanan() {
   const supabase = createClient();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: KerawananInput) => {
+    mutationFn: async ({ data, files }: { data: KerawananInput; files?: File[] }) => {
       const id_risiko = generateId('RIS');
       const payload = {
         id_risiko,
-        id_pos: input.id_pos,
-        kategori: input.kategori,
-        jenis_risiko: input.jenis_risiko,
-        frekuensi: input.frekuensi,
-        keterangan: input.keterangan || null,
+        id_pos: data.id_pos || null,
+        kategori: data.kategori,
+        jenis_risiko: data.jenis_risiko,
+        frekuensi: data.frekuensi,
+        keterangan: data.keterangan || null,
+        latitude: data.latitude || null,
+        longitude: data.longitude || null,
+        updated_by: data.updated_by || null,
       };
 
-      const { data, error } = await supabase
+      const { data: result, error } = await supabase
         .from('t_kerawanan_wilayah')
         .insert(payload)
-        .select(`
-          *, 
-          pos:m_pos_pelkes(
-            id_pos, 
-            nama_pos, 
-            latitude, 
-            longitude,
-            jemaat:m_jemaat_induk(id_mupel)
-          )
-        `)
+        .select()
         .single();
 
       if (error) throw error;
-      return data as KerawananItem;
+
+      if (files && files.length > 0) {
+        for (const file of files) {
+          await uploadKerawananAttachment(supabase, file, id_risiko);
+        }
+      }
+
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kerawanan-list'] });
@@ -300,45 +430,218 @@ export function useCreateKerawanan() {
 }
 
 /**
- * Mutation Hook: Tambah Potensi Wilayah baru
+ * Mutation Hook: Update Kerawanan Wilayah + Upload Foto Baru
+ */
+export function useUpdateKerawanan() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id_risiko, data, files }: { id_risiko: string; data: KerawananInput; files?: File[] }) => {
+      const payload = {
+        id_pos: data.id_pos || null,
+        kategori: data.kategori,
+        jenis_risiko: data.jenis_risiko,
+        frekuensi: data.frekuensi,
+        keterangan: data.keterangan || null,
+        latitude: data.latitude || null,
+        longitude: data.longitude || null,
+        updated_by: data.updated_by || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { data: result, error } = await supabase
+        .from('t_kerawanan_wilayah')
+        .update(payload)
+        .eq('id_risiko', id_risiko)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (files && files.length > 0) {
+        for (const file of files) {
+          await uploadKerawananAttachment(supabase, file, id_risiko);
+        }
+      }
+
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kerawanan-list'] });
+      queryClient.invalidateQueries({ queryKey: ['wilayah-map-data'] });
+    },
+  });
+}
+
+/**
+ * Delete Attachment File from t_lampiran_kerawanan
+ */
+export function useDeleteLampiranKerawanan() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id_lampiran: string) => {
+      const { error } = await supabase.from('t_lampiran_kerawanan').delete().eq('id_lampiran', id_lampiran);
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kerawanan-list'] });
+    },
+  });
+}
+
+/**
+ * Update Attachment Caption in t_lampiran_kerawanan
+ */
+export function useUpdateLampiranKerawananKeterangan() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id_lampiran, keterangan }: { id_lampiran: string; keterangan: string | null }) => {
+      const { error } = await supabase
+        .from('t_lampiran_kerawanan')
+        .update({ keterangan })
+        .eq('id_lampiran', id_lampiran);
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kerawanan-list'] });
+    },
+  });
+}
+
+/**
+ * Mutation Hook: Tambah Potensi Wilayah baru + Upload Foto
  */
 export function useCreatePotensi() {
   const supabase = createClient();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: PotensiInput) => {
+    mutationFn: async ({ data, files }: { data: PotensiInput; files?: File[] }) => {
       const id_potensi = generateId('POT');
       const payload = {
         id_potensi,
-        id_pos: input.id_pos,
-        nama_potensi: input.nama_potensi,
-        kategori: input.kategori,
-        deskripsi: input.deskripsi,
-        keterangan: input.keterangan || null,
+        id_pos: data.id_pos || null,
+        nama_potensi: data.nama_potensi,
+        kategori: data.kategori,
+        deskripsi: data.deskripsi,
+        keterangan: data.keterangan || null,
+        latitude: data.latitude || null,
+        longitude: data.longitude || null,
+        updated_by: data.updated_by || null,
       };
 
-      const { data, error } = await supabase
+      const { data: result, error } = await supabase
         .from('t_potensi_wilayah')
         .insert(payload)
-        .select(`
-          *, 
-          pos:m_pos_pelkes(
-            id_pos, 
-            nama_pos, 
-            latitude, 
-            longitude,
-            jemaat:m_jemaat_induk(id_mupel)
-          )
-        `)
+        .select()
         .single();
 
       if (error) throw error;
-      return data as PotensiItem;
+
+      if (files && files.length > 0) {
+        for (const file of files) {
+          await uploadPotensiAttachment(supabase, file, id_potensi);
+        }
+      }
+
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['potensi-list'] });
       queryClient.invalidateQueries({ queryKey: ['wilayah-map-data'] });
+    },
+  });
+}
+
+/**
+ * Mutation Hook: Edit Data Potensi Wilayah
+ */
+export function useUpdatePotensi() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id_potensi, data, files }: { id_potensi: string; data: PotensiInput; files?: File[] }) => {
+      const payload = {
+        id_pos: data.id_pos || null,
+        nama_potensi: data.nama_potensi,
+        kategori: data.kategori,
+        deskripsi: data.deskripsi,
+        keterangan: data.keterangan || null,
+        latitude: data.latitude || null,
+        longitude: data.longitude || null,
+        updated_by: data.updated_by || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { data: result, error } = await supabase
+        .from('t_potensi_wilayah')
+        .update(payload)
+        .eq('id_potensi', id_potensi)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (files && files.length > 0) {
+        for (const file of files) {
+          await uploadPotensiAttachment(supabase, file, id_potensi);
+        }
+      }
+
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['potensi-list'] });
+      queryClient.invalidateQueries({ queryKey: ['wilayah-map-data'] });
+    },
+  });
+}
+
+/**
+ * Delete Attachment File from t_lampiran_potensi
+ */
+export function useDeleteLampiranPotensi() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id_lampiran: string) => {
+      const { error } = await supabase.from('t_lampiran_potensi').delete().eq('id_lampiran', id_lampiran);
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['potensi-list'] });
+    },
+  });
+}
+
+/**
+ * Update Attachment Caption in t_lampiran_potensi
+ */
+export function useUpdateLampiranPotensiKeterangan() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id_lampiran, keterangan }: { id_lampiran: string; keterangan: string | null }) => {
+      const { error } = await supabase
+        .from('t_lampiran_potensi')
+        .update({ keterangan })
+        .eq('id_lampiran', id_lampiran);
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['potensi-list'] });
     },
   });
 }
