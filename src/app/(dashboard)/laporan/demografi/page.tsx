@@ -725,12 +725,12 @@ export default function LaporanDemografiPage() {
                 </div>
               </div>
 
-              {/* Action Buttons (1 Single Row - Consistent Professional Log Pastoral Style) */}
-              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border-subtle">
+              {/* Action Buttons (Clean Text Style - Matching Log Pastoral) */}
+              <div className="flex items-center justify-between gap-3 pt-3 border-t border-border-subtle text-xs">
                 <button
                   type="button"
                   onClick={() => handleShareWhatsApp(activeDetailModal)}
-                  className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all min-h-[44px] flex items-center justify-center gap-1.5 shadow-soft"
+                  className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1.5 min-h-[44px] px-1"
                   title="Bagikan Laporan Demografi ke WhatsApp"
                 >
                   <Share2 size={16} />
@@ -740,7 +740,7 @@ export default function LaporanDemografiPage() {
                 <button
                   type="button"
                   onClick={() => handleEditFromDetail(activeDetailModal)}
-                  className="py-2.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all min-h-[44px] flex items-center justify-center gap-1.5 shadow-soft"
+                  className="font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1.5 min-h-[44px] px-1"
                   title="Edit Data Demografi"
                 >
                   <Edit3 size={16} />
@@ -750,7 +750,7 @@ export default function LaporanDemografiPage() {
                 <button
                   type="button"
                   onClick={() => setActiveDetailModal(null)}
-                  className="py-2.5 px-3 rounded-xl border border-border-subtle text-xs font-bold text-text-high hover:bg-surface-sunken transition-all min-h-[44px] flex items-center justify-center"
+                  className="px-4 py-2.5 rounded-xl border border-border-subtle font-bold text-text-high hover:bg-surface-sunken transition-all min-h-[44px]"
                 >
                   Tutup Detail
                 </button>
