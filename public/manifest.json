@@ -1,13 +1,13 @@
 {
-  "name": "SI GPIB v2.2",
+  "name": "SI GPIB v2.2 - Sistem Informasi GPIB",
   "short_name": "SI GPIB",
-  "description": "Sistem Informasi GPIB",
+  "description": "Platform Digital Terpadu GPIB di Seluruh Indonesia",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "theme_color": "#1E40AF",
-  "background_color": "#ffffff",
+  "theme_color": "#0B1E48",
+  "background_color": "#0B1E48",
   "lang": "id-ID",
   "icons": [
     {
@@ -17,11 +17,22 @@
       "purpose": "any"
     },
     {
+      "src": "/icons/maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
-
