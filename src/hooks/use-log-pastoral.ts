@@ -13,6 +13,15 @@ export interface LogPastoralItem {
   pos?: {
     id_pos: string;
     nama_pos: string;
+    kategori?: string;
+    jemaat_induk?: {
+      id_induk: string;
+      nama_induk: string;
+      mupel?: {
+        id_mupel: string;
+        nama_mupel: string;
+      } | null;
+    } | null;
   } | null;
   pendeta?: {
     id_pendeta: string;
@@ -46,7 +55,16 @@ export function useLogPastoralList(search?: string, id_pos?: string) {
           jml_jiwa,
           catatan,
           created_at,
-          pos:m_pos_pelkes(id_pos, nama_pos),
+          pos:m_pos_pelkes(
+            id_pos,
+            nama_pos,
+            kategori,
+            jemaat_induk:m_jemaat_induk(
+              id_induk,
+              nama_induk,
+              mupel:m_mupel(id_mupel, nama_mupel)
+            )
+          ),
           pendeta:m_pendeta(id_pendeta, nama_lengkap)
         `)
         .order('tgl', { ascending: false });
@@ -56,7 +74,21 @@ export function useLogPastoralList(search?: string, id_pos?: string) {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) {
+        console.warn('Falling back to simple pastoral query:', error);
+        // Fallback for flat query if relationship names differ
+        const { data: rawData, error: rawErr } = await supabase
+          .from('t_log_pastoral')
+          .select(`
+            *,
+            pos:m_pos_pelkes(id_pos, nama_pos),
+            pendeta:m_pendeta(id_pendeta, nama_lengkap)
+          `)
+          .order('tgl', { ascending: false });
+
+        if (rawErr) throw rawErr;
+        return (rawData || []) as LogPastoralItem[];
+      }
 
       let result = (data || []).map((log: any) => ({
         id_log: log.id_log,
@@ -78,6 +110,8 @@ export function useLogPastoralList(search?: string, id_pos?: string) {
             l.kegiatan.toLowerCase().includes(q) ||
             (l.catatan || '').toLowerCase().includes(q) ||
             (l.pos?.nama_pos || '').toLowerCase().includes(q) ||
+            (l.pos?.jemaat_induk?.nama_induk || '').toLowerCase().includes(q) ||
+            (l.pos?.jemaat_induk?.mupel?.nama_mupel || '').toLowerCase().includes(q) ||
             (l.pendeta?.nama_lengkap || '').toLowerCase().includes(q)
         );
       }

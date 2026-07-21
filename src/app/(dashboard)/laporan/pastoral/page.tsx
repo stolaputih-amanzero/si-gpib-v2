@@ -24,6 +24,8 @@ import {
   Save,
   Eye,
   Camera,
+  Building,
+  Layers,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -111,7 +113,7 @@ export default function LaporanPastoralPage() {
         catatan: finalCatatan,
       });
 
-      toast.success('Log Pastoral Diperbarui', 'Data kegiatan & foto pelayanan telah diperbarui.');
+      toast.success('Log Pastoral Diperbarui', 'Data kegiatan & lokasi hierarki telah diperbarui.');
       setSelectedLog(null);
       setIsEditing(false);
     } catch (error: any) {
@@ -194,7 +196,7 @@ export default function LaporanPastoralPage() {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
           <input
             type="text"
-            placeholder="Cari log pastoral (kegiatan, jam, pos pelkes, pendeta)..."
+            placeholder="Cari log pastoral (kegiatan, mupel, jemaat, pos pelkes, pendeta)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
@@ -209,7 +211,7 @@ export default function LaporanPastoralPage() {
             Riwayat Kegiatan Pastoral ({pastoralLogs?.length || 0})
           </h2>
           <span className="text-xs text-text-muted">
-            {isLoading ? 'Memuat...' : 'Klik kartu untuk melihat detail & foto'}
+            {isLoading ? 'Memuat...' : 'Klik kartu untuk melihat detail hierarki & foto'}
           </span>
         </div>
 
@@ -226,6 +228,11 @@ export default function LaporanPastoralPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {pastoralLogs.map((log) => {
               const { jamStr, photoBase64, cleanNotes } = extractMetaFromCatatan(log.catatan);
+
+              const posNama = log.pos?.nama_pos;
+              const posKategori = log.pos?.kategori || 'Pos Pelkes';
+              const jemaatNama = log.pos?.jemaat_induk?.nama_induk;
+              const mupelNama = log.pos?.jemaat_induk?.mupel?.nama_mupel;
 
               return (
                 <div
@@ -291,20 +298,43 @@ export default function LaporanPastoralPage() {
                     </div>
                   )}
 
-                  {/* Details Meta */}
+                  {/* Full 3-Level Hierarchy Breakdown Details */}
                   <div className="bg-surface-base p-2.5 rounded-xl border border-border-subtle/60 text-xs space-y-1">
                     <div className="flex items-center justify-between text-text-muted">
-                      <span className="flex items-center gap-1">
-                        <MapPin size={13} className="text-brand-primary" /> Pos Pelkes / Wilayah:
+                      <span className="flex items-center gap-1 font-medium">
+                        <MapPin size={13} className="text-brand-primary" /> Pos Pelkes / Bajem:
                       </span>
-                      <span className="font-semibold text-text-high truncate max-w-[180px]">
-                        {log.pos?.nama_pos || 'Jemaat Induk Direct'}
+                      <span className="font-bold text-text-high truncate max-w-[180px]">
+                        {posNama ? `${posNama} (${posKategori})` : 'Pelayanan Jemaat Direct'}
                       </span>
                     </div>
-                    {log.pendeta && (
-                      <div className="flex items-center justify-between text-text-muted">
+
+                    {jemaatNama && (
+                      <div className="flex items-center justify-between text-text-muted border-t border-border-subtle/30 pt-1">
                         <span className="flex items-center gap-1">
-                          <HeartHandshake size={13} className="text-brand-primary" /> Pelayan:
+                          <Building size={13} className="text-blue-500" /> Jemaat Induk:
+                        </span>
+                        <span className="font-semibold text-text-high truncate max-w-[180px]">
+                          {jemaatNama}
+                        </span>
+                      </div>
+                    )}
+
+                    {mupelNama && (
+                      <div className="flex items-center justify-between text-text-muted border-t border-border-subtle/30 pt-1">
+                        <span className="flex items-center gap-1">
+                          <Layers size={13} className="text-purple-500" /> Mupel:
+                        </span>
+                        <span className="font-semibold text-text-high truncate max-w-[180px]">
+                          {mupelNama}
+                        </span>
+                      </div>
+                    )}
+
+                    {log.pendeta && (
+                      <div className="flex items-center justify-between text-text-muted border-t border-border-subtle/40 pt-1">
+                        <span className="flex items-center gap-1">
+                          <HeartHandshake size={13} className="text-emerald-500" /> Pelayan:
                         </span>
                         <span className="font-semibold text-text-high truncate max-w-[180px]">
                           {log.pendeta.nama_lengkap}
@@ -322,7 +352,7 @@ export default function LaporanPastoralPage() {
 
                   <div className="flex items-center justify-end text-[11px] font-semibold text-brand-primary gap-1 group-hover:translate-x-0.5 transition-transform pt-0.5">
                     <Eye size={12} />
-                    <span>Lihat Detail & Foto</span>
+                    <span>Lihat Detail Hierarki & Foto</span>
                   </div>
                 </div>
               );
@@ -512,19 +542,43 @@ export default function LaporanPastoralPage() {
                   </div>
                 )}
 
+                {/* Full 3-Level Hierarchy Breakdown in Detail Modal */}
                 <div className="bg-surface-base p-3.5 rounded-2xl border border-border-subtle/80 space-y-2 text-xs">
                   <div className="flex items-center justify-between">
-                    <span className="text-text-muted flex items-center gap-1.5">
-                      <MapPin size={14} className="text-brand-primary" /> Pos Pelkes / Wilayah:
+                    <span className="text-text-muted flex items-center gap-1.5 font-medium">
+                      <MapPin size={14} className="text-brand-primary" /> Pos Pelkes / Bajem:
                     </span>
                     <span className="font-bold text-text-high">
-                      {selectedLog.pos?.nama_pos || 'Jemaat Induk Direct'}
+                      {selectedLog.pos?.nama_pos ? `${selectedLog.pos.nama_pos} (${selectedLog.pos.kategori || 'Pos Pelkes'})` : 'Pelayanan Jemaat Induk Direct'}
                     </span>
                   </div>
+
+                  {selectedLog.pos?.jemaat_induk?.nama_induk && (
+                    <div className="flex items-center justify-between border-t border-border-subtle/40 pt-2">
+                      <span className="text-text-muted flex items-center gap-1.5">
+                        <Building size={14} className="text-blue-500" /> Jemaat Induk Terkait:
+                      </span>
+                      <span className="font-bold text-text-high">
+                        {selectedLog.pos.jemaat_induk.nama_induk}
+                      </span>
+                    </div>
+                  )}
+
+                  {selectedLog.pos?.jemaat_induk?.mupel?.nama_mupel && (
+                    <div className="flex items-center justify-between border-t border-border-subtle/40 pt-2">
+                      <span className="text-text-muted flex items-center gap-1.5">
+                        <Layers size={14} className="text-purple-500" /> Mupel Terkait:
+                      </span>
+                      <span className="font-bold text-text-high">
+                        {selectedLog.pos.jemaat_induk.mupel.nama_mupel}
+                      </span>
+                    </div>
+                  )}
+
                   {selectedLog.pendeta && (
                     <div className="flex items-center justify-between border-t border-border-subtle/40 pt-2">
                       <span className="text-text-muted flex items-center gap-1.5">
-                        <HeartHandshake size={14} className="text-brand-primary" /> Pelayan Pendeta:
+                        <HeartHandshake size={14} className="text-emerald-500" /> Pelayan Pendeta:
                       </span>
                       <span className="font-bold text-text-high">
                         {selectedLog.pendeta.nama_lengkap}
@@ -561,7 +615,7 @@ export default function LaporanPastoralPage() {
                     className="flex-1 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] flex items-center justify-center gap-2"
                   >
                     <Edit size={16} />
-                    <span>Edit Log & Foto</span>
+                    <span>Edit Log & Hierarki</span>
                   </button>
                 </div>
               </div>
