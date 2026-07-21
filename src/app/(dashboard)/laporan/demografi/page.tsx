@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDemografiList } from '@/hooks/use-demografi';
 import { DemografiCard } from '@/components/demografi/DemografiCard';
 import { DemografiChart } from '@/components/demografi/DemografiChart';
 import { DemografiForm } from '@/components/demografi/DemografiForm';
 import { KATEGORI_PELKAT } from '@/lib/constants/pelkat';
-import { Plus, Filter, Users, Search, X, MapPin, Building, Layers, Clock, UserCheck } from 'lucide-react';
+import { Plus, Filter, Users, Search, X, MapPin, Building, Layers, Clock, UserCheck, Share2, Edit3 } from 'lucide-react';
 import { HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
+import { createClient } from '@/lib/supabase/client';
 
 interface DemografiDetailItem {
   id_pos: string;
@@ -64,7 +65,37 @@ export default function LaporanDemografiPage() {
   const [selectedPelkat, setSelectedPelkat] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showFormModal, setShowFormModal] = useState<boolean>(false);
+  const [formEditIdPos, setFormEditIdPos] = useState<string | undefined>(undefined);
   const [activeDetailModal, setActiveDetailModal] = useState<DemografiDetailItem | null>(null);
+  const [currentUserEmail, setCurrentUserEmail] = useState<string>('');
+
+  const supabase = createClient();
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const userMeta = user.user_metadata || {};
+        const { data: userRow } = await supabase
+          .from('users')
+          .select('email, no_telepon')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        const displayUser =
+          userRow?.email ||
+          user.email ||
+          userMeta.full_name ||
+          userMeta.name ||
+          userRow?.no_telepon ||
+          user.phone ||
+          'Pengguna System';
+
+        setCurrentUserEmail(displayUser);
+      }
+    };
+    fetchCurrentUser();
+  }, [supabase]);
 
   const { data: demografiList, isLoading } = useDemografiList({
     kategori_pelkat: selectedPelkat || undefined,
@@ -131,10 +162,10 @@ export default function LaporanDemografiPage() {
 
     const entity = groupedEntitiesMap[idPos];
 
-    // Pick latest updated_at
+    // Pick latest updated_at & updated_by
     if (item.updated_at && (!entity.updated_at || new Date(item.updated_at) > new Date(entity.updated_at))) {
       entity.updated_at = item.updated_at;
-      entity.updated_by = item.updated_by || entity.updated_by;
+      if (item.updated_by) entity.updated_by = item.updated_by;
     }
 
     const laki = item.laki || 0;
@@ -212,9 +243,20 @@ export default function LaporanDemografiPage() {
       jemaatName: jemaatNama,
       mupelName: entity.mupel || '-',
       updated_at: entity.updated_at,
-      updated_by: entity.updated_by,
+      updated_by: entity.updated_by || currentUserEmail || 'Pengguna System',
       pelkatRecords: entity.pelkatRecords,
     });
+  };
+
+  const handleOpenNewForm = () => {
+    setFormEditIdPos(undefined);
+    setShowFormModal(true);
+  };
+
+  const handleEditFromDetail = (detail: DemografiDetailItem) => {
+    setFormEditIdPos(detail.id_pos);
+    setActiveDetailModal(null);
+    setShowFormModal(true);
   };
 
   const handleFormSuccess = (savedData: any, _metaInfo?: HierarchyMetaInfo | null) => {
@@ -227,6 +269,49 @@ export default function LaporanDemografiPage() {
     }
   };
 
+  const handleShareWhatsApp = (detail: DemografiDetailItem) => {
+    const tglFormatted = formatDateTimeIndonesian(detail.updated_at);
+    const updatedUser = detail.updated_by || currentUserEmail || 'Pengguna System';
+
+    const lines = [
+      `*LAPORAN DEMOGRAFI PELKAT GPIB*`,
+      `================================`,
+      `Mupel            : ${detail.mupelName || '-'}`,
+      `Jemaat Induk     : ${detail.jemaatName || '-'}`,
+      `Pos Pelkes/Bajem : ${detail.posName || '-'}`,
+      `Tanggal Update   : ${tglFormatted}`,
+      `Diperbarui Oleh  : ${updatedUser}`,
+      ``,
+      `*RINGKASAN DEMOGRAFI:*`,
+      `- Total Kepala Keluarga (KK): ${detail.total_kk} KK`,
+      `- Total Jiwa (L+P)         : ${detail.total_jiwa} Jiwa`,
+      `  * Laki-Laki               : ${detail.total_laki} Jiwa`,
+      `  * Perempuan               : ${detail.total_perempuan} Jiwa`,
+      ``,
+      `*RINCIAN KATEGORI PELKAT:*`,
+    ];
+
+    KATEGORI_PELKAT.forEach((p, idx) => {
+      const rec = detail.pelkatRecords[p.kode] || { laki: 0, perempuan: 0 };
+      const totalRow = (rec.laki || 0) + (rec.perempuan || 0);
+      const lakiTxt = p.kode === 'PKP' ? '-' : `${rec.laki || 0} L`;
+      const prTxt = p.kode === 'PKB' ? '-' : `${rec.perempuan || 0} P`;
+      lines.push(`${idx + 1}. ${p.kode.padEnd(4)}: ${lakiTxt.padEnd(6)} | ${prTxt.padEnd(6)} | Total: ${totalRow} Jiwa`);
+    });
+
+    lines.push(``);
+    lines.push(`*KETERANGAN TAMBAHAN:*`);
+    lines.push(`- Dominasi Profesi : ${detail.profesi || '-'}`);
+    lines.push(`- Tingkat Pendidikan: ${detail.pendidikan || '-'}`);
+    lines.push(`- Catatan          : ${detail.keterangan || '-'}`);
+    lines.push(``);
+    lines.push(`Demikian laporan demografi ini disampaikan untuk dipergunakan sebagaimana mestinya. Terima kasih.`);
+
+    const fullMsg = lines.join('\n');
+    const encodedText = encodeURIComponent(fullMsg);
+    window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+  };
+
   return (
     <div className="w-full space-y-6 pb-12">
       {/* Header */}
@@ -237,7 +322,7 @@ export default function LaporanDemografiPage() {
         </div>
         <button
           type="button"
-          onClick={() => setShowFormModal(true)}
+          onClick={handleOpenNewForm}
           className="px-4 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-brand-primary-dark transition-all flex items-center gap-2 shadow-soft min-h-[44px] shrink-0"
         >
           <Plus size={18} />
@@ -371,7 +456,7 @@ export default function LaporanDemografiPage() {
               <div>
                 <h2 className="text-base font-serif font-bold text-brand-primary flex items-center gap-2">
                   <Users size={18} />
-                  <span>Input Demografi Pelkat Baru</span>
+                  <span>{formEditIdPos ? 'Edit Data Demografi Pelkat' : 'Input Demografi Pelkat Baru'}</span>
                 </h2>
                 <p className="text-xs text-text-muted mt-0.5">
                   Pilih Wilayah Jemaat Induk, Pos Pelkes (Opsional) & Pelkat
@@ -387,6 +472,7 @@ export default function LaporanDemografiPage() {
             </div>
 
             <DemografiForm 
+              id_pos={formEditIdPos}
               onSuccess={handleFormSuccess} 
             />
           </div>
@@ -550,28 +636,46 @@ export default function LaporanDemografiPage() {
                   </span>
                 </div>
 
-                {activeDetailModal.updated_by && (
-                  <div className="flex items-center justify-between text-text-muted border-t border-border-subtle/30 pt-1.5">
-                    <span className="flex items-center gap-1.5 font-medium">
-                      <UserCheck size={14} className="text-emerald-500 shrink-0" />
-                      Diperbarui Oleh:
-                    </span>
-                    <span className="font-semibold text-text-high font-mono text-[11px]">
-                      {activeDetailModal.updated_by}
-                    </span>
-                  </div>
-                )}
+                <div className="flex items-center justify-between text-text-muted border-t border-border-subtle/30 pt-1.5">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <UserCheck size={14} className="text-emerald-500 shrink-0" />
+                    Diperbarui Oleh:
+                  </span>
+                  <span className="font-bold text-text-high font-mono text-[11px]">
+                    {activeDetailModal.updated_by || currentUserEmail || 'Pengguna System'}
+                  </span>
+                </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-border-subtle">
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-border-subtle">
                 <button
                   type="button"
-                  onClick={() => setActiveDetailModal(null)}
-                  className="px-5 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark transition-all min-h-[44px]"
+                  onClick={() => handleShareWhatsApp(activeDetailModal)}
+                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-soft min-h-[44px]"
                 >
-                  Tutup Detail
+                  <Share2 size={16} />
+                  <span>Share WA</span>
                 </button>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleEditFromDetail(activeDetailModal)}
+                    className="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-soft min-h-[44px]"
+                  >
+                    <Edit3 size={16} />
+                    <span>Edit Data</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveDetailModal(null)}
+                    className="px-4 py-2.5 rounded-xl bg-surface-sunken text-text-high text-xs font-bold hover:bg-surface-sunken/80 transition-all min-h-[44px]"
+                  >
+                    Tutup Detail
+                  </button>
+                </div>
               </div>
             </div>
           </div>
