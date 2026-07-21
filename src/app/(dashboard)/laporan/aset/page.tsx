@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { useAsetList, useDeleteAset } from '@/hooks/use-aset';
 import { AsetTabs } from '@/components/aset/AsetTabs';
