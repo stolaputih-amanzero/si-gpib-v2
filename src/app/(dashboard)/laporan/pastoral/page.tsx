@@ -685,17 +685,19 @@ export default function LaporanPastoralPage() {
             />
 
             {/* Bottom Actions */}
-            <div className="flex items-center justify-between w-full max-w-xl px-2 text-xs text-white/90">
-              <span className="font-semibold text-amber-300 flex items-center gap-1.5">
-                <Camera size={14} /> Foto Dokumentasi GPS & Timestamp Stamped
+            <div className="flex items-center justify-between w-full max-w-xl px-2 text-xs text-white/90 gap-2">
+              <span className="font-semibold text-amber-300 flex items-center gap-1.5 truncate text-[11px] sm:text-xs">
+                <Camera size={14} className="shrink-0" />
+                <span className="truncate">Foto Dokumentasi Stamped</span>
               </span>
               <a
                 href={viewPhotoUrl}
                 download="foto-pastoral-gpib-stamped.jpg"
-                className="px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/30 text-white font-bold transition-all border border-white/20 flex items-center gap-1.5 min-h-[40px]"
+                className="p-2.5 sm:px-3.5 sm:py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white font-bold transition-all border border-white/30 flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] shrink-0 shadow-soft"
+                title="Unduh Foto Dokumentasi"
               >
-                <Download size={14} />
-                <span>Unduh Foto</span>
+                <Download size={18} />
+                <span className="hidden sm:inline text-xs">Unduh Foto</span>
               </a>
             </div>
           </div>
