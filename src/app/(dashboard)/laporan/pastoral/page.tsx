@@ -9,6 +9,7 @@ import {
 } from '@/hooks/use-log-pastoral';
 import { useToast } from '@/components/ui/toast';
 import { PastoralPhotoPicker } from '@/components/pastoral/PastoralPhotoPicker';
+import { PosCascadingSelector, HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
 import {
   FileText,
   Plus,
@@ -47,6 +48,8 @@ export default function LaporanPastoralPage() {
   const [editJmlJiwa, setEditJmlJiwa] = useState<number | ''>('');
   const [editCatatan, setEditCatatan] = useState('');
   const [editPhotoBase64, setEditPhotoBase64] = useState<string | null>(null);
+  const [editIdPos, setEditIdPos] = useState<string | null>(null);
+  const [editHierarchyMeta, setEditHierarchyMeta] = useState<HierarchyMetaInfo | null>(null);
 
   const { data: pastoralLogs, isLoading } = useLogPastoralList(searchQuery, selectedPos);
   const deleteMutation = useDeleteLogPastoral();
@@ -96,6 +99,7 @@ export default function LaporanPastoralPage() {
     setEditJmlJiwa(log.jml_jiwa ?? '');
     setEditCatatan(cleanNotes);
     setEditPhotoBase64(photoBase64);
+    setEditIdPos(log.id_pos || null);
     setIsEditing(false);
   };
 
@@ -113,7 +117,14 @@ export default function LaporanPastoralPage() {
       const jamStr = editJam || '09:00';
       let finalCatatan = editCatatan ? editCatatan.trim() : '';
       const timeTag = `[⏰ Jam Pelayanan: ${jamStr} WIB]`;
-      finalCatatan = finalCatatan ? `${timeTag}\n${finalCatatan}` : timeTag;
+
+      // Construct hierarchy tag if meta info is resolved
+      const mupelName = editHierarchyMeta?.mupelName || selectedLog.pos?.jemaat_induk?.mupel?.nama_mupel || 'Mupel GPIB';
+      const jemaatName = editHierarchyMeta?.jemaatName || selectedLog.pos?.jemaat_induk?.nama_induk || 'Jemaat Induk';
+      const posName = editHierarchyMeta?.posName || selectedLog.pos?.nama_pos || 'Pelayanan Jemaat Direct';
+      const hierarchyTag = `[🏛️ HIERARKI: ${mupelName} | ${jemaatName} | ${posName}]`;
+
+      finalCatatan = `${timeTag}\n${hierarchyTag}\n${finalCatatan}`;
 
       if (editPhotoBase64) {
         finalCatatan += `\n[📷 FOTO_BASE64:${editPhotoBase64}]`;
@@ -125,6 +136,7 @@ export default function LaporanPastoralPage() {
         tgl: editTgl,
         jml_jiwa: editJmlJiwa !== '' ? Number(editJmlJiwa) : null,
         catatan: finalCatatan,
+        id_pos: editIdPos || null,
       });
 
       toast.success('Log Pastoral Diperbarui', 'Data kegiatan & lokasi hierarki telah diperbarui.');
@@ -454,6 +466,22 @@ export default function LaporanPastoralPage() {
                   </div>
                 </div>
 
+                {/* Selector Wilayah Hierarki (Mupel, Jemaat Induk, Pos Pelkes) */}
+                <div className="space-y-1.5 border border-border-subtle/80 p-3 rounded-2xl bg-surface-base">
+                  <label className="text-xs font-bold text-brand-primary flex items-center gap-1.5 mb-1">
+                    <Building size={14} />
+                    <span>Wilayah Pelayanan Hierarki (Mupel, Jemaat, Pos) *</span>
+                  </label>
+                  <PosCascadingSelector
+                    value={editIdPos}
+                    onChange={(val) => setEditIdPos(val)}
+                    onMetaChange={(meta) => setEditHierarchyMeta(meta)}
+                    defaultPosId={selectedLog?.id_pos || undefined}
+                    disabled={updateMutation.isPending}
+                    required={false}
+                  />
+                </div>
+
                 {/* Kegiatan */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-text-high">Kegiatan Pastoral *</label>
@@ -648,7 +676,7 @@ export default function LaporanPastoralPage() {
                     className="flex-1 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] flex items-center justify-center gap-2"
                   >
                     <Edit size={16} />
-                    <span>Edit Log & Foto</span>
+                    <span>Edit Log & Hierarki</span>
                   </button>
                 </div>
               </div>
