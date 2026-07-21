@@ -33,14 +33,15 @@ export default function LogPastoralBaruPage() {
   } = useForm<LogPastoralInput>({
     resolver: zodResolver(logPastoralSchema),
     defaultValues: {
+      id_induk: '',
+      id_pos: undefined,
       tgl: new Date(),
       kegiatan: '',
       jml_jiwa: undefined,
       catatan: '',
-      id_pendeta: 'dummy-pendeta', // Provide a default or it will fail validation
+      id_pendeta: 'dummy-pendeta',
     },
   });
-
 
   const getTodayDateString = () => {
     const d = new Date();
@@ -168,7 +169,7 @@ export default function LogPastoralBaruPage() {
         <div className="space-y-2">
           <label className="text-sm font-medium text-text-high flex items-center gap-2">
             <Calendar className="w-4 h-4" />
-            Tanggal
+            Tanggal *
           </label>
           <input
             type="date"
@@ -183,7 +184,7 @@ export default function LogPastoralBaruPage() {
           )}
         </div>
 
-        {/* Pos Pelkes Cascading Selector */}
+        {/* Pos Pelkes Cascading Selector (Mupel & Jemaat Mandatory, Pos Pelkes Optional) */}
         <div className="space-y-1.5 w-full">
           <Controller
             name="id_pos"
@@ -192,7 +193,9 @@ export default function LogPastoralBaruPage() {
               <PosCascadingSelector
                 value={field.value}
                 onChange={field.onChange}
+                onJemaatChange={(jemaatId) => setValue('id_induk', jemaatId, { shouldValidate: true })}
                 error={errors.id_pos?.message}
+                jemaatError={errors.id_induk?.message}
                 disabled={isSubmitting}
                 required={false}
               />
@@ -203,7 +206,7 @@ export default function LogPastoralBaruPage() {
         {/* Kegiatan dengan Voice Input */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-text-high flex items-center justify-between">
-            <span>Kegiatan</span>
+            <span>Kegiatan *</span>
             {isVoiceSupported && (
               <button
                 type="button"

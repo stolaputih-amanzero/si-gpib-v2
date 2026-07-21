@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const logPastoralSchema = z.object({
+  id_induk: z.string().min(1, 'Jemaat Induk wajib dipilih'),
   id_pos: z.string().optional().nullable(),
   id_pendeta: z.string().min(1, 'Pendeta wajib dipilih'),
   tgl: z.date({
@@ -23,6 +24,7 @@ export type LogPastoralInput = z.infer<typeof logPastoralSchema>;
 
 // Schema untuk filter
 export const logPastoralFilterSchema = z.object({
+  id_induk: z.string().optional(),
   id_pos: z.string().optional(),
   id_pendeta: z.string().optional(),
   tanggal_mulai: z.date().optional(),
