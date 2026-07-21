@@ -31,6 +31,7 @@ interface PosCascadingSelectorProps {
   disabled?: boolean;
   defaultPosId?: string; // Untuk mode Edit
   required?: boolean; // Controls whether Pos Pelkes is required (Mupel & Jemaat are always compulsory)
+  hidePos?: boolean; // Poka-Yoke: Hides Pos Pelkes dropdown if target is Jemaat Induk level
 }
 
 export function PosCascadingSelector({
@@ -43,6 +44,7 @@ export function PosCascadingSelector({
   disabled,
   defaultPosId,
   required = true,
+  hidePos = false,
 }: PosCascadingSelectorProps) {
   const [selectedMupel, setSelectedMupel] = useState<string>('');
   const [selectedJemaat, setSelectedJemaat] = useState<string>('');
@@ -159,7 +161,7 @@ export function PosCascadingSelector({
 
   return (
     <div className="space-y-1.5 w-full">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full">
+      <div className={`grid grid-cols-1 ${hidePos ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-3 w-full`}>
         <MupelSelect
           value={selectedMupel}
           onChange={handleMupelChange}
@@ -174,18 +176,20 @@ export function PosCascadingSelector({
           error={jemaatError}
           required={true}
         />
-        <PosSelect
-          id_induk={selectedJemaat}
-          value={value || ''}
-          onChange={onChange}
-          disabled={disabled || isPosLocked}
-          error={error}
-          required={required}
-        />
+        {!hidePos && (
+          <PosSelect
+            id_induk={selectedJemaat}
+            value={value || ''}
+            onChange={onChange}
+            disabled={disabled || isPosLocked}
+            error={error}
+            required={required}
+          />
+        )}
       </div>
 
       {/* Poka-Yoke System Notice if locked */}
-      {(isMupelLocked || isJemaatLocked || isPosLocked) && (
+      {(isMupelLocked || isJemaatLocked || (isPosLocked && !hidePos)) && (
         <p className="text-[11px] text-brand-primary font-medium flex items-center gap-1.5">
           <span>🔒 Wilayah hierarki terisi otomatis & locked (Poka-Yoke RBAC)</span>
         </p>

@@ -232,6 +232,7 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
             onMetaChange={(meta) => setHierarchyMeta(meta)}
             disabled={batchUpsertMutation.isPending}
             required={targetScope === 'pos'} // Hanya required jika target lingkup adalah Pos Pelkes
+            hidePos={targetScope === 'jemaat'} // Poka-Yoke: Sembunyikan Pos Pelkes jika target adalah Jemaat Induk
           />
         </div>
       )}
