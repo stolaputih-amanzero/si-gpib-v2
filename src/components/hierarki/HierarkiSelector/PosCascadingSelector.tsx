@@ -4,12 +4,28 @@ import { useState, useEffect } from 'react';
 import { MupelSelect } from './MupelSelect';
 import { JemaatSelect } from './JemaatSelect';
 import { PosSelect } from './PosSelect';
-import { useUserMupelAuth, usePosReverseLookup } from '@/hooks/use-hierarki-selector';
+import {
+  useUserMupelAuth,
+  usePosReverseLookup,
+  useMupelOptions,
+  useJemaatOptions,
+  usePosOptions,
+} from '@/hooks/use-hierarki-selector';
+
+export interface HierarchyMetaInfo {
+  id_mupel: string;
+  id_induk: string;
+  id_pos?: string;
+  mupelName?: string;
+  jemaatName?: string;
+  posName?: string;
+}
 
 interface PosCascadingSelectorProps {
   value?: string | null;
   onChange: (value: string) => void;
   onJemaatChange?: (id_induk: string) => void;
+  onMetaChange?: (meta: HierarchyMetaInfo) => void;
   error?: string;
   jemaatError?: string;
   disabled?: boolean;
@@ -21,6 +37,7 @@ export function PosCascadingSelector({
   value,
   onChange,
   onJemaatChange,
+  onMetaChange,
   error,
   jemaatError,
   disabled,
@@ -32,6 +49,11 @@ export function PosCascadingSelector({
 
   // 1. Dapatkan auth user & role untuk Poka-Yoke Auto-Selection & Locking
   const { data: userAuth, isLoading: isLoadingAuth } = useUserMupelAuth();
+
+  // Fetch option lists to get human readable names
+  const { data: mupelList } = useMupelOptions();
+  const { data: jemaatList } = useJemaatOptions(selectedMupel);
+  const { data: posList } = usePosOptions(selectedJemaat);
 
   // Poka-Yoke Lock Rules per Role
   const isSuperadmin = !userAuth || userAuth.role === 'superadmin' || userAuth.role === 'sinode';
@@ -90,6 +112,24 @@ export function PosCascadingSelector({
     selectedMupel,
     selectedJemaat,
   ]);
+
+  // Effect: Send meta hierarchy info (Names) to parent form
+  useEffect(() => {
+    if (onMetaChange) {
+      const mupelObj = mupelList?.find((m) => m.id === selectedMupel);
+      const jemaatObj = jemaatList?.find((j) => j.id === selectedJemaat);
+      const posObj = posList?.find((p) => p.id === value);
+
+      onMetaChange({
+        id_mupel: selectedMupel,
+        id_induk: selectedJemaat,
+        id_pos: value || undefined,
+        mupelName: mupelObj?.nama || posHierarchy?.jemaat_induk?.mupel?.nama_mupel,
+        jemaatName: jemaatObj?.nama || posHierarchy?.jemaat_induk?.nama_induk,
+        posName: posObj?.nama || posHierarchy?.nama_pos,
+      });
+    }
+  }, [selectedMupel, selectedJemaat, value, mupelList, jemaatList, posList, posHierarchy, onMetaChange]);
 
   // Handlers
   const handleMupelChange = (mupelId: string) => {

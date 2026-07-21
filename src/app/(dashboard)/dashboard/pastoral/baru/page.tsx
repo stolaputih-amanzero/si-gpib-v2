@@ -9,7 +9,7 @@ import { useVoiceInput } from '@/hooks/use-voice-input';
 import { logPastoralSchema, LogPastoralInput } from '@/lib/validations/log-pastoral.schema';
 import { createClient } from '@/lib/supabase/client';
 import { useNetworkStatus } from '@/hooks/use-network-status';
-import { PosCascadingSelector } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
+import { PosCascadingSelector, HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
 import { PastoralPhotoPicker } from '@/components/pastoral/PastoralPhotoPicker';
 import { useToast } from '@/components/ui/toast';
 
@@ -18,6 +18,7 @@ export default function LogPastoralBaruPage() {
   const { toast } = useToast();
   const { isOnline } = useNetworkStatus();
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
+  const [hierarchyMeta, setHierarchyMeta] = useState<HierarchyMetaInfo | null>(null);
 
   const {
     isListening,
@@ -151,11 +152,21 @@ export default function LogPastoralBaruPage() {
 
       const jamStr = data.jam || getNowTimeString();
 
-      // Combine time prefix and photo URL into catatan
+      // Combine time prefix and hierarchy metadata into catatan
       let finalCatatan = data.catatan ? data.catatan.trim() : '';
       const timeTag = `[⏰ Jam Pelayanan: ${jamStr} WIB]`;
       if (!finalCatatan.includes('Jam Pelayanan:')) {
         finalCatatan = finalCatatan ? `${timeTag}\n${finalCatatan}` : timeTag;
+      }
+
+      // Format hierarchy metadata tag
+      const mupelName = hierarchyMeta?.mupelName || 'Mupel GPIB';
+      const jemaatName = hierarchyMeta?.jemaatName || 'Jemaat Induk';
+      const posName = hierarchyMeta?.posName || 'Pelayanan Jemaat Direct';
+      const hierarchyTag = `[🏛️ HIERARKI: ${mupelName} | ${jemaatName} | ${posName}]`;
+
+      if (!finalCatatan.includes('HIERARKI:')) {
+        finalCatatan += `\n${hierarchyTag}`;
       }
 
       if (photoBase64) {
@@ -182,7 +193,7 @@ export default function LogPastoralBaruPage() {
 
       // Clear draft
       localStorage.removeItem('draft:log-pastoral');
-      toast.success('Berhasil Disimpan', `Log pastoral tanggal ${tglStr} jam ${jamStr} WIB telah dicatat.`);
+      toast.success('Berhasil Disimpan', `Log pastoral di ${posName} (${jemaatName}) telah dicatat.`);
 
       // Haptic feedback (success)
       if ('vibrate' in navigator) {
@@ -270,6 +281,7 @@ export default function LogPastoralBaruPage() {
                 value={field.value}
                 onChange={field.onChange}
                 onJemaatChange={(jemaatId) => setValue('id_induk', jemaatId, { shouldValidate: true })}
+                onMetaChange={(meta) => setHierarchyMeta(meta)}
                 error={errors.id_pos?.message}
                 jemaatError={errors.id_induk?.message}
                 disabled={isSubmitting}

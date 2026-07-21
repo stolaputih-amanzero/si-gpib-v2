@@ -50,12 +50,13 @@ export default function LaporanPastoralPage() {
   const deleteMutation = useDeleteLogPastoral();
   const updateMutation = useUpdateLogPastoral();
 
-  // Helper to extract time tag and photo from catatan string
+  // Helper to extract time tag, photo, and hierarchy info from catatan string
   const extractMetaFromCatatan = (catatan?: string | null) => {
-    if (!catatan) return { jamStr: '09:00', photoBase64: null, cleanNotes: '' };
+    if (!catatan) return { jamStr: '09:00', photoBase64: null, hierarchyInfo: null, cleanNotes: '' };
     
     let jamStr = '09:00';
     let photoBase64: string | null = null;
+    let hierarchyInfo: { mupelName?: string; jemaatName?: string; posName?: string } | null = null;
     let cleanNotes = catatan;
 
     const timeMatch = cleanNotes.match(/\[⏰ Jam Pelayanan:\s*([\d:]+)\s*WIB\]/);
@@ -64,13 +65,23 @@ export default function LaporanPastoralPage() {
       cleanNotes = cleanNotes.replace(/\[⏰ Jam Pelayanan:\s*[\d:]+\s*WIB\]\n?/, '');
     }
 
+    const hierarchyMatch = cleanNotes.match(/\[🏛️ HIERARKI:\s*([^|]+)\|\s*([^|]+)\|\s*([^\]]+)\]/);
+    if (hierarchyMatch) {
+      hierarchyInfo = {
+        mupelName: hierarchyMatch[1].trim(),
+        jemaatName: hierarchyMatch[2].trim(),
+        posName: hierarchyMatch[3].trim(),
+      };
+      cleanNotes = cleanNotes.replace(/\[🏛️ HIERARKI:\s*[^|]+\|\s*[^|]+\|\s*[^\]]+\]\n?/, '');
+    }
+
     const photoMatch = cleanNotes.match(/\[📷 FOTO_BASE64:(data:image\/[^;]+;base64,[^\]]+)\]/);
     if (photoMatch && photoMatch[1]) {
       photoBase64 = photoMatch[1];
       cleanNotes = cleanNotes.replace(/\[📷 FOTO_BASE64:data:image\/[^;]+;base64,[^\]]+\]\n?/, '');
     }
 
-    return { jamStr, photoBase64, cleanNotes: cleanNotes.trim() };
+    return { jamStr, photoBase64, hierarchyInfo, cleanNotes: cleanNotes.trim() };
   };
 
   const handleOpenDetailModal = (log: LogPastoralItem) => {
@@ -227,12 +238,12 @@ export default function LaporanPastoralPage() {
         ) : pastoralLogs && pastoralLogs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {pastoralLogs.map((log) => {
-              const { jamStr, photoBase64, cleanNotes } = extractMetaFromCatatan(log.catatan);
+              const { jamStr, photoBase64, hierarchyInfo, cleanNotes } = extractMetaFromCatatan(log.catatan);
 
-              const posNama = log.pos?.nama_pos;
+              const posNama = log.pos?.nama_pos || hierarchyInfo?.posName;
               const posKategori = log.pos?.kategori || 'Pos Pelkes';
-              const jemaatNama = log.pos?.jemaat_induk?.nama_induk;
-              const mupelNama = log.pos?.jemaat_induk?.mupel?.nama_mupel;
+              const jemaatNama = log.pos?.jemaat_induk?.nama_induk || hierarchyInfo?.jemaatName;
+              const mupelNama = log.pos?.jemaat_induk?.mupel?.nama_mupel || hierarchyInfo?.mupelName;
 
               return (
                 <div
@@ -305,7 +316,7 @@ export default function LaporanPastoralPage() {
                         <MapPin size={13} className="text-brand-primary" /> Pos Pelkes / Bajem:
                       </span>
                       <span className="font-bold text-text-high truncate max-w-[180px]">
-                        {posNama ? `${posNama} (${posKategori})` : 'Pelayanan Jemaat Direct'}
+                        {posNama && posNama !== 'Pelayanan Jemaat Direct' ? `${posNama} (${posKategori})` : 'Pelayanan Jemaat Direct'}
                       </span>
                     </div>
 
@@ -543,49 +554,59 @@ export default function LaporanPastoralPage() {
                 )}
 
                 {/* Full 3-Level Hierarchy Breakdown in Detail Modal */}
-                <div className="bg-surface-base p-3.5 rounded-2xl border border-border-subtle/80 space-y-2 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-text-muted flex items-center gap-1.5 font-medium">
-                      <MapPin size={14} className="text-brand-primary" /> Pos Pelkes / Bajem:
-                    </span>
-                    <span className="font-bold text-text-high">
-                      {selectedLog.pos?.nama_pos ? `${selectedLog.pos.nama_pos} (${selectedLog.pos.kategori || 'Pos Pelkes'})` : 'Pelayanan Jemaat Induk Direct'}
-                    </span>
-                  </div>
+                {(() => {
+                  const { hierarchyInfo } = extractMetaFromCatatan(selectedLog.catatan);
+                  const posNama = selectedLog.pos?.nama_pos || hierarchyInfo?.posName;
+                  const posKategori = selectedLog.pos?.kategori || 'Pos Pelkes';
+                  const jemaatNama = selectedLog.pos?.jemaat_induk?.nama_induk || hierarchyInfo?.jemaatName;
+                  const mupelNama = selectedLog.pos?.jemaat_induk?.mupel?.nama_mupel || hierarchyInfo?.mupelName;
 
-                  {selectedLog.pos?.jemaat_induk?.nama_induk && (
-                    <div className="flex items-center justify-between border-t border-border-subtle/40 pt-2">
-                      <span className="text-text-muted flex items-center gap-1.5">
-                        <Building size={14} className="text-blue-500" /> Jemaat Induk Terkait:
-                      </span>
-                      <span className="font-bold text-text-high">
-                        {selectedLog.pos.jemaat_induk.nama_induk}
-                      </span>
-                    </div>
-                  )}
+                  return (
+                    <div className="bg-surface-base p-3.5 rounded-2xl border border-border-subtle/80 space-y-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-text-muted flex items-center gap-1.5 font-medium">
+                          <MapPin size={14} className="text-brand-primary" /> Pos Pelkes / Bajem:
+                        </span>
+                        <span className="font-bold text-text-high">
+                          {posNama && posNama !== 'Pelayanan Jemaat Direct' ? `${posNama} (${posKategori})` : 'Pelayanan Jemaat Direct'}
+                        </span>
+                      </div>
 
-                  {selectedLog.pos?.jemaat_induk?.mupel?.nama_mupel && (
-                    <div className="flex items-center justify-between border-t border-border-subtle/40 pt-2">
-                      <span className="text-text-muted flex items-center gap-1.5">
-                        <Layers size={14} className="text-purple-500" /> Mupel Terkait:
-                      </span>
-                      <span className="font-bold text-text-high">
-                        {selectedLog.pos.jemaat_induk.mupel.nama_mupel}
-                      </span>
-                    </div>
-                  )}
+                      {jemaatNama && (
+                        <div className="flex items-center justify-between border-t border-border-subtle/40 pt-2">
+                          <span className="text-text-muted flex items-center gap-1.5">
+                            <Building size={14} className="text-blue-500" /> Jemaat Induk Terkait:
+                          </span>
+                          <span className="font-bold text-text-high">
+                            {jemaatNama}
+                          </span>
+                        </div>
+                      )}
 
-                  {selectedLog.pendeta && (
-                    <div className="flex items-center justify-between border-t border-border-subtle/40 pt-2">
-                      <span className="text-text-muted flex items-center gap-1.5">
-                        <HeartHandshake size={14} className="text-emerald-500" /> Pelayan Pendeta:
-                      </span>
-                      <span className="font-bold text-text-high">
-                        {selectedLog.pendeta.nama_lengkap}
-                      </span>
+                      {mupelNama && (
+                        <div className="flex items-center justify-between border-t border-border-subtle/40 pt-2">
+                          <span className="text-text-muted flex items-center gap-1.5">
+                            <Layers size={14} className="text-purple-500" /> Mupel Terkait:
+                          </span>
+                          <span className="font-bold text-text-high">
+                            {mupelNama}
+                          </span>
+                        </div>
+                      )}
+
+                      {selectedLog.pendeta && (
+                        <div className="flex items-center justify-between border-t border-border-subtle/40 pt-2">
+                          <span className="text-text-muted flex items-center gap-1.5">
+                            <HeartHandshake size={14} className="text-emerald-500" /> Pelayan Pendeta:
+                          </span>
+                          <span className="font-bold text-text-high">
+                            {selectedLog.pendeta.nama_lengkap}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  );
+                })()}
 
                 {extractMetaFromCatatan(selectedLog.catatan).cleanNotes ? (
                   <div className="space-y-1">
