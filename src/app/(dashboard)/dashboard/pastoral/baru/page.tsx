@@ -122,7 +122,7 @@ export default function LogPastoralBaruPage() {
         navigator.vibrate([10, 50, 10]);
       }
 
-      router.push('/dashboard/pastoral');
+      router.push('/laporan/pastoral');
     } catch (error) {
       console.error('Failed to save log:', error);
       // Haptic feedback (error)
