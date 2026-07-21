@@ -104,6 +104,21 @@ export default function LaporanPastoralPage() {
     return new File([u8arr], filename, { type: mime });
   };
 
+  const formatIndonesianDate = (tglStr: string) => {
+    try {
+      const d = new Date(tglStr);
+      if (isNaN(d.getTime())) return tglStr;
+      return d.toLocaleDateString('id-ID', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    } catch {
+      return tglStr;
+    }
+  };
+
   const handleShareWhatsApp = async (e: React.MouseEvent, log: LogPastoralItem) => {
     e.stopPropagation();
     const { jamStr, photoBase64, hierarchyInfo, cleanNotes } = extractMetaFromCatatan(log.catatan);
@@ -114,24 +129,33 @@ export default function LaporanPastoralPage() {
     const mupelNama = log.pos?.jemaat_induk?.mupel?.nama_mupel || hierarchyInfo?.mupelName || '-';
     const pendetaNama = log.pendeta?.nama_lengkap || '-';
 
+    const tglFormatted = formatIndonesianDate(log.tgl);
+    const posFormatted = posNama !== 'Pelayanan Jemaat Direct' ? `${posNama} (${posKategori})` : 'Pelayanan Jemaat Direct';
+
     const lines = [
-      `📋 *LAPORAN KEGIATAN PASTORAL GPIB*`,
-      `──────────────────────`,
-      `✝️ *Kegiatan:* ${log.kegiatan}`,
-      `📅 *Tanggal:* ${log.tgl}`,
-      `⏰ *Waktu:* ${jamStr || '09:00'} WIB`,
-      log.jml_jiwa ? `👥 *Jiwa Dilayani:* ${log.jml_jiwa} Jiwa` : null,
+      `*LAPORAN PELAYANAN PASTORAL*`,
+      `Gereja Protestan di Indonesia bagian Barat (GPIB)`,
       ``,
-      `📍 *LOKASI PELAYANAN HIERARKI:*`,
-      `• *Pos Pelkes / Bajem:* ${posNama}${posNama !== 'Pelayanan Jemaat Direct' ? ` (${posKategori})` : ''}`,
+      `───── INFORMASI KEGIATAN ─────`,
+      ``,
+      `• *Kegiatan:* ${log.kegiatan}`,
+      `• *Waktu:* ${tglFormatted} | Pkl. ${jamStr || '09:00'} WIB`,
+      log.jml_jiwa ? `• *Jiwa Dilayani:* ${log.jml_jiwa} Jiwa` : null,
+      ``,
+      `───── WILAYAH PELAYANAN ─────`,
+      ``,
+      `• *Pos Pelkes / Bajem:* ${posFormatted}`,
       `• *Jemaat Induk:* ${jemaatNama}`,
       `• *Mupel:* ${mupelNama}`,
       ``,
-      `👤 *Pelayan Pendeta:* ${pendetaNama}`,
-      cleanNotes ? `\n📝 *Catatan Pelayanan:*\n"${cleanNotes}"` : null,
-      `──────────────────────`,
-      `_Dikirim melalui Aplikasi Sistem Informasi GPIB v2_`,
-    ].filter(Boolean).join('\n');
+      `───── PELAYAN & CATATAN ─────`,
+      ``,
+      `• *Pelayan:* ${pendetaNama}`,
+      cleanNotes ? `\n• *Catatan Pelayanan:*\n"${cleanNotes}"` : null,
+      ``,
+      `───────────────────────────────`,
+      `_Aplikasi Sistem Informasi GPIB v2.2_`,
+    ].filter((item) => item !== null).join('\n');
 
     // 1. Try native OS Web Share API with attached photo file
     if (photoBase64 && typeof navigator !== 'undefined' && navigator.share) {
