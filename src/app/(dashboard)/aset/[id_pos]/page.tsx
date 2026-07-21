@@ -107,21 +107,24 @@ export default function AsetPosDetailPage({ params }: { params: Promise<{ id_pos
               <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
                 <Link
                   href={`/aset/${id_pos}/tanah`}
-                  className="px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 text-xs font-semibold hover:bg-amber-100 transition-colors"
+                  className="px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 text-xs font-semibold hover:bg-amber-100 transition-colors flex items-center gap-1.5"
                 >
-                  + Aset Tanah
+                  <Plus size={14} />
+                  <span>Aset Tanah</span>
                 </Link>
                 <Link
                   href={`/aset/${id_pos}/bangunan`}
-                  className="px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 text-xs font-semibold hover:bg-blue-100 transition-colors"
+                  className="px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 text-xs font-semibold hover:bg-blue-100 transition-colors flex items-center gap-1.5"
                 >
-                  + Aset Bangunan
+                  <Plus size={14} />
+                  <span>Aset Bangunan</span>
                 </Link>
                 <Link
                   href={`/aset/${id_pos}/bergerak`}
-                  className="px-3 py-2 rounded-lg bg-pink-50 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 text-xs font-semibold hover:bg-pink-100 transition-colors"
+                  className="px-3 py-2 rounded-lg bg-pink-50 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 text-xs font-semibold hover:bg-pink-100 transition-colors flex items-center gap-1.5"
                 >
-                  + Aset Bergerak
+                  <Plus size={14} />
+                  <span>Aset Bergerak</span>
                 </Link>
               </div>
             </div>

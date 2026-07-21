@@ -84,7 +84,7 @@ export default function LaporanAsetPage() {
         >
           <Plus size={18} />
           <span className="hidden sm:inline">Tambah Aset Baru</span>
-          <span className="sm:hidden">+ Aset</span>
+          <span className="sm:hidden">Aset</span>
         </Link>
       </div>
 
@@ -470,39 +470,39 @@ export default function LaporanAsetPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-border-subtle bg-surface-sunken/40 flex items-center justify-between">
+            <div className="p-4 border-t border-border-subtle bg-surface-sunken/40 flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => shareAsetWA(selectedDetail)}
-                className="px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-semibold hover:bg-emerald-700 active:scale-95 transition-all flex items-center gap-1.5 shadow-sm"
+                className="py-2.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all min-h-[44px] flex items-center justify-center gap-1.5 shadow-soft shrink-0"
+                title="Bagikan Laporan Aset ke WhatsApp"
               >
-                <Share2 size={15} />
+                <Share2 size={16} />
                 <span>Bagikan WA</span>
               </button>
 
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const itemToEdit = selectedDetail;
-                    setSelectedDetail(null);
-                    setSelectedEdit(itemToEdit);
-                  }}
-                  className="px-4 py-2.5 bg-brand-primary text-white rounded-xl text-xs font-semibold hover:bg-brand-primary-dark transition-all flex items-center gap-1.5 shadow-sm"
-                >
-                  <Edit2 size={15} />
-                  <span>Edit Data Aset</span>
-                </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(selectedDetail.id, selectedDetail.kategori)}
+                className="py-2.5 px-3.5 rounded-xl border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-50 dark:hover:bg-red-950/40 transition-all min-h-[44px] flex items-center justify-center gap-1.5 shrink-0"
+                title="Hapus Data Aset"
+              >
+                <Trash2 size={16} />
+                <span>Hapus</span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => handleDelete(selectedDetail.id, selectedDetail.kategori)}
-                  className="px-3.5 py-2.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5"
-                >
-                  <Trash2 size={15} />
-                  <span>Hapus</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const itemToEdit = selectedDetail;
+                  setSelectedDetail(null);
+                  setSelectedEdit(itemToEdit);
+                }}
+                className="flex-1 py-2.5 px-3.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] flex items-center justify-center gap-2"
+              >
+                <Edit2 size={16} />
+                <span>Edit Data</span>
+              </button>
             </div>
           </div>
         </div>
