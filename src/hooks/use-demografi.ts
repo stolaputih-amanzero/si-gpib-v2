@@ -82,6 +82,42 @@ export function useUpsertDemografi() {
     },
   });
 }
+export function useBatchUpsertDemografi() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (payloads: DemografiInput[]) => {
+      const formattedPayloads = payloads.map((data) => ({
+        id_pos: data.id_pos,
+        kategori_pelkat: data.kategori_pelkat,
+        jml_kk: data.jml_kk,
+        laki: data.laki,
+        perempuan: data.perempuan,
+        profesi: data.profesi || null,
+        pendidikan: data.pendidikan || null,
+        keterangan: data.keterangan || null,
+        updated_at: new Date().toISOString(),
+      }));
+
+      const { data: result, error } = await supabase
+        .from('t_demografi_pelkat')
+        .upsert(formattedPayloads, {
+          onConflict: 'id_pos,kategori_pelkat',
+        })
+        .select();
+      
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: (_, variables) => {
+      if (variables[0]?.id_pos) {
+        queryClient.invalidateQueries({ queryKey: ['demografi', variables[0].id_pos] });
+      }
+      queryClient.invalidateQueries({ queryKey: ['demografi-list'] });
+    },
+  });
+}
 
 // Delete demografi record
 export function useDeleteDemografi() {
