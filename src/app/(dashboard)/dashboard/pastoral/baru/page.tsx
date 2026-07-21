@@ -21,6 +21,7 @@ export default function LogPastoralBaruPage() {
   const { isOnline } = useNetworkStatus();
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
   const [hierarchyMeta, setHierarchyMeta] = useState<HierarchyMetaInfo | null>(null);
+  const [targetScope, setTargetScope] = useState<'pos' | 'jemaat'>('jemaat');
 
   const {
     isListening,
@@ -144,6 +145,47 @@ export default function LogPastoralBaruPage() {
         return;
       }
 
+      // Resolve finalPosId according to targetScope
+      let finalPosId = data.id_pos && data.id_pos.trim() !== '' ? data.id_pos : null;
+
+      if (targetScope === 'pos') {
+        if (!finalPosId) {
+          toast.error('Wilayah Belum Lengkap', 'Silakan pilih Wilayah Pos Pelkes / Bajem terlebih dahulu.');
+          return;
+        }
+      } else {
+        // Target scope: Jemaat Induk
+        const jemaatId = data.id_induk || hierarchyMeta?.id_induk;
+        if (!jemaatId) {
+          toast.error('Wilayah Belum Lengkap', 'Silakan pilih Wilayah Mupel & Jemaat Induk terlebih dahulu.');
+          return;
+        }
+
+        if (!finalPosId) {
+          const { data: posRows } = await supabase
+            .from('m_pos_pelkes')
+            .select('id_pos')
+            .eq('id_induk', jemaatId)
+            .limit(1);
+
+          if (posRows && posRows[0]) {
+            finalPosId = posRows[0].id_pos;
+          } else {
+            const jemaatNama = hierarchyMeta?.jemaatName || jemaatId;
+            const createdPosId = `POS-${Math.floor(10000 + Math.random() * 90000)}`;
+            const { error: insErr } = await supabase.from('m_pos_pelkes').insert({
+              id_pos: createdPosId,
+              id_induk: jemaatId,
+              nama_pos: `Jemaat ${jemaatNama}`,
+              kategori: 'Pos Pelkes',
+            });
+            if (!insErr) {
+              finalPosId = createdPosId;
+            }
+          }
+        }
+      }
+
       // Generate ID log
       const idLog = `LOG-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
@@ -163,7 +205,11 @@ export default function LogPastoralBaruPage() {
       // Format hierarchy metadata tag
       const mupelName = hierarchyMeta?.mupelName || 'Mupel GPIB';
       const jemaatName = hierarchyMeta?.jemaatName || 'Jemaat Induk';
-      const posName = hierarchyMeta?.posName && hierarchyMeta.posName !== 'Pelayanan Jemaat Direct' ? hierarchyMeta.posName : '-';
+      const posName = targetScope === 'jemaat'
+        ? '-'
+        : hierarchyMeta?.posName && hierarchyMeta.posName !== 'Pelayanan Jemaat Direct'
+        ? hierarchyMeta.posName
+        : '-';
       const hierarchyTag = `[🏛️ HIERARKI: ${mupelName} | ${jemaatName} | ${posName}]`;
 
       if (!finalCatatan.includes('HIERARKI:')) {
@@ -178,7 +224,7 @@ export default function LogPastoralBaruPage() {
 
       const payload = {
         id_log: idLog,
-        id_pos: data.id_pos && data.id_pos.trim() !== '' ? data.id_pos : null,
+        id_pos: finalPosId,
         id_pendeta: pendetaId,
         tgl: tglStr,
         kegiatan: formattedKegiatan,
@@ -196,7 +242,7 @@ export default function LogPastoralBaruPage() {
 
       // Clear draft
       localStorage.removeItem('draft:log-pastoral');
-      toast.success('Berhasil Disimpan', `Log pastoral di ${posName} (${jemaatName}) telah dicatat.`);
+      toast.success('Berhasil Disimpan', `Log pastoral di ${posName !== '-' ? posName : jemaatName} telah dicatat.`);
 
       // Haptic feedback (success)
       if ('vibrate' in navigator) {
@@ -274,7 +320,39 @@ export default function LogPastoralBaruPage() {
           </div>
         </div>
 
-        {/* Pos Pelkes Cascading Selector (Mupel & Jemaat Mandatory, Pos Pelkes Optional) */}
+        {/* 1. Selector Target Scope (Jemaat Induk vs Pos Pelkes) */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-text-high">Target Lingkup Pelayanan *</label>
+          <div className="grid grid-cols-2 gap-2 bg-surface-sunken p-1 rounded-xl">
+            <button
+              type="button"
+              onClick={() => {
+                setTargetScope('jemaat');
+                setValue('id_pos', undefined);
+              }}
+              className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                targetScope === 'jemaat'
+                  ? 'bg-surface-elevated text-brand-primary shadow-soft'
+                  : 'text-text-muted hover:text-text-high'
+              }`}
+            >
+              <span>⛪ Jemaat Induk</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTargetScope('pos')}
+              className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                targetScope === 'pos'
+                  ? 'bg-surface-elevated text-brand-primary shadow-soft'
+                  : 'text-text-muted hover:text-text-high'
+              }`}
+            >
+              <span>📍 Pos Pelkes / Bajem</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 2. Pos Pelkes Cascading Selector */}
         <div className="space-y-1.5 w-full">
           <Controller
             name="id_pos"
@@ -288,7 +366,8 @@ export default function LogPastoralBaruPage() {
                 error={errors.id_pos?.message}
                 jemaatError={errors.id_induk?.message}
                 disabled={isSubmitting}
-                required={false}
+                required={targetScope === 'pos'}
+                hidePos={targetScope === 'jemaat'}
               />
             )}
           />

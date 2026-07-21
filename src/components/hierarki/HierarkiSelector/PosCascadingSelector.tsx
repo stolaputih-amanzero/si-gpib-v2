@@ -7,6 +7,7 @@ import { PosSelect } from './PosSelect';
 import {
   useUserMupelAuth,
   usePosReverseLookup,
+  useJemaatReverseLookup,
   useMupelOptions,
   useJemaatOptions,
   usePosOptions,
@@ -30,6 +31,7 @@ interface PosCascadingSelectorProps {
   jemaatError?: string;
   disabled?: boolean;
   defaultPosId?: string; // Untuk mode Edit
+  defaultJemaatId?: string; // Fallback jika id_pos null
   required?: boolean; // Controls whether Pos Pelkes is required (Mupel & Jemaat are always compulsory)
   hidePos?: boolean; // Poka-Yoke: Hides Pos Pelkes dropdown if target is Jemaat Induk level
 }
@@ -43,6 +45,7 @@ export function PosCascadingSelector({
   jemaatError,
   disabled,
   defaultPosId,
+  defaultJemaatId,
   required = true,
   hidePos = false,
 }: PosCascadingSelectorProps) {
@@ -69,12 +72,17 @@ export function PosCascadingSelector({
     ['pj_pos', 'pelayan', 'relawan'].includes(userAuth?.role || '')
   );
 
-  // 2. Jika ada defaultPosId (Edit Mode), lakukan reverse lookup
-  const { data: posHierarchy, isLoading: isLookingUp } = usePosReverseLookup(defaultPosId);
+  // 2. Jika ada defaultPosId atau defaultJemaatId (Edit Mode), lakukan reverse lookup
+  const { data: posHierarchy, isLoading: isLookingUpPos } = usePosReverseLookup(defaultPosId);
+  const { data: jemaatHierarchy, isLoading: isLookingUpJemaat } = useJemaatReverseLookup(
+    !defaultPosId ? defaultJemaatId : undefined
+  );
+
+  const isLookingUp = (defaultPosId && isLookingUpPos) || (defaultJemaatId && !defaultPosId && isLookingUpJemaat);
 
   // Effect: Poka-Yoke Auto-fill & Locking Synchronization
   useEffect(() => {
-    // Priority 1: Reverse Lookup Data (Edit Mode)
+    // Priority 1: Reverse Lookup Pos Data (Edit Mode)
     if (posHierarchy) {
       const mupelId = posHierarchy.jemaat_induk?.id_mupel || '';
       const jemaatId = posHierarchy.id_induk || '';
@@ -87,7 +95,17 @@ export function PosCascadingSelector({
         onChange(posHierarchy.id_pos);
       }
     } 
-    // Priority 2: Poka-Yoke Auto-fill berdasarkan Role & Penugasan User
+    // Priority 2: Reverse Lookup Jemaat Data if id_pos is null
+    else if (jemaatHierarchy) {
+      const mupelId = jemaatHierarchy.id_mupel || '';
+      const jemaatId = jemaatHierarchy.id_induk || '';
+      setSelectedMupel(mupelId);
+      setSelectedJemaat(jemaatId);
+      if (onJemaatChange && jemaatId) {
+        onJemaatChange(jemaatId);
+      }
+    }
+    // Priority 3: Poka-Yoke Auto-fill berdasarkan Role & Penugasan User
     else if (userAuth) {
       if (userAuth.id_mupel && (!selectedMupel || isMupelLocked)) {
         setSelectedMupel(userAuth.id_mupel);
@@ -104,6 +122,7 @@ export function PosCascadingSelector({
     }
   }, [
     posHierarchy,
+    jemaatHierarchy,
     userAuth,
     isMupelLocked,
     isJemaatLocked,

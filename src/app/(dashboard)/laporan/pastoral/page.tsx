@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+import { createClient } from '@/lib/supabase/client';
 import { formatPastoralKegiatanText } from '@/lib/formatters/pastoral-text';
 
 export default function LaporanPastoralPage() {
@@ -45,6 +46,7 @@ export default function LaporanPastoralPage() {
   const [viewPhotoUrl, setViewPhotoUrl] = useState<string | null>(null);
 
   // Modal Edit Form state
+  const [editTargetScope, setEditTargetScope] = useState<'pos' | 'jemaat'>('jemaat');
   const [editKegiatan, setEditKegiatan] = useState('');
   const [editTgl, setEditTgl] = useState('');
   const [editJam, setEditJam] = useState('');
@@ -206,6 +208,16 @@ export default function LaporanPastoralPage() {
     setEditCatatan(cleanNotes);
     setEditPhotoBase64(photoBase64);
     setEditIdPos(log.id_pos || null);
+
+    // Poka-Yoke: Check target scope of existing log
+    const posKategori = log.pos?.kategori || '';
+    const posNama = log.pos?.nama_pos || '';
+    if (posKategori === 'Pos Pelkes' && !posNama.toLowerCase().startsWith('jemaat ') && posNama !== 'Pelayanan Jemaat Direct') {
+      setEditTargetScope('pos');
+    } else {
+      setEditTargetScope('jemaat');
+    }
+
     setIsEditing(false);
   };
 
@@ -220,6 +232,47 @@ export default function LaporanPastoralPage() {
     if (!selectedLog) return;
 
     try {
+      const supabase = createClient();
+      let finalPosId = editIdPos;
+
+      if (editTargetScope === 'pos') {
+        if (!finalPosId || finalPosId.trim() === '') {
+          toast.error('Gagal Memperbarui', 'Silakan pilih Wilayah Pos Pelkes / Bajem terlebih dahulu.');
+          return;
+        }
+      } else {
+        // Target scope: Jemaat Induk
+        const jemaatId = editHierarchyMeta?.id_induk || selectedLog.pos?.jemaat_induk?.id_induk;
+        if (!jemaatId) {
+          toast.error('Gagal Memperbarui', 'Silakan pilih Wilayah Mupel & Jemaat Induk terlebih dahulu.');
+          return;
+        }
+
+        if (!finalPosId || editTargetScope === 'jemaat') {
+          const { data: posRows } = await supabase
+            .from('m_pos_pelkes')
+            .select('id_pos')
+            .eq('id_induk', jemaatId)
+            .limit(1);
+
+          if (posRows && posRows[0]) {
+            finalPosId = posRows[0].id_pos;
+          } else {
+            const jemaatNama = editHierarchyMeta?.jemaatName || selectedLog.pos?.jemaat_induk?.nama_induk || jemaatId;
+            const createdPosId = `POS-${Math.floor(10000 + Math.random() * 90000)}`;
+            const { error: insErr } = await supabase.from('m_pos_pelkes').insert({
+              id_pos: createdPosId,
+              id_induk: jemaatId,
+              nama_pos: `Jemaat ${jemaatNama}`,
+              kategori: 'Pos Pelkes',
+            });
+            if (!insErr) {
+              finalPosId = createdPosId;
+            }
+          }
+        }
+      }
+
       const jamStr = editJam || '09:00';
       let rawCatatanFormatted = editCatatan ? formatPastoralKegiatanText(editCatatan) : '';
       const timeTag = `[⏰ Jam Pelayanan: ${jamStr} WIB]`;
@@ -227,7 +280,9 @@ export default function LaporanPastoralPage() {
       // Construct hierarchy tag if meta info is resolved
       const mupelName = editHierarchyMeta?.mupelName || selectedLog.pos?.jemaat_induk?.mupel?.nama_mupel || 'Mupel GPIB';
       const jemaatName = editHierarchyMeta?.jemaatName || selectedLog.pos?.jemaat_induk?.nama_induk || 'Jemaat Induk';
-      const posName = editHierarchyMeta?.posName || selectedLog.pos?.nama_pos || 'Pelayanan Jemaat Direct';
+      const posName = editTargetScope === 'jemaat'
+        ? '-'
+        : editHierarchyMeta?.posName || selectedLog.pos?.nama_pos || '-';
       const hierarchyTag = `[🏛️ HIERARKI: ${mupelName} | ${jemaatName} | ${posName}]`;
 
       let finalCatatan = `${timeTag}\n${hierarchyTag}`;
@@ -247,7 +302,7 @@ export default function LaporanPastoralPage() {
         tgl: editTgl,
         jml_jiwa: editJmlJiwa !== '' ? Number(editJmlJiwa) : null,
         catatan: finalCatatan,
-        id_pos: editIdPos || null,
+        id_pos: finalPosId || null,
       });
 
       toast.success('Log Pastoral Diperbarui', 'Data kegiatan & lokasi hierarki telah diperbarui.');
@@ -261,22 +316,20 @@ export default function LaporanPastoralPage() {
               kegiatan: formattedKegiatan,
               jml_jiwa: editJmlJiwa !== '' ? Number(editJmlJiwa) : null,
               catatan: finalCatatan,
-              id_pos: editIdPos || null,
-              pos: editHierarchyMeta?.posName
-                ? {
-                    id_pos: editIdPos || prev.pos?.id_pos || '',
-                    nama_pos: editHierarchyMeta.posName,
-                    kategori: prev.pos?.kategori || 'Pos Pelkes',
-                    jemaat_induk: {
-                      id_induk: editHierarchyMeta.id_induk || prev.pos?.jemaat_induk?.id_induk || '',
-                      nama_induk: editHierarchyMeta.jemaatName || prev.pos?.jemaat_induk?.nama_induk || '',
-                      mupel: {
-                        id_mupel: editHierarchyMeta.id_mupel || prev.pos?.jemaat_induk?.mupel?.id_mupel || '',
-                        nama_mupel: editHierarchyMeta.mupelName || prev.pos?.jemaat_induk?.mupel?.nama_mupel || '',
-                      },
-                    },
-                  }
-                : prev.pos,
+              id_pos: finalPosId || null,
+              pos: {
+                id_pos: finalPosId || prev.pos?.id_pos || '',
+                nama_pos: posName !== '-' ? posName : `Jemaat ${jemaatName}`,
+                kategori: prev.pos?.kategori || 'Pos Pelkes',
+                jemaat_induk: {
+                  id_induk: editHierarchyMeta?.id_induk || prev.pos?.jemaat_induk?.id_induk || '',
+                  nama_induk: jemaatName,
+                  mupel: {
+                    id_mupel: editHierarchyMeta?.id_mupel || prev.pos?.jemaat_induk?.mupel?.id_mupel || '',
+                    nama_mupel: mupelName,
+                  },
+                },
+              },
             }
           : null
       );
@@ -629,7 +682,36 @@ export default function LaporanPastoralPage() {
                   </div>
                 </div>
 
-                {/* Selector Wilayah Hierarki (Mupel, Jemaat Induk, Pos Pelkes) */}
+                {/* 1. Selector Target Scope (Jemaat Induk vs Pos Pelkes) */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text-high">Target Lingkup Pelayanan *</label>
+                  <div className="grid grid-cols-2 gap-2 bg-surface-sunken p-1 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={() => setEditTargetScope('jemaat')}
+                      className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                        editTargetScope === 'jemaat'
+                          ? 'bg-surface-elevated text-brand-primary shadow-soft'
+                          : 'text-text-muted hover:text-text-high'
+                      }`}
+                    >
+                      <span>⛪ Jemaat Induk</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditTargetScope('pos')}
+                      className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                        editTargetScope === 'pos'
+                          ? 'bg-surface-elevated text-brand-primary shadow-soft'
+                          : 'text-text-muted hover:text-text-high'
+                      }`}
+                    >
+                      <span>📍 Pos Pelkes / Bajem</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. Selector Wilayah Hierarki (Mupel, Jemaat Induk, Pos Pelkes) */}
                 <div className="space-y-1.5 border border-border-subtle/80 p-3 rounded-2xl bg-surface-base">
                   <label className="text-xs font-bold text-brand-primary flex items-center gap-1.5 mb-1">
                     <Building size={14} />
@@ -640,8 +722,10 @@ export default function LaporanPastoralPage() {
                     onChange={(val) => setEditIdPos(val)}
                     onMetaChange={(meta) => setEditHierarchyMeta(meta)}
                     defaultPosId={selectedLog?.id_pos || undefined}
+                    defaultJemaatId={selectedLog?.pos?.jemaat_induk?.id_induk || undefined}
                     disabled={updateMutation.isPending}
-                    required={false}
+                    required={editTargetScope === 'pos'}
+                    hidePos={editTargetScope === 'jemaat'}
                   />
                 </div>
 
