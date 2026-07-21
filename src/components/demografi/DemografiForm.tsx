@@ -439,8 +439,10 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
         </div>
         <div>
           <p className="text-text-muted font-medium">Laki + Perempuan</p>
-          <p className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-0.5 tabular-nums">
-            {totalLaki} L / {totalPerempuan} P
+          <p className="text-lg font-bold mt-0.5 tabular-nums flex items-center justify-center gap-1">
+            <span className="text-blue-600 dark:text-blue-400">{totalLaki} L</span>
+            <span className="text-text-muted font-normal">/</span>
+            <span className="text-pink-600 dark:text-pink-400">{totalPerempuan} P</span>
           </p>
         </div>
         <div className="col-span-2 sm:col-span-1 border-t sm:border-t-0 sm:border-l border-border-subtle pt-2 sm:pt-0">
