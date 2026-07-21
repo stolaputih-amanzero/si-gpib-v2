@@ -26,6 +26,7 @@ import {
   Camera,
   Building,
   Layers,
+  Download,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -37,6 +38,7 @@ export default function LaporanPastoralPage() {
   // Selected Log state for Detail & Edit Modal
   const [selectedLog, setSelectedLog] = useState<LogPastoralItem | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [viewPhotoUrl, setViewPhotoUrl] = useState<string | null>(null);
 
   // Modal Edit Form state
   const [editKegiatan, setEditKegiatan] = useState('');
@@ -75,10 +77,11 @@ export default function LaporanPastoralPage() {
       cleanNotes = cleanNotes.replace(/\[🏛️ HIERARKI:\s*[^|]+\|\s*[^|]+\|\s*[^\]]+\]\n?/, '');
     }
 
-    const photoMatch = cleanNotes.match(/\[📷 FOTO_BASE64:(data:image\/[^;]+;base64,[^\]]+)\]/);
+    // Robust regex to extract full image base64 or URL
+    const photoMatch = cleanNotes.match(/\[📷 FOTO_BASE64:([\s\S]+?)\]/);
     if (photoMatch && photoMatch[1]) {
-      photoBase64 = photoMatch[1];
-      cleanNotes = cleanNotes.replace(/\[📷 FOTO_BASE64:data:image\/[^;]+;base64,[^\]]+\]\n?/, '');
+      photoBase64 = photoMatch[1].trim();
+      cleanNotes = cleanNotes.replace(/\[📷 FOTO_BASE64:[\s\S]+?\]\n?/, '');
     }
 
     return { jamStr, photoBase64, hierarchyInfo, cleanNotes: cleanNotes.trim() };
@@ -299,12 +302,18 @@ export default function LaporanPastoralPage() {
 
                   {/* Photo Thumbnail if available */}
                   {photoBase64 && (
-                    <div className="relative h-28 w-full rounded-xl overflow-hidden bg-black/90 border border-border-subtle/80">
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setViewPhotoUrl(photoBase64);
+                      }}
+                      className="relative h-36 w-full rounded-xl overflow-hidden bg-black/90 border border-border-subtle/80 cursor-zoom-in group/photo"
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={photoBase64} alt="Foto Pastoral Stamped" className="w-full h-full object-cover" />
-                      <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-black/70 text-white text-[10px] font-bold flex items-center gap-1 backdrop-blur-sm">
-                        <Camera size={10} className="text-amber-400" />
-                        <span>Foto GPS Stamped</span>
+                      <img src={photoBase64} alt="Foto Pastoral Stamped" className="w-full h-full object-cover group-hover/photo:scale-105 transition-transform duration-300" />
+                      <div className="absolute top-2 left-2 px-2.5 py-1 rounded-md bg-black/75 text-white text-[10px] font-bold flex items-center gap-1.5 backdrop-blur-sm border border-white/10">
+                        <Camera size={11} className="text-amber-400" />
+                        <span>Foto GPS Stamped (Klik untuk Perbesar)</span>
                       </div>
                     </div>
                   )}
@@ -537,18 +546,21 @@ export default function LaporanPastoralPage() {
                   </div>
                 </div>
 
-                {/* Photo Preview Full Modal */}
+                {/* Photo Preview Full Modal (Click to View High Res) */}
                 {extractMetaFromCatatan(selectedLog.catatan).photoBase64 && (
-                  <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black/90 border border-border-subtle shadow-medium">
+                  <div
+                    onClick={() => setViewPhotoUrl(extractMetaFromCatatan(selectedLog.catatan).photoBase64!)}
+                    className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black/90 border border-border-subtle shadow-medium cursor-zoom-in group/modalphoto"
+                  >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={extractMetaFromCatatan(selectedLog.catatan).photoBase64!}
                       alt="Dokumentasi Pastoral Stamped"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover/modalphoto:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute top-2 left-2 px-2.5 py-1 rounded-lg bg-black/75 text-white text-xs font-bold flex items-center gap-1.5 backdrop-blur-sm border border-white/10">
                       <Camera size={13} className="text-amber-400" />
-                      <span>Dokumentasi Foto Stamped</span>
+                      <span>Dokumentasi Foto Stamped (Klik untuk Layar Penuh)</span>
                     </div>
                   </div>
                 )}
@@ -636,11 +648,56 @@ export default function LaporanPastoralPage() {
                     className="flex-1 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] flex items-center justify-center gap-2"
                   >
                     <Edit size={16} />
-                    <span>Edit Log & Hierarki</span>
+                    <span>Edit Log & Foto</span>
                   </button>
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Full-Screen Glassmorphic Lightbox Photo Viewer Modal */}
+      {viewPhotoUrl && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-3 animate-in fade-in duration-200"
+          onClick={() => setViewPhotoUrl(null)}
+        >
+          <div
+            className="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center justify-center space-y-3"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setViewPhotoUrl(null)}
+              className="absolute -top-12 right-0 sm:top-2 sm:right-2 z-20 p-2.5 rounded-full bg-black/70 text-white hover:bg-red-600 transition-colors border border-white/20 min-h-[44px] min-w-[44px] flex items-center justify-center"
+              title="Tutup Foto"
+            >
+              <X size={20} />
+            </button>
+
+            {/* High Resolution Image View */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={viewPhotoUrl}
+              alt="Foto Pastoral Full Screen"
+              className="max-h-[80vh] w-auto max-w-full rounded-2xl object-contain shadow-heavy border border-white/10"
+            />
+
+            {/* Bottom Actions */}
+            <div className="flex items-center justify-between w-full max-w-xl px-2 text-xs text-white/90">
+              <span className="font-semibold text-amber-300 flex items-center gap-1.5">
+                <Camera size={14} /> Foto Dokumentasi GPS & Timestamp Stamped
+              </span>
+              <a
+                href={viewPhotoUrl}
+                download="foto-pastoral-gpib-stamped.jpg"
+                className="px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/30 text-white font-bold transition-all border border-white/20 flex items-center gap-1.5 min-h-[40px]"
+              >
+                <Download size={14} />
+                <span>Unduh Foto</span>
+              </a>
+            </div>
           </div>
         </div>
       )}
