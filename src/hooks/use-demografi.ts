@@ -88,6 +88,19 @@ export function useBatchUpsertDemografi() {
   
   return useMutation({
     mutationFn: async (payloads: DemografiInput[]) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      let updatedByStr = 'Admin Demografi';
+
+      if (user) {
+        const { data: userRow } = await supabase
+          .from('users')
+          .select('email, no_telepon, role')
+          .eq('id', user.id)
+          .single();
+
+        updatedByStr = userRow?.email || userRow?.no_telepon || user.email || user.phone || 'Admin Demografi';
+      }
+
       const formattedPayloads = payloads.map((data) => ({
         id_pos: data.id_pos,
         kategori_pelkat: data.kategori_pelkat,
@@ -97,6 +110,7 @@ export function useBatchUpsertDemografi() {
         profesi: data.profesi || null,
         pendidikan: data.pendidikan || null,
         keterangan: data.keterangan || null,
+        updated_by: data.updated_by || updatedByStr,
         updated_at: new Date().toISOString(),
       }));
 

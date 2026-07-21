@@ -14,6 +14,7 @@ export const demografiSchema = z.object({
   profesi: z.string().max(200).optional().nullable(),
   pendidikan: z.string().max(200).optional().nullable(),
   keterangan: z.string().max(500).optional().nullable(),
+  updated_by: z.string().max(150).optional().nullable(),
 });
 
 export type DemografiInput = z.infer<typeof demografiSchema>;

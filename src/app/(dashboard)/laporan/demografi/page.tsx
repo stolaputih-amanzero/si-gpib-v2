@@ -6,7 +6,7 @@ import { DemografiCard } from '@/components/demografi/DemografiCard';
 import { DemografiChart } from '@/components/demografi/DemografiChart';
 import { DemografiForm } from '@/components/demografi/DemografiForm';
 import { KATEGORI_PELKAT } from '@/lib/constants/pelkat';
-import { Plus, Filter, Users, Search, X, MapPin, Building, Layers, Clock } from 'lucide-react';
+import { Plus, Filter, Users, Search, X, MapPin, Building, Layers, Clock, UserCheck } from 'lucide-react';
 import { HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
 
 interface DemografiDetailItem {
@@ -22,6 +22,7 @@ interface DemografiDetailItem {
   jemaatName?: string;
   mupelName?: string;
   updated_at?: string | null;
+  updated_by?: string | null;
 }
 
 function formatDateTimeIndonesian(dateString?: string | null) {
@@ -112,6 +113,7 @@ export default function LaporanDemografiPage() {
       jemaatName: jemaatNama || '-',
       mupelName: mupelNama || '-',
       updated_at: savedData.updated_at || new Date().toISOString(),
+      updated_by: savedData.updated_by || 'Admin Demografi',
     });
   };
 
@@ -133,6 +135,7 @@ export default function LaporanDemografiPage() {
       jemaatName: jemaatNama || '-',
       mupelName: mupelNama || '-',
       updated_at: item.updated_at || item.created_at || new Date().toISOString(),
+      updated_by: item.updated_by || 'Admin Demografi',
     });
   };
 
@@ -422,15 +425,29 @@ export default function LaporanDemografiPage() {
                 <p className="text-xs text-text-muted italic">Tidak ada catatan tambahan.</p>
               )}
 
-              {/* Tanggal Terakhir Diperbarui (Datetime) */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-surface-sunken/60 border border-border-subtle/50 text-xs text-text-muted">
-                <span className="flex items-center gap-1.5 font-medium">
-                  <Clock size={14} className="text-brand-primary shrink-0" />
-                  Terakhir Diperbarui:
-                </span>
-                <span className="font-semibold text-text-high tabular-nums">
-                  {formatDateTimeIndonesian(activeDetailModal.updated_at)}
-                </span>
+              {/* Audit Metadata: Tanggal Terakhir Diperbarui & User Peng-Update */}
+              <div className="space-y-1.5 p-3 rounded-xl bg-surface-sunken/60 border border-border-subtle/50 text-xs">
+                <div className="flex items-center justify-between text-text-muted">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <Clock size={14} className="text-brand-primary shrink-0" />
+                    Terakhir Diperbarui:
+                  </span>
+                  <span className="font-semibold text-text-high tabular-nums">
+                    {formatDateTimeIndonesian(activeDetailModal.updated_at)}
+                  </span>
+                </div>
+
+                {activeDetailModal.updated_by && (
+                  <div className="flex items-center justify-between text-text-muted border-t border-border-subtle/30 pt-1.5">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <UserCheck size={14} className="text-emerald-500 shrink-0" />
+                      Diperbarui Oleh:
+                    </span>
+                    <span className="font-semibold text-text-high font-mono text-[11px]">
+                      {activeDetailModal.updated_by}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Action Buttons */}
