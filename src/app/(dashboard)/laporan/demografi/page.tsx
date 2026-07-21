@@ -6,7 +6,7 @@ import { DemografiCard } from '@/components/demografi/DemografiCard';
 import { DemografiChart } from '@/components/demografi/DemografiChart';
 import { DemografiForm } from '@/components/demografi/DemografiForm';
 import { KATEGORI_PELKAT } from '@/lib/constants/pelkat';
-import { Plus, Filter, Users, Search, X, MapPin, Building, Layers } from 'lucide-react';
+import { Plus, Filter, Users, Search, X, MapPin, Building, Layers, Clock } from 'lucide-react';
 import { HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
 
 interface DemografiDetailItem {
@@ -21,6 +21,25 @@ interface DemografiDetailItem {
   posName?: string;
   jemaatName?: string;
   mupelName?: string;
+  updated_at?: string | null;
+}
+
+function formatDateTimeIndonesian(dateString?: string | null) {
+  if (!dateString) return '-';
+  try {
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return '-';
+    
+    return d.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }) + ' WIB';
+  } catch (e) {
+    return dateString;
+  }
 }
 
 export default function LaporanDemografiPage() {
@@ -82,7 +101,7 @@ export default function LaporanDemografiPage() {
 
     setActiveDetailModal({
       id_pos: savedData.id_pos,
-      kategori_pelkat: savedData.kategori_pelkat,
+      kategori_pelkat: savedData.kategori_pelkat || 'PA',
       laki: savedData.laki || 0,
       perempuan: savedData.perempuan || 0,
       jml_kk: savedData.jml_kk || 0,
@@ -92,6 +111,7 @@ export default function LaporanDemografiPage() {
       posName: posNama && posNama !== 'Pelayanan Jemaat Direct' ? posNama : '-',
       jemaatName: jemaatNama || '-',
       mupelName: mupelNama || '-',
+      updated_at: savedData.updated_at || new Date().toISOString(),
     });
   };
 
@@ -112,6 +132,7 @@ export default function LaporanDemografiPage() {
       posName: posNama && posNama !== 'Pelayanan Jemaat Direct' ? posNama : '-',
       jemaatName: jemaatNama || '-',
       mupelName: mupelNama || '-',
+      updated_at: item.updated_at || item.created_at || new Date().toISOString(),
     });
   };
 
@@ -400,6 +421,17 @@ export default function LaporanDemografiPage() {
               ) : (
                 <p className="text-xs text-text-muted italic">Tidak ada catatan tambahan.</p>
               )}
+
+              {/* Tanggal Terakhir Diperbarui (Datetime) */}
+              <div className="flex items-center justify-between p-3 rounded-xl bg-surface-sunken/60 border border-border-subtle/50 text-xs text-text-muted">
+                <span className="flex items-center gap-1.5 font-medium">
+                  <Clock size={14} className="text-brand-primary shrink-0" />
+                  Terakhir Diperbarui:
+                </span>
+                <span className="font-semibold text-text-high tabular-nums">
+                  {formatDateTimeIndonesian(activeDetailModal.updated_at)}
+                </span>
+              </div>
 
               {/* Action Buttons */}
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-border-subtle">
