@@ -22,32 +22,44 @@ export function JemaatCascadingSelector({
 }: JemaatCascadingSelectorProps) {
   const [selectedMupel, setSelectedMupel] = useState<string>('');
 
-  // 1. Dapatkan auth user untuk lock Mupel
+  // 1. Dapatkan auth user untuk Poka-Yoke Locking
   const { data: userAuth, isLoading: isLoadingAuth } = useUserMupelAuth();
-  const isMupelLocked = userAuth?.role === 'admin_mupel';
-  const defaultAuthMupel = userAuth?.id_mupel;
+
+  const isSuperadmin = !userAuth || userAuth.role === 'superadmin' || userAuth.role === 'sinode';
+  const isMupelLocked = Boolean(userAuth?.id_mupel && !isSuperadmin);
+  const isJemaatLocked = Boolean(
+    userAuth?.id_induk &&
+    ['admin_jemaat', 'kmj', 'pj_pos', 'pelayan', 'relawan'].includes(userAuth?.role || '')
+  );
 
   // 2. Jika ada defaultIndukId, lakukan reverse lookup
   const { data: jemaatHierarchy, isLoading: isLookingUp } = useJemaatReverseLookup(defaultIndukId);
 
-  // Effect: Sinkronisasi init value
+  // Effect: Poka-Yoke Auto-fill
   useEffect(() => {
-    // Priority 1: Reverse Lookup Data
+    // Priority 1: Reverse Lookup Data (Edit Mode)
     if (jemaatHierarchy) {
       setSelectedMupel(jemaatHierarchy.id_mupel);
-      // Panggil onChange jika belum sinkron dengan value
       if (value !== jemaatHierarchy.id_induk) {
         onChange(jemaatHierarchy.id_induk);
       }
     } 
-    // Priority 2: Lock Mupel for Admin
-    else if (isMupelLocked && defaultAuthMupel && !selectedMupel) {
-      setSelectedMupel(defaultAuthMupel);
+    // Priority 2: Poka-Yoke Auto-fill dari Role User
+    else if (userAuth) {
+      if (userAuth.id_mupel && (!selectedMupel || isMupelLocked)) {
+        setSelectedMupel(userAuth.id_mupel);
+      }
+      if (userAuth.id_induk && (!value || isJemaatLocked)) {
+        if (value !== userAuth.id_induk) {
+          onChange(userAuth.id_induk);
+        }
+      }
     }
-  }, [jemaatHierarchy, isMupelLocked, defaultAuthMupel, value, onChange, selectedMupel]);
+  }, [jemaatHierarchy, userAuth, isMupelLocked, isJemaatLocked, value, onChange, selectedMupel]);
 
   // Handlers
   const handleMupelChange = (mupelId: string) => {
+    if (isMupelLocked) return;
     setSelectedMupel(mupelId);
     onChange(''); // Reset child
   };
@@ -62,19 +74,29 @@ export function JemaatCascadingSelector({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
-      <MupelSelect
-        value={selectedMupel}
-        onChange={handleMupelChange}
-        disabled={disabled || isMupelLocked}
-      />
-      <JemaatSelect
-        id_mupel={selectedMupel}
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-        error={error}
-      />
+    <div className="space-y-1.5 w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
+        <MupelSelect
+          value={selectedMupel}
+          onChange={handleMupelChange}
+          disabled={disabled || isMupelLocked}
+          required={true}
+        />
+        <JemaatSelect
+          id_mupel={selectedMupel}
+          value={value}
+          onChange={onChange}
+          disabled={disabled || isJemaatLocked}
+          error={error}
+          required={true}
+        />
+      </div>
+
+      {(isMupelLocked || isJemaatLocked) && (
+        <p className="text-[11px] text-brand-primary font-medium flex items-center gap-1.5">
+          <span>🔒 Wilayah hierarki terisi otomatis & locked (Poka-Yoke RBAC)</span>
+        </p>
+      )}
     </div>
   );
 }

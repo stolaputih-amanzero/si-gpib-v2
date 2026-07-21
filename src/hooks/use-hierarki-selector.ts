@@ -33,6 +33,13 @@ export interface SelectorOptionItem {
   kategori?: string | null;
 }
 
+export interface UserHierarchyAuth {
+  role: string;
+  id_mupel?: string | null;
+  id_induk?: string | null;
+  id_pos?: string | null;
+}
+
 /**
  * Ultra-Fast Hook: Fetch lightweight Mupel list for Dropdown selectors
  */
@@ -211,10 +218,13 @@ export function useJemaatReverseLookup(id_induk?: string | null) {
   });
 }
 
+/**
+ * Poka-Yoke RBAC Hook: Fetch user role & assigned hierarchy IDs (Mupel, Jemaat Induk, Pos Pelkes)
+ */
 export function useUserMupelAuth() {
   const supabase = createClient();
 
-  return useQuery({
+  return useQuery<UserHierarchyAuth | null>({
     queryKey: ['user-mupel-auth'],
     queryFn: async () => {
       const {
@@ -224,16 +234,22 @@ export function useUserMupelAuth() {
 
       const { data, error } = await supabase
         .from('users')
-        .select('role, id_mupel')
+        .select('role, id_mupel, id_induk, id_pos')
         .eq('id', user.id)
         .single();
 
       if (error) {
-        console.error('Error fetching user auth', error);
-        return null;
+        // Fallback metadata check if users table row is incomplete
+        const userMeta = user.user_metadata || {};
+        return {
+          role: userMeta.role || 'guest',
+          id_mupel: userMeta.id_mupel || null,
+          id_induk: userMeta.id_induk || null,
+          id_pos: userMeta.id_pos || null,
+        };
       }
 
-      return data as { role: string; id_mupel?: string | null };
+      return data as UserHierarchyAuth;
     },
     staleTime: 1000 * 60 * 60 * 24, // 24 hours
   });
