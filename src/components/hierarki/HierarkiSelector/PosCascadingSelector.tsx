@@ -133,6 +133,15 @@ export function PosCascadingSelector({
     }
   }, [selectedMupel, selectedJemaat, value, mupelList, jemaatList, posList, posHierarchy, onMetaChange]);
 
+  // Auto-select first pos when hidePos is true (Jemaat Induk scope)
+  useEffect(() => {
+    if (hidePos && selectedJemaat && posList && posList.length > 0) {
+      if (!value || !posList.some((p) => p.id === value)) {
+        onChange(posList[0].id);
+      }
+    }
+  }, [hidePos, selectedJemaat, posList, value, onChange]);
+
   // Handlers
   const handleMupelChange = (mupelId: string) => {
     if (isMupelLocked) return;

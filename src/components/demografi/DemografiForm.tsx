@@ -130,22 +130,44 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
     try {
       let finalPosId = activeIdPos;
 
-      // Jika Jemaat Induk dipilih (tanpa Pos Pelkes), cari Pos utama/placeholder milik id_induk tersebut
-      if (targetScope === 'jemaat' && hierarchyMeta?.id_induk) {
+      // Jika Jemaat Induk dipilih, cari atau otomatis buat Pos Pelkes direk milik Jemaat Induk tersebut
+      if (targetScope === 'jemaat') {
+        const jemaatId = hierarchyMeta?.id_induk;
+        if (!jemaatId) {
+          throw new Error('Silakan pilih Wilayah Mupel & Jemaat Induk terlebih dahulu.');
+        }
+
         const supabase = createClient();
         const { data: posRows } = await supabase
           .from('m_pos_pelkes')
           .select('id_pos')
-          .eq('id_induk', hierarchyMeta.id_induk)
+          .eq('id_induk', jemaatId)
           .limit(1);
 
         if (posRows && posRows[0]) {
           finalPosId = posRows[0].id_pos;
+        } else {
+          // Jika Jemaat Induk ini belum punya entri Pos Pelkes di database, buatkan Pos Direk secara otomatis
+          const jemaatNama = hierarchyMeta?.jemaatName || jemaatId;
+          const createdPosId = `POS-${Math.floor(10000 + Math.random() * 90000)}`;
+          const { error: insErr } = await supabase.from('m_pos_pelkes').insert({
+            id_pos: createdPosId,
+            id_induk: jemaatId,
+            nama_pos: `Jemaat ${jemaatNama}`,
+            kategori: 'Pos Pelkes',
+          });
+          if (!insErr) {
+            finalPosId = createdPosId;
+          }
         }
       }
 
       if (!finalPosId || finalPosId.trim() === '') {
-        throw new Error('Silakan lengkapi pemilihan Wilayah Pelayanan terlebih dahulu.');
+        throw new Error(
+          targetScope === 'pos'
+            ? 'Silakan pilih Wilayah Pos Pelkes / Bajem terlebih dahulu.'
+            : 'Silakan pilih Wilayah Mupel & Jemaat Induk terlebih dahulu.'
+        );
       }
 
       // Format teks input tambahan dengan smart auto-capitalization
