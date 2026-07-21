@@ -331,7 +331,7 @@ export default function LaporanDemografiPage() {
       ``,
       `📍 *LOKASI & GOOGLE MAPS*`,
       `Peta Lokasi Google Maps:`,
-      mapsUrl,
+      `<${mapsUrl}>`,
     );
 
     if (detail.alamat) {
