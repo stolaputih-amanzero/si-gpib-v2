@@ -30,19 +30,25 @@ export function useVoiceInput(): UseVoiceInputReturn {
 
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
-    recognition.interimResults = true;
+    recognition.interimResults = false; // Set false to prevent interim duplicate callbacks
     recognition.lang = 'id-ID'; // Bahasa Indonesia
 
     recognition.onresult = (event: any) => {
-      let finalTranscript = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
+      let accumulatedText = '';
+      
+      // Iterate from index 0 to calculate exact non-duplicated transcript
+      for (let i = 0; i < event.results.length; i++) {
         const result = event.results[i];
-        if (result.isFinal) {
-          finalTranscript += result[0].transcript + ' ';
+        if (result && result[0] && result[0].transcript) {
+          const phrase = result[0].transcript.trim();
+          if (phrase) {
+            accumulatedText += (accumulatedText ? ' ' : '') + phrase;
+          }
         }
       }
-      if (finalTranscript) {
-        setTranscript((prev) => prev + finalTranscript);
+
+      if (accumulatedText) {
+        setTranscript(accumulatedText);
       }
     };
 
@@ -59,7 +65,11 @@ export function useVoiceInput(): UseVoiceInputReturn {
 
     return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          recognitionRef.current.stop();
+        } catch {
+          // ignore
+        }
       }
     };
   }, [isSupported]);
@@ -67,6 +77,7 @@ export function useVoiceInput(): UseVoiceInputReturn {
   const startListening = () => {
     if (recognitionRef.current && !isListening) {
       try {
+        setTranscript(''); // Clear previous transcript for clean new voice input
         recognitionRef.current.start();
         setIsListening(true);
       } catch (error) {
@@ -77,7 +88,11 @@ export function useVoiceInput(): UseVoiceInputReturn {
 
   const stopListening = () => {
     if (recognitionRef.current && isListening) {
-      recognitionRef.current.stop();
+      try {
+        recognitionRef.current.stop();
+      } catch {
+        // ignore
+      }
       setIsListening(false);
     }
   };
