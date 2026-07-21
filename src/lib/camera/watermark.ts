@@ -74,9 +74,9 @@ export async function addWatermarkToImage(
 
         // 3. Calculate dynamic dimensions for watermark banner
         const lineCount = hierarchyLineText ? 3 : 2;
-        const bannerHeight = Math.max(lineCount * 36 + 24, canvas.height * (hierarchyLineText ? 0.20 : 0.15));
-        const fontSize = Math.max(18, canvas.height * 0.032);
-        const subFontSize = Math.max(14, canvas.height * 0.024);
+        const bannerHeight = Math.max(lineCount * 30 + 20, canvas.height * (hierarchyLineText ? 0.22 : 0.16));
+        const fontSize = Math.max(16, canvas.height * 0.034);
+        const subFontSize = Math.max(13, canvas.height * 0.026);
 
         // 4. Draw dark translucent banner background at bottom
         ctx.fillStyle = 'rgba(10, 15, 30, 0.88)'; // Deep Slate Navy
@@ -84,7 +84,7 @@ export async function addWatermarkToImage(
 
         // 5. Gold Accent Line at top of banner
         ctx.fillStyle = '#c5a855';
-        ctx.fillRect(0, canvas.height - bannerHeight, canvas.width, Math.max(5, canvas.height * 0.008));
+        ctx.fillRect(0, canvas.height - bannerHeight, canvas.width, Math.max(4, canvas.height * 0.007));
 
         // 6. Format Timestamp string
         const now = new Date();
@@ -106,8 +106,8 @@ export async function addWatermarkToImage(
         const tagText = options?.label || 'SI GPIB PASTORAL LOG';
 
         // 8. Render Text lines onto Canvas with High Contrast
-        const paddingX = Math.max(20, canvas.width * 0.035);
-        const startY = canvas.height - bannerHeight + fontSize * 1.25;
+        const paddingX = Math.max(16, canvas.width * 0.035);
+        const startY = canvas.height - bannerHeight + fontSize * 1.2;
 
         ctx.shadowColor = 'rgba(0,0,0,0.85)';
         ctx.shadowBlur = 4;
@@ -126,7 +126,7 @@ export async function addWatermarkToImage(
         if (hierarchyLineText) {
           ctx.fillStyle = '#fde047'; // Warm Bright Amber
           ctx.font = `bold ${subFontSize}px Arial, sans-serif`;
-          ctx.fillText(hierarchyLineText, paddingX, startY + fontSize * 2.4);
+          ctx.fillText(hierarchyLineText, paddingX, startY + fontSize * 2.35);
         }
 
         // Render SI GPIB tag at top right of banner
@@ -152,7 +152,7 @@ export async function addWatermarkToImage(
             }
           },
           'image/jpeg',
-          0.88
+          0.85
         );
       };
       img.onerror = () => resolve(file);

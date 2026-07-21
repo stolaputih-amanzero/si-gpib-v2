@@ -1,6 +1,6 @@
 /**
  * Kompres gambar menggunakan HTML5 Canvas.
- * Resize ke max 1200px dan output JPG quality 0.7 (biasanya < 1MB).
+ * Resize ke max 900px dan output JPG quality 0.8 (optimal untuk lampiran WhatsApp & pratinjau cepat).
  */
 export async function compressImage(file: File): Promise<File> {
   return new Promise((resolve, reject) => {
@@ -14,16 +14,16 @@ export async function compressImage(file: File): Promise<File> {
         let width = img.width;
         let height = img.height;
 
-        // Hitung rasio untuk resize jika melebihi 1200px
-        const MAX_DIMENSION = 1200;
+        // Hitung rasio untuk resize jika melebihi 900px (mencegah teks WA menyusut)
+        const MAX_DIMENSION = 900;
         if (width > height) {
           if (width > MAX_DIMENSION) {
-            height = Math.round((height *= MAX_DIMENSION / width));
+            height = Math.round(height * (MAX_DIMENSION / width));
             width = MAX_DIMENSION;
           }
         } else {
           if (height > MAX_DIMENSION) {
-            width = Math.round((width *= MAX_DIMENSION / height));
+            width = Math.round(width * (MAX_DIMENSION / height));
             height = MAX_DIMENSION;
           }
         }
@@ -40,7 +40,7 @@ export async function compressImage(file: File): Promise<File> {
         // Gambar ulang di canvas
         ctx.drawImage(img, 0, 0, width, height);
 
-        // Export ke Blob format JPEG quality 0.7
+        // Export ke Blob format JPEG quality 0.8
         canvas.toBlob(
           (blob) => {
             if (blob) {
@@ -54,7 +54,7 @@ export async function compressImage(file: File): Promise<File> {
             }
           },
           'image/jpeg',
-          0.7
+          0.8
         );
       };
       img.onerror = (error) => reject(error);
