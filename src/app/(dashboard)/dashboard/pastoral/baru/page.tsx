@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Mic, MicOff, Save, Calendar, Clock, Users, ChevronLeft } from 'lucide-react';
@@ -10,12 +10,15 @@ import { logPastoralSchema, LogPastoralInput } from '@/lib/validations/log-pasto
 import { createClient } from '@/lib/supabase/client';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { PosCascadingSelector } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
+import { PastoralPhotoPicker } from '@/components/pastoral/PastoralPhotoPicker';
 import { useToast } from '@/components/ui/toast';
 
 export default function LogPastoralBaruPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { isOnline } = useNetworkStatus();
+  const [photoBase64, setPhotoBase64] = useState<string | null>(null);
+
   const {
     isListening,
     transcript,
@@ -148,11 +151,15 @@ export default function LogPastoralBaruPage() {
 
       const jamStr = data.jam || getNowTimeString();
 
-      // Combine time prefix cleanly into catatan if present
+      // Combine time prefix and photo URL into catatan
       let finalCatatan = data.catatan ? data.catatan.trim() : '';
       const timeTag = `[⏰ Jam Pelayanan: ${jamStr} WIB]`;
       if (!finalCatatan.includes('Jam Pelayanan:')) {
         finalCatatan = finalCatatan ? `${timeTag}\n${finalCatatan}` : timeTag;
+      }
+
+      if (photoBase64) {
+        finalCatatan += `\n[📷 FOTO_BASE64:${photoBase64}]`;
       }
 
       const payload = {
@@ -211,7 +218,7 @@ export default function LogPastoralBaruPage() {
                 Input Log Pastoral
               </h1>
               <p className="text-xs text-text-muted">
-                Catat kegiatan pelayanan pastoral & waktu kunjungan Anda
+                Catat kegiatan pelayanan pastoral & foto kunjungan Anda
               </p>
             </div>
           </div>
@@ -315,6 +322,13 @@ export default function LogPastoralBaruPage() {
             </p>
           )}
         </div>
+
+        {/* Foto Dokumentasi (Kamera / Galeri dengan GPS & Timestamp Watermark) */}
+        <PastoralPhotoPicker
+          photo={null}
+          onPhotoChange={(_, base64) => setPhotoBase64(base64 || null)}
+          disabled={isSubmitting}
+        />
 
         {/* Jumlah Jiwa */}
         <div className="space-y-2">

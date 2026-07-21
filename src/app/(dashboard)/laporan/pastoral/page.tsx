@@ -8,6 +8,7 @@ import {
   LogPastoralItem,
 } from '@/hooks/use-log-pastoral';
 import { useToast } from '@/components/ui/toast';
+import { PastoralPhotoPicker } from '@/components/pastoral/PastoralPhotoPicker';
 import {
   FileText,
   Plus,
@@ -22,6 +23,7 @@ import {
   X,
   Save,
   Eye,
+  Camera,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -40,30 +42,44 @@ export default function LaporanPastoralPage() {
   const [editJam, setEditJam] = useState('');
   const [editJmlJiwa, setEditJmlJiwa] = useState<number | ''>('');
   const [editCatatan, setEditCatatan] = useState('');
+  const [editPhotoBase64, setEditPhotoBase64] = useState<string | null>(null);
 
   const { data: pastoralLogs, isLoading } = useLogPastoralList(searchQuery, selectedPos);
   const deleteMutation = useDeleteLogPastoral();
   const updateMutation = useUpdateLogPastoral();
 
-  // Helper to extract time tag from catatan
-  const extractTimeFromCatatan = (catatan?: string | null) => {
-    if (!catatan) return { jamStr: '09:00', cleanNotes: '' };
-    const match = catatan.match(/\[⏰ Jam Pelayanan:\s*([\d:]+)\s*WIB\]/);
-    if (match && match[1]) {
-      const cleanNotes = catatan.replace(/\[⏰ Jam Pelayanan:\s*[\d:]+\s*WIB\]\n?/, '').trim();
-      return { jamStr: match[1], cleanNotes };
+  // Helper to extract time tag and photo from catatan string
+  const extractMetaFromCatatan = (catatan?: string | null) => {
+    if (!catatan) return { jamStr: '09:00', photoBase64: null, cleanNotes: '' };
+    
+    let jamStr = '09:00';
+    let photoBase64: string | null = null;
+    let cleanNotes = catatan;
+
+    const timeMatch = cleanNotes.match(/\[⏰ Jam Pelayanan:\s*([\d:]+)\s*WIB\]/);
+    if (timeMatch && timeMatch[1]) {
+      jamStr = timeMatch[1];
+      cleanNotes = cleanNotes.replace(/\[⏰ Jam Pelayanan:\s*[\d:]+\s*WIB\]\n?/, '');
     }
-    return { jamStr: '', cleanNotes: catatan };
+
+    const photoMatch = cleanNotes.match(/\[📷 FOTO_BASE64:(data:image\/[^;]+;base64,[^\]]+)\]/);
+    if (photoMatch && photoMatch[1]) {
+      photoBase64 = photoMatch[1];
+      cleanNotes = cleanNotes.replace(/\[📷 FOTO_BASE64:data:image\/[^;]+;base64,[^\]]+\]\n?/, '');
+    }
+
+    return { jamStr, photoBase64, cleanNotes: cleanNotes.trim() };
   };
 
   const handleOpenDetailModal = (log: LogPastoralItem) => {
-    const { jamStr, cleanNotes } = extractTimeFromCatatan(log.catatan);
+    const { jamStr, photoBase64, cleanNotes } = extractMetaFromCatatan(log.catatan);
     setSelectedLog(log);
     setEditKegiatan(log.kegiatan);
     setEditTgl(log.tgl);
     setEditJam(jamStr || '09:00');
     setEditJmlJiwa(log.jml_jiwa ?? '');
     setEditCatatan(cleanNotes);
+    setEditPhotoBase64(photoBase64);
     setIsEditing(false);
   };
 
@@ -83,6 +99,10 @@ export default function LaporanPastoralPage() {
       const timeTag = `[⏰ Jam Pelayanan: ${jamStr} WIB]`;
       finalCatatan = finalCatatan ? `${timeTag}\n${finalCatatan}` : timeTag;
 
+      if (editPhotoBase64) {
+        finalCatatan += `\n[📷 FOTO_BASE64:${editPhotoBase64}]`;
+      }
+
       await updateMutation.mutateAsync({
         id_log: selectedLog.id_log,
         kegiatan: editKegiatan,
@@ -91,7 +111,7 @@ export default function LaporanPastoralPage() {
         catatan: finalCatatan,
       });
 
-      toast.success('Log Pastoral Diperbarui', 'Data kegiatan & waktu pelayanan telah diperbarui.');
+      toast.success('Log Pastoral Diperbarui', 'Data kegiatan & foto pelayanan telah diperbarui.');
       setSelectedLog(null);
       setIsEditing(false);
     } catch (error: any) {
@@ -189,7 +209,7 @@ export default function LaporanPastoralPage() {
             Riwayat Kegiatan Pastoral ({pastoralLogs?.length || 0})
           </h2>
           <span className="text-xs text-text-muted">
-            {isLoading ? 'Memuat...' : 'Klik kartu untuk melihat detail & edit'}
+            {isLoading ? 'Memuat...' : 'Klik kartu untuk melihat detail & foto'}
           </span>
         </div>
 
@@ -205,13 +225,13 @@ export default function LaporanPastoralPage() {
         ) : pastoralLogs && pastoralLogs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {pastoralLogs.map((log) => {
-              const { jamStr, cleanNotes } = extractTimeFromCatatan(log.catatan);
+              const { jamStr, photoBase64, cleanNotes } = extractMetaFromCatatan(log.catatan);
 
               return (
                 <div
                   key={log.id_log}
                   onClick={() => handleOpenDetailModal(log)}
-                  className="bg-surface-elevated p-4.5 rounded-2xl border border-border-subtle shadow-soft space-y-3 hover:border-brand-primary hover:shadow-medium transition-all cursor-pointer group relative"
+                  className="bg-surface-elevated p-4.5 rounded-2xl border border-border-subtle shadow-soft space-y-3 hover:border-brand-primary hover:shadow-medium transition-all cursor-pointer group relative overflow-hidden"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1 min-w-0">
@@ -259,6 +279,18 @@ export default function LaporanPastoralPage() {
                     </div>
                   </div>
 
+                  {/* Photo Thumbnail if available */}
+                  {photoBase64 && (
+                    <div className="relative h-28 w-full rounded-xl overflow-hidden bg-black/90 border border-border-subtle/80">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={photoBase64} alt="Foto Pastoral Stamped" className="w-full h-full object-cover" />
+                      <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-black/70 text-white text-[10px] font-bold flex items-center gap-1 backdrop-blur-sm">
+                        <Camera size={10} className="text-amber-400" />
+                        <span>Foto GPS Stamped</span>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Details Meta */}
                   <div className="bg-surface-base p-2.5 rounded-xl border border-border-subtle/60 text-xs space-y-1">
                     <div className="flex items-center justify-between text-text-muted">
@@ -290,7 +322,7 @@ export default function LaporanPastoralPage() {
 
                   <div className="flex items-center justify-end text-[11px] font-semibold text-brand-primary gap-1 group-hover:translate-x-0.5 transition-transform pt-0.5">
                     <Eye size={12} />
-                    <span>Lihat Detail & Edit</span>
+                    <span>Lihat Detail & Foto</span>
                   </div>
                 </div>
               );
@@ -385,6 +417,14 @@ export default function LaporanPastoralPage() {
                   />
                 </div>
 
+                {/* Foto Dokumentasi */}
+                <PastoralPhotoPicker
+                  photo={null}
+                  photoUrl={editPhotoBase64}
+                  onPhotoChange={(_, base64) => setEditPhotoBase64(base64 || null)}
+                  disabled={updateMutation.isPending}
+                />
+
                 {/* Jumlah Jiwa */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
@@ -445,7 +485,7 @@ export default function LaporanPastoralPage() {
                     </span>
                     <span className="inline-flex items-center gap-1 font-semibold text-brand-primary bg-brand-primary/10 px-2.5 py-1 rounded-lg">
                       <Clock size={14} />
-                      Waktu: {extractTimeFromCatatan(selectedLog.catatan).jamStr || '09:00'} WIB
+                      Waktu: {extractMetaFromCatatan(selectedLog.catatan).jamStr || '09:00'} WIB
                     </span>
                     {selectedLog.jml_jiwa ? (
                       <span className="inline-flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-2.5 py-1 rounded-lg">
@@ -455,6 +495,22 @@ export default function LaporanPastoralPage() {
                     ) : null}
                   </div>
                 </div>
+
+                {/* Photo Preview Full Modal */}
+                {extractMetaFromCatatan(selectedLog.catatan).photoBase64 && (
+                  <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black/90 border border-border-subtle shadow-medium">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={extractMetaFromCatatan(selectedLog.catatan).photoBase64!}
+                      alt="Dokumentasi Pastoral Stamped"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-2 left-2 px-2.5 py-1 rounded-lg bg-black/75 text-white text-xs font-bold flex items-center gap-1.5 backdrop-blur-sm border border-white/10">
+                      <Camera size={13} className="text-amber-400" />
+                      <span>Dokumentasi Foto Stamped</span>
+                    </div>
+                  </div>
+                )}
 
                 <div className="bg-surface-base p-3.5 rounded-2xl border border-border-subtle/80 space-y-2 text-xs">
                   <div className="flex items-center justify-between">
@@ -477,11 +533,11 @@ export default function LaporanPastoralPage() {
                   )}
                 </div>
 
-                {extractTimeFromCatatan(selectedLog.catatan).cleanNotes ? (
+                {extractMetaFromCatatan(selectedLog.catatan).cleanNotes ? (
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-text-high">Catatan Tambahan:</label>
                     <p className="text-xs text-text-high italic bg-surface-sunken/60 p-3 rounded-xl border border-border-subtle/60 leading-relaxed whitespace-pre-line">
-                      "{extractTimeFromCatatan(selectedLog.catatan).cleanNotes}"
+                      "{extractMetaFromCatatan(selectedLog.catatan).cleanNotes}"
                     </p>
                   </div>
                 ) : (
@@ -505,7 +561,7 @@ export default function LaporanPastoralPage() {
                     className="flex-1 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] flex items-center justify-center gap-2"
                   >
                     <Edit size={16} />
-                    <span>Edit Log & Waktu</span>
+                    <span>Edit Log & Foto</span>
                   </button>
                 </div>
               </div>
