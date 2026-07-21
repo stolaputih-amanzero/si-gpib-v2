@@ -101,6 +101,8 @@ export function usePosPelkesList() {
         mupel: p.jemaat?.id_mupel || null,
       }));
     },
+    staleTime: 1000 * 60 * 60, // 1 hour memory cache for instant dropdowns
+    gcTime: 1000 * 60 * 120, // 2 hours retention
   });
 }
 

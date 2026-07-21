@@ -1,6 +1,6 @@
 'use client';
 
-import { usePosByInduk } from '@/hooks/use-hierarki-selector';
+import { usePosOptions } from '@/hooks/use-hierarki-selector';
 import { SearchableSelect, SelectOption } from './SearchableSelect';
 
 interface PosSelectProps {
@@ -12,13 +12,13 @@ interface PosSelectProps {
 }
 
 export function PosSelect({ id_induk, value, onChange, disabled, error }: PosSelectProps) {
-  const { data: posList, isLoading } = usePosByInduk(id_induk);
+  const { data: posOptions, isLoading } = usePosOptions(id_induk);
 
   const options: SelectOption[] =
-    posList?.map((p) => ({
-      value: p.id_pos,
-      label: p.nama_pos,
-      sublabel: `ID: ${p.id_pos}`,
+    posOptions?.map((p) => ({
+      value: p.id,
+      label: p.nama,
+      sublabel: p.kategori ? `${p.kategori} (ID: ${p.id})` : `ID: ${p.id}`,
     })) || [];
 
   return (

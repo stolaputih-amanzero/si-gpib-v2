@@ -1,6 +1,6 @@
 'use client';
 
-import { useMupelList } from '@/hooks/use-hierarki';
+import { useMupelOptions } from '@/hooks/use-hierarki-selector';
 import { SearchableSelect, SelectOption } from './SearchableSelect';
 
 interface MupelSelectProps {
@@ -11,13 +11,13 @@ interface MupelSelectProps {
 }
 
 export function MupelSelect({ value, onChange, disabled, error }: MupelSelectProps) {
-  const { data: mupelList, isLoading } = useMupelList();
+  const { data: mupelOptions, isLoading } = useMupelOptions();
 
   const options: SelectOption[] =
-    mupelList?.map((m) => ({
-      value: m.id_mupel,
-      label: `Mupel ${m.nama_mupel}`,
-      sublabel: `ID: ${m.id_mupel}`,
+    mupelOptions?.map((m) => ({
+      value: m.id,
+      label: `Mupel ${m.nama}`,
+      sublabel: `ID: ${m.id}`,
     })) || [];
 
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useJemaatByMupel } from '@/hooks/use-hierarki';
+import { useJemaatOptions } from '@/hooks/use-hierarki-selector';
 import { SearchableSelect, SelectOption } from './SearchableSelect';
 
 interface JemaatSelectProps {
@@ -12,13 +12,13 @@ interface JemaatSelectProps {
 }
 
 export function JemaatSelect({ id_mupel, value, onChange, disabled, error }: JemaatSelectProps) {
-  const { data: jemaatList, isLoading } = useJemaatByMupel(id_mupel);
+  const { data: jemaatOptions, isLoading } = useJemaatOptions(id_mupel);
 
   const options: SelectOption[] =
-    jemaatList?.map((j) => ({
-      value: j.id_induk,
-      label: j.nama_induk,
-      sublabel: `ID: ${j.id_induk}`,
+    jemaatOptions?.map((j) => ({
+      value: j.id,
+      label: j.nama,
+      sublabel: `ID: ${j.id}`,
     })) || [];
 
   return (
