@@ -43,7 +43,9 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
         mupels[m.id_mupel] = m.nama_mupel;
       }
     });
-    return Object.entries(mupels).map(([id, name]) => ({ id, name }));
+    return Object.entries(mupels)
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [initialData]);
 
   // Extract unique Jemaat options from data (filtered by selected Mupel)
@@ -57,7 +59,9 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
         }
       }
     });
-    return Object.entries(jemaats).map(([id, name]) => ({ id, name }));
+    return Object.entries(jemaats)
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [initialData, selectedMupel]);
 
   const filteredData = useMemo(() => {

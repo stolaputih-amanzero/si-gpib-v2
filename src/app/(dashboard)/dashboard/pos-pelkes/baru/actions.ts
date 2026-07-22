@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
 
 async function validateCreateAccess(supabase: any, id_induk: string) {
   const { data: { user } } = await supabase.auth.getUser()
@@ -95,12 +96,12 @@ export async function savePosPelkes(formData: FormData) {
   const id_induk = formData.get('id_induk') as string
   const nama_pos = formData.get('nama_pos') as string
   const kategori = (formData.get('kategori') as string) || 'Pos Pelkes'
-  const alamat = formData.get('alamat') as string
+  const alamat = (formData.get('alamat') as string) || null
   const latStr = formData.get('latitude') as string | null
   const lngStr = formData.get('longitude') as string | null
   const photo = formData.get('photo') as File | null
 
-  if (!id_induk || !nama_pos || !alamat) {
+  if (!id_induk || !nama_pos) {
     return { error: 'Data tidak lengkap' }
   }
 
@@ -183,6 +184,7 @@ export async function savePosPelkes(formData: FormData) {
     }
   }
 
+  revalidatePath('/dashboard/pos-pelkes')
   return { success: true, id_pos }
 }
 
@@ -192,12 +194,12 @@ export async function updatePosPelkes(id_pos: string, formData: FormData) {
   const id_induk = formData.get('id_induk') as string
   const nama_pos = formData.get('nama_pos') as string
   const kategori = (formData.get('kategori') as string) || 'Pos Pelkes'
-  const alamat = formData.get('alamat') as string
+  const alamat = (formData.get('alamat') as string) || null
   const latStr = formData.get('latitude') as string | null
   const lngStr = formData.get('longitude') as string | null
   const keterangan = formData.get('keterangan') as string | null
 
-  if (!id_induk || !nama_pos || !alamat) {
+  if (!id_induk || !nama_pos) {
     return { error: 'Data tidak lengkap' }
   }
 
@@ -227,6 +229,8 @@ export async function updatePosPelkes(id_pos: string, formData: FormData) {
     return { error: `Gagal memperbarui Pos Pelkes: ${error.message}` }
   }
 
+  revalidatePath(`/dashboard/pos-pelkes/${id_pos}`)
+  revalidatePath('/dashboard/pos-pelkes')
   return { success: true }
 }
 
