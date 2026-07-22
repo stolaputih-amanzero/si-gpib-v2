@@ -25,6 +25,7 @@ import PosThumbnailMapWrapper from '@/components/maps/PosThumbnailMapWrapper';
 import AssignPjButton from './assign-pj-button';
 import { JadwalTabContent } from './jadwal-tab-content';
 import { DemografiTabContent } from '@/components/demografi/DemografiTabContent';
+import { PosAsetTabContent } from './pos-aset-tab-content';
 
 // --- Types ---
 interface PosDetail {
@@ -61,16 +62,6 @@ interface Demografi {
   profesi?: string | null;
   pendidikan?: string | null;
   keterangan?: string | null;
-}
-
-interface Aset {
-  id: string;
-  jenis: string; // 'Tanah', 'Bangunan', 'Aset Bergerak'
-  nama: string;
-  status: string;
-  keterangan: string | null;
-  lampiran: { file_path: string; nama_file: string } | null;
-  detail: string | null;
 }
 
 interface LogPastoral {
@@ -181,56 +172,6 @@ async function getDemografi(id_pos: string): Promise<Demografi[]> {
   return data || [];
 }
 
-async function getAset(id_pos: string): Promise<Aset[]> {
-  const supabase = await createClient();
-  const [tanahRes, bangunanRes, bergerakRes] = await Promise.all([
-    supabase
-      .from('t_aset_tanah')
-      .select('id_tanah, luas_m2, thn_perolehan, status_hukum, kondisi, keterangan, lampiran:t_lampiran_aset(file_path, nama_file)')
-      .eq('id_pos', id_pos),
-    supabase
-      .from('t_aset_bangunan')
-      .select('id_bangunan, fungsi, kondisi, thn_berdiri, keterangan, lampiran:t_lampiran_aset(file_path, nama_file)')
-      .eq('id_pos', id_pos),
-    supabase
-      .from('t_aset_bergerak')
-      .select('id_aset_b, jenis, merk_tipe, thn_perolehan, no_polisi, tgl_pajak, keterangan, lampiran:t_lampiran_aset(file_path, nama_file)')
-      .eq('id_pos', id_pos)
-  ]);
-
-  const tanah = (tanahRes.data || []).map((t: any) => ({
-    id: t.id_tanah,
-    jenis: 'Tanah',
-    nama: `Tanah (${t.luas_m2 || 0} m²)`,
-    status: t.status_hukum || t.kondisi || 'Aktif',
-    keterangan: t.keterangan,
-    lampiran: t.lampiran?.[0] || null,
-    detail: t.thn_perolehan ? `Tahun Perolehan: ${t.thn_perolehan}` : null
-  }));
-
-  const bangunan = (bangunanRes.data || []).map((b: any) => ({
-    id: b.id_bangunan,
-    jenis: 'Bangunan',
-    nama: b.fungsi || 'Bangunan',
-    status: b.kondisi || 'Aktif',
-    keterangan: b.keterangan,
-    lampiran: b.lampiran?.[0] || null,
-    detail: b.thn_berdiri ? `Tahun Berdiri: ${b.thn_berdiri}` : null
-  }));
-
-  const bergerak = (bergerakRes.data || []).map((bg: any) => ({
-    id: bg.id_aset_b,
-    jenis: 'Aset Bergerak',
-    nama: bg.merk_tipe || bg.jenis || 'Kendaraan/Peralatan',
-    status: bg.no_polisi ? `No. Polisi: ${bg.no_polisi}` : 'Aktif',
-    keterangan: bg.keterangan,
-    lampiran: bg.lampiran?.[0] || null,
-    detail: bg.thn_perolehan ? `Tahun Perolehan: ${bg.thn_perolehan}` : null
-  }));
-
-  return [...tanah, ...bangunan, ...bergerak];
-}
-
 async function getLogPastoral(id_pos: string): Promise<LogPastoral[]> {
   const supabase = await createClient();
   const { data } = await supabase
@@ -300,14 +241,21 @@ async function getPelayan(id_pos: string): Promise<Pelayan[]> {
 }
 
 // --- Main Page Component ---
-export default async function PosPelkesDetailPage({ params }: { params: Promise<{ id_pos: string }> }) {
+export default async function PosPelkesDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id_pos: string }>;
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const { id_pos } = await params;
+  const resolvedSearchParams = await searchParams;
+  const activeTab = resolvedSearchParams?.tab || 'profil';
 
   // Parallel data fetching for optimal performance
-  const [pos, demografi, aset, logs, pj, pelayan, relawan, kerawanan, potensi, jadwalList] = await Promise.all([
+  const [pos, demografi, logs, pj, pelayan, relawan, kerawanan, potensi, jadwalList] = await Promise.all([
     getPosDetail(id_pos),
     getDemografi(id_pos),
-    getAset(id_pos),
     getLogPastoral(id_pos),
     getPJDetail(id_pos),
     getPelayan(id_pos),
@@ -398,7 +346,7 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
       />
 
       {/* Tabs */}
-      <Tabs defaultValue="profil" className="w-full">
+      <Tabs defaultValue={activeTab} className="w-full">
         {/* Scrollable Tabs Trigger Container */}
         <div className="border-b border-border-subtle mb-6 bg-surface-elevated rounded-xl p-1 shadow-soft">
           <TabsList className="flex items-center justify-start overflow-x-auto w-full h-11 bg-transparent p-0 gap-1 scrollbar-none">
@@ -878,165 +826,11 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
 
         {/* TAB 4: ASET */}
         <TabsContent value="aset" className="space-y-6 focus-visible:outline-none">
-          <div className="flex justify-between items-center gap-3">
-            <h2 className="text-base font-black text-text-high">Daftar Inventaris Aset</h2>
-            {canWrite && (
-              <Link
-                href={`/dashboard/aset/baru?id_pos=${pos.id_pos}`}
-                className="px-3 py-2 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-blue-800 transition-all flex items-center gap-1.5 shadow-sm min-h-[36px]"
-              >
-                <Plus size={14} />
-                <span>Kelola & Tambah Aset</span>
-              </Link>
-            )}
-          </div>
-          {/* Asset Categorized Lists */}
-          {aset.length === 0 ? (
-            <Card className="border-border-subtle shadow-soft">
-              <CardContent className="p-8 text-center text-text-muted space-y-2">
-                <Building2 size={40} className="mx-auto text-text-muted/40" />
-                <p className="text-sm font-bold">Belum ada Data Inventaris Aset</p>
-                <p className="text-xs">Data tanah, bangunan, maupun barang bergerak belum diinputkan untuk pos ini.</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-6">
-              {/* 1. Tanah & Lahan */}
-              {aset.filter(a => a.jenis === 'Tanah').length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="font-black text-sm text-text-high uppercase tracking-wider flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                    Aset Tanah & Lahan ({aset.filter(a => a.jenis === 'Tanah').length})
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {aset.filter(a => a.jenis === 'Tanah').map((a) => (
-                      <div key={a.id} className="p-4 bg-surface-elevated border border-border-subtle rounded-2xl shadow-soft space-y-3">
-                        <div className="flex justify-between items-start gap-2">
-                          <div>
-                            <h4 className="font-extrabold text-sm text-text-high leading-tight">{a.nama}</h4>
-                            <span className="text-[10px] text-text-muted font-bold block mt-1">ID: {a.id}</span>
-                          </div>
-                          <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider bg-surface-sunken">
-                            {a.status}
-                          </Badge>
-                        </div>
-                        {a.keterangan && <p className="text-xs text-text-muted leading-relaxed">{a.keterangan}</p>}
-                        
-                        {a.detail && (
-                          <p className="text-[10px] text-text-muted font-bold uppercase">{a.detail}</p>
-                        )}
-
-                        {a.lampiran && (
-                          <div className="pt-2 border-t border-border-subtle flex items-center justify-between">
-                            <span className="text-[10px] text-text-muted font-bold truncate max-w-[180px]">{a.lampiran.nama_file}</span>
-                            <a
-                              href={a.lampiran.file_path.startsWith('http') ? a.lampiran.file_path : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pos-pelkes-images/${a.lampiran.file_path}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-[10px] font-extrabold text-brand-primary hover:underline flex items-center gap-1 shrink-0"
-                            >
-                              <span>Unduh Lampiran</span>
-                              <ExternalLink size={10} />
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* 2. Bangunan */}
-              {aset.filter(a => a.jenis === 'Bangunan').length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="font-black text-sm text-text-high uppercase tracking-wider flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-                    Aset Bangunan ({aset.filter(a => a.jenis === 'Bangunan').length})
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {aset.filter(a => a.jenis === 'Bangunan').map((a) => (
-                      <div key={a.id} className="p-4 bg-surface-elevated border border-border-subtle rounded-2xl shadow-soft space-y-3">
-                        <div className="flex justify-between items-start gap-2">
-                          <div>
-                            <h4 className="font-extrabold text-sm text-text-high leading-tight">{a.nama}</h4>
-                            <span className="text-[10px] text-text-muted font-bold block mt-1">ID: {a.id}</span>
-                          </div>
-                          <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider bg-surface-sunken">
-                            {a.status}
-                          </Badge>
-                        </div>
-                        {a.keterangan && <p className="text-xs text-text-muted leading-relaxed">{a.keterangan}</p>}
-                        
-                        {a.detail && (
-                          <p className="text-[10px] text-text-muted font-bold uppercase">{a.detail}</p>
-                        )}
-
-                        {a.lampiran && (
-                          <div className="pt-2 border-t border-border-subtle flex items-center justify-between">
-                            <span className="text-[10px] text-text-muted font-bold truncate max-w-[180px]">{a.lampiran.nama_file}</span>
-                            <a
-                              href={a.lampiran.file_path.startsWith('http') ? a.lampiran.file_path : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pos-pelkes-images/${a.lampiran.file_path}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-[10px] font-extrabold text-brand-primary hover:underline flex items-center gap-1 shrink-0"
-                            >
-                              <span>Unduh Lampiran</span>
-                              <ExternalLink size={10} />
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* 3. Aset Bergerak */}
-              {aset.filter(a => a.jenis === 'Aset Bergerak').length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="font-black text-sm text-text-high uppercase tracking-wider flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                    Aset Bergerak & Kendaraan ({aset.filter(a => a.jenis === 'Aset Bergerak').length})
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {aset.filter(a => a.jenis === 'Aset Bergerak').map((a) => (
-                      <div key={a.id} className="p-4 bg-surface-elevated border border-border-subtle rounded-2xl shadow-soft space-y-3">
-                        <div className="flex justify-between items-start gap-2">
-                          <div>
-                            <h4 className="font-extrabold text-sm text-text-high leading-tight">{a.nama}</h4>
-                            <span className="text-[10px] text-text-muted font-bold block mt-1">ID: {a.id}</span>
-                          </div>
-                          <Badge variant="outline" className="text-[10px] font-bold bg-surface-sunken">
-                            {a.status}
-                          </Badge>
-                        </div>
-                        {a.keterangan && <p className="text-xs text-text-muted leading-relaxed">{a.keterangan}</p>}
-                        
-                        {a.detail && (
-                          <p className="text-[10px] text-text-muted font-bold uppercase">{a.detail}</p>
-                        )}
-
-                        {a.lampiran && (
-                          <div className="pt-2 border-t border-border-subtle flex items-center justify-between">
-                            <span className="text-[10px] text-text-muted font-bold truncate max-w-[180px]">{a.lampiran.nama_file}</span>
-                            <a
-                              href={a.lampiran.file_path.startsWith('http') ? a.lampiran.file_path : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pos-pelkes-images/${a.lampiran.file_path}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-[10px] font-extrabold text-brand-primary hover:underline flex items-center gap-1 shrink-0"
-                            >
-                              <span>Unduh Lampiran</span>
-                              <ExternalLink size={10} />
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+          <Card className="border-border-subtle shadow-soft">
+            <CardContent className="p-5">
+              <PosAsetTabContent id_pos={pos.id_pos} canWrite={canWrite} />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* TAB 5: ANALISIS WILAYAH (KERAWANAN & POTENSI) */}

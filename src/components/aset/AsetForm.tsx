@@ -224,7 +224,7 @@ export function AsetForm({
 
       if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([10, 50, 10]);
       if (onSuccess) onSuccess();
-      else router.push('/laporan/aset');
+      else router.push(`/dashboard/pos-pelkes/${finalPosId}?tab=aset`);
     } catch (err: any) {
       if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([50, 100, 50]);
       setErrorMsg(err.message || 'Gagal menyimpan aset tanah.');
@@ -252,7 +252,7 @@ export function AsetForm({
 
       if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([10, 50, 10]);
       if (onSuccess) onSuccess();
-      else router.push('/laporan/aset');
+      else router.push(`/dashboard/pos-pelkes/${finalPosId}?tab=aset`);
     } catch (err: any) {
       if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([50, 100, 50]);
       setErrorMsg(err.message || 'Gagal menyimpan aset bangunan.');
@@ -280,7 +280,7 @@ export function AsetForm({
 
       if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([10, 50, 10]);
       if (onSuccess) onSuccess();
-      else router.push('/laporan/aset');
+      else router.push(`/dashboard/pos-pelkes/${finalPosId}?tab=aset`);
     } catch (err: any) {
       if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([50, 100, 50]);
       setErrorMsg(err.message || 'Gagal menyimpan aset bergerak.');

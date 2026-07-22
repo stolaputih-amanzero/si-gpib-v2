@@ -18,12 +18,6 @@ export default function AsetPosDetailPage({ params }: { params: Promise<{ id_pos
   const { data: asetList, isLoading } = useAsetByPos(id_pos);
   const deleteMutation = useDeleteAset();
 
-  const handleDeleteClick = (id: string, kategori: 'TANAH' | 'BANGUNAN' | 'BERGERAK') => {
-    const item = asetList?.find(a => a.id === id);
-    const nama = item?.judul || `${kategori} - ${id}`;
-    setTargetToDelete({ id, kategori, nama });
-  };
-
   const handleConfirmDelete = async () => {
     if (targetToDelete) {
       await deleteMutation.mutateAsync({ id: targetToDelete.id, kategori: targetToDelete.kategori });
@@ -104,7 +98,7 @@ export default function AsetPosDetailPage({ params }: { params: Promise<{ id_pos
           ) : filteredItems && filteredItems.length > 0 ? (
             <div className="space-y-3">
               {filteredItems.map((item) => (
-                <AsetCard key={item.id} item={item} onDelete={handleDeleteClick} />
+                <AsetCard key={item.id} item={item} />
               ))}
             </div>
           ) : (

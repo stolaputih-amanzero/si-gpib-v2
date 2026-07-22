@@ -12,13 +12,14 @@ function AssetBaruContent() {
   const idPosQuery = searchParams.get('id_pos') || '';
 
   const [selectedPosId, setSelectedPosId] = useState<string>(idPosQuery);
-  const [targetScope, setTargetScope] = useState<'pos' | 'jemaat'>('jemaat');
+  const [targetScope, setTargetScope] = useState<'pos' | 'jemaat'>(idPosQuery ? 'pos' : 'jemaat');
   const [hierarchyMeta, setHierarchyMeta] = useState<HierarchyMetaInfo | null>(null);
   const [isResolvingJemaatPos, setIsResolvingJemaatPos] = useState<boolean>(false);
 
   useEffect(() => {
     if (idPosQuery) {
       setSelectedPosId(idPosQuery);
+      setTargetScope('pos');
     }
   }, [idPosQuery]);
 

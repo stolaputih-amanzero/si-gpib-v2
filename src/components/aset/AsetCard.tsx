@@ -1,16 +1,13 @@
 import { AsetGenericItem } from '@/types/aset.types';
 import { getKategoriInfo } from '@/lib/constants/aset';
-import { Calendar, MapPin, Paperclip, Edit2, Trash2, Eye, Share2 } from 'lucide-react';
+import { Calendar, MapPin, Paperclip } from 'lucide-react';
 
 interface AsetCardProps {
   item: AsetGenericItem;
   onSelect?: (item: AsetGenericItem) => void;
-  onEdit?: (item: AsetGenericItem) => void;
-  onDelete?: (id: string, kategori: 'TANAH' | 'BANGUNAN' | 'BERGERAK') => void;
-  onShareWa?: (item: AsetGenericItem) => void;
 }
 
-export function AsetCard({ item, onSelect, onEdit, onDelete, onShareWa }: AsetCardProps) {
+export function AsetCard({ item, onSelect }: AsetCardProps) {
   const kategoriInfo = getKategoriInfo(item.kategori);
 
   const displayPosNama =
@@ -85,52 +82,8 @@ export function AsetCard({ item, onSelect, onEdit, onDelete, onShareWa }: AsetCa
           {item.lampiran_count > 0 && (
             <span className="flex items-center gap-1 font-semibold text-brand-primary">
               <Paperclip size={13} />
-              <span>{item.lampiran_count}</span>
+              <span>{item.lampiran_count} Dokumen/Foto</span>
             </span>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
-          {onShareWa && (
-            <button
-              type="button"
-              onClick={() => onShareWa(item)}
-              className="p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg transition-colors min-h-[34px] min-w-[34px] flex items-center justify-center"
-              title="Bagikan ke WhatsApp"
-            >
-              <Share2 size={15} />
-            </button>
-          )}
-          {onSelect && (
-            <button
-              type="button"
-              onClick={() => onSelect(item)}
-              className="p-1.5 text-text-muted hover:text-brand-primary hover:bg-surface-sunken rounded-lg transition-colors min-h-[34px] min-w-[34px] flex items-center justify-center"
-              title="Lihat Detail Aset"
-            >
-              <Eye size={15} />
-            </button>
-          )}
-          {onEdit && (
-            <button
-              type="button"
-              onClick={() => onEdit(item)}
-              className="p-1.5 text-text-muted hover:text-brand-primary hover:bg-surface-sunken rounded-lg transition-colors min-h-[34px] min-w-[34px] flex items-center justify-center"
-              title="Edit Aset"
-            >
-              <Edit2 size={15} />
-            </button>
-          )}
-          {onDelete && (
-            <button
-              type="button"
-              onClick={() => onDelete(item.id, item.kategori)}
-              className="p-1.5 text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors min-h-[34px] min-w-[34px] flex items-center justify-center"
-              title="Hapus Aset"
-            >
-              <Trash2 size={15} />
-            </button>
           )}
         </div>
       </div>
