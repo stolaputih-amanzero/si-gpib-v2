@@ -406,7 +406,7 @@ export default async function PosPelkesDetailPage({
         </div>
 
         {/* TAB 1: PROFIL */}
-        <TabsContent value="profil" className="space-y-4 focus-visible:outline-none">
+        <TabsContent value="profil" className="space-y-4 focus-visible:outline-none data-[state=inactive]:hidden data-[state=active]:animate-tab-fade">
           {/* Single Card Summary Demografi (2 Horizontal Rows) */}
           <div className="bg-surface-elevated p-4 sm:p-5 rounded-2xl border border-border-subtle shadow-soft space-y-3.5">
             {/* Baris 1: Jumlah KK & Total Jiwa */}
@@ -645,7 +645,7 @@ export default async function PosPelkesDetailPage({
         </TabsContent>
 
         {/* TAB: JADWAL IBADAH */}
-        <TabsContent value="jadwal" className="space-y-4 focus-visible:outline-none transition-all duration-300 ease-in-out data-[state=inactive]:hidden data-[state=active]:animate-fadeIn">
+        <TabsContent value="jadwal" className="space-y-4 focus-visible:outline-none data-[state=inactive]:hidden data-[state=active]:animate-tab-fade">
           <Card className="border-border-subtle shadow-soft">
             <CardContent className="p-5">
               <JadwalTabContent id_pos={pos.id_pos} canWrite={canWrite} />
@@ -654,7 +654,7 @@ export default async function PosPelkesDetailPage({
         </TabsContent>
 
         {/* TAB 2: PENDETA & PELAYAN */}
-        <TabsContent value="pendeta" className="space-y-6 focus-visible:outline-none transition-all duration-300 ease-in-out data-[state=inactive]:hidden data-[state=active]:animate-fadeIn">
+        <TabsContent value="pendeta" className="space-y-6 focus-visible:outline-none data-[state=inactive]:hidden data-[state=active]:animate-tab-fade">
           <PendetaPelayanTabContent
             id_pos={pos.id_pos}
             id_induk={pos.id_induk}
@@ -667,7 +667,7 @@ export default async function PosPelkesDetailPage({
         </TabsContent>
 
         {/* TAB 3: DEMOGRAFI */}
-        <TabsContent value="demografi" className="space-y-4 focus-visible:outline-none transition-all duration-300 ease-in-out data-[state=inactive]:hidden data-[state=active]:animate-fadeIn">
+        <TabsContent value="demografi" className="space-y-4 focus-visible:outline-none data-[state=inactive]:hidden data-[state=active]:animate-tab-fade">
           <Card className="border-border-subtle shadow-soft">
             <CardContent className="p-5">
               <DemografiTabContent id_pos={pos.id_pos} canWrite={canWrite} />
@@ -676,7 +676,7 @@ export default async function PosPelkesDetailPage({
         </TabsContent>
 
         {/* TAB 4: ASET */}
-        <TabsContent value="aset" className="space-y-6 focus-visible:outline-none transition-all duration-300 ease-in-out data-[state=inactive]:hidden data-[state=active]:animate-fadeIn">
+        <TabsContent value="aset" className="space-y-6 focus-visible:outline-none data-[state=inactive]:hidden data-[state=active]:animate-tab-fade">
           <Card className="border-border-subtle shadow-soft">
             <CardContent className="p-5">
               <PosAsetTabContent id_pos={pos.id_pos} canWrite={canWrite} />
@@ -685,7 +685,7 @@ export default async function PosPelkesDetailPage({
         </TabsContent>
 
         {/* TAB 5: ANALISIS WILAYAH (KERAWANAN & POTENSI) */}
-        <TabsContent value="wilayah" className="space-y-6 focus-visible:outline-none transition-all duration-300 ease-in-out data-[state=inactive]:hidden data-[state=active]:animate-fadeIn">
+        <TabsContent value="wilayah" className="space-y-6 focus-visible:outline-none data-[state=inactive]:hidden data-[state=active]:animate-tab-fade">
           <AnalisisWilayahTabContent
             id_pos={pos.id_pos}
             initialKerawanan={kerawanan}
@@ -695,7 +695,7 @@ export default async function PosPelkesDetailPage({
         </TabsContent>
 
         {/* TAB 6: LOG PASTORAL */}
-        <TabsContent value="log" className="space-y-4 focus-visible:outline-none transition-all duration-300 ease-in-out data-[state=inactive]:hidden data-[state=active]:animate-fadeIn">
+        <TabsContent value="log" className="space-y-4 focus-visible:outline-none data-[state=inactive]:hidden data-[state=active]:animate-tab-fade">
           <LogPastoralTabContent id_pos={pos.id_pos} id_induk={pos.id_induk} initialLogs={logs} canWrite={canWrite} />
         </TabsContent>
       </Tabs>

@@ -29,13 +29,9 @@ export function JadwalCard({ item, onClickCard }: JadwalCardProps) {
             <h3 className="font-extrabold text-text-high text-sm sm:text-base leading-snug group-hover:text-brand-primary transition-colors truncate">
               {item.jenis}
             </h3>
-            {isJemaatScope ? (
+            {isJemaatScope && (
               <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-100 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900/40">
                 ⛪ Jemaat
-              </span>
-            ) : (
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-100 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/40">
-                📍 Pos Pelkes
               </span>
             )}
           </div>

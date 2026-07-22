@@ -41,7 +41,7 @@ export function LogPastoralTabContent({ id_pos, id_induk, initialLogs, canWrite 
             className="px-3.5 py-2 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-blue-800 transition-all flex items-center gap-1.5 shadow-sm min-h-[36px]"
           >
             <Plus size={14} />
-            <span>Tambah Log Pastoral</span>
+            <span>Log</span>
           </button>
         )}
       </div>
@@ -60,7 +60,7 @@ export function LogPastoralTabContent({ id_pos, id_induk, initialLogs, canWrite 
                   className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-primary text-white rounded-xl text-xs font-semibold hover:bg-blue-800 transition-all shadow-soft active:scale-95"
                 >
                   <Plus size={14} />
-                  <span>Tambah Log Pastoral</span>
+                  <span>Log</span>
                 </button>
               </div>
             )}

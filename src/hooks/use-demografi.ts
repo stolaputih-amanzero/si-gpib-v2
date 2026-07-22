@@ -8,6 +8,8 @@ export function useDemografiByPos(id_pos: string) {
   
   return useQuery({
     queryKey: ['demografi', id_pos],
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('t_demografi_pelkat')

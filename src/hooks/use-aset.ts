@@ -18,6 +18,8 @@ export function useAsetList(filter?: AsetFilter) {
 
   return useQuery({
     queryKey: ['aset-list', filter],
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
     queryFn: async () => {
       let tanahQuery = supabase.from('t_aset_tanah').select('*, pos:m_pos_pelkes(nama_pos, jemaat_induk:m_jemaat_induk(nama_induk, mupel:m_mupel(nama_mupel))), lampiran:t_lampiran_aset(*)');
       let bangunanQuery = supabase.from('t_aset_bangunan').select('*, pos:m_pos_pelkes(nama_pos, jemaat_induk:m_jemaat_induk(nama_induk, mupel:m_mupel(nama_mupel))), lampiran:t_lampiran_aset(*)');

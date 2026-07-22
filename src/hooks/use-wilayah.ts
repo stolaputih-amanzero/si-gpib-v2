@@ -137,6 +137,8 @@ export function useKerawananList(id_pos?: string) {
 
   return useQuery<KerawananItem[]>({
     queryKey: ['kerawanan-list', id_pos || 'all'],
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
     queryFn: async () => {
       let query = supabase
         .from('t_kerawanan_wilayah')
@@ -279,6 +281,8 @@ export function usePotensiList(id_pos?: string) {
 
   return useQuery<PotensiItem[]>({
     queryKey: ['potensi-list', id_pos || 'all'],
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
     queryFn: async () => {
       let query = supabase
         .from('t_potensi_wilayah')

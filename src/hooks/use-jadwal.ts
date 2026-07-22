@@ -42,6 +42,8 @@ export function useJadwalList(id_pos?: string, search?: string) {
 
   return useQuery({
     queryKey: ['jadwal-list', id_pos, search],
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
     queryFn: async () => {
       let query = supabase
         .from('t_jadwal_ibadah')

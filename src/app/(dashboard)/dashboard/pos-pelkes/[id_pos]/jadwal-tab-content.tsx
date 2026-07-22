@@ -134,47 +134,6 @@ export function JadwalTabContent({ id_pos, canWrite }: JadwalTabContentProps) {
         </div>
       </div>
 
-      {/* Card Summary Ibadah: 2 Horizontal Sections */}
-      {jadwalList && jadwalList.length > 0 && (
-        <div className="bg-surface-elevated p-4 sm:p-5 rounded-2xl border border-border-subtle shadow-soft space-y-3">
-          {/* Section 1: Total Ringkasan */}
-          <div className="flex items-center justify-between pb-2.5 border-b border-border-subtle/60">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold shrink-0">
-                <Calendar size={18} />
-              </div>
-              <div>
-                <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-wider block">Ringkasan Ibadah</span>
-                <span className="text-xs font-bold text-text-high">Total Jadwal Terdaftar</span>
-              </div>
-            </div>
-            <span className="text-lg font-black text-brand-primary tabular-nums">
-              {jadwalList.length} <span className="text-xs font-normal text-text-muted">Jadwal</span>
-            </span>
-          </div>
-
-          {/* Section 2: Split Rows - Ibadah Minggu vs Kategorial/Pos */}
-          <div className="grid grid-cols-2 gap-3 pt-0.5 divide-x divide-border-subtle/60">
-            <div className="flex items-center justify-between pr-2">
-              <div>
-                <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-wider block">Ibadah Minggu</span>
-                <span className="text-sm font-black text-blue-600 dark:text-blue-400 tabular-nums">
-                  {jadwalList.filter(j => j.jenis === 'Ibadah Hari Minggu').length} <span className="text-[10px] font-normal text-text-muted">Sesi</span>
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between pl-3 sm:pl-4">
-              <div>
-                <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-wider block">Kategorial & Pos</span>
-                <span className="text-sm font-black text-amber-600 dark:text-amber-400 tabular-nums">
-                  {jadwalList.filter(j => j.jenis !== 'Ibadah Hari Minggu').length} <span className="text-[10px] font-normal text-text-muted">Sesi</span>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {!jadwalList || jadwalList.length === 0 ? (
         <div className="bg-surface-elevated rounded-2xl p-8 text-center border border-border-subtle space-y-3">
           <Calendar size={36} className="mx-auto text-text-muted opacity-40 animate-pulse" />
