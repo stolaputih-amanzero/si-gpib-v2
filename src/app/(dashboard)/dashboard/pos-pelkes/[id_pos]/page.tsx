@@ -480,8 +480,9 @@ export default async function PosPelkesDetailPage({
                     <h4 className="font-extrabold text-sm sm:text-base text-text-high leading-snug break-words group-hover:text-brand-primary group-hover:underline transition-colors">
                       <span>{pj.nama_lengkap}</span>
                     </h4>
-                    <p className="text-[10px] text-text-muted mt-0.5">
-                      Aktif: {new Date(pj.tgl_mulai).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })}
+                    <p className="text-[11px] text-text-muted mt-0.5 flex items-center gap-1">
+                      <Calendar size={12} className="text-brand-primary shrink-0" />
+                      <span>{new Date(pj.tgl_mulai).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                     </p>
                   </div>
                 </Link>

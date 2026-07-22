@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { User, Users, Phone, HeartHandshake, Plus, X } from 'lucide-react';
+import { User, Users, Phone, HeartHandshake, Plus, X, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { PJSelector } from '@/components/hierarki/PJSelector';
 import { PelayanForm } from '@/components/pelayan/PelayanForm';
@@ -84,7 +84,7 @@ export function PendetaPelayanTabContent({
               className="min-h-[36px] px-3.5 py-2 bg-brand-primary text-white hover:bg-blue-800 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors shadow-sm"
             >
               <HeartHandshake size={14} />
-              <span>Penugasan Pendeta</span>
+              <span>Penugasan</span>
             </button>
           )}
         </div>
@@ -110,8 +110,9 @@ export function PendetaPelayanTabContent({
                   <h4 className="font-extrabold text-sm sm:text-base text-text-high leading-snug break-words group-hover:text-brand-primary group-hover:underline">
                     <span>{pj.nama_lengkap}</span>
                   </h4>
-                  <span className="text-[11px] text-text-muted mt-0.5 block">
-                    Aktif sejak: {new Date(pj.tgl_mulai).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  <span className="text-[11px] text-text-muted mt-0.5 flex items-center gap-1">
+                    <Calendar size={12} className="text-brand-primary shrink-0" />
+                    <span>{new Date(pj.tgl_mulai).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                   </span>
                 </div>
               </Link>
@@ -160,7 +161,7 @@ export function PendetaPelayanTabContent({
                 className="px-3.5 py-2 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-blue-800 transition-all flex items-center gap-1.5 shadow-sm min-h-[36px]"
               >
                 <Plus size={14} />
-                <span>Tambah Pelayan</span>
+                <span>Pelayan</span>
               </button>
             )}
           </div>
@@ -253,7 +254,7 @@ export function PendetaPelayanTabContent({
                 className="px-3.5 py-2 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-blue-800 transition-all flex items-center gap-1.5 shadow-sm min-h-[36px]"
               >
                 <Plus size={14} />
-                <span>Tambah Relawan</span>
+                <span>Relawan</span>
               </button>
             )}
           </div>
