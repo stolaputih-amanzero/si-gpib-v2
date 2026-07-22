@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
+import { createUserAction, deleteUserAction, updateUserRoleAction } from '@/app/(dashboard)/settings/users/actions';
 
 export type UserRole =
   | 'superadmin'
@@ -28,6 +29,8 @@ export interface UserManagementItem {
 export interface UpdateUserPayload {
   id: string;
   role: UserRole;
+  nama_lengkap: string;
+  email: string;
   id_mupel?: string | null;
   id_induk?: string | null;
   id_pos?: string | null;
@@ -126,36 +129,65 @@ export function useUsersList(search?: string, roleFilter?: string) {
  * Hook to update user role and assigned hierarchy IDs (Poka-Yoke RBAC)
  */
 export function useUpdateUserRole() {
-  const supabase = createClient();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (payload: UpdateUserPayload) => {
-      const updateData: any = {
+      return updateUserRoleAction({
+        id: payload.id,
         role: payload.role,
+        nama_lengkap: payload.nama_lengkap,
+        email: payload.email,
         id_mupel: payload.id_mupel || null,
         id_induk: payload.id_induk || null,
         id_pos: payload.id_pos || null,
-        updated_at: new Date().toISOString(),
-      };
-
-      if (payload.status) {
-        updateData.status = payload.status;
-      }
-
-      const { data, error } = await supabase
-        .from('users')
-        .update(updateData)
-        .eq('id', payload.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+        status: payload.status || 'Active',
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users-management-list'] });
       queryClient.invalidateQueries({ queryKey: ['user-mupel-auth'] });
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate([10, 50, 10]);
+      }
+    },
+  });
+}
+
+export function useCreateUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: {
+      email: string;
+      nama_lengkap: string;
+      role: string;
+      password?: string;
+      id_mupel: string | null;
+      id_induk: string | null;
+      id_pos: string | null;
+      status: 'Active' | 'Inactive' | 'Pending';
+    }) => {
+      return createUserAction(payload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users-management-list'] });
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate([10, 50, 10]);
+      }
+    },
+  });
+}
+
+export function useDeleteUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      return deleteUserAction(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users-management-list'] });
       if (typeof window !== 'undefined' && 'vibrate' in navigator) {
         navigator.vibrate([10, 50, 10]);
       }

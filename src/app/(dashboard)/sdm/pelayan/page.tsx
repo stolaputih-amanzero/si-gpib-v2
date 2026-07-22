@@ -1,16 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { usePelayanList, useDeletePelayan, PelayanItem } from '@/hooks/use-pelayan';
 import { PelayanCard } from '@/components/pelayan/PelayanCard';
 import { PelayanForm } from '@/components/pelayan/PelayanForm';
 import { useToast } from '@/components/ui/toast';
 import { Plus, Search, Users } from 'lucide-react';
 
-export default function PelayanPage() {
+function PelayanPageContent() {
   const { toast, confirm: confirmModal } = useToast();
+  const searchParams = useSearchParams();
+  const queryPos = searchParams.get('id_pos') || '';
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedPos, setSelectedPos] = useState<string>('');
+  const [selectedPos, setSelectedPos] = useState<string>(queryPos);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [editingItem, setEditingItem] = useState<PelayanItem | null>(null);
 
@@ -174,5 +177,13 @@ export default function PelayanPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function PelayanPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-xs text-text-muted animate-pulse">Memuat data pelayan...</div>}>
+      <PelayanPageContent />
+    </Suspense>
   );
 }

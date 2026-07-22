@@ -1,6 +1,7 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useState, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useDemografiByPos, useDeleteDemografi } from '@/hooks/use-demografi';
 import { DemografiForm } from '@/components/demografi/DemografiForm';
 import { DemografiChart } from '@/components/demografi/DemografiChart';
@@ -8,15 +9,15 @@ import { KATEGORI_PELKAT } from '@/lib/constants/pelkat';
 import { ArrowLeft, Plus, Edit2, Trash2, Check } from 'lucide-react';
 import Link from 'next/link';
 
-export default function DemografiPosPage({ params }: { params: Promise<{ id_pos: string }> }) {
-  const resolvedParams = use(params);
-  const id_pos = resolvedParams.id_pos;
-
+function DemografiPosContent({ id_pos }: { id_pos: string }) {
+  const router = useRouter();
   const [showFormModal, setShowFormModal] = useState<boolean>(false);
   const [editingItem, setEditingItem] = useState<any | null>(null);
 
   const { data: demografiData, isLoading } = useDemografiByPos(id_pos);
   const deleteMutation = useDeleteDemografi();
+  const searchParams = useSearchParams();
+  const action = searchParams.get('action');
 
   const handleEdit = (item: any) => {
     setEditingItem(item);
@@ -33,6 +34,15 @@ export default function DemografiPosPage({ params }: { params: Promise<{ id_pos:
       await deleteMutation.mutateAsync({ id_pos, kategori_pelkat });
     }
   };
+
+  useEffect(() => {
+    if (action === 'new') {
+      const timer = setTimeout(() => {
+        handleAddNew();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [action]);
 
   // Aggregate stats
   let totalJiwa = 0;
@@ -65,7 +75,7 @@ export default function DemografiPosPage({ params }: { params: Promise<{ id_pos:
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
-              href="/demografi"
+              href={`/dashboard/pos-pelkes/${id_pos}`}
               className="w-10 h-10 rounded-xl bg-surface-sunken flex items-center justify-center text-text-high hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
             >
               <ArrowLeft size={20} />
@@ -78,13 +88,23 @@ export default function DemografiPosPage({ params }: { params: Promise<{ id_pos:
             </div>
           </div>
 
-          <button
-            onClick={() => handleAddNew()}
-            className="px-3.5 py-2 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-blue-800 transition-all flex items-center gap-1.5 shadow-sm min-h-[44px]"
-          >
-            <Plus size={16} />
-            <span>Tambah Data</span>
-          </button>
+          {demografiData && demografiData.length > 0 ? (
+            <button
+              onClick={() => handleAddNew()}
+              className="px-3.5 py-2 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-blue-800 transition-all flex items-center gap-1.5 shadow-sm min-h-[44px]"
+            >
+              <Edit2 size={16} />
+              <span>Edit Demografi</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => handleAddNew()}
+              className="px-3.5 py-2 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-blue-800 transition-all flex items-center gap-1.5 shadow-sm min-h-[44px]"
+            >
+              <Plus size={16} />
+              <span>Tambah Data</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -225,7 +245,9 @@ export default function DemografiPosPage({ params }: { params: Promise<{ id_pos:
           <div className="bg-surface-elevated w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-5 border border-border-subtle shadow-float max-h-[90vh] overflow-y-auto space-y-4 animate-in slide-in-from-bottom-4">
             <div className="flex items-center justify-between border-b border-border-subtle pb-3">
               <h2 className="text-base font-bold text-brand-primary">
-                {editingItem?.kategori_pelkat ? 'Edit Demografi Pelkat' : 'Input Demografi Pelkat Baru'}
+                {editingItem?.kategori_pelkat || (demografiData && demografiData.length > 0)
+                  ? 'Edit Demografi Pelkat'
+                  : 'Input Demografi Pelkat Baru'}
               </h2>
               <button
                 onClick={() => setShowFormModal(false)}
@@ -238,11 +260,25 @@ export default function DemografiPosPage({ params }: { params: Promise<{ id_pos:
             <DemografiForm 
               id_pos={id_pos} 
               initialData={editingItem} 
-              onSuccess={() => setShowFormModal(false)} 
+              onSuccess={() => {
+                setShowFormModal(false);
+                router.push(`/demografi/${id_pos}`);
+              }} 
             />
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+export default function DemografiPosPage({ params }: { params: Promise<{ id_pos: string }> }) {
+  const resolvedParams = use(params);
+  const id_pos = resolvedParams.id_pos;
+
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-xs text-text-muted animate-pulse">Memuat demografi...</div>}>
+      <DemografiPosContent id_pos={id_pos} />
+    </Suspense>
   );
 }

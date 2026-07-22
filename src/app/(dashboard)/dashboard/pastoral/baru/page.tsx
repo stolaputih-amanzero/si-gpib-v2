@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Mic, MicOff, Save, Calendar, Clock, Users, ChevronLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useVoiceInput } from '@/hooks/use-voice-input';
 import { logPastoralSchema, LogPastoralInput } from '@/lib/validations/log-pastoral.schema';
 import { createClient } from '@/lib/supabase/client';
@@ -15,13 +15,15 @@ import { useToast } from '@/components/ui/toast';
 
 import { formatPastoralKegiatanText } from '@/lib/formatters/pastoral-text';
 
-export default function LogPastoralBaruPage() {
+function LogPastoralBaruContentPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { isOnline } = useNetworkStatus();
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
   const [hierarchyMeta, setHierarchyMeta] = useState<HierarchyMetaInfo | null>(null);
   const [targetScope, setTargetScope] = useState<'pos' | 'jemaat'>('jemaat');
+  const searchParams = useSearchParams();
+  const queryPosId = searchParams.get('id_pos');
 
   const {
     isListening,
@@ -88,6 +90,13 @@ export default function LogPastoralBaruPage() {
 
     initFormDefaults();
   }, [setValue]);
+
+  useEffect(() => {
+    if (queryPosId) {
+      setValue('id_pos', queryPosId);
+      setTargetScope('pos');
+    }
+  }, [queryPosId, setValue]);
 
   // Auto-fill & smart format voice transcript ke field kegiatan
   useEffect(() => {
@@ -480,5 +489,15 @@ export default function LogPastoralBaruPage() {
         )}
       </form>
     </div>
+  );
+}
+
+import { Suspense } from 'react';
+
+export default function LogPastoralBaruPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-text-muted animate-pulse font-medium">Memuat form pastoral...</div>}>
+      <LogPastoralBaruContentPage />
+    </Suspense>
   );
 }

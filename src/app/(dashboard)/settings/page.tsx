@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { useUser } from '@/hooks/use-user';
 import { useToast } from '@/components/ui/toast';
-import { Shield, Bell, Fingerprint, LogOut, ChevronRight, Check, User as UserIcon, RefreshCw, Crown } from 'lucide-react';
+import { Shield, Bell, Fingerprint, LogOut, ChevronRight, Check, User as UserIcon, RefreshCw, Crown, Lock, X } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
 
 export default function SettingsHubPage() {
   const { user, nama, email, role, avatarUrl, isLoading, logout } = useUser();
@@ -13,6 +14,41 @@ export default function SettingsHubPage() {
   
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
+
+  // States for password changing modal
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 6) {
+      toast.error('Password Terlalu Pendek', 'Password minimal terdiri dari 6 karakter.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('Kombinasi Tidak Cocok', 'Konfirmasi password baru tidak sama dengan password baru.');
+      return;
+    }
+
+    setIsSubmittingPassword(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+      if (error) throw error;
+
+      toast.success('Kata Sandi Diperbarui', 'Kata sandi Anda berhasil diubah. Gunakan kata sandi ini untuk login berikutnya.');
+      setIsChangingPassword(false);
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error: any) {
+      toast.error('Gagal Mengubah Kata Sandi', error?.message || 'Terjadi kesalahan saat memperbarui kata sandi.');
+    } finally {
+      setIsSubmittingPassword(false);
+    }
+  };
 
   const handleToggleBiometrics = () => {
     const nextState = !biometricsEnabled;
@@ -195,7 +231,7 @@ export default function SettingsHubPage() {
           <CardContent className="p-0 divide-y divide-border-subtle">
             <button
               type="button"
-              onClick={() => toast.info('Ubah Kata Sandi', 'Fitur ubah sandi dikirim via email konfirmasi.')}
+              onClick={() => setIsChangingPassword(true)}
               className="flex items-center justify-between w-full p-4 hover:bg-surface-sunken transition-colors text-left min-h-[52px]"
             >
               <div className="flex items-center gap-3">
@@ -219,6 +255,88 @@ export default function SettingsHubPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modal Ubah Kata Sandi */}
+      {isChangingPassword && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-surface-elevated w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 border border-border-subtle shadow-heavy max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
+            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+              <div>
+                <h2 className="text-base font-serif font-bold text-brand-primary flex items-center gap-2">
+                  <Lock size={18} />
+                  <span>Ubah Kata Sandi</span>
+                </h2>
+                <p className="text-xs text-text-muted mt-0.5">
+                  Masukkan kata sandi baru Anda untuk akun ini
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsChangingPassword(false);
+                  setNewPassword('');
+                  setConfirmPassword('');
+                }}
+                className="w-9 h-9 rounded-full bg-surface-sunken flex items-center justify-center text-text-muted hover:text-text-high min-h-[44px] min-w-[44px]"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdatePassword} className="space-y-4">
+              {/* Password Baru */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-high">Kata Sandi Baru *</label>
+                <input
+                  type="password"
+                  placeholder="Min. 6 karakter"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  required
+                  minLength={6}
+                />
+              </div>
+
+              {/* Konfirmasi Password Baru */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-high">Konfirmasi Kata Sandi Baru *</label>
+                <input
+                  type="password"
+                  placeholder="Ketik ulang kata sandi baru"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  required
+                  minLength={6}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 pt-3 border-t border-border-subtle">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsChangingPassword(false);
+                    setNewPassword('');
+                    setConfirmPassword('');
+                  }}
+                  className="flex-1 py-2.5 rounded-xl border border-border-subtle text-xs font-bold text-text-high hover:bg-surface-sunken transition-all min-h-[44px]"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingPassword}
+                  className="flex-1 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] disabled:opacity-50"
+                >
+                  {isSubmittingPassword ? 'Memproses...' : 'Simpan Sandi'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

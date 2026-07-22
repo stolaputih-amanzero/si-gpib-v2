@@ -4,6 +4,8 @@ import { useState } from 'react';
 import {
   useUsersList,
   useUpdateUserRole,
+  useCreateUser,
+  useDeleteUser,
   UserManagementItem,
   UserRole,
 } from '@/hooks/use-users-management';
@@ -23,6 +25,8 @@ import {
   Lock,
   ChevronLeft,
   Users,
+  Plus,
+  Trash2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -43,19 +47,36 @@ export default function UserManagementPage() {
   const [selectedRoleFilter, setSelectedRoleFilter] = useState('all');
   const [editingUser, setEditingUser] = useState<UserManagementItem | null>(null);
 
-  // Form states for modal
+  // Form states for editing modal
   const [formRole, setFormRole] = useState<UserRole>('pelayan');
+  const [formNamaLengkap, setFormNamaLengkap] = useState<string>('');
+  const [formEmail, setFormEmail] = useState<string>('');
   const [formMupel, setFormMupel] = useState<string>('');
   const [formInduk, setFormInduk] = useState<string>('');
   const [formPos, setFormPos] = useState<string>('');
   const [formStatus, setFormStatus] = useState<'Active' | 'Inactive' | 'Pending'>('Active');
 
+  // Form states for adding modal
+  const [isAddingUser, setIsAddingUser] = useState(false);
+  const [addNamaLengkap, setAddNamaLengkap] = useState('');
+  const [addEmail, setAddEmail] = useState('');
+  const [addPassword, setAddPassword] = useState('');
+  const [addRole, setAddRole] = useState<UserRole>('pelayan');
+  const [addMupel, setAddMupel] = useState('');
+  const [addInduk, setAddInduk] = useState('');
+  const [addPos, setAddPos] = useState('');
+  const [addStatus, setAddStatus] = useState<'Active' | 'Inactive' | 'Pending'>('Active');
+
   const { data: usersList, isLoading } = useUsersList(searchQuery, selectedRoleFilter);
   const updateRoleMutation = useUpdateUserRole();
+  const createUserMutation = useCreateUser();
+  const deleteUserMutation = useDeleteUser();
 
   const handleOpenEditModal = (user: UserManagementItem) => {
     setEditingUser(user);
     setFormRole(user.role);
+    setFormNamaLengkap(user.nama_lengkap || '');
+    setFormEmail(user.email || '');
     setFormMupel(user.id_mupel || '');
     setFormInduk(user.id_induk || '');
     setFormPos(user.id_pos || '');
@@ -70,16 +91,71 @@ export default function UserManagementPage() {
       await updateRoleMutation.mutateAsync({
         id: editingUser.id,
         role: formRole,
+        nama_lengkap: formNamaLengkap,
+        email: formEmail,
         id_mupel: formMupel || null,
         id_induk: formInduk || null,
         id_pos: formPos || null,
         status: formStatus,
       });
 
-      toast.success('Pengaturan Disimpan', `Role & penetapan hierarki untuk ${editingUser.nama_lengkap} berhasil diperbarui.`);
+      toast.success('Pengaturan Disimpan', `Profil & penetapan hierarki untuk ${formNamaLengkap} berhasil diperbarui.`);
       setEditingUser(null);
     } catch (error: any) {
       toast.error('Gagal Menyimpan', error?.message || 'Terjadi kesalahan saat memperbarui role pengguna.');
+    }
+  };
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addNamaLengkap || !addEmail) {
+      toast.error('Data Belum Lengkap', 'Nama Lengkap dan Email wajib diisi.');
+      return;
+    }
+
+    try {
+      const result = await createUserMutation.mutateAsync({
+        nama_lengkap: addNamaLengkap,
+        email: addEmail,
+        password: addPassword || undefined,
+        role: addRole,
+        id_mupel: addMupel || null,
+        id_induk: addInduk || null,
+        id_pos: addPos || null,
+        status: addStatus,
+      });
+
+      toast.success(
+        'Pengguna Dibuat',
+        `Akun ${addNamaLengkap} berhasil dibuat.${result.password ? ` Password sementara: ${result.password}` : ''}`
+      );
+      
+      // Reset state
+      setIsAddingUser(false);
+      setAddNamaLengkap('');
+      setAddEmail('');
+      setAddPassword('');
+      setAddRole('pelayan');
+      setAddMupel('');
+      setAddInduk('');
+      setAddPos('');
+      setAddStatus('Active');
+    } catch (error: any) {
+      toast.error('Gagal Membuat Pengguna', error?.message || 'Terjadi kesalahan saat membuat pengguna.');
+    }
+  };
+
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus akun ${userName}? Tindakan ini tidak dapat dibatalkan.`)) {
+      return;
+    }
+
+    try {
+      await deleteUserMutation.mutateAsync(userId);
+      toast.success('Pengguna Dihapus', `Akun ${userName} berhasil dihapus dari sistem.`);
+      setEditingUser(null);
+    } catch (error: any) {
+      toast.error('Gagal Menghapus', error?.message || 'Terjadi kesalahan saat menghapus pengguna.');
     }
   };
 
@@ -91,7 +167,7 @@ export default function UserManagementPage() {
   return (
     <div className="w-full space-y-6 pb-16">
       {/* Top Header Navigation */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
           <Link
             href="/settings"
@@ -114,6 +190,15 @@ export default function UserManagementPage() {
             </p>
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={() => setIsAddingUser(true)}
+          className="px-4 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-blue-800 transition-all flex items-center gap-1.5 shadow-sm min-h-[40px] active:scale-95"
+        >
+          <Plus size={16} />
+          <span>Tambah Pengguna</span>
+        </button>
       </div>
 
       {/* KPI Cards Overview */}
@@ -323,6 +408,30 @@ export default function UserManagementPage() {
             </div>
 
             <form onSubmit={handleSaveUser} className="space-y-4">
+              {/* Nama Lengkap */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-high">Nama Lengkap *</label>
+                <input
+                  type="text"
+                  value={formNamaLengkap}
+                  onChange={(e) => setFormNamaLengkap(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  required
+                />
+              </div>
+
+              {/* Email */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-high">Email *</label>
+                <input
+                  type="email"
+                  value={formEmail}
+                  onChange={(e) => setFormEmail(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  required
+                />
+              </div>
+
               {/* Select Role */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-text-high">Role Hak Akses (RBAC) *</label>
@@ -410,6 +519,14 @@ export default function UserManagementPage() {
               <div className="flex items-center gap-2 pt-3 border-t border-border-subtle">
                 <button
                   type="button"
+                  onClick={() => handleDeleteUser(editingUser.id, editingUser.nama_lengkap)}
+                  className="px-3.5 py-2.5 rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 dark:border-red-900/30 dark:bg-red-950/20 dark:text-red-400 transition-all flex items-center justify-center min-h-[44px] active:scale-95"
+                  title="Hapus Pengguna"
+                >
+                  <Trash2 size={18} />
+                </button>
+                <button
+                  type="button"
                   onClick={() => setEditingUser(null)}
                   className="flex-1 py-2.5 rounded-xl border border-border-subtle text-xs font-bold text-text-high hover:bg-surface-sunken transition-all min-h-[44px]"
                 >
@@ -421,6 +538,177 @@ export default function UserManagementPage() {
                   className="flex-1 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] disabled:opacity-50"
                 >
                   {updateRoleMutation.isPending ? 'Menyimpan...' : 'Simpan Otorisasi'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Tambah Pengguna */}
+      {isAddingUser && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-surface-elevated w-full max-w-lg rounded-t-3xl sm:rounded-2xl p-5 border border-border-subtle shadow-heavy max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
+            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+              <div>
+                <h2 className="text-base font-serif font-bold text-brand-primary flex items-center gap-2">
+                  <Plus size={18} />
+                  <span>Tambah Pengguna Baru</span>
+                </h2>
+                <p className="text-xs text-text-muted mt-0.5">
+                  Buat akun login baru dan tentukan hak akses penugasannya
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddingUser(false)}
+                className="w-9 h-9 rounded-full bg-surface-sunken flex items-center justify-center text-text-muted hover:text-text-high min-h-[44px] min-w-[44px]"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateUser} className="space-y-4">
+              {/* Nama Lengkap */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-high">Nama Lengkap *</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Budi Santoso"
+                  value={addNamaLengkap}
+                  onChange={(e) => setAddNamaLengkap(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  required
+                />
+              </div>
+
+              {/* Email */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-high">Email *</label>
+                <input
+                  type="email"
+                  placeholder="budi@example.com"
+                  value={addEmail}
+                  onChange={(e) => setAddEmail(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  required
+                />
+              </div>
+
+              {/* Password */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-semibold text-text-high">Password *</label>
+                  <span className="text-[10px] text-text-muted">Kosongkan untuk auto-generate</span>
+                </div>
+                <input
+                  type="password"
+                  placeholder="Min. 6 karakter"
+                  value={addPassword}
+                  onChange={(e) => setAddPassword(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  minLength={6}
+                />
+              </div>
+
+              {/* Select Role */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-high">Role Hak Akses (RBAC) *</label>
+                <select
+                  value={addRole}
+                  onChange={(e) => setAddRole(e.target.value as UserRole)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm font-semibold text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                >
+                  <option value="superadmin">Superadmin (Sinode) - Akses Penuh Nasional</option>
+                  <option value="admin_mupel">Admin Mupel - Terkunci 1 Mupel</option>
+                  <option value="admin_jemaat">Admin Jemaat / KMJ - Terkunci 1 Jemaat</option>
+                  <option value="pj_pos">PJ Pos Pelkes - Terkunci 1 Pos Pelkes</option>
+                  <option value="pendeta">Pendeta GPIB</option>
+                  <option value="pelayan">Pelayan Field</option>
+                  <option value="relawan">Relawan</option>
+                </select>
+              </div>
+
+              {/* Status Select */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-high">Status Akun Pengguna</label>
+                <select
+                  value={addStatus}
+                  onChange={(e) => setAddStatus(e.target.value as any)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                >
+                  <option value="Active">Active (Aktif)</option>
+                  <option value="Inactive">Inactive (Non-Aktif)</option>
+                  <option value="Pending">Pending Verification</option>
+                </select>
+              </div>
+
+              {/* Dynamic Cascading Selector Based on Role Requirements */}
+              <div className="space-y-2 pt-2 border-t border-border-subtle">
+                <label className="text-xs font-semibold text-text-high flex items-center justify-between">
+                  <span>Penetapan Wilayah Hierarki Poka-Yoke</span>
+                  <span className="text-[11px] text-brand-primary font-normal flex items-center gap-1">
+                    <Lock size={12} /> Auto-Lock untuk Role
+                  </span>
+                </label>
+
+                {addRole === 'superadmin' ? (
+                  <div className="p-3 bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 rounded-xl text-xs font-medium">
+                    ✨ <strong>Superadmin (Sinode)</strong> memiliki akses nasional secara bebas ke seluruh Mupel, Jemaat, dan Pos Pelkes.
+                  </div>
+                ) : addRole === 'admin_mupel' ? (
+                  <div className="space-y-2">
+                    <MupelSelect
+                      value={addMupel}
+                      onChange={setAddMupel}
+                      required={true}
+                    />
+                    <p className="text-[11px] text-text-muted">
+                      Admin Mupel hanya dapat mengakses data dalam Mupel ini.
+                    </p>
+                  </div>
+                ) : addRole === 'admin_jemaat' || addRole === 'pendeta' ? (
+                  <div className="space-y-2">
+                    <JemaatCascadingSelector
+                      value={addInduk}
+                      onChange={setAddInduk}
+                      defaultIndukId={addInduk || undefined}
+                    />
+                    <p className="text-[11px] text-text-muted">
+                      Admin Jemaat / KMJ terkunci pada Mupel & Jemaat Induk ini.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <PosCascadingSelector
+                      value={addPos}
+                      onChange={setAddPos}
+                      onJemaatChange={setAddInduk}
+                      defaultPosId={addPos || undefined}
+                      required={false}
+                    />
+                    <p className="text-[11px] text-text-muted">
+                      PJ / Pelayan / Relawan terkunci pada Mupel, Jemaat, dan Pos Pelkes ini.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 pt-3 border-t border-border-subtle">
+                <button
+                  type="button"
+                  onClick={() => setIsAddingUser(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-border-subtle text-xs font-bold text-text-high hover:bg-surface-sunken transition-all min-h-[44px]"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={createUserMutation.isPending}
+                  className="flex-1 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] disabled:opacity-50"
+                >
+                  {createUserMutation.isPending ? 'Membuat...' : 'Buat Pengguna'}
                 </button>
               </div>
             </form>

@@ -51,6 +51,7 @@ export function DemografiForm({ id_pos: propIdPos, onSuccess }: DemografiFormPro
   useEffect(() => {
     if (propIdPos) {
       setSelectedIdPos(propIdPos);
+      setTargetScope('pos');
     }
   }, [propIdPos]);
 

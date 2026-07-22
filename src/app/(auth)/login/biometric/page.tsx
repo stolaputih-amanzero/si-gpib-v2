@@ -13,11 +13,20 @@ export default function BiometricLoginPage() {
   const handleBiometricLogin = async () => {
     setStatus('loading');
     try {
-      // 1. Dapatkan opsi authentication dari server
+      // 1. Dapatkan opsi authentication dari server (GET untuk username-less options)
       const optionsRes = await fetch('/api/auth/webauthn/login/options');
-      const options = await optionsRes.json();
+      if (!optionsRes.ok) {
+        throw new Error('Gagal mendapatkan konfigurasi biometrik dari server');
+      }
+      
+      const resJson = await optionsRes.json();
+      const options = resJson.options;
 
-      // 2. Jalankan autentikasi biometrik
+      if (!options) {
+        throw new Error('Opsi biometrik tidak valid dari server');
+      }
+
+      // 2. Jalankan autentikasi biometrik native browser
       const authResponse = await startAuthentication(options);
 
       // 3. Verifikasi response ke server
@@ -27,18 +36,25 @@ export default function BiometricLoginPage() {
         body: JSON.stringify(authResponse),
       });
 
-      if (!verifyRes.ok) {
-        throw new Error('Verifikasi biometrik gagal');
+      const verifyResult = await verifyRes.json();
+
+      if (!verifyRes.ok || !verifyResult.success) {
+        throw new Error(verifyResult.error || 'Verifikasi biometrik gagal');
       }
 
       setStatus('success');
       
-      // Haptic feedback (opsional jika kita sudah tambahkan utility-nya)
+      // Haptic feedback
       if (typeof window !== 'undefined' && navigator.vibrate) {
         navigator.vibrate([10, 50, 10]);
       }
 
-      router.push('/dashboard');
+      // 4. Redirect via magic link callback to properly establish Supabase session cookies
+      if (verifyResult.redirectUrl) {
+        window.location.href = verifyResult.redirectUrl;
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err: any) {
       console.error(err);
       setStatus('error');

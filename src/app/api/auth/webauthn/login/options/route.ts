@@ -3,6 +3,35 @@ import { generateAuthenticationOptions } from '@simplewebauthn/server';
 import type { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { getWebAuthnConfig } from '@/lib/auth/webauthn-config';
+import { cookies } from 'next/headers';
+
+export async function GET(req: NextRequest) {
+  try {
+    const { rpID } = getWebAuthnConfig(req);
+
+    // Generate options without allowCredentials (username-less)
+    const options: PublicKeyCredentialRequestOptionsJSON = await generateAuthenticationOptions({
+      timeout: 60000,
+      userVerification: 'preferred',
+      rpID,
+    });
+
+    // Save challenge in secure HTTP-only cookie
+    const cookieStore = await cookies();
+    cookieStore.set('webauthn_challenge', options.challenge, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 300, // 5 minutes
+      path: '/',
+    });
+
+    return NextResponse.json({ options });
+  } catch (error) {
+    console.error('Login options GET error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {

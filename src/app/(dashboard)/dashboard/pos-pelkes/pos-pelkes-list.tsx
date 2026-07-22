@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { SearchBar } from '@/components/ui/search-bar';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { MapPin, Calendar, ArrowRight, Map, Database, Plus, TrendingUp } from 'lucide-react';
 import { StatusElevationModal } from '@/components/hierarki/StatusElevationModal';
 
@@ -16,6 +17,7 @@ interface PosPelkes {
 }
 
 export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [elevatePosItem, setElevatePosItem] = useState<{ id_pos: string; nama_pos: string; kategori?: string | null; id_induk: string } | null>(null);
@@ -86,7 +88,11 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
               {currentData.map((pos) => (
                 <div
                   key={pos.id_pos}
-                  className="p-5 bg-surface-elevated rounded-xl shadow-sm border border-gray-100 space-y-3"
+                  className="p-5 bg-surface-elevated rounded-xl shadow-sm border border-gray-100 space-y-3 cursor-pointer hover:border-brand-primary/30 transition-all hover:shadow-soft active:scale-[0.99]"
+                  onClick={(e) => {
+                    if ((e.target as HTMLElement).closest('button, a')) return;
+                    router.push(`/dashboard/pos-pelkes/${pos.id_pos}`);
+                  }}
                 >
                   <div className="flex justify-between items-start gap-2">
                     <div>
@@ -154,7 +160,14 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {currentData.map((pos) => (
-                      <tr key={pos.id_pos} className="hover:bg-blue-50/50 transition-colors">
+                      <tr 
+                        key={pos.id_pos} 
+                        className="hover:bg-blue-50/50 transition-colors cursor-pointer"
+                        onClick={(e) => {
+                          if ((e.target as HTMLElement).closest('button, a')) return;
+                          router.push(`/dashboard/pos-pelkes/${pos.id_pos}`);
+                        }}
+                      >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-surface-sunken border border-border-subtle text-text-muted">
