@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser } from '@/hooks/use-user';
 import { useToast } from '@/components/ui/toast';
-import { Shield, Bell, Fingerprint, LogOut, ChevronRight, Check, User as UserIcon, RefreshCw, Crown, Lock, X } from 'lucide-react';
+import { Shield, Bell, LogOut, ChevronRight, Check, User as UserIcon, RefreshCw, Crown, Lock, X } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { BiometricSetup } from '@/components/biometric/BiometricSetup';
 
 export default function SettingsHubPage() {
   const { user, nama, email, role, avatarUrl, isLoading, logout } = useUser();
@@ -14,6 +15,27 @@ export default function SettingsHubPage() {
   
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchBiometricsStatus = async () => {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('users')
+          .select('biometric_enabled')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (!error && data) {
+          setBiometricsEnabled(!!data.biometric_enabled);
+        }
+      } catch (err) {
+        console.error('Error fetching biometric status:', err);
+      }
+    };
+    fetchBiometricsStatus();
+  }, [user]);
 
   // States for password changing modal
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -50,15 +72,6 @@ export default function SettingsHubPage() {
     }
   };
 
-  const handleToggleBiometrics = () => {
-    const nextState = !biometricsEnabled;
-    setBiometricsEnabled(nextState);
-    if (nextState) {
-      toast.success('Biometrik Ditingkatkan', 'Fitur Passkey / FaceID siap digunakan untuk login berikutnya.');
-    } else {
-      toast.info('Biometrik Dinonaktifkan', 'Anda dapat mengaktifkannya kembali kapan saja.');
-    }
-  };
 
   const handleToggleNotifications = () => {
     const nextState = !notificationsEnabled;
@@ -162,37 +175,8 @@ export default function SettingsHubPage() {
           </CardHeader>
         </Card>
 
-        {/* Biometric & Security */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 min-w-0 pr-4">
-                <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0">
-                  <Fingerprint className="w-5 h-5" />
-                </div>
-                <div className="min-w-0">
-                  <CardTitle className="text-base truncate">Keamanan Biometrik (Passkey)</CardTitle>
-                  <CardDescription className="line-clamp-1">
-                    Masuk cepat ke SI GPIB menggunakan FaceID / TouchID
-                  </CardDescription>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={handleToggleBiometrics}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  biometricsEnabled ? 'bg-brand-primary' : 'bg-surface-sunken border-border-strong'
-                }`}
-              >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                    biometricsEnabled ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-          </CardHeader>
-        </Card>
+        {/* Biometric Setup & Security */}
+        <BiometricSetup initialEnabled={biometricsEnabled} />
 
         {/* Notifications */}
         <Card>
