@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { User, Users, Phone, ExternalLink, HeartHandshake, Plus, X } from 'lucide-react';
+import { User, Users, Phone, HeartHandshake, Plus, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { PJSelector } from '@/components/hierarki/PJSelector';
 import { PelayanForm } from '@/components/pelayan/PelayanForm';
@@ -81,38 +81,37 @@ export function PendetaPelayanTabContent({
             <button
               type="button"
               onClick={() => setShowPJModal(true)}
-              className="min-h-[36px] px-3.5 py-2 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors"
+              className="min-h-[36px] px-3.5 py-2 bg-brand-primary text-white hover:bg-blue-800 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors shadow-sm"
             >
               <HeartHandshake size={14} />
-              <span>Kelola Penugasan Pendeta Jemaat</span>
+              <span>Penugasan Pendeta</span>
             </button>
           )}
         </div>
         <div className="p-4 sm:p-5">
           {pj ? (
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-surface-sunken border border-border-subtle rounded-2xl">
+            <div className="flex items-center justify-between gap-3 p-4 bg-surface-sunken border border-border-subtle rounded-2xl">
               <Link
                 href={`/pendeta/${pj.id_pendeta}`}
-                className="flex items-center gap-3.5 group hover:opacity-90 transition-opacity"
+                className="flex items-center gap-3.5 group hover:opacity-90 transition-opacity min-w-0 flex-1"
               >
                 {pj.foto_url ? (
                   <img
                     src={pj.foto_url}
                     alt={pj.nama_lengkap}
-                    className="w-14 h-14 rounded-2xl object-cover border-2 border-brand-primary/20 shrink-0 group-hover:scale-105 transition-transform shadow-xs"
+                    className="w-12 h-12 rounded-xl object-cover border border-border-subtle shrink-0 group-hover:scale-105 transition-transform shadow-xs"
                   />
                 ) : (
-                  <div className="w-14 h-14 rounded-2xl bg-brand-primary text-white flex items-center justify-center font-black text-xl shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                  <div className="w-12 h-12 rounded-xl bg-brand-primary text-white flex items-center justify-center font-extrabold text-base shrink-0 group-hover:scale-105 transition-transform shadow-xs">
                     {pj.nama_lengkap.charAt(0)}
                   </div>
                 )}
-                <div>
-                  <h4 className="font-extrabold text-base text-text-high leading-tight group-hover:text-brand-primary group-hover:underline flex items-center gap-1.5">
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-extrabold text-sm sm:text-base text-text-high leading-snug break-words group-hover:text-brand-primary group-hover:underline">
                     <span>{pj.nama_lengkap}</span>
-                    <ExternalLink size={15} className="text-brand-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </h4>
-                  <span className="text-xs font-semibold text-text-muted mt-1 inline-block">
-                    Aktif sejak: {new Date(pj.tgl_mulai).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  <span className="text-[11px] text-text-muted mt-0.5 block">
+                    Aktif sejak: {new Date(pj.tgl_mulai).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </span>
                 </div>
               </Link>
@@ -121,10 +120,10 @@ export function PendetaPelayanTabContent({
                   href={`https://wa.me/${pj.no_wa.replace(/[^0-9]/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="min-h-[40px] px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center gap-2 transition-colors shadow-xs w-full sm:w-auto justify-center"
+                  className="w-8 h-8 min-h-[32px] min-w-[32px] rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center transition-all shrink-0 active:scale-95 shadow-xs"
+                  title={`Chat WhatsApp dengan ${pj.nama_lengkap} (${pj.no_wa})`}
                 >
                   <Phone size={14} />
-                  <span>Chat via WhatsApp ({pj.no_wa})</span>
                 </a>
               )}
             </div>
@@ -178,9 +177,8 @@ export function PendetaPelayanTabContent({
                       setShowPelayanModal(true);
                     }
                   }}
-                  className={`p-4 border border-border-subtle rounded-2xl bg-surface-sunken space-y-3 transition-all ${
-                    canWrite ? 'cursor-pointer hover:border-brand-primary/40 hover:shadow-xs' : ''
-                  }`}
+                  className={`p-4 border border-border-subtle rounded-2xl bg-surface-sunken space-y-3 transition-all ${canWrite ? 'cursor-pointer hover:border-brand-primary/40 hover:shadow-xs' : ''
+                    }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
@@ -272,9 +270,8 @@ export function PendetaPelayanTabContent({
                       setShowRelawanModal(true);
                     }
                   }}
-                  className={`p-4 border border-border-subtle rounded-2xl bg-surface-sunken space-y-3 transition-all ${
-                    canWrite ? 'cursor-pointer hover:border-brand-primary/40 hover:shadow-xs' : ''
-                  }`}
+                  className={`p-4 border border-border-subtle rounded-2xl bg-surface-sunken space-y-3 transition-all ${canWrite ? 'cursor-pointer hover:border-brand-primary/40 hover:shadow-xs' : ''
+                    }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">

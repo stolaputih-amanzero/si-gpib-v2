@@ -407,67 +407,94 @@ export default async function PosPelkesDetailPage({
 
         {/* TAB 1: PROFIL */}
         <TabsContent value="profil" className="space-y-4 focus-visible:outline-none">
-          {/* Stat Summary Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft flex flex-col items-center justify-center text-center space-y-1">
-              <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                <Home size={16} />
+          {/* Single Card Summary Demografi (2 Horizontal Rows) */}
+          <div className="bg-surface-elevated p-4 sm:p-5 rounded-2xl border border-border-subtle shadow-soft space-y-3.5">
+            {/* Baris 1: Jumlah KK & Total Jiwa */}
+            <div className="grid grid-cols-2 gap-3 divide-x divide-border-subtle/60">
+              <div className="flex items-center gap-3 pr-2">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                  <Home size={18} />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] text-text-muted font-extrabold uppercase tracking-wider block">Jumlah KK</span>
+                  <p className="text-lg sm:text-xl font-black text-text-high tabular-nums">{totalKK} <span className="text-xs font-normal text-text-muted">KK</span></p>
+                </div>
               </div>
-              <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Jumlah KK</span>
-              <p className="text-xl font-black text-text-high tabular-nums">{totalKK}</p>
+              <div className="flex items-center gap-3 pl-3 sm:pl-4">
+                <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
+                  <Users size={18} />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] text-text-muted font-extrabold uppercase tracking-wider block">Total Jiwa</span>
+                  <p className="text-lg sm:text-xl font-black text-brand-primary tabular-nums">{totalJiwa} <span className="text-xs font-normal text-text-muted">Jiwa</span></p>
+                </div>
+              </div>
             </div>
-            <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft flex flex-col items-center justify-center text-center space-y-1">
-              <div className="w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-purple-600 dark:text-purple-400">
-                <Users size={16} />
+
+            <div className="border-t border-border-subtle/60" />
+
+            {/* Baris 2: Laki-Laki & Perempuan */}
+            <div className="grid grid-cols-2 gap-3 divide-x divide-border-subtle/60">
+              <div className="flex items-center gap-3 pr-2">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                  <Users size={18} />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] text-text-muted font-extrabold uppercase tracking-wider block">Laki-Laki</span>
+                  <p className="text-lg sm:text-xl font-black text-blue-600 dark:text-blue-400 tabular-nums">{totalLaki} <span className="text-xs font-normal text-text-muted">Jiwa</span></p>
+                </div>
               </div>
-              <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Total Jiwa</span>
-              <p className="text-xl font-black text-brand-primary tabular-nums">{totalJiwa}</p>
-            </div>
-            <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft flex flex-col items-center justify-center text-center space-y-1">
-              <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                <Users size={16} />
+              <div className="flex items-center gap-3 pl-3 sm:pl-4">
+                <div className="w-10 h-10 rounded-xl bg-pink-50 dark:bg-pink-950/60 flex items-center justify-center text-pink-600 dark:text-pink-400 shrink-0">
+                  <Users size={18} />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] text-text-muted font-extrabold uppercase tracking-wider block">Perempuan</span>
+                  <p className="text-lg sm:text-xl font-black text-pink-600 dark:text-pink-400 tabular-nums">{totalPerempuan} <span className="text-xs font-normal text-text-muted">Jiwa</span></p>
+                </div>
               </div>
-              <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Laki-Laki</span>
-              <p className="text-xl font-black text-blue-600 dark:text-blue-400 tabular-nums">{totalLaki}</p>
-            </div>
-            <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft flex flex-col items-center justify-center text-center space-y-1">
-              <div className="w-8 h-8 rounded-full bg-pink-50 dark:bg-pink-950/60 flex items-center justify-center text-pink-600 dark:text-pink-400">
-                <Users size={16} />
-              </div>
-              <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Perempuan</span>
-              <p className="text-xl font-black text-pink-600 dark:text-pink-400 tabular-nums">{totalPerempuan}</p>
             </div>
           </div>
 
           {/* Quick PJ Panel */}
           {pj && (
-            <Card className="border-border-subtle shadow-soft bg-gradient-to-r from-brand-primary/5 via-transparent to-transparent">
-              <CardContent className="p-5 flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap">
+            <Card className="border-border-subtle shadow-soft bg-surface-elevated overflow-hidden">
+              <CardContent className="p-3 sm:p-4 flex items-center justify-between gap-3">
                 <Link
                   href={`/pendeta/${pj.id_pendeta}`}
-                  className="flex items-center gap-3 group hover:opacity-90 transition-opacity"
+                  className="flex items-center gap-3 group hover:opacity-90 transition-opacity min-w-0 flex-1"
                 >
-                  <div className="w-12 h-12 rounded-full bg-brand-primary text-white flex items-center justify-center font-black text-lg shrink-0 group-hover:scale-105 transition-transform shadow-sm">
-                    {pj.nama_lengkap.charAt(0)}
-                  </div>
-                  <div>
-                    <span className="text-[9px] font-black text-brand-primary uppercase tracking-widest block">Pendeta Jemaat</span>
-                    <h4 className="font-extrabold text-base text-text-high leading-tight group-hover:text-brand-primary group-hover:underline flex items-center gap-1">
+                  {pj.foto_url ? (
+                    <img
+                      src={pj.foto_url}
+                      alt={pj.nama_lengkap}
+                      className="w-10 h-10 rounded-xl object-cover border border-border-subtle shrink-0 shadow-xs group-hover:scale-105 transition-transform"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl bg-brand-primary text-white flex items-center justify-center font-bold text-sm shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                      {pj.nama_lengkap.charAt(0)}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[9px] font-extrabold text-brand-primary uppercase tracking-wider block">Pendeta Jemaat</span>
+                    <h4 className="font-extrabold text-sm sm:text-base text-text-high leading-snug break-words group-hover:text-brand-primary group-hover:underline transition-colors">
                       <span>{pj.nama_lengkap}</span>
-                      <ExternalLink size={14} className="text-brand-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </h4>
-                    <p className="text-xs text-text-muted mt-0.5">Aktif sejak: {new Date(pj.tgl_mulai).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                    <p className="text-[10px] text-text-muted mt-0.5">
+                      Aktif: {new Date(pj.tgl_mulai).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })}
+                    </p>
                   </div>
                 </Link>
+
                 {pj.no_wa && (
                   <a
                     href={`https://wa.me/${pj.no_wa.replace(/[^0-9]/g, '')}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="min-h-[40px] px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center gap-2 hover:bg-emerald-700 transition-colors shrink-0 shadow-xs"
+                    className="w-8 h-8 min-h-[32px] min-w-[32px] rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center transition-all shrink-0 active:scale-95 shadow-xs"
+                    title={`Chat WhatsApp dengan ${pj.nama_lengkap} (${pj.no_wa})`}
                   >
                     <Phone size={14} />
-                    <span>Hubungi WA</span>
                   </a>
                 )}
               </CardContent>

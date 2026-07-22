@@ -169,40 +169,48 @@ export default function PosProfileHeroWrapper({
               alt={`Foto Gedung ${pos.nama_pos}`} 
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
             />
-            {/* Subtle Gradient at bottom */}
-            <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+            {/* Dark Gradient Backdrop at Bottom for Title Readability */}
+            <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent pointer-events-none" />
 
-            {/* Click to Enlarge Eye Button */}
+            {/* Title Overlay at bottom of photo (Tanpa Alamat) */}
+            <div className="absolute bottom-3 left-4 right-14 z-10 pointer-events-none">
+              <h1 className="text-lg sm:text-2xl font-black text-white drop-shadow-md leading-snug">
+                {pos.nama_pos}
+              </h1>
+            </div>
+
+            {/* Click to Enlarge Eye Button (Icon-only) */}
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 setShowLightbox(true);
               }}
-              className="absolute bottom-3 right-3 z-20 px-3 py-1.5 rounded-xl bg-black/60 hover:bg-black/80 text-white text-xs font-bold border border-white/20 backdrop-blur-md flex items-center gap-1.5 transition-all shadow-md active:scale-95"
+              className="absolute bottom-3 right-3 z-20 min-h-[40px] min-w-[40px] p-2.5 rounded-xl bg-black/60 hover:bg-black/80 text-white border border-white/20 backdrop-blur-md flex items-center justify-center transition-all shadow-md active:scale-95"
               title="Lihat Foto Layar Penuh"
             >
-              <Eye size={14} />
-              <span>Lihat Foto</span>
+              <Eye size={18} />
             </button>
           </div>
         ) : (
-          <div className="relative h-36 sm:h-48 w-full bg-gradient-to-br from-brand-primary via-blue-900 to-indigo-950 p-6 overflow-hidden">
+          <div className="relative h-36 sm:h-48 w-full bg-gradient-to-br from-brand-primary via-blue-900 to-indigo-950 p-4 sm:p-6 overflow-hidden flex flex-col justify-end">
             <div className="absolute -right-8 -bottom-8 opacity-15 pointer-events-none">
               <Building2 className="w-64 h-64 text-white" />
+            </div>
+            <div className="relative z-10">
+              <h1 className="text-lg sm:text-2xl font-black text-white drop-shadow-md leading-snug">
+                {pos.nama_pos}
+              </h1>
             </div>
           </div>
         )}
 
-        {/* Info Details Section Below Image (Clean & Breathable) */}
-        <div className="p-4 sm:p-6 space-y-3">
+        {/* Info Details Section Below Image (Badges & Alamat) */}
+        <div className="p-4 sm:p-5 space-y-2.5">
           {/* Badges Bar */}
           <div className="flex items-center gap-2 flex-wrap">
             <span className={cn("text-xs font-black uppercase tracking-wider px-3 py-1 rounded-xl shadow-xs border", catColor)}>
               {catLabel}
-            </span>
-            <span className="text-xs font-mono font-bold tracking-wider px-3 py-1 rounded-xl bg-surface-sunken text-text-high border border-border-subtle shadow-xs">
-              {pos.id_pos}
             </span>
             {pos.jemaat_induk && (
               <span className="text-xs font-semibold px-3 py-1 rounded-xl bg-surface-sunken text-text-muted border border-border-subtle flex items-center gap-1.5">
@@ -217,18 +225,13 @@ export default function PosProfileHeroWrapper({
             )}
           </div>
 
-          {/* Title & Address */}
-          <div className="space-y-1">
-            <h1 className="text-xl sm:text-3xl font-black text-text-high tracking-tight leading-snug">
-              {pos.nama_pos}
-            </h1>
-            {pos.alamat && (
-              <p className="text-xs sm:text-sm text-text-muted leading-relaxed font-medium flex items-start gap-1.5 pt-0.5">
-                <MapPin className="w-4 h-4 text-brand-primary shrink-0 mt-0.5" />
-                <span>{pos.alamat}</span>
-              </p>
-            )}
-          </div>
+          {/* Address Below Photo */}
+          {pos.alamat && (
+            <p className="text-xs sm:text-sm text-text-muted leading-relaxed font-medium flex items-start gap-1.5 pt-0.5">
+              <MapPin className="w-4 h-4 text-brand-primary shrink-0 mt-0.5" />
+              <span>{pos.alamat}</span>
+            </p>
+          )}
         </div>
       </div>
 

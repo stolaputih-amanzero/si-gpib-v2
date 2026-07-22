@@ -87,17 +87,16 @@ export default function LaporanDemografiPage() {
         const userMeta = user.user_metadata || {};
         const { data: userRow } = await supabase
           .from('users')
-          .select('nama_lengkap, nama, email, no_telepon')
+          .select('email, no_telepon')
           .eq('id', user.id)
           .maybeSingle();
 
         const displayUser =
-          userRow?.nama_lengkap ||
-          (userRow as any)?.nama ||
           userMeta.nama_lengkap ||
           userMeta.full_name ||
           userMeta.name ||
           userRow?.email ||
+          userRow?.no_telepon ||
           user.email ||
           'Pengguna System';
 
