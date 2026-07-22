@@ -22,7 +22,7 @@ interface PosProfileHeroWrapperProps {
       nama_induk: string;
       id_induk: string;
       id_mupel: string;
-      mupel?: { nama_mupel: string } | null;
+      mupel?: { id_mupel: string; nama_mupel: string } | null;
     } | null;
   };
   catLabel: string;
@@ -31,6 +31,8 @@ interface PosProfileHeroWrapperProps {
   totalJiwa: number;
   canWrite: boolean;
   canDelete?: boolean;
+  pjName?: string | null;
+  jadwalList?: Array<{ jenis: string; hari: string; jam: string; zona_waktu?: string | null; keterangan?: string | null }>;
 }
 
 export default function PosProfileHeroWrapper({
@@ -41,6 +43,8 @@ export default function PosProfileHeroWrapper({
   totalJiwa,
   canWrite,
   canDelete = false,
+  pjName,
+  jadwalList,
 }: PosProfileHeroWrapperProps) {
   const [showLightbox, setShowLightbox] = useState(false);
 
@@ -61,7 +65,7 @@ export default function PosProfileHeroWrapper({
         <div className="flex items-center gap-2 shrink-0">
           {(() => {
             const jemaatNama = pos.jemaat_induk?.nama_induk || '-';
-            const mupelNama = pos.jemaat_induk?.mupel?.nama_mupel || '-';
+            const mupelNama = pos.jemaat_induk?.mupel?.nama_mupel || pos.jemaat_induk?.id_mupel || '-';
             const posNama = pos.nama_pos || '-';
             const lat = pos.latitude || null;
             const lng = pos.longitude || null;
@@ -70,7 +74,10 @@ export default function PosProfileHeroWrapper({
             if (lat && lng) {
               mapsUrl = `google.com/maps?q=${lat},${lng}`;
             } else {
-              mapsUrl = `google.com/maps/search/?api=1&query=${encodeURIComponent(`GPIB ${posNama}`)}`;
+              const queryStr = pos.alamat 
+                ? `${posNama}, ${pos.alamat}` 
+                : `${posNama}, GPIB ${jemaatNama}`;
+              mapsUrl = `google.com/maps/search/?api=1&query=${encodeURIComponent(queryStr)}`;
             }
 
             const isBajemCat = catLabel.toLowerCase().includes('bajem') || posNama.toLowerCase().includes('bajem');
@@ -78,17 +85,33 @@ export default function PosProfileHeroWrapper({
             const tglFormatted = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
             const updatedByStr = (pos as any).updated_by || 'Pelayan Pos';
 
-            const shareTextLines = [
+            // Format Jadwal Ibadah
+            let jadwalStr = 'Belum ada jadwal ibadah terdaftar';
+            if (jadwalList && jadwalList.length > 0) {
+              jadwalStr = jadwalList
+                .map((j) => `- ${j.jenis} | ${j.hari}, Pkl. ${j.jam.substring(0, 5)} ${j.zona_waktu || 'WIB'}${j.keterangan ? ` (${j.keterangan})` : ''}`)
+                .join('\n');
+            }
+
+            const rawTextLines = [
               `*PROFIL ${posHeaderLabel.toUpperCase()} GPIB*`,
               ``,
               `*${posNama.toUpperCase()}* (${posHeaderLabel})`,
               `_${jemaatNama} - ${mupelNama}_`,
               ``,
               `*INFORMASI UNIT PELAYANAN*`,
+              `- MUPEL: ${mupelNama}`,
+              `- Jemaat Induk: ${jemaatNama}`,
               `- Alamat: ${pos.alamat || 'Belum diisi'}`,
               `- Demografi: ${totalKK} KK | ${totalJiwa} Jiwa`,
               pos.tgl_berdiri ? `- Tanggal Berdiri: ${pos.tgl_berdiri}` : null,
               pos.keterangan ? `- Catatan: "${pos.keterangan}"` : null,
+              ``,
+              `*PENDETA / PENANGGUNG JAWAB (PJ)*`,
+              `- Pendeta PJ: ${pjName || 'Belum ditugaskan'}`,
+              ``,
+              `*JADWAL IBADAH RUTIN*`,
+              jadwalStr,
               ``,
               `*LOKASI & GOOGLE MAPS*`,
               `Peta Lokasi Google Maps:`,
@@ -96,7 +119,11 @@ export default function PosProfileHeroWrapper({
               ``,
               `Tanggal Share: ${tglFormatted}`,
               `Diperbarui Oleh: ${updatedByStr}`,
-            ].filter(Boolean).join('\n');
+            ];
+
+            const shareTextLines = rawTextLines
+              .filter((line) => line !== null && line !== undefined)
+              .join('\n');
 
             return (
               <ShareButton

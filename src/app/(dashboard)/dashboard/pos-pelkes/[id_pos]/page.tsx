@@ -46,6 +46,10 @@ interface PosDetail {
     nama_induk: string;
     id_induk: string;
     id_mupel: string;
+    mupel?: {
+      id_mupel: string;
+      nama_mupel: string;
+    } | null;
   } | null;
 }
 
@@ -159,7 +163,7 @@ async function getPosDetail(id_pos: string): Promise<PosDetail | null> {
     .from('m_pos_pelkes')
     .select(`
       id_pos, id_induk, nama_pos, kategori, alamat, latitude, longitude, tgl_berdiri, keterangan, foto_url, updated_at, jumlah_kk, jumlah_jiwa,
-      jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel)
+      jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, mupel:m_mupel(id_mupel, nama_mupel))
     `)
     .eq('id_pos', id_pos)
     .single();
@@ -265,6 +269,25 @@ async function getPJDetail(id_pos: string): Promise<PJDetail | null> {
   };
 }
 
+interface JadwalIbadah {
+  id_ibadah: string;
+  jenis: string;
+  hari: string;
+  jam: string;
+  zona_waktu?: string | null;
+  keterangan?: string | null;
+}
+
+async function getJadwalIbadah(id_pos: string): Promise<JadwalIbadah[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('t_jadwal_ibadah')
+    .select('id_ibadah, jenis, hari, jam, zona_waktu, keterangan')
+    .eq('id_pos', id_pos)
+    .order('jam', { ascending: true });
+  return (data as JadwalIbadah[]) || [];
+}
+
 async function getPelayan(id_pos: string): Promise<Pelayan[]> {
   const supabase = await createClient();
   const { data } = await supabase
@@ -281,7 +304,7 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
   const { id_pos } = await params;
 
   // Parallel data fetching for optimal performance
-  const [pos, demografi, aset, logs, pj, pelayan, relawan, kerawanan, potensi] = await Promise.all([
+  const [pos, demografi, aset, logs, pj, pelayan, relawan, kerawanan, potensi, jadwalList] = await Promise.all([
     getPosDetail(id_pos),
     getDemografi(id_pos),
     getAset(id_pos),
@@ -291,6 +314,7 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
     getRelawan(id_pos),
     getKerawanan(id_pos),
     getPotensi(id_pos),
+    getJadwalIbadah(id_pos),
   ]);
 
   if (!pos) {
@@ -368,6 +392,8 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
         totalJiwa={totalJiwa}
         canWrite={canWrite}
         canDelete={canDelete}
+        pjName={pj?.nama_lengkap}
+        jadwalList={jadwalList}
       />
 
       {/* Tabs */}
