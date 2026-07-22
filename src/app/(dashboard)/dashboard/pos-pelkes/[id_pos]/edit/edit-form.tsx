@@ -234,7 +234,7 @@ export default function EditPosPelkesForm({ pos }: { pos: any }) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 pb-24 md:pb-8">
+    <div className="max-w-2xl mx-auto px-3.5 sm:px-6 space-y-6 pb-24 md:pb-8">
       <div className="flex items-center gap-3">
         <Link 
           href={`/dashboard/pos-pelkes/${pos.id_pos}`}

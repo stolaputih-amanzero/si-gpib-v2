@@ -105,17 +105,17 @@ export function JadwalTabContent({ id_pos, canWrite }: JadwalTabContentProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-2 border-b border-border-subtle pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-subtle pb-3.5">
         <h3 className="flex items-center gap-2 text-base font-extrabold text-text-high">
           <Calendar className="w-5 h-5 text-brand-primary" />
           Daftar Jadwal Ibadah
         </h3>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
           {jadwalList && jadwalList.length > 0 && (
             <button
               type="button"
               onClick={handleShareAllWhatsApp}
-              className="px-3.5 py-2 rounded-xl border border-emerald-600/20 bg-emerald-500/10 hover:bg-emerald-500/20 text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5 transition-all active:scale-95 shadow-xs min-h-[36px]"
+              className="px-3.5 py-2 rounded-xl border border-emerald-600/20 bg-emerald-500/10 hover:bg-emerald-500/20 text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-xs min-h-[40px] flex-1 sm:flex-none"
             >
               <Share2 size={14} className="shrink-0" />
               <span>Share WA</span>
@@ -125,7 +125,7 @@ export function JadwalTabContent({ id_pos, canWrite }: JadwalTabContentProps) {
             <button
               type="button"
               onClick={handleAddNew}
-              className="px-3.5 py-2 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-blue-800 transition-all flex items-center gap-1.5 shadow-sm min-h-[36px]"
+              className="px-3.5 py-2 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-blue-800 transition-all flex items-center justify-center gap-1.5 shadow-sm min-h-[40px] flex-1 sm:flex-none"
             >
               <Plus size={14} />
               <span>Tambah Jadwal</span>
@@ -158,23 +158,23 @@ export function JadwalTabContent({ id_pos, canWrite }: JadwalTabContentProps) {
       {!jadwalList || jadwalList.length === 0 ? (
         <div className="bg-surface-elevated rounded-2xl p-8 text-center border border-border-subtle space-y-3">
           <Calendar size={36} className="mx-auto text-text-muted opacity-40 animate-pulse" />
-          <p className="font-semibold text-text-high text-sm">Belum Ada Jadwal Ibadah Terdaftar</p>
-          <p className="text-xs text-text-muted max-w-xs mx-auto">
-            Daftarkan jadwal ibadah rutin mingguan atau kategorial untuk pos pelkes ini.
+          <p className="text-sm font-bold text-text-high">Belum ada Jadwal Ibadah</p>
+          <p className="text-xs text-text-muted max-w-sm mx-auto">
+            Jadwal ibadah rutin hari Minggu maupun ibadah kategorial/pos belum diisi.
           </p>
           {canWrite && (
             <button
               type="button"
               onClick={handleAddNew}
-              className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-brand-primary text-white rounded-xl text-xs font-semibold hover:bg-brand-primary-dark transition-all shadow-soft active:scale-95"
+              className="mt-2 inline-flex items-center gap-1.5 px-4 py-2.5 bg-brand-primary text-white rounded-xl text-xs font-semibold hover:bg-blue-800 transition-all shadow-sm active:scale-95 min-h-[40px]"
             >
               <Plus size={14} />
-              <span>Tambah Jadwal</span>
+              <span>Input Jadwal Pertama</span>
             </button>
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           {jadwalList.map((item) => (
             <JadwalCard
               key={item.id_ibadah}
@@ -186,24 +186,24 @@ export function JadwalTabContent({ id_pos, canWrite }: JadwalTabContentProps) {
         </div>
       )}
 
-      {/* Modal Form */}
+      {/* Modal Form Mobile Bottom-Sheet Standard */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-surface-elevated w-full max-w-xl rounded-2xl border border-border-subtle shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="p-4 sm:p-5 border-b border-border-subtle flex items-center justify-between bg-surface-sunken/40">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/65 backdrop-blur-md animate-fade-in">
+          <div className="bg-surface-elevated w-full max-w-xl rounded-t-3xl sm:rounded-3xl border border-border-subtle shadow-2xl max-h-[92vh] sm:max-h-[88vh] flex flex-col overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-border-subtle flex items-center justify-between bg-surface-sunken/50 shrink-0">
               <h3 className="font-serif font-bold text-text-high text-lg">
                 {editingItem ? 'Edit Jadwal Ibadah' : 'Input Jadwal Ibadah Baru'}
               </h3>
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="w-9 h-9 rounded-xl bg-surface-sunken hover:bg-gray-200 dark:hover:bg-gray-800 text-text-muted flex items-center justify-center transition-colors"
+                className="w-10 h-10 min-h-[40px] min-w-[40px] rounded-xl bg-surface-sunken hover:bg-surface-elevated text-text-muted flex items-center justify-center transition-colors shadow-xs"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="p-4 sm:p-6 overflow-y-auto">
+            <div className="p-4 sm:p-6 overflow-y-auto flex-1">
               <JadwalForm
                 id_pos={id_pos}
                 initialData={editingItem}

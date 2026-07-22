@@ -53,11 +53,11 @@ export default function PosProfileHeroWrapper({
   return (
     <>
       {/* Top Action Bar Outside Hero */}
-      <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
+      <div className="flex items-center justify-between gap-2.5 mb-3 flex-wrap">
         <div className="flex items-center gap-2">
           <Link
             href="/dashboard/pos-pelkes"
-            className="min-h-[40px] min-w-[40px] px-3 py-2 rounded-xl border border-border-subtle bg-surface-sunken hover:bg-surface-elevated text-xs font-bold text-text-high flex items-center gap-1.5 transition-all active:scale-95 shadow-xs"
+            className="min-h-[40px] px-3 py-2 rounded-xl border border-border-subtle bg-surface-sunken hover:bg-surface-elevated text-xs font-bold text-text-high flex items-center gap-1.5 transition-all active:scale-95 shadow-xs"
           >
             <ArrowLeft size={16} />
             <span>Kembali</span>
@@ -196,7 +196,7 @@ export default function PosProfileHeroWrapper({
         )}
 
         {/* Floating Content / Details Overlay */}
-        <div className={`p-6 sm:p-8 ${pos.foto_url ? '-mt-36 sm:-mt-44 relative z-10 pointer-events-auto' : '-mt-24 sm:-mt-28 relative z-10'}`}>
+        <div className={`p-4 sm:p-8 ${pos.foto_url ? '-mt-28 sm:-mt-44 relative z-10 pointer-events-auto' : '-mt-20 sm:-mt-28 relative z-10'}`}>
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
             <div className="space-y-3 flex-1 min-w-0">
               {/* Badges Bar */}

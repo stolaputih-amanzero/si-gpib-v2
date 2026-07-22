@@ -333,7 +333,7 @@ export default async function PosPelkesDetailPage({
     : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/50';
 
   return (
-    <div className="space-y-6 pb-12 max-w-4xl mx-auto">
+    <div className="space-y-6 pb-16 max-w-4xl mx-auto px-3.5 sm:px-6">
       {/* Premium Hero Banner Showcase Wrapper with Fullscreen Lightbox */}
       <PosProfileHeroWrapper
         pos={pos}
@@ -351,53 +351,53 @@ export default async function PosPelkesDetailPage({
       {/* Tabs */}
       <Tabs defaultValue={activeTab} className="w-full">
         {/* Scrollable Tabs Trigger Container */}
-        <div className="border-b border-border-subtle mb-6 bg-surface-elevated rounded-xl p-1 shadow-soft">
-          <TabsList className="flex items-center justify-start overflow-x-auto w-full h-11 bg-transparent p-0 gap-1 scrollbar-none">
+        <div className="border-b border-border-subtle mb-6 bg-surface-elevated rounded-2xl p-1 shadow-soft overflow-hidden">
+          <TabsList className="flex items-center justify-start overflow-x-auto w-full h-12 bg-transparent p-0 gap-1 no-scrollbar scrollbar-none touch-pan-x">
             <TabsTrigger 
               value="profil" 
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold whitespace-nowrap rounded-lg"
+              className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 min-h-[40px] text-xs font-bold whitespace-nowrap rounded-xl data-[state=active]:bg-brand-primary data-[state=active]:text-white data-[state=active]:shadow-sm transition-all"
             >
               <Home size={14} />
               <span>Profil</span>
             </TabsTrigger>
             <TabsTrigger 
               value="jadwal" 
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold whitespace-nowrap rounded-lg"
+              className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 min-h-[40px] text-xs font-bold whitespace-nowrap rounded-xl data-[state=active]:bg-brand-primary data-[state=active]:text-white data-[state=active]:shadow-sm transition-all"
             >
               <Calendar size={14} />
               <span>Jadwal Ibadah</span>
             </TabsTrigger>
             <TabsTrigger 
               value="pendeta" 
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold whitespace-nowrap rounded-lg"
+              className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 min-h-[40px] text-xs font-bold whitespace-nowrap rounded-xl data-[state=active]:bg-brand-primary data-[state=active]:text-white data-[state=active]:shadow-sm transition-all"
             >
               <User size={14} />
               <span>Pendeta & Pelayan</span>
             </TabsTrigger>
             <TabsTrigger 
               value="demografi" 
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold whitespace-nowrap rounded-lg"
+              className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 min-h-[40px] text-xs font-bold whitespace-nowrap rounded-xl data-[state=active]:bg-brand-primary data-[state=active]:text-white data-[state=active]:shadow-sm transition-all"
             >
               <Users size={14} />
               <span>Demografi</span>
             </TabsTrigger>
             <TabsTrigger 
               value="aset" 
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold whitespace-nowrap rounded-lg"
+              className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 min-h-[40px] text-xs font-bold whitespace-nowrap rounded-xl data-[state=active]:bg-brand-primary data-[state=active]:text-white data-[state=active]:shadow-sm transition-all"
             >
               <Building2 size={14} />
               <span>Aset</span>
             </TabsTrigger>
             <TabsTrigger 
               value="wilayah" 
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold whitespace-nowrap rounded-lg"
+              className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 min-h-[40px] text-xs font-bold whitespace-nowrap rounded-xl data-[state=active]:bg-brand-primary data-[state=active]:text-white data-[state=active]:shadow-sm transition-all"
             >
               <Compass size={14} />
               <span>Analisis Wilayah</span>
             </TabsTrigger>
             <TabsTrigger 
               value="log" 
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold whitespace-nowrap rounded-lg"
+              className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 min-h-[40px] text-xs font-bold whitespace-nowrap rounded-xl data-[state=active]:bg-brand-primary data-[state=active]:text-white data-[state=active]:shadow-sm transition-all"
             >
               <Activity size={14} />
               <span>Log Pastoral</span>

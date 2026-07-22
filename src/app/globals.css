@@ -334,3 +334,35 @@ input, textarea, select {
   color: #ffffff !important;
 }
 
+/* =========================================
+   NATIVE MOBILE APP OPTIMIZATION UTILITIES
+   ========================================= */
+
+/* Hide scrollbars for touch scroll areas */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* iOS Safari prevent auto-zoom on input focus */
+@media (max-width: 639px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  input[type="time"],
+  input[type="email"],
+  input[type="password"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Touch active tap highlight */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
