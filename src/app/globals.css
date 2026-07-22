@@ -272,3 +272,65 @@ input, textarea, select {
   transition: none !important;
 }
 
+/* =========================================
+   LEAFLET MAP HIGH-CONTRAST POPUP STYLING
+   ========================================= */
+.leaflet-popup-content-wrapper {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-radius: 20px !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.3), 0 8px 16px -4px rgba(15, 23, 42, 0.15) !important;
+  padding: 6px !important;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+  color: #64748b !important;
+  padding: 8px 10px 0 0 !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
+}
+
+.leaflet-container a.leaflet-popup-close-button:hover {
+  color: #0f172a !important;
+}
+
+.leaflet-popup-tip {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.leaflet-popup-content {
+  margin: 10px 14px !important;
+  line-height: 1.5 !important;
+  color: #0f172a !important;
+}
+
+/* Force override default Leaflet blue link styling */
+.leaflet-popup-content a,
+.leaflet-popup-content a:hover,
+.leaflet-popup-content a:visited {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+/* Custom Jemaat & Pos Popup Dark Mode Adjustments */
+.dark .leaflet-popup-content-wrapper {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+.dark .leaflet-popup-tip {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+.dark .leaflet-container a.leaflet-popup-close-button {
+  color: #94a3b8 !important;
+}
+
+.dark .leaflet-container a.leaflet-popup-close-button:hover {
+  color: #ffffff !important;
+}
+

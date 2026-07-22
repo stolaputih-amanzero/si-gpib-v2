@@ -133,46 +133,48 @@ export default function WilayahMapInner({ data, jemaatData = [], selectedPosId, 
                     icon={jemaatIcon}
                   >
                     <Popup className="custom-jemaat-popup">
-                      <div className="p-2.5 min-w-[240px] max-w-[300px] space-y-2">
-                        <div className="border-b border-border-subtle pb-2">
-                          <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300">
+                      <div className="p-3 min-w-[250px] max-w-[320px] space-y-2.5 text-slate-900 dark:text-slate-100">
+                        <div className="border-b border-slate-200 dark:border-slate-800 pb-2">
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-200 border border-blue-200 dark:border-blue-800 inline-block">
                             {jemaat.id_induk} • Gereja Induk
                           </span>
-                          <h3 className="font-extrabold text-base text-brand-primary leading-tight mt-1">
+                          <h3 className="font-extrabold text-base text-blue-900 dark:text-blue-300 leading-snug mt-1">
                             {jemaat.nama_induk}
                           </h3>
-                          <p className="text-xs text-text-muted">Mupel: {jemaat.mupel_nama}</p>
+                          <p className="text-xs font-medium text-slate-600 dark:text-slate-400">Mupel: {jemaat.mupel_nama}</p>
                         </div>
 
                         {/* Statistik Grid */}
                         <div className="grid grid-cols-3 gap-1.5 text-center text-xs">
-                          <div className="bg-surface-sunken p-1.5 rounded-lg border border-border-subtle">
-                            <span className="block text-[9px] font-bold text-text-muted uppercase">Sektor</span>
-                            <span className="font-black text-text-high">{jemaat.jumlah_sektor}</span>
+                          <div className="bg-slate-100 dark:bg-slate-800 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
+                            <span className="block text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase">Sektor</span>
+                            <span className="font-black text-slate-900 dark:text-white text-sm">{jemaat.jumlah_sektor}</span>
                           </div>
-                          <div className="bg-surface-sunken p-1.5 rounded-lg border border-border-subtle">
-                            <span className="block text-[9px] font-bold text-text-muted uppercase">KK</span>
-                            <span className="font-black text-text-high">{jemaat.jumlah_kk}</span>
+                          <div className="bg-slate-100 dark:bg-slate-800 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
+                            <span className="block text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase">KK</span>
+                            <span className="font-black text-slate-900 dark:text-white text-sm">{jemaat.jumlah_kk}</span>
                           </div>
-                          <div className="bg-surface-sunken p-1.5 rounded-lg border border-border-subtle">
-                            <span className="block text-[9px] font-bold text-text-muted uppercase">Jiwa</span>
-                            <span className="font-black text-text-high">{jemaat.jumlah_jiwa}</span>
+                          <div className="bg-slate-100 dark:bg-slate-800 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
+                            <span className="block text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase">Jiwa</span>
+                            <span className="font-black text-slate-900 dark:text-white text-sm">{jemaat.jumlah_jiwa}</span>
                           </div>
                         </div>
 
                         {jemaat.kmj_nama && (
-                          <p className="text-xs text-text-high font-semibold">
-                            KMJ: <span className="font-bold text-brand-primary">{jemaat.kmj_nama}</span>
-                          </p>
+                          <div className="p-2 bg-blue-50 dark:bg-blue-950/50 rounded-xl border border-blue-100 dark:border-blue-900 text-xs">
+                            <span className="text-[10px] text-blue-800 dark:text-blue-300 font-bold block">Ketua Majelis Jemaat (KMJ):</span>
+                            <span className="font-bold text-blue-950 dark:text-blue-100">{jemaat.kmj_nama}</span>
+                          </div>
                         )}
 
-                        <div className="pt-2 border-t border-border-subtle">
+                        <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
                           <Link
                             href={`/hierarki/${encodeURIComponent(jemaat.id_mupel)}/${encodeURIComponent(jemaat.id_induk)}`}
-                            className="w-full min-h-[36px] bg-blue-700 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-blue-800 transition-all shadow-sm"
+                            className="w-full min-h-[38px] bg-blue-600 hover:bg-blue-700 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95"
+                            style={{ color: '#ffffff !important' }}
                           >
-                            <span>Lihat Detail Jemaat</span>
-                            <ExternalLink size={12} />
+                            <span style={{ color: '#ffffff' }}>Lihat Detail Jemaat</span>
+                            <ExternalLink size={13} style={{ color: '#ffffff' }} />
                           </Link>
                         </div>
                       </div>
@@ -209,76 +211,77 @@ export default function WilayahMapInner({ data, jemaatData = [], selectedPosId, 
                       }}
                     >
                       <Popup className="custom-wilayah-popup">
-                        <div className="p-2 min-w-[240px] max-w-[300px]">
+                        <div className="p-3 min-w-[250px] max-w-[320px] space-y-2.5 text-slate-900 dark:text-slate-100">
                           {/* Header */}
-                          <div className="flex items-start justify-between gap-2 border-b border-border-subtle pb-2 mb-2">
-                            <div>
-                              <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
-                                {item.id_pos}
-                              </span>
-                              <h3 className="font-bold text-sm text-text-high leading-snug mt-0.5">{item.nama_pos}</h3>
-                              {item.mupel && (
-                                <span className="text-[11px] font-medium text-text-muted">Mupel: {item.mupel}</span>
-                              )}
-                            </div>
+                          <div className="border-b border-slate-200 dark:border-slate-800 pb-2">
+                            <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800 inline-block">
+                              {item.id_pos} • Pos Pelkes
+                            </span>
+                            <h3 className="font-extrabold text-base text-slate-900 dark:text-white leading-snug mt-1">
+                              {item.nama_pos}
+                            </h3>
+                            {item.mupel && (
+                              <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mt-0.5">Mupel: {item.mupel}</p>
+                            )}
                           </div>
 
                           {/* Stat Badges */}
-                          <div className="grid grid-cols-2 gap-2 mb-3">
-                            <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/40 rounded-lg p-1.5 flex items-center gap-1.5">
-                              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="bg-amber-100/80 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 rounded-xl p-2 flex items-center gap-2">
+                              <AlertTriangle className="w-5 h-5 text-amber-700 dark:text-amber-400 shrink-0" />
                               <div>
-                                <span className="block text-[10px] uppercase font-bold text-amber-700 dark:text-amber-400">Kerawanan</span>
-                                <span className="text-xs font-extrabold text-amber-900 dark:text-amber-200 tabular-nums">{item.jumlah_kerawanan} Risiko</span>
+                                <span className="block text-[9px] uppercase font-bold text-amber-800 dark:text-amber-300">Risiko</span>
+                                <span className="text-xs font-black text-amber-950 dark:text-amber-100 tabular-nums">{item.jumlah_kerawanan} Risiko</span>
                               </div>
                             </div>
 
-                            <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/40 rounded-lg p-1.5 flex items-center gap-1.5">
-                              <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <div className="bg-emerald-100/80 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 rounded-xl p-2 flex items-center gap-2">
+                              <Sparkles className="w-5 h-5 text-emerald-700 dark:text-emerald-400 shrink-0" />
                               <div>
-                                <span className="block text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400">Potensi</span>
-                                <span className="text-xs font-extrabold text-emerald-900 dark:text-emerald-200 tabular-nums">{item.jumlah_potensi} Potensi</span>
+                                <span className="block text-[9px] uppercase font-bold text-emerald-800 dark:text-emerald-300">Potensi</span>
+                                <span className="text-xs font-black text-emerald-950 dark:text-emerald-100 tabular-nums">{item.jumlah_potensi} Potensi</span>
                               </div>
                             </div>
                           </div>
 
                           {/* Detail Previews */}
                           {item.kerawanan_list.length > 0 && (
-                            <div className="mb-2">
-                              <span className="text-[11px] font-bold text-text-muted flex items-center gap-1 mb-1">
-                                <ShieldAlert size={12} className="text-amber-500" />
+                            <div>
+                              <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1 mb-1">
+                                <ShieldAlert size={13} className="text-amber-600 dark:text-amber-400" />
                                 Risiko Terdaftar:
                               </span>
                               <div className="flex flex-wrap gap-1">
                                 {item.kerawanan_list.slice(0, 3).map((k) => (
                                   <span
                                     key={k.id_risiko}
-                                    className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                                    className={`text-[10px] px-2 py-0.5 rounded-md font-bold ${
                                       k.frekuensi === 'Kritis'
-                                        ? 'bg-red-100 text-red-800 border border-red-200'
+                                        ? 'bg-red-200 text-red-950 dark:bg-red-950 dark:text-red-200 border border-red-300 dark:border-red-800'
                                         : k.frekuensi === 'Tinggi'
-                                        ? 'bg-orange-100 text-orange-800 border border-orange-200'
-                                        : 'bg-amber-100 text-amber-800 border border-amber-200'
+                                        ? 'bg-orange-200 text-orange-950 dark:bg-orange-950 dark:text-orange-200 border border-orange-300 dark:border-orange-800'
+                                        : 'bg-amber-200 text-amber-950 dark:bg-amber-950 dark:text-amber-200 border border-amber-300 dark:border-amber-800'
                                     }`}
                                   >
                                     {k.jenis_risiko}
                                   </span>
                                 ))}
                                 {item.kerawanan_list.length > 3 && (
-                                  <span className="text-[10px] text-text-muted">+{item.kerawanan_list.length - 3} lainnya</span>
+                                  <span className="text-[10px] text-slate-500 font-bold">+{item.kerawanan_list.length - 3} lainnya</span>
                                 )}
                               </div>
                             </div>
                           )}
 
                           {/* Action Button */}
-                          <div className="pt-2 border-t border-border-subtle mt-2">
+                          <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
                             <Link
                               href={`/dashboard/pos-pelkes/${item.id_pos}`}
-                              className="w-full min-h-[36px] bg-brand-primary text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 hover:opacity-90 active:scale-95 transition-all shadow-sm"
+                              className="w-full min-h-[38px] bg-blue-600 hover:bg-blue-700 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-md"
+                              style={{ color: '#ffffff !important' }}
                             >
-                              <span>Lihat Detail Pos</span>
-                              <ExternalLink size={12} />
+                              <span style={{ color: '#ffffff' }}>Lihat Detail Pos</span>
+                              <ExternalLink size={13} style={{ color: '#ffffff' }} />
                             </Link>
                           </div>
                         </div>
