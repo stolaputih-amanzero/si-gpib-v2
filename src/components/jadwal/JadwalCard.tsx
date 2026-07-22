@@ -1,13 +1,12 @@
 import { JadwalItem } from '@/hooks/use-jadwal';
-import { Edit2, Trash2, Clock, Landmark } from 'lucide-react';
+import { Clock, Landmark } from 'lucide-react';
 
 interface JadwalCardProps {
   item: JadwalItem;
-  onEdit: (item: JadwalItem) => void;
-  onDelete: (id_ibadah: string) => void;
+  onClickCard: (item: JadwalItem) => void;
 }
 
-export function JadwalCard({ item, onEdit, onDelete }: JadwalCardProps) {
+export function JadwalCard({ item, onClickCard }: JadwalCardProps) {
   // Format HH:mm
   const formatTime = (timeStr: string) => {
     return timeStr.substring(0, 5);
@@ -15,22 +14,19 @@ export function JadwalCard({ item, onEdit, onDelete }: JadwalCardProps) {
 
   const isJemaatScope = item.pos?.nama_pos?.startsWith('Jemaat ');
   const displayName = isJemaatScope
-    ? item.pos?.nama_pos.substring(7) // strip out "Jemaat "
+    ? item.pos?.nama_pos.substring(7)
     : item.pos?.nama_pos || item.id_pos;
 
   return (
-    <div className="bg-surface-elevated rounded-2xl p-4 border border-border-subtle shadow-soft hover:shadow-medium hover:border-brand-primary/30 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div className="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
-        {/* Date Badge */}
-        <div className="w-12 h-12 rounded-xl bg-brand-primary/10 text-brand-primary flex flex-col items-center justify-center font-bold shrink-0 border border-brand-primary/10">
-          <span className="text-[10px] uppercase font-black tracking-wider">{item.hari.substring(0, 3)}</span>
-          <span className="text-xs font-extrabold">{formatTime(item.jam)}</span>
-        </div>
-
+    <div 
+      onClick={() => onClickCard(item)}
+      className="bg-surface-elevated rounded-2xl p-4 border border-border-subtle shadow-soft hover:shadow-medium hover:border-brand-primary/30 transition-all flex items-center justify-between gap-3 cursor-pointer group active:scale-[0.99]"
+    >
+      <div className="flex-1 min-w-0">
         {/* Content Block */}
         <div className="space-y-1 flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-extrabold text-text-high text-sm sm:text-base leading-snug truncate">
+            <h3 className="font-extrabold text-text-high text-sm sm:text-base leading-snug group-hover:text-brand-primary transition-colors truncate">
               {item.jenis}
             </h3>
             {isJemaatScope ? (
@@ -58,33 +54,12 @@ export function JadwalCard({ item, onEdit, onDelete }: JadwalCardProps) {
             </span>
           </div>
 
-          {/* Keterangan */}
           {item.keterangan && (
             <p className="text-xs text-text-muted italic bg-surface-sunken/40 px-3 py-1.5 rounded-lg border border-border-subtle/50 whitespace-pre-wrap leading-relaxed inline-block mt-1">
               "{item.keterangan}"
             </p>
           )}
         </div>
-      </div>
-
-      {/* Actions */}
-      <div className="flex sm:flex-col items-center gap-1 border-t sm:border-t-0 sm:border-l border-border-subtle pt-2 sm:pt-0 sm:pl-3 shrink-0 justify-end">
-        <button
-          type="button"
-          onClick={() => onEdit(item)}
-          className="p-2 text-text-muted hover:text-brand-primary hover:bg-surface-sunken rounded-lg transition-all active:scale-90 min-h-[36px] min-w-[36px] flex items-center justify-center"
-          title="Edit Jadwal"
-        >
-          <Edit2 size={15} />
-        </button>
-        <button
-          type="button"
-          onClick={() => onDelete(item.id_ibadah)}
-          className="p-2 text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-all active:scale-90 min-h-[36px] min-w-[36px] flex items-center justify-center"
-          title="Hapus Jadwal"
-        >
-          <Trash2 size={15} />
-        </button>
       </div>
     </div>
   );

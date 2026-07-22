@@ -11,7 +11,7 @@ import {
   ZONA_WAKTU_OPTIONS 
 } from '@/lib/validations/jadwal.schema';
 import { useCreateJadwal, useUpdateJadwal, JadwalItem } from '@/hooks/use-jadwal';
-import { Loader2, Save, AlertCircle, Clock, Calendar, Building } from 'lucide-react';
+import { Loader2, Save, AlertCircle, Clock, Calendar } from 'lucide-react';
 import { PosCascadingSelector, HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
 import { createClient } from '@/lib/supabase/client';
 
@@ -167,18 +167,6 @@ export function JadwalForm({ id_pos = 'POS-001', initialData, onSuccess }: Jadwa
 
       {/* ID Pos Input */}
       <div className="space-y-1.5 w-full">
-        <div className="flex items-center justify-between mb-1">
-          <h2 className="text-xs font-bold text-text-high uppercase tracking-wider flex items-center gap-1.5">
-            <Building size={14} className="text-brand-primary" />
-            <span>Pilih Wilayah Lokasi Jadwal *</span>
-          </h2>
-          <span className="text-[11px] font-semibold text-text-muted">
-            {targetScope === 'jemaat'
-              ? 'Pos Pelkes Opsional (Level Jemaat)'
-              : 'Pos Pelkes Wajib (Compulsory)'}
-          </span>
-        </div>
-
         <PosCascadingSelector
           value={currentPosId}
           onChange={setCurrentPosId}
@@ -206,30 +194,31 @@ export function JadwalForm({ id_pos = 'POS-001', initialData, onSuccess }: Jadwa
         {errors.jenis && <p className="text-xs text-error">{errors.jenis.message}</p>}
       </div>
 
-      {/* Hari, Jam & Zona Waktu */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
-            <Calendar size={14} className="text-brand-primary" />
-            <span>Hari Pelaksanaan *</span>
-          </label>
-          <select
-            {...register('hari')}
-            className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-base font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
-          >
-            {HARI_OPTIONS.map((h) => (
-              <option key={h} value={h}>
-                {h}
-              </option>
-            ))}
-          </select>
-          {errors.hari && <p className="text-xs text-error">{errors.hari.message}</p>}
-        </div>
+      {/* Hari */}
+      <div className="space-y-1.5">
+        <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
+          <Calendar size={14} className="text-brand-primary" />
+          <span>Hari Pelaksanaan *</span>
+        </label>
+        <select
+          {...register('hari')}
+          className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-base font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
+        >
+          {HARI_OPTIONS.map((h) => (
+            <option key={h} value={h}>
+              {h}
+            </option>
+          ))}
+        </select>
+        {errors.hari && <p className="text-xs text-error">{errors.hari.message}</p>}
+      </div>
 
+      {/* Jam dan Zona dalam 1 Baris */}
+      <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
             <Clock size={14} className="text-brand-primary" />
-            <span>Jam Pelaksanaan (HH:mm) *</span>
+            <span>Jam *</span>
           </label>
           <input
             type="time"
@@ -242,7 +231,7 @@ export function JadwalForm({ id_pos = 'POS-001', initialData, onSuccess }: Jadwa
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
             <Clock size={14} className="text-brand-primary" />
-            <span>Zona Waktu *</span>
+            <span>Zona *</span>
           </label>
           <select
             {...register('zona_waktu')}

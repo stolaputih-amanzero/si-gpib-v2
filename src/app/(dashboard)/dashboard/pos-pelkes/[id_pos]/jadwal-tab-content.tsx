@@ -5,7 +5,7 @@ import { useJadwalList, useDeleteJadwal, JadwalItem } from '@/hooks/use-jadwal';
 import { JadwalCard } from '@/components/jadwal/JadwalCard';
 import { JadwalForm } from '@/components/jadwal/JadwalForm';
 import { useToast } from '@/components/ui/toast';
-import { Plus, Calendar, Loader2, Share2, X } from 'lucide-react';
+import { Plus, Calendar, Loader2, Share2, X, Trash2 } from 'lucide-react';
 
 interface JadwalTabContentProps {
   id_pos: string;
@@ -118,7 +118,7 @@ export function JadwalTabContent({ id_pos, canWrite }: JadwalTabContentProps) {
               className="px-3.5 py-2 rounded-xl border border-emerald-600/20 bg-emerald-500/10 hover:bg-emerald-500/20 text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-xs min-h-[40px] flex-1 sm:flex-none"
             >
               <Share2 size={14} className="shrink-0" />
-              <span>Share WA</span>
+              <span>WA</span>
             </button>
           )}
           {canWrite && (
@@ -128,29 +128,49 @@ export function JadwalTabContent({ id_pos, canWrite }: JadwalTabContentProps) {
               className="px-3.5 py-2 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-blue-800 transition-all flex items-center justify-center gap-1.5 shadow-sm min-h-[40px] flex-1 sm:flex-none"
             >
               <Plus size={14} />
-              <span>Tambah Jadwal</span>
+              <span>Jadwal</span>
             </button>
           )}
         </div>
       </div>
 
+      {/* Card Summary Ibadah: 2 Horizontal Sections */}
       {jadwalList && jadwalList.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-surface-sunken p-3 rounded-2xl border border-border-subtle/50">
-          <div className="p-3 bg-surface-elevated rounded-xl border border-border-subtle flex flex-col justify-between shadow-xs">
-            <span className="text-[10px] font-black text-text-muted uppercase tracking-wider">Total Jadwal</span>
-            <span className="text-xl font-extrabold text-brand-primary mt-1">{jadwalList.length}</span>
-          </div>
-          <div className="p-3 bg-surface-elevated rounded-xl border border-border-subtle flex flex-col justify-between shadow-xs">
-            <span className="text-[10px] font-black text-text-muted uppercase tracking-wider">Ibadah Minggu</span>
-            <span className="text-xl font-extrabold text-brand-primary mt-1">
-              {jadwalList.filter(j => j.jenis === 'Ibadah Hari Minggu').length}
+        <div className="bg-surface-elevated p-4 sm:p-5 rounded-2xl border border-border-subtle shadow-soft space-y-3">
+          {/* Section 1: Total Ringkasan */}
+          <div className="flex items-center justify-between pb-2.5 border-b border-border-subtle/60">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold shrink-0">
+                <Calendar size={18} />
+              </div>
+              <div>
+                <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-wider block">Ringkasan Ibadah</span>
+                <span className="text-xs font-bold text-text-high">Total Jadwal Terdaftar</span>
+              </div>
+            </div>
+            <span className="text-lg font-black text-brand-primary tabular-nums">
+              {jadwalList.length} <span className="text-xs font-normal text-text-muted">Jadwal</span>
             </span>
           </div>
-          <div className="p-3 bg-surface-elevated rounded-xl border border-border-subtle flex flex-col justify-between shadow-xs col-span-2 sm:col-span-1">
-            <span className="text-[10px] font-black text-text-muted uppercase tracking-wider">Kategorial / Lainnya</span>
-            <span className="text-xl font-extrabold text-brand-primary mt-1">
-              {jadwalList.filter(j => j.jenis !== 'Ibadah Hari Minggu').length}
-            </span>
+
+          {/* Section 2: Split Rows - Ibadah Minggu vs Kategorial/Pos */}
+          <div className="grid grid-cols-2 gap-3 pt-0.5 divide-x divide-border-subtle/60">
+            <div className="flex items-center justify-between pr-2">
+              <div>
+                <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-wider block">Ibadah Minggu</span>
+                <span className="text-sm font-black text-blue-600 dark:text-blue-400 tabular-nums">
+                  {jadwalList.filter(j => j.jenis === 'Ibadah Hari Minggu').length} <span className="text-[10px] font-normal text-text-muted">Sesi</span>
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between pl-3 sm:pl-4">
+              <div>
+                <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-wider block">Kategorial & Pos</span>
+                <span className="text-sm font-black text-amber-600 dark:text-amber-400 tabular-nums">
+                  {jadwalList.filter(j => j.jenis !== 'Ibadah Hari Minggu').length} <span className="text-[10px] font-normal text-text-muted">Sesi</span>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -169,7 +189,7 @@ export function JadwalTabContent({ id_pos, canWrite }: JadwalTabContentProps) {
               className="mt-2 inline-flex items-center gap-1.5 px-4 py-2.5 bg-brand-primary text-white rounded-xl text-xs font-semibold hover:bg-blue-800 transition-all shadow-sm active:scale-95 min-h-[40px]"
             >
               <Plus size={14} />
-              <span>Input Jadwal Pertama</span>
+              <span>Jadwal Pertama</span>
             </button>
           )}
         </div>
@@ -179,8 +199,7 @@ export function JadwalTabContent({ id_pos, canWrite }: JadwalTabContentProps) {
             <JadwalCard
               key={item.id_ibadah}
               item={item}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
+              onClickCard={handleEdit}
             />
           ))}
         </div>
@@ -192,15 +211,30 @@ export function JadwalTabContent({ id_pos, canWrite }: JadwalTabContentProps) {
           <div className="bg-surface-elevated w-full max-w-xl rounded-t-3xl sm:rounded-3xl border border-border-subtle shadow-2xl max-h-[92vh] sm:max-h-[88vh] flex flex-col overflow-hidden">
             <div className="p-4 sm:p-5 border-b border-border-subtle flex items-center justify-between bg-surface-sunken/50 shrink-0">
               <h3 className="font-serif font-bold text-text-high text-lg">
-                {editingItem ? 'Edit Jadwal Ibadah' : 'Input Jadwal Ibadah Baru'}
+                {editingItem ? 'Detail & Edit Jadwal' : 'Input Jadwal Ibadah Baru'}
               </h3>
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="w-10 h-10 min-h-[40px] min-w-[40px] rounded-xl bg-surface-sunken hover:bg-surface-elevated text-text-muted flex items-center justify-center transition-colors shadow-xs"
-              >
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-2">
+                {editingItem && canWrite && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowModal(false);
+                      handleDelete(editingItem.id_ibadah);
+                    }}
+                    className="w-10 h-10 min-h-[40px] min-w-[40px] rounded-xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 flex items-center justify-center transition-colors border border-red-200 dark:border-red-900/50"
+                    title="Hapus Jadwal Ibadah"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="w-10 h-10 min-h-[40px] min-w-[40px] rounded-xl bg-surface-sunken hover:bg-surface-elevated text-text-muted flex items-center justify-center transition-colors shadow-xs"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             <div className="p-4 sm:p-6 overflow-y-auto flex-1">

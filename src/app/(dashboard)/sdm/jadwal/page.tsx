@@ -77,7 +77,7 @@ function JadwalPageContent() {
         >
           <Plus size={18} />
           <span className="hidden sm:inline">Tambah Jadwal</span>
-          <span className="sm:hidden">+ Jadwal</span>
+          <span className="sm:hidden">Jadwal</span>
         </button>
       </div>
 
@@ -135,8 +135,7 @@ function JadwalPageContent() {
               <JadwalCard
                 key={item.id_ibadah}
                 item={item}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
+                onClickCard={handleEdit}
               />
             ))}
           </div>
@@ -165,15 +164,29 @@ function JadwalPageContent() {
           <div className="bg-surface-elevated w-full max-w-lg rounded-t-3xl sm:rounded-2xl p-5 border border-border-subtle shadow-heavy max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
             <div className="flex items-center justify-between border-b border-border-subtle pb-3">
               <h2 className="text-base font-serif font-bold text-brand-primary">
-                {editingItem ? 'Edit Jadwal Ibadah' : 'Input Jadwal Ibadah Baru'}
+                {editingItem ? 'Detail & Edit Jadwal' : 'Input Jadwal Ibadah Baru'}
               </h2>
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="w-9 h-9 rounded-full bg-surface-sunken flex items-center justify-center text-text-muted hover:text-text-high min-h-[44px] min-w-[44px]"
-              >
-                ✕
-              </button>
+              <div className="flex items-center gap-2">
+                {editingItem && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowModal(false);
+                      handleDelete(editingItem.id_ibadah);
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-100 flex items-center gap-1 border border-red-200 dark:border-red-900/50"
+                  >
+                    Hapus
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="w-9 h-9 rounded-full bg-surface-sunken flex items-center justify-center text-text-muted hover:text-text-high min-h-[44px] min-w-[44px]"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
 
             <JadwalForm
