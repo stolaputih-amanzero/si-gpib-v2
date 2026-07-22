@@ -128,11 +128,8 @@ export function PosAsetTabContent({ id_pos, canWrite }: PosAsetTabContentProps) 
         <div>
           <h3 className="flex items-center gap-2 text-base font-extrabold text-text-high">
             <Building className="w-5 h-5 text-brand-primary" />
-            Daftar Inventaris Aset Pos Pelkes
+            Daftar Inventaris Aset
           </h3>
-          <p className="text-xs text-text-muted mt-0.5">
-            Total {counts.ALL} aset terdaftar (Tanah, Bangunan, & Barang Bergerak)
-          </p>
         </div>
 
         {canWrite && (
@@ -142,7 +139,7 @@ export function PosAsetTabContent({ id_pos, canWrite }: PosAsetTabContentProps) 
             className="px-3.5 py-2 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-blue-800 transition-all flex items-center gap-1.5 shadow-sm min-h-[36px]"
           >
             <Plus size={14} />
-            <span>Tambah Aset</span>
+            <span>Aset</span>
           </button>
         )}
       </div>
@@ -208,7 +205,7 @@ export function PosAsetTabContent({ id_pos, canWrite }: PosAsetTabContentProps) 
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-primary text-white rounded-xl text-xs font-semibold hover:bg-blue-800 transition-all shadow-soft active:scale-95"
               >
                 <Plus size={14} />
-                <span>Tambah Aset Pertama</span>
+                <span>Aset Pertama</span>
               </button>
             </div>
           )}

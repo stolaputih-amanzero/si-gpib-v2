@@ -30,7 +30,7 @@ import {
 import { useFormDraft } from '@/hooks/use-form-draft';
 import { CameraCapture } from './CameraCapture';
 import { PosCascadingSelector, HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
-import { Loader2, CheckCircle2, AlertCircle, Save, Clock, Building } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, Save, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface AsetFormProps {
@@ -321,18 +321,6 @@ export function AsetForm({
           </div>
 
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="text-xs font-bold text-text-high uppercase tracking-wider flex items-center gap-1.5">
-                <Building size={14} className="text-brand-primary" />
-                <span>Pilih Wilayah Lokasi Aset *</span>
-              </h2>
-              <span className="text-[11px] font-semibold text-text-muted">
-                {targetScope === 'jemaat'
-                  ? 'Pos Pelkes Opsional (Level Jemaat)'
-                  : 'Pos Pelkes Wajib Dipilih (Compulsory)'}
-              </span>
-            </div>
-
             <PosCascadingSelector
               value={currentPosId}
               onChange={setCurrentPosId}

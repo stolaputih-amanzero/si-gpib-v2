@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { relawanSchema, RelawanInput, KATEGORI_RELAWAN } from '@/lib/validations/relawan.schema';
 import { useCreateRelawan, useUpdateRelawan, RelawanItem } from '@/hooks/use-relawan';
-import { Loader2, Save, AlertCircle, Phone, Award, Building, Camera, Upload, Calendar } from 'lucide-react';
+import { Loader2, Save, AlertCircle, Phone, Award, Camera, Upload, Calendar } from 'lucide-react';
 import { PosCascadingSelector, HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
 import { createClient } from '@/lib/supabase/client';
 
@@ -220,18 +220,6 @@ export function RelawanForm({ id_pos = 'POS-001', initialData, onSuccess }: Rela
 
       {/* ID Pos Input */}
       <div className="space-y-1.5 w-full">
-        <div className="flex items-center justify-between mb-1">
-          <h2 className="text-xs font-bold text-text-high uppercase tracking-wider flex items-center gap-1.5">
-            <Building size={14} className="text-brand-primary" />
-            <span>Pilih Wilayah Lokasi Relawan *</span>
-          </h2>
-          <span className="text-[11px] font-semibold text-text-muted">
-            {targetScope === 'jemaat'
-              ? 'Pos Pelkes Opsional (Level Jemaat)'
-              : 'Pos Pelkes Wajib (Compulsory)'}
-          </span>
-        </div>
-
         <PosCascadingSelector
           value={currentPosId}
           onChange={setCurrentPosId}

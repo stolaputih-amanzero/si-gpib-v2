@@ -312,14 +312,6 @@ export function KerawananForm({ defaultPosId, initialData, onSuccess, onCancel }
 
         {/* Pilih Pos Pelkes / Jemaat Induk */}
         <div className="space-y-1.5 w-full">
-          <div className="flex items-center justify-between mb-1">
-            <label className="text-xs font-semibold text-text-high">Pilih Wilayah Lokasi Kerawanan *</label>
-            <span className="text-[11px] font-semibold text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-full">
-              {targetScope === 'jemaat'
-                ? 'Pos Pelkes Opsional (Level Jemaat)'
-                : 'Pos Pelkes Wajib Dipilih (Compulsory)'}
-            </span>
-          </div>
           <Controller
             name="id_pos"
             control={form.control}

@@ -6,7 +6,7 @@ import { useDemografiByPos, useDeleteDemografi } from '@/hooks/use-demografi';
 import { DemografiForm } from '@/components/demografi/DemografiForm';
 import { DemografiChart } from '@/components/demografi/DemografiChart';
 import { KATEGORI_PELKAT } from '@/lib/constants/pelkat';
-import { ArrowLeft, Plus, Edit2, Trash2, Check } from 'lucide-react';
+import { ArrowLeft, Plus, Edit2, Trash2, Check, Home, Users } from 'lucide-react';
 import Link from 'next/link';
 
 function DemografiPosContent({ id_pos }: { id_pos: string }) {
@@ -94,7 +94,7 @@ function DemografiPosContent({ id_pos }: { id_pos: string }) {
               className="px-3.5 py-2 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-blue-800 transition-all flex items-center gap-1.5 shadow-sm min-h-[44px]"
             >
               <Edit2 size={16} />
-              <span>Edit Demografi</span>
+              <span>Edit</span>
             </button>
           ) : (
             <button
@@ -109,23 +109,52 @@ function DemografiPosContent({ id_pos }: { id_pos: string }) {
       </div>
 
       <main className="max-w-4xl mx-auto px-4 py-5 space-y-6">
-        {/* KPI Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="bg-surface-elevated p-3.5 rounded-xl border border-border-subtle shadow-soft">
-            <p className="text-xs text-text-muted">Total Jiwa</p>
-            <p className="text-2xl font-bold text-brand-primary tabular-nums mt-0.5">{totalJiwa}</p>
+        {/* Single Card Summary Demografi (2 Horizontal Rows) */}
+        <div className="bg-surface-elevated p-4 sm:p-5 rounded-2xl border border-border-subtle shadow-soft space-y-3.5">
+          {/* Baris 1: Jumlah KK & Total Jiwa */}
+          <div className="grid grid-cols-2 gap-3 divide-x divide-border-subtle/60">
+            <div className="flex items-center gap-3 pr-2">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                <Home size={18} />
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] text-text-muted font-extrabold uppercase tracking-wider block">Jumlah KK</span>
+                <p className="text-lg sm:text-xl font-black text-text-high tabular-nums">{totalKk} <span className="text-xs font-normal text-text-muted">KK</span></p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 pl-3 sm:pl-4">
+              <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
+                <Users size={18} />
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] text-text-muted font-extrabold uppercase tracking-wider block">Total Jiwa</span>
+                <p className="text-lg sm:text-xl font-black text-brand-primary tabular-nums">{totalJiwa} <span className="text-xs font-normal text-text-muted">Jiwa</span></p>
+              </div>
+            </div>
           </div>
-          <div className="bg-surface-elevated p-3.5 rounded-xl border border-border-subtle shadow-soft">
-            <p className="text-xs text-text-muted">Total KK</p>
-            <p className="text-2xl font-bold text-text-high tabular-nums mt-0.5">{totalKk}</p>
-          </div>
-          <div className="bg-surface-elevated p-3.5 rounded-xl border border-border-subtle shadow-soft">
-            <p className="text-xs text-blue-600 dark:text-blue-400">Laki-Laki</p>
-            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 tabular-nums mt-0.5">{totalLaki}</p>
-          </div>
-          <div className="bg-surface-elevated p-3.5 rounded-xl border border-border-subtle shadow-soft">
-            <p className="text-xs text-pink-600 dark:text-pink-400">Perempuan</p>
-            <p className="text-2xl font-bold text-pink-600 dark:text-pink-400 tabular-nums mt-0.5">{totalPerempuan}</p>
+
+          <div className="border-t border-border-subtle/60" />
+
+          {/* Baris 2: Laki-Laki & Perempuan */}
+          <div className="grid grid-cols-2 gap-3 divide-x divide-border-subtle/60">
+            <div className="flex items-center gap-3 pr-2">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                <Users size={18} />
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] text-text-muted font-extrabold uppercase tracking-wider block">Laki-Laki</span>
+                <p className="text-lg sm:text-xl font-black text-blue-600 dark:text-blue-400 tabular-nums">{totalLaki} <span className="text-xs font-normal text-text-muted">Jiwa</span></p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 pl-3 sm:pl-4">
+              <div className="w-10 h-10 rounded-xl bg-pink-50 dark:bg-pink-950/60 flex items-center justify-center text-pink-600 dark:text-pink-400 shrink-0">
+                <Users size={18} />
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] text-text-muted font-extrabold uppercase tracking-wider block">Perempuan</span>
+                <p className="text-lg sm:text-xl font-black text-pink-600 dark:text-pink-400 tabular-nums">{totalPerempuan} <span className="text-xs font-normal text-text-muted">Jiwa</span></p>
+              </div>
+            </div>
           </div>
         </div>
 
