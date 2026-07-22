@@ -70,7 +70,7 @@ export function JadwalTabContent({ id_pos, canWrite }: JadwalTabContentProps) {
       ``,
       `*WILAYAH PELAYANAN*`,
       isJemaatScope ? `Lingkup: Jemaat Induk` : `Lingkup: Pos Pelkes / Bajem`,
-      !isJemaatScope ? `Pos Pelkes / Bajem: ${posNamaFormatted}` : null,
+      !isJemaatScope ? `Nama: ${posNamaFormatted}` : null,
       `Jemaat Induk: ${jemaatNama}`,
       `Mupel: ${mupelNama}`,
       ``,
