@@ -8,7 +8,7 @@ import { MupelCard } from '@/components/hierarki/MupelCard';
 import { BreadcrumbNav } from '@/components/hierarki/BreadcrumbNav';
 import { MupelFormModal } from '@/components/hierarki/MupelFormModal';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Layers, Search, LayoutList, GitFork, AlertCircle, Plus } from 'lucide-react';
+import { Layers, Search, LayoutList, GitFork, AlertCircle } from 'lucide-react';
 
 import { HierarkiNavTabs } from '@/components/hierarki/HierarkiNavTabs';
 
@@ -29,11 +29,6 @@ export default function HierarkiEntryPage() {
   const [editMupel, setEditMupel] = useState<MupelItem | null>(null);
 
   const { data: mupelList, isLoading, isError } = useMupelList(searchQuery);
-
-  const handleOpenAddModal = () => {
-    setEditMupel(null);
-    setIsModalOpen(true);
-  };
 
   const handleOpenEditModal = (mupel: MupelItem) => {
     setEditMupel(mupel);
@@ -60,21 +55,12 @@ export default function HierarkiEntryPage() {
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-text-muted">
-            Struktur Terintegrasi Mupel (25) → Jemaat Induk (350+) → Pos Pelkes (500+)
+            Struktur Terintegrasi Mupel, Jemaat dan Pos Pelkes GPIB
           </p>
         </div>
 
         {/* Header Actions */}
         <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
-          <button
-            type="button"
-            onClick={handleOpenAddModal}
-            className="min-h-[40px] px-4 py-2 rounded-xl bg-brand-primary text-white font-bold text-xs flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all shadow-sm"
-          >
-            <Plus size={16} />
-            <span>Tambah Mupel</span>
-          </button>
-
           {/* View Mode Toggle */}
           <div className="flex items-center gap-1 p-1 bg-surface-sunken rounded-xl border border-border-subtle">
             <button
