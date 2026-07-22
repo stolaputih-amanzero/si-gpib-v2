@@ -7,16 +7,17 @@ export function useBiometricLogin() {
   const [status, setStatus] = useState<LoginStatus>('idle');
   const [error, setError] = useState<string | null>(null);
 
-  const loginWithBiometric = async (email: string) => {
+  const loginWithBiometric = async (email?: string) => {
     setStatus('loading');
     setError(null);
 
     try {
       // 1. Minta options dari server
+      const hasEmail = email && email.trim().length > 0;
       const optionsRes = await fetch('/api/auth/webauthn/login/options', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        method: hasEmail ? 'POST' : 'GET',
+        headers: hasEmail ? { 'Content-Type': 'application/json' } : undefined,
+        body: hasEmail ? JSON.stringify({ email: email.trim() }) : undefined,
       });
 
       if (!optionsRes.ok) {

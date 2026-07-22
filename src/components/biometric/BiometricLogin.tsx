@@ -1,27 +1,23 @@
 'use client';
 
-import { useState } from 'react';
 import { Fingerprint, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useBiometricLogin } from '@/hooks/use-biometric-login';
 
 interface BiometricLoginProps {
-  email: string; // Email harus diisi user terlebih dahulu
+  email?: string;
 }
 
 export function BiometricLogin({ email }: BiometricLoginProps) {
   const { status, error, loginWithBiometric, resetStatus } = useBiometricLogin();
-  const [isEmailValid, setIsEmailValid] = useState(true);
 
-  // Validasi sederhana sebelum trigger biometric
   const handleLogin = () => {
-    if (!email || !email.includes('@')) {
-      setIsEmailValid(false);
-      if (typeof window !== 'undefined' && navigator.vibrate) navigator.vibrate([50, 100, 50]); // Error pattern
-      return;
-    }
-    setIsEmailValid(true);
     if (typeof window !== 'undefined' && navigator.vibrate) navigator.vibrate(10); // Light haptic
-    loginWithBiometric(email);
+    
+    if (email && email.trim().includes('@')) {
+      loginWithBiometric(email.trim());
+    } else {
+      loginWithBiometric();
+    }
   };
 
   if (status === 'success') {
@@ -39,15 +35,13 @@ export function BiometricLogin({ email }: BiometricLoginProps) {
       <button
         type="button"
         onClick={handleLogin}
-        disabled={status === 'loading' || !email}
+        disabled={status === 'loading'}
         className={`
           w-full min-h-[44px] rounded-md font-medium text-base flex items-center justify-center gap-3
           transition-all duration-micro active:scale-[0.98]
           ${status === 'loading' 
             ? 'bg-surface-sunken text-text-muted cursor-not-allowed' 
-            : !email 
-              ? 'bg-surface-sunken text-text-muted cursor-not-allowed'
-              : 'bg-surface-elevated border border-border-strong text-text-high hover:bg-surface-sunken shadow-soft'
+            : 'bg-surface-elevated border border-border-strong text-text-high hover:bg-surface-sunken shadow-soft'
           }
         `}
         aria-label="Login dengan Biometrik"
@@ -77,20 +71,10 @@ export function BiometricLogin({ email }: BiometricLoginProps) {
         </div>
       )}
 
-      {/* Validasi Email Error */}
-      {!isEmailValid && (
-         <div className="bg-error/5 border border-error/20 rounded-md p-3 flex items-start gap-2 animate-in fade-in slide-in-from-top-2 duration-micro">
-         <AlertCircle className="w-4 h-4 text-error flex-shrink-0 mt-0.5" />
-         <div className="flex-1">
-           <p className="text-xs text-error">Email tidak valid.</p>
-         </div>
-       </div>
-      )}
-
       {/* Hint jika email belum diisi */}
       {!email && (
-        <p className="text-xs text-text-muted text-center">
-          Masukkan email Anda terlebih dahulu untuk menggunakan biometric.
+        <p className="text-xs text-text-muted text-center leading-relaxed">
+          Tips: Anda dapat langsung login menggunakan biometrik perangkat ini jika passkey sudah terdaftar.
         </p>
       )}
     </div>
