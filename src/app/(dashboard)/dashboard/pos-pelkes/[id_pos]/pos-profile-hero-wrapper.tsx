@@ -155,23 +155,22 @@ export default function PosProfileHeroWrapper({
       </div>
 
       {/* Premium Hero Banner Showcase */}
-      <div className="relative rounded-3xl overflow-hidden border border-border-subtle shadow-heavy bg-surface-elevated group">
-        {/* Background Image / Gradient Showcase */}
+      <div className="rounded-3xl overflow-hidden border border-border-subtle shadow-soft bg-surface-elevated">
+        {/* Background Image Showcase */}
         {pos.foto_url ? (
           <div 
             onClick={() => setShowLightbox(true)}
-            className="relative h-56 sm:h-72 w-full overflow-hidden bg-black cursor-pointer"
-            title="Klik untuk melihat foto full screen"
+            className="relative aspect-[16/9] sm:aspect-[21/9] w-full overflow-hidden bg-surface-sunken cursor-pointer group"
+            title="Klik untuk melihat foto layar penuh"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
               src={pos.foto_url} 
               alt={`Foto Gedung ${pos.nama_pos}`} 
-              className="w-full h-full object-cover opacity-85 group-hover:scale-105 transition-transform duration-700 ease-out"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
             />
-            {/* Multi-layer Gradient Overlay for Text Readability & Aesthetics */}
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-black/30" />
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-transparent to-slate-950/80" />
+            {/* Subtle Gradient at bottom */}
+            <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
 
             {/* Click to Enlarge Eye Button */}
             <button
@@ -180,59 +179,55 @@ export default function PosProfileHeroWrapper({
                 e.stopPropagation();
                 setShowLightbox(true);
               }}
-              className="absolute top-4 left-4 z-20 min-h-[36px] min-w-[36px] p-2 rounded-full bg-black/40 hover:bg-black/75 text-white/90 hover:text-white border border-white/20 backdrop-blur-md flex items-center justify-center transition-all shadow-md active:scale-95 group-hover:scale-105"
+              className="absolute bottom-3 right-3 z-20 px-3 py-1.5 rounded-xl bg-black/60 hover:bg-black/80 text-white text-xs font-bold border border-white/20 backdrop-blur-md flex items-center gap-1.5 transition-all shadow-md active:scale-95"
               title="Lihat Foto Layar Penuh"
             >
-              <Eye size={18} />
+              <Eye size={14} />
+              <span>Lihat Foto</span>
             </button>
           </div>
         ) : (
-          <div className="relative h-44 sm:h-52 w-full bg-gradient-to-br from-brand-primary via-blue-900 to-indigo-950 p-6 overflow-hidden">
-            <div className="absolute -right-12 -bottom-12 opacity-15 pointer-events-none">
-              <Building2 className="w-80 h-80 text-white" />
+          <div className="relative h-36 sm:h-48 w-full bg-gradient-to-br from-brand-primary via-blue-900 to-indigo-950 p-6 overflow-hidden">
+            <div className="absolute -right-8 -bottom-8 opacity-15 pointer-events-none">
+              <Building2 className="w-64 h-64 text-white" />
             </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
           </div>
         )}
 
-        {/* Floating Content / Details Overlay */}
-        <div className={`p-4 sm:p-8 ${pos.foto_url ? '-mt-28 sm:-mt-44 relative z-10 pointer-events-auto' : '-mt-20 sm:-mt-28 relative z-10'}`}>
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-            <div className="space-y-3 flex-1 min-w-0">
-              {/* Badges Bar */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className={cn("text-xs font-black uppercase tracking-wider px-3 py-1 rounded-xl shadow-xs border backdrop-blur-md", catColor)}>
-                  {catLabel}
-                </span>
-                <span className="text-xs font-mono font-bold tracking-wider px-3 py-1 rounded-xl bg-black/50 text-white border border-white/20 backdrop-blur-md shadow-xs">
-                  {pos.id_pos}
-                </span>
-                {pos.jemaat_induk && (
-                  <span className="text-xs font-semibold px-3 py-1 rounded-xl bg-white/10 text-white border border-white/15 backdrop-blur-md flex items-center gap-1.5">
-                    <span className="text-white/60">Induk:</span>
-                    <Link 
-                      href={`/hierarki/${encodeURIComponent(pos.jemaat_induk.id_mupel)}/${encodeURIComponent(pos.jemaat_induk.id_induk)}`}
-                      className="text-amber-300 hover:underline font-bold"
-                    >
-                      {pos.jemaat_induk.nama_induk}
-                    </Link>
-                  </span>
-                )}
-              </div>
+        {/* Info Details Section Below Image (Clean & Breathable) */}
+        <div className="p-4 sm:p-6 space-y-3">
+          {/* Badges Bar */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={cn("text-xs font-black uppercase tracking-wider px-3 py-1 rounded-xl shadow-xs border", catColor)}>
+              {catLabel}
+            </span>
+            <span className="text-xs font-mono font-bold tracking-wider px-3 py-1 rounded-xl bg-surface-sunken text-text-high border border-border-subtle shadow-xs">
+              {pos.id_pos}
+            </span>
+            {pos.jemaat_induk && (
+              <span className="text-xs font-semibold px-3 py-1 rounded-xl bg-surface-sunken text-text-muted border border-border-subtle flex items-center gap-1.5">
+                <span>Induk:</span>
+                <Link 
+                  href={`/hierarki/${encodeURIComponent(pos.jemaat_induk.id_mupel)}/${encodeURIComponent(pos.jemaat_induk.id_induk)}`}
+                  className="text-brand-primary hover:underline font-bold"
+                >
+                  {pos.jemaat_induk.nama_induk}
+                </Link>
+              </span>
+            )}
+          </div>
 
-              {/* Title & Address */}
-              <div className="space-y-1">
-                <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight drop-shadow-md">
-                  {pos.nama_pos}
-                </h1>
-                {pos.alamat && (
-                  <p className="text-xs sm:text-sm text-gray-200 leading-relaxed font-medium max-w-2xl drop-shadow">
-                    <MapPin className="inline-block w-4 h-4 mr-1.5 text-brand-primary-light shrink-0" />
-                    {pos.alamat}
-                  </p>
-                )}
-              </div>
-            </div>
+          {/* Title & Address */}
+          <div className="space-y-1">
+            <h1 className="text-xl sm:text-3xl font-black text-text-high tracking-tight leading-snug">
+              {pos.nama_pos}
+            </h1>
+            {pos.alamat && (
+              <p className="text-xs sm:text-sm text-text-muted leading-relaxed font-medium flex items-start gap-1.5 pt-0.5">
+                <MapPin className="w-4 h-4 text-brand-primary shrink-0 mt-0.5" />
+                <span>{pos.alamat}</span>
+              </p>
+            )}
           </div>
         </div>
       </div>
