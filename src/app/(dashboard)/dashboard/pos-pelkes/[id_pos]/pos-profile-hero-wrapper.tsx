@@ -33,6 +33,7 @@ interface PosProfileHeroWrapperProps {
   canDelete?: boolean;
   pjName?: string | null;
   jadwalList?: Array<{ jenis: string; hari: string; jam: string; zona_waktu?: string | null; keterangan?: string | null }>;
+  currentUserName?: string;
 }
 
 export default function PosProfileHeroWrapper({
@@ -45,6 +46,7 @@ export default function PosProfileHeroWrapper({
   canDelete = false,
   pjName,
   jadwalList,
+  currentUserName,
 }: PosProfileHeroWrapperProps) {
   const [showLightbox, setShowLightbox] = useState(false);
 
@@ -83,7 +85,7 @@ export default function PosProfileHeroWrapper({
             const isBajemCat = catLabel.toLowerCase().includes('bajem') || posNama.toLowerCase().includes('bajem');
             const posHeaderLabel = isBajemCat ? 'Bajem' : 'Pos Pelkes';
             const tglFormatted = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
-            const updatedByStr = (pos as any).updated_by || 'Pelayan Pos';
+            const updatedByStr = (pos as any).updated_by || currentUserName || 'Pelayan Pos';
 
             // Format Jadwal Ibadah
             let jadwalStr = 'Belum ada jadwal ibadah terdaftar';

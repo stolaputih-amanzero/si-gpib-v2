@@ -162,7 +162,7 @@ async function getPosDetail(id_pos: string): Promise<PosDetail | null> {
   const { data, error } = await supabase
     .from('m_pos_pelkes')
     .select(`
-      id_pos, id_induk, nama_pos, kategori, alamat, latitude, longitude, tgl_berdiri, keterangan, foto_url, updated_at, jumlah_kk, jumlah_jiwa,
+      id_pos, id_induk, nama_pos, kategori, alamat, latitude, longitude, tgl_berdiri, keterangan, foto_url, updated_at, updated_by, jumlah_kk, jumlah_jiwa,
       jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, mupel:m_mupel(id_mupel, nama_mupel))
     `)
     .eq('id_pos', id_pos)
@@ -394,6 +394,7 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
         canDelete={canDelete}
         pjName={pj?.nama_lengkap}
         jadwalList={jadwalList}
+        currentUserName={currentUserName}
       />
 
       {/* Tabs */}
