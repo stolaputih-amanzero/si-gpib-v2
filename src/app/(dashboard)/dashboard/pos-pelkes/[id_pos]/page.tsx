@@ -440,16 +440,22 @@ export default async function PosPelkesDetailPage({
           {pj && (
             <Card className="border-border-subtle shadow-soft bg-gradient-to-r from-brand-primary/5 via-transparent to-transparent">
               <CardContent className="p-5 flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center font-black text-lg shrink-0">
+                <Link
+                  href={`/pendeta/${pj.id_pendeta}`}
+                  className="flex items-center gap-3 group hover:opacity-90 transition-opacity"
+                >
+                  <div className="w-12 h-12 rounded-full bg-brand-primary text-white flex items-center justify-center font-black text-lg shrink-0 group-hover:scale-105 transition-transform shadow-sm">
                     {pj.nama_lengkap.charAt(0)}
                   </div>
                   <div>
-                    <span className="text-[9px] font-black text-brand-primary uppercase tracking-widest block">Pendeta Penanggung Jawab</span>
-                    <h4 className="font-extrabold text-base text-text-high leading-tight">{pj.nama_lengkap}</h4>
+                    <span className="text-[9px] font-black text-brand-primary uppercase tracking-widest block">Pendeta Jemaat</span>
+                    <h4 className="font-extrabold text-base text-text-high leading-tight group-hover:text-brand-primary group-hover:underline flex items-center gap-1">
+                      <span>{pj.nama_lengkap}</span>
+                      <ExternalLink size={14} className="text-brand-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </h4>
                     <p className="text-xs text-text-muted mt-0.5">Aktif sejak: {new Date(pj.tgl_mulai).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                   </div>
-                </div>
+                </Link>
                 {pj.no_wa && (
                   <a
                     href={`https://wa.me/${pj.no_wa.replace(/[^0-9]/g, '')}`}
@@ -623,24 +629,30 @@ export default async function PosPelkesDetailPage({
             <CardHeader className="pb-3 border-b border-border-subtle flex flex-row items-center justify-between flex-wrap gap-2">
               <CardTitle className="flex items-center gap-2 text-base font-extrabold text-text-high">
                 <User className="w-5 h-5 text-brand-primary" />
-                Pendeta Penanggung Jawab (PJ)
+                Pendeta Jemaat
               </CardTitle>
               {canWrite && <AssignPjButton id_induk={pos.id_induk} nama_induk={pos.jemaat_induk?.nama_induk || ''} />}
             </CardHeader>
             <CardContent className="p-5">
               {pj ? (
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-surface-sunken border border-border-subtle rounded-xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-brand-primary text-white flex items-center justify-center font-black text-xl shrink-0">
+                  <Link
+                    href={`/pendeta/${pj.id_pendeta}`}
+                    className="flex items-center gap-3 group hover:opacity-90 transition-opacity"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-brand-primary text-white flex items-center justify-center font-black text-xl shrink-0 group-hover:scale-105 transition-transform shadow-xs">
                       {pj.nama_lengkap.charAt(0)}
                     </div>
                     <div>
-                      <h4 className="font-extrabold text-base text-text-high leading-tight">{pj.nama_lengkap}</h4>
+                      <h4 className="font-extrabold text-base text-text-high leading-tight group-hover:text-brand-primary group-hover:underline flex items-center gap-1.5">
+                        <span>{pj.nama_lengkap}</span>
+                        <ExternalLink size={15} className="text-brand-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </h4>
                       <span className="text-xs font-semibold text-text-muted mt-1 inline-block">
                         Aktif sejak: {new Date(pj.tgl_mulai).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                       </span>
                     </div>
-                  </div>
+                  </Link>
                   {pj.no_wa && (
                     <a
                       href={`https://wa.me/${pj.no_wa.replace(/[^0-9]/g, '')}`}

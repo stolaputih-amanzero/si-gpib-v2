@@ -22,7 +22,7 @@ export default function AssignPjButton({ id_induk, nama_induk }: AssignPjButtonP
         className="min-h-[36px] px-3 py-1.5 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors"
       >
         <HeartHandshake size={14} />
-        <span>Kelola Penugasan PJ</span>
+        <span>Kelola Penugasan Pendeta Jemaat</span>
       </button>
 
       {isOpen && (
