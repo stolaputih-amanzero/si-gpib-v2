@@ -1,18 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { 
   jadwalSchema, 
   JadwalInput, 
   HARI_OPTIONS, 
-  JENIS_IBADAH_OPTIONS 
+  JENIS_IBADAH_OPTIONS,
+  ZONA_WAKTU_OPTIONS 
 } from '@/lib/validations/jadwal.schema';
 import { useCreateJadwal, useUpdateJadwal, JadwalItem } from '@/hooks/use-jadwal';
-import { Loader2, Save, AlertCircle, Clock, Calendar } from 'lucide-react';
-import { PosCascadingSelector } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
-import { Controller } from 'react-hook-form';
+import { Loader2, Save, AlertCircle, Clock, Calendar, Building } from 'lucide-react';
+import { PosCascadingSelector, HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
+import { createClient } from '@/lib/supabase/client';
 
 interface JadwalFormProps {
   id_pos?: string;
@@ -22,6 +23,13 @@ interface JadwalFormProps {
 
 export function JadwalForm({ id_pos = 'POS-001', initialData, onSuccess }: JadwalFormProps) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [targetScope, setTargetScope] = useState<'pos' | 'jemaat'>(
+    initialData?.id_pos && initialData.id_pos !== 'POS-001' ? 'pos' : (id_pos && id_pos !== 'POS-001' ? 'pos' : 'jemaat')
+  );
+  const [hierarchyMeta, setHierarchyMeta] = useState<HierarchyMetaInfo | null>(null);
+  const [currentPosId, setCurrentPosId] = useState<string>(
+    initialData?.id_pos || (id_pos === 'POS-001' ? '' : id_pos)
+  );
 
   const createMutation = useCreateJadwal();
   const updateMutation = useUpdateJadwal();
@@ -29,26 +37,78 @@ export function JadwalForm({ id_pos = 'POS-001', initialData, onSuccess }: Jadwa
   const {
     register,
     handleSubmit,
-    control,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<JadwalInput>({
     resolver: zodResolver(jadwalSchema),
     defaultValues: {
-      id_pos: initialData?.id_pos || id_pos,
+      id_pos: currentPosId || undefined,
       jenis: initialData?.jenis || JENIS_IBADAH_OPTIONS[0],
       hari: (initialData?.hari as any) || 'Minggu',
       jam: initialData?.jam ? initialData.jam.substring(0, 5) : '09:00',
+      zona_waktu: (initialData?.zona_waktu as any) || 'WIB',
       keterangan: initialData?.keterangan || '',
     },
   });
 
+  // Sync currentPosId with react-hook-form value
+  useEffect(() => {
+    setValue('id_pos', currentPosId);
+  }, [currentPosId, setValue]);
+
   const onSubmit = async (data: JadwalInput) => {
     setErrorMsg(null);
     try {
-      if (initialData) {
-        await updateMutation.mutateAsync({ id_ibadah: initialData.id_ibadah, input: data });
+      const supabase = createClient();
+      let finalPosId = currentPosId;
+
+      if (targetScope === 'pos') {
+        if (!finalPosId || finalPosId === 'POS-001' || finalPosId.trim() === '') {
+          setErrorMsg('Pos Pelkes wajib dipilih.');
+          return;
+        }
       } else {
-        await createMutation.mutateAsync(data);
+        // Target scope: Jemaat Induk
+        const jemaatId = hierarchyMeta?.id_induk;
+        if (!jemaatId) {
+          setErrorMsg('Jemaat Induk wajib dipilih.');
+          return;
+        }
+
+        // Find or create dummy Pos for the Jemaat Induk
+        const { data: posRows } = await supabase
+          .from('m_pos_pelkes')
+          .select('id_pos')
+          .eq('id_induk', jemaatId)
+          .limit(1);
+
+        if (posRows && posRows[0]) {
+          finalPosId = posRows[0].id_pos;
+        } else {
+          const jemaatNama = hierarchyMeta?.jemaatName || jemaatId;
+          const createdPosId = `POS-${Math.floor(10000 + Math.random() * 90000)}`;
+          const { error: insErr } = await supabase.from('m_pos_pelkes').insert({
+            id_pos: createdPosId,
+            id_induk: jemaatId,
+            nama_pos: `Jemaat ${jemaatNama}`,
+            kategori: 'Pos Pelkes',
+          });
+          if (insErr) {
+            throw new Error(insErr.message);
+          }
+          finalPosId = createdPosId;
+        }
+      }
+
+      const payload = {
+        ...data,
+        id_pos: finalPosId,
+      };
+
+      if (initialData) {
+        await updateMutation.mutateAsync({ id_ibadah: initialData.id_ibadah, input: payload });
+      } else {
+        await createMutation.mutateAsync(payload);
       }
 
       if (typeof window !== 'undefined' && 'vibrate' in navigator) {
@@ -73,20 +133,60 @@ export function JadwalForm({ id_pos = 'POS-001', initialData, onSuccess }: Jadwa
         </div>
       )}
 
+      {/* Target Scope Selector */}
+      <div className="space-y-1.5">
+        <label className="text-xs font-semibold text-text-high">Target Lingkup Jadwal *</label>
+        <div className="grid grid-cols-2 gap-2 bg-surface-sunken p-1 rounded-xl">
+          <button
+            type="button"
+            onClick={() => {
+              setTargetScope('jemaat');
+              setCurrentPosId('');
+            }}
+            className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+              targetScope === 'jemaat'
+                ? 'bg-surface-elevated text-brand-primary shadow-soft'
+                : 'text-text-muted hover:text-text-high'
+            }`}
+          >
+            <span>⛪ Jemaat Induk</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setTargetScope('pos')}
+            className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+              targetScope === 'pos'
+                ? 'bg-surface-elevated text-brand-primary shadow-soft'
+                : 'text-text-muted hover:text-text-high'
+            }`}
+          >
+            <span>📍 Pos Pelkes / Bajem</span>
+          </button>
+        </div>
+      </div>
+
       {/* ID Pos Input */}
       <div className="space-y-1.5 w-full">
-        <Controller
-          name="id_pos"
-          control={control}
-          render={({ field }) => (
-            <PosCascadingSelector
-              value={field.value}
-              onChange={field.onChange}
-              error={errors.id_pos?.message}
-              defaultPosId={initialData?.id_pos || id_pos}
-              disabled={isSubmitting}
-            />
-          )}
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-xs font-bold text-text-high uppercase tracking-wider flex items-center gap-1.5">
+            <Building size={14} className="text-brand-primary" />
+            <span>Pilih Wilayah Lokasi Jadwal *</span>
+          </h2>
+          <span className="text-[11px] font-semibold text-text-muted">
+            {targetScope === 'jemaat'
+              ? 'Pos Pelkes Opsional (Level Jemaat)'
+              : 'Pos Pelkes Wajib (Compulsory)'}
+          </span>
+        </div>
+
+        <PosCascadingSelector
+          value={currentPosId}
+          onChange={setCurrentPosId}
+          onMetaChange={setHierarchyMeta}
+          onJemaatChange={() => setCurrentPosId('')}
+          defaultPosId={initialData?.id_pos || id_pos}
+          required={targetScope === 'pos'}
+          hidePos={targetScope === 'jemaat'}
         />
       </div>
 
@@ -106,8 +206,8 @@ export function JadwalForm({ id_pos = 'POS-001', initialData, onSuccess }: Jadwa
         {errors.jenis && <p className="text-xs text-error">{errors.jenis.message}</p>}
       </div>
 
-      {/* Hari & Jam */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Hari, Jam & Zona Waktu */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
             <Calendar size={14} className="text-brand-primary" />
@@ -137,6 +237,24 @@ export function JadwalForm({ id_pos = 'POS-001', initialData, onSuccess }: Jadwa
             className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-base font-mono font-bold text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
           />
           {errors.jam && <p className="text-xs text-error">{errors.jam.message}</p>}
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
+            <Clock size={14} className="text-brand-primary" />
+            <span>Zona Waktu *</span>
+          </label>
+          <select
+            {...register('zona_waktu')}
+            className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-base font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
+          >
+            {ZONA_WAKTU_OPTIONS.map((z) => (
+              <option key={z} value={z}>
+                {z}
+              </option>
+            ))}
+          </select>
+          {errors.zona_waktu && <p className="text-xs text-error">{errors.zona_waktu.message}</p>}
         </div>
       </div>
 

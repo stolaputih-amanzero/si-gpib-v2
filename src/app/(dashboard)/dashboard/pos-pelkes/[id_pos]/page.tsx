@@ -26,6 +26,7 @@ import { ShareButton } from '@/components/mobile/ShareButton';
 import PosThumbnailMapWrapper from '@/components/maps/PosThumbnailMapWrapper';
 import DeletePosButton from './delete-button';
 import AssignPjButton from './assign-pj-button';
+import { JadwalTabContent } from './jadwal-tab-content';
 
 // --- Types ---
 interface PosDetail {
@@ -93,7 +94,64 @@ interface Pelayan {
   keterangan: string | null;
 }
 
+interface Relawan {
+  id_relawan: string;
+  nama: string;
+  no_wa: string | null;
+  tgl_lahir: string | null;
+  gender: string | null;
+  kategori: string | null;
+  pelatihan: string | null;
+  keterangan: string | null;
+}
+
+interface Kerawanan {
+  id_risiko: string;
+  kategori: string | null;
+  jenis_risiko: string | null;
+  frekuensi: string | null;
+  keterangan: string | null;
+}
+
+interface Potensi {
+  id_potensi: string;
+  nama_potensi: string | null;
+  kategori: string | null;
+  deskripsi: string | null;
+  keterangan: string | null;
+}
+
+
+
 // --- Helper Functions ---
+async function getRelawan(id_pos: string): Promise<Relawan[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('t_relawan')
+    .select('id_relawan, nama, no_wa, tgl_lahir, gender, kategori, pelatihan, keterangan')
+    .eq('id_pos', id_pos);
+  return (data as Relawan[]) || [];
+}
+
+async function getKerawanan(id_pos: string): Promise<Kerawanan[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('t_kerawanan_wilayah')
+    .select('id_risiko, kategori, jenis_risiko, frekuensi, keterangan')
+    .eq('id_pos', id_pos);
+  return (data as Kerawanan[]) || [];
+}
+
+async function getPotensi(id_pos: string): Promise<Potensi[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('t_potensi_wilayah')
+    .select('id_potensi, nama_potensi, kategori, deskripsi, keterangan')
+    .eq('id_pos', id_pos);
+  return (data as Potensi[]) || [];
+}
+
+
 async function getPosDetail(id_pos: string): Promise<PosDetail | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -222,13 +280,16 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
   const { id_pos } = await params;
 
   // Parallel data fetching for optimal performance
-  const [pos, demografi, aset, logs, pj, pelayan] = await Promise.all([
+  const [pos, demografi, aset, logs, pj, pelayan, relawan, kerawanan, potensi] = await Promise.all([
     getPosDetail(id_pos),
     getDemografi(id_pos),
     getAset(id_pos),
     getLogPastoral(id_pos),
     getPJDetail(id_pos),
     getPelayan(id_pos),
+    getRelawan(id_pos),
+    getKerawanan(id_pos),
+    getPotensi(id_pos),
   ]);
 
   if (!pos) {
@@ -364,6 +425,13 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
               <span>Profil</span>
             </TabsTrigger>
             <TabsTrigger 
+              value="jadwal" 
+              className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold whitespace-nowrap rounded-lg"
+            >
+              <Calendar size={14} />
+              <span>Jadwal Ibadah</span>
+            </TabsTrigger>
+            <TabsTrigger 
               value="pendeta" 
               className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold whitespace-nowrap rounded-lg"
             >
@@ -383,6 +451,13 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
             >
               <Building2 size={14} />
               <span>Aset</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="wilayah" 
+              className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold whitespace-nowrap rounded-lg"
+            >
+              <Compass size={14} />
+              <span>Analisis Wilayah</span>
             </TabsTrigger>
             <TabsTrigger 
               value="log" 
@@ -542,17 +617,8 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
 
             {/* Keterangan Side Card */}
             <Card className="border-border-subtle shadow-soft h-full flex flex-col">
-              <CardHeader className="pb-3 border-b border-border-subtle flex flex-row items-center justify-between">
+              <CardHeader className="pb-3 border-b border-border-subtle">
                 <CardTitle className="text-base font-extrabold text-text-high">Keterangan</CardTitle>
-                {canWrite && (
-                  <Link
-                    href={`/dashboard/pos-pelkes/${pos.id_pos}/edit`}
-                    className="px-2.5 py-1.5 rounded-lg border border-border-subtle bg-surface-sunken hover:bg-surface-elevated text-[10px] font-bold text-brand-primary flex items-center gap-1 transition-all active:scale-95"
-                  >
-                    <Edit3 size={10} />
-                    <span>Edit Profil</span>
-                  </Link>
-                )}
               </CardHeader>
               <CardContent className="p-5 flex-1 flex flex-col justify-start">
                 {pos.keterangan ? (
@@ -567,6 +633,15 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* TAB: JADWAL IBADAH */}
+        <TabsContent value="jadwal" className="space-y-4 focus-visible:outline-none">
+          <Card className="border-border-subtle shadow-soft">
+            <CardContent className="p-5">
+              <JadwalTabContent id_pos={pos.id_pos} canWrite={canWrite} />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* TAB 2: PENDETA & PELAYAN */}
@@ -679,6 +754,89 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
                   <Users size={32} className="mx-auto text-text-muted/40" />
                   <p className="text-sm font-bold">Tidak ada Data Pelayan</p>
                   <p className="text-xs">Belum ada majelis jemaat atau penatua/diaken terdaftar untuk pos ini.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Relawan/Volunteer Section */}
+          <Card className="border-border-subtle shadow-soft">
+            <CardHeader className="pb-3 border-b border-border-subtle flex flex-row items-center justify-between flex-wrap gap-2">
+              <CardTitle className="flex items-center gap-2 text-base font-extrabold text-text-high">
+                <Users className="w-5 h-5 text-brand-primary" />
+                Relawan & Volunteer
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="font-bold text-xs bg-surface-sunken">
+                  {relawan.length} Terdaftar
+                </Badge>
+                {canWrite && (
+                  <Link
+                    href={`/dashboard/pos-pelkes/${pos.id_pos}/edit?tab=relawan`}
+                    className="px-2.5 py-1.5 rounded-lg border border-border-subtle bg-surface-sunken hover:bg-surface-elevated text-[10px] font-bold text-brand-primary flex items-center gap-1 transition-all active:scale-95 shadow-xs"
+                  >
+                    <Plus size={10} />
+                    <span>Kelola Relawan</span>
+                  </Link>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="p-5">
+              {relawan.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {relawan.map((r) => (
+                    <div 
+                      key={r.id_relawan} 
+                      className="p-4 border border-border-subtle rounded-xl bg-surface-sunken hover:border-brand-primary/30 transition-all space-y-3"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h4 className="font-extrabold text-sm text-text-high">{r.nama}</h4>
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            <span className="text-[9px] font-black text-brand-primary uppercase tracking-wider bg-brand-primary/5 px-2 py-0.5 rounded border border-brand-primary/10">
+                              {r.kategori || 'Relawan'}
+                            </span>
+                            {r.gender && (
+                              <span className="text-[9px] font-bold text-text-muted px-2 py-0.5 rounded bg-surface-elevated border border-border-subtle">
+                                {r.gender === 'L' ? 'Laki-laki' : r.gender === 'P' ? 'Perempuan' : r.gender}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {r.pelatihan && (
+                        <div className="text-[11px] text-text-muted bg-surface-elevated p-2 rounded-lg border border-border-subtle/50">
+                          <span className="font-bold text-text-high block text-[9px] uppercase tracking-wider mb-0.5">Pelatihan:</span>
+                          {r.pelatihan}
+                        </div>
+                      )}
+
+                      {r.keterangan && (
+                        <p className="text-xs text-text-muted italic bg-surface-elevated/50 p-2 rounded border border-border-subtle/40">
+                          "{r.keterangan}"
+                        </p>
+                      )}
+
+                      {r.no_wa && (
+                        <a
+                          href={`https://wa.me/${r.no_wa.replace(/[^0-9]/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="min-h-[32px] inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
+                        >
+                          <Phone size={12} />
+                          <span>Hubungi WA ({r.no_wa})</span>
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-10 bg-surface-sunken/40 border border-dashed border-border-subtle rounded-xl text-text-muted space-y-1">
+                  <Users size={32} className="mx-auto text-text-muted/40" />
+                  <p className="text-sm font-bold">Tidak ada Data Relawan</p>
+                  <p className="text-xs">Belum ada relawan atau volunteer terdaftar untuk pos ini.</p>
                 </div>
               )}
             </CardContent>
@@ -975,7 +1133,96 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
           )}
         </TabsContent>
 
-        {/* TAB 5: LOG PASTORAL */}
+        {/* TAB 5: ANALISIS WILAYAH (KERAWANAN & POTENSI) */}
+        <TabsContent value="wilayah" className="space-y-6 focus-visible:outline-none">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            {/* Kerawanan Wilayah Card */}
+            <Card className="border-border-subtle shadow-soft">
+              <CardHeader className="pb-3 border-b border-border-subtle flex flex-row items-center justify-between flex-wrap gap-2">
+                <CardTitle className="flex items-center gap-2 text-base font-extrabold text-text-high">
+                  <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  Kerawanan Wilayah (Risiko)
+                </CardTitle>
+                {canWrite && (
+                  <Link
+                    href={`/dashboard/pos-pelkes/${pos.id_pos}/edit?tab=kerawanan`}
+                    className="px-2.5 py-1.5 rounded-lg border border-border-subtle bg-surface-sunken hover:bg-surface-elevated text-[10px] font-bold text-brand-primary flex items-center gap-1 transition-all active:scale-95 shadow-xs"
+                  >
+                    <Plus size={10} />
+                    <span>Kelola Risiko</span>
+                  </Link>
+                )}
+              </CardHeader>
+              <CardContent className="p-5">
+                {kerawanan.length === 0 ? (
+                  <p className="text-xs text-text-muted italic py-2 text-center">Tidak ada risiko kerawanan yang terdaftar.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {kerawanan.map((k) => (
+                      <div key={k.id_risiko} className="p-4 bg-surface-sunken rounded-2xl border border-border-subtle space-y-2">
+                        <div className="flex justify-between items-center flex-wrap gap-2">
+                          <span className="text-[9px] font-black text-red-600 uppercase tracking-wider bg-red-500/5 px-2 py-0.5 rounded border border-red-500/10">
+                            {k.kategori || 'Kerawanan'}
+                          </span>
+                          {k.frekuensi && (
+                            <span className="text-[10px] font-bold text-text-muted italic">
+                              Frekuensi: {k.frekuensi}
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="font-extrabold text-sm text-text-high leading-tight">{k.jenis_risiko}</h4>
+                        {k.keterangan && <p className="text-xs text-text-muted leading-relaxed italic bg-surface-elevated/50 p-2 rounded border border-border-subtle/40">"{k.keterangan}"</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Potensi Wilayah Card */}
+            <Card className="border-border-subtle shadow-soft">
+              <CardHeader className="pb-3 border-b border-border-subtle flex flex-row items-center justify-between flex-wrap gap-2">
+                <CardTitle className="flex items-center gap-2 text-base font-extrabold text-text-high">
+                  <Activity className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                  Potensi Wilayah (Sumber Daya)
+                </CardTitle>
+                {canWrite && (
+                  <Link
+                    href={`/dashboard/pos-pelkes/${pos.id_pos}/edit?tab=potensi`}
+                    className="px-2.5 py-1.5 rounded-lg border border-border-subtle bg-surface-sunken hover:bg-surface-elevated text-[10px] font-bold text-brand-primary flex items-center gap-1 transition-all active:scale-95 shadow-xs"
+                  >
+                    <Plus size={10} />
+                    <span>Kelola Potensi</span>
+                  </Link>
+                )}
+              </CardHeader>
+              <CardContent className="p-5">
+                {potensi.length === 0 ? (
+                  <p className="text-xs text-text-muted italic py-2 text-center">Tidak ada potensi wilayah yang terdaftar.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {potensi.map((po) => (
+                      <div key={po.id_potensi} className="p-4 bg-surface-sunken rounded-2xl border border-border-subtle space-y-2">
+                        <div className="flex justify-between items-center flex-wrap gap-2">
+                          <span className="text-[9px] font-black text-emerald-600 uppercase tracking-wider bg-emerald-500/5 px-2 py-0.5 rounded border border-emerald-500/10">
+                            {po.kategori || 'Potensi'}
+                          </span>
+                        </div>
+                        <h4 className="font-extrabold text-sm text-text-high leading-tight">{po.nama_potensi}</h4>
+                        {po.deskripsi && <p className="text-xs text-text-muted leading-relaxed">{po.deskripsi}</p>}
+                        {po.keterangan && <p className="text-xs text-text-muted italic bg-surface-elevated/50 p-2 rounded border border-border-subtle/40">"{po.keterangan}"</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+          </div>
+        </TabsContent>
+
+        {/* TAB 6: LOG PASTORAL */}
         <TabsContent value="log" className="space-y-4 focus-visible:outline-none">
           <div className="flex justify-between items-center gap-3">
             <h2 className="text-base font-black text-text-high">Riwayat Kegiatan Pastoral</h2>

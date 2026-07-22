@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { SearchBar } from '@/components/ui/search-bar';
+import { cleanQuotes } from '@/lib/utils';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { MapPin, Calendar, ArrowRight, Map, Database, Plus, TrendingUp } from 'lucide-react';
@@ -38,9 +39,13 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
   const mupelOptions = useMemo(() => {
     const mupels: Record<string, string> = {};
     initialData.forEach((pos) => {
-      const m = pos.jemaat_induk?.mupel;
+      const jemaatObj = pos.jemaat_induk;
+      const j = Array.isArray(jemaatObj) ? jemaatObj[0] : jemaatObj;
+      const mupelObj = j?.mupel;
+      const m = Array.isArray(mupelObj) ? mupelObj[0] : mupelObj;
+      
       if (m?.id_mupel && m?.nama_mupel) {
-        mupels[m.id_mupel] = m.nama_mupel;
+        mupels[m.id_mupel] = cleanQuotes(m.nama_mupel);
       }
     });
     return Object.entries(mupels)
@@ -52,10 +57,11 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
   const jemaatOptions = useMemo(() => {
     const jemaats: Record<string, string> = {};
     initialData.forEach((pos) => {
-      const j = pos.jemaat_induk;
+      const jemaatObj = pos.jemaat_induk;
+      const j = Array.isArray(jemaatObj) ? jemaatObj[0] : jemaatObj;
       if (j?.id_induk && j?.nama_induk) {
         if (!selectedMupel || j.id_mupel === selectedMupel) {
-          jemaats[j.id_induk] = j.nama_induk;
+          jemaats[j.id_induk] = cleanQuotes(j.nama_induk);
         }
       }
     });
@@ -65,15 +71,26 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
   }, [initialData, selectedMupel]);
 
   const filteredData = useMemo(() => {
-    return initialData.filter((pos) => {
+    const list = initialData.filter((pos) => {
+      const jemaatObj = pos.jemaat_induk;
+      const j = Array.isArray(jemaatObj) ? jemaatObj[0] : jemaatObj;
+      const mupelObj = j?.mupel;
+      const m = Array.isArray(mupelObj) ? mupelObj[0] : mupelObj;
+
       // 1. Search Query Filter (Global Search)
       if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        const matchesName = pos.nama_pos.toLowerCase().includes(query);
-        const matchesId = pos.id_pos.toLowerCase().includes(query);
-        const matchesAddress = pos.alamat ? pos.alamat.toLowerCase().includes(query) : false;
-        const matchesJemaat = pos.jemaat_induk?.nama_induk ? pos.jemaat_induk.nama_induk.toLowerCase().includes(query) : false;
-        const matchesMupel = pos.jemaat_induk?.mupel?.nama_mupel ? pos.jemaat_induk.mupel.nama_mupel.toLowerCase().includes(query) : false;
+        const query = searchQuery.trim().toLowerCase();
+        const matchesName = pos.nama_pos ? cleanQuotes(pos.nama_pos).toLowerCase().includes(query) : false;
+        const matchesId = pos.id_pos ? pos.id_pos.toLowerCase().includes(query) : false;
+        const matchesAddress = pos.alamat ? cleanQuotes(pos.alamat).toLowerCase().includes(query) : false;
+        
+        const jemaatName = j?.nama_induk ? cleanQuotes(j.nama_induk).toLowerCase() : '';
+        const jemaatId = j?.id_induk ? j.id_induk.toLowerCase() : '';
+        const mupelName = m?.nama_mupel ? cleanQuotes(m.nama_mupel).toLowerCase() : '';
+        const mupelId = j?.id_mupel ? j.id_mupel.toLowerCase() : '';
+
+        const matchesJemaat = jemaatName.includes(query) || jemaatId.includes(query);
+        const matchesMupel = mupelName.includes(query) || mupelId.includes(query);
         
         if (!matchesName && !matchesId && !matchesAddress && !matchesJemaat && !matchesMupel) {
           return false;
@@ -82,20 +99,65 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
 
       // 2. Mupel Filter
       if (selectedMupel) {
-        if (pos.jemaat_induk?.id_mupel !== selectedMupel) {
+        if (j?.id_mupel !== selectedMupel) {
           return false;
         }
       }
 
       // 3. Jemaat Filter
       if (selectedJemaat) {
-        if (pos.jemaat_induk?.id_induk !== selectedJemaat) {
+        if (j?.id_induk !== selectedJemaat) {
           return false;
         }
       }
 
       return true;
     });
+
+    // If there is a search query, sort by relevance/score
+    if (searchQuery) {
+      const query = searchQuery.trim().toLowerCase();
+      
+      const getRelevanceScore = (posItem: PosPelkes) => {
+        const jemaatObj = posItem.jemaat_induk;
+        const j = Array.isArray(jemaatObj) ? jemaatObj[0] : jemaatObj;
+        const mupelObj = j?.mupel;
+        const m = Array.isArray(mupelObj) ? mupelObj[0] : mupelObj;
+
+        let score = 0;
+        
+        // Exact name match or starts with name (highest relevance)
+        const name = posItem.nama_pos ? cleanQuotes(posItem.nama_pos).toLowerCase() : '';
+        if (name === query) score += 100;
+        else if (name.startsWith(query)) score += 50;
+        else if (name.includes(query)) score += 20;
+
+        // ID match
+        const id = posItem.id_pos ? posItem.id_pos.toLowerCase() : '';
+        if (id === query) score += 40;
+        else if (id.includes(query)) score += 10;
+
+        // Jemaat match
+        const jName = j?.nama_induk ? cleanQuotes(j.nama_induk).toLowerCase() : '';
+        if (jName === query) score += 8;
+        else if (jName.includes(query)) score += 4;
+
+        // Mupel match
+        const mName = m?.nama_mupel ? cleanQuotes(m.nama_mupel).toLowerCase() : '';
+        if (mName === query) score += 4;
+        else if (mName.includes(query)) score += 2;
+
+        // Address match
+        const address = posItem.alamat ? cleanQuotes(posItem.alamat).toLowerCase() : '';
+        if (address.includes(query)) score += 1;
+
+        return score;
+      };
+
+      return [...list].sort((a, b) => getRelevanceScore(b) - getRelevanceScore(a));
+    }
+
+    return list;
   }, [initialData, searchQuery, selectedMupel, selectedJemaat]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -197,27 +259,36 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
           <>
             {/* Mobile View: Cards (< 768px) */}
             <div className="md:hidden space-y-4">
-              {currentData.map((pos) => (
-                <div
-                  key={pos.id_pos}
-                  className="p-5 bg-surface-elevated rounded-xl shadow-sm border border-gray-100 space-y-3 cursor-pointer hover:border-brand-primary/30 transition-all hover:shadow-soft active:scale-[0.99]"
-                  onClick={(e) => {
-                    if ((e.target as HTMLElement).closest('button, a')) return;
-                    router.push(`/dashboard/pos-pelkes/${pos.id_pos}`);
-                  }}
-                >
-                  <div className="flex justify-between items-start gap-2">
-                    <div>
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-surface-sunken border border-border-subtle text-text-muted block w-max">
-                        {pos.id_pos} • {pos.kategori || 'Pos Pelkes'}
-                      </span>
-                      <h3 className="font-bold text-brand-primary text-base mt-1">{pos.nama_pos}</h3>
-                      {pos.jemaat_induk && (
-                        <div className="text-[10px] font-medium text-text-muted mt-1">
-                          Induk: {pos.jemaat_induk.nama_induk} {pos.jemaat_induk.mupel ? `(Mupel: ${pos.jemaat_induk.mupel.nama_mupel})` : ''}
-                        </div>
-                      )}
-                    </div>
+              {currentData.map((pos) => {
+                const jemaatObj = pos.jemaat_induk;
+                const j = Array.isArray(jemaatObj) ? jemaatObj[0] : jemaatObj;
+                const mupelObj = j?.mupel;
+                const m = Array.isArray(mupelObj) ? mupelObj[0] : mupelObj;
+                const cleanedName = cleanQuotes(pos.nama_pos);
+                const cleanedJemaat = j?.nama_induk ? cleanQuotes(j.nama_induk) : '';
+                const cleanedMupel = m?.nama_mupel ? cleanQuotes(m.nama_mupel) : '';
+
+                return (
+                  <div
+                    key={pos.id_pos}
+                    className="p-5 bg-surface-elevated rounded-xl shadow-sm border border-gray-100 space-y-3 cursor-pointer hover:border-brand-primary/30 transition-all hover:shadow-soft active:scale-[0.99]"
+                    onClick={(e) => {
+                      if ((e.target as HTMLElement).closest('button, a')) return;
+                      router.push(`/dashboard/pos-pelkes/${pos.id_pos}`);
+                    }}
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <div>
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-surface-sunken border border-border-subtle text-text-muted block w-max">
+                          {pos.id_pos} • {pos.kategori || 'Pos Pelkes'}
+                        </span>
+                        <h3 className="font-bold text-brand-primary text-base mt-1">{cleanedName}</h3>
+                        {j && (
+                          <div className="text-[10px] font-medium text-text-muted mt-1">
+                            Induk: {cleanedJemaat} {m ? `(Mupel: ${cleanedMupel})` : ''}
+                          </div>
+                        )}
+                      </div>
 
                     <button
                       type="button"
@@ -252,7 +323,8 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
                     </Link>
                   </div>
                 </div>
-              ))}
+              );
+            })}
             </div>
 
             {/* Desktop View: Table (>= 768px) */}
@@ -276,64 +348,75 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {currentData.map((pos) => (
-                      <tr 
-                        key={pos.id_pos} 
-                        className="hover:bg-blue-50/50 transition-colors cursor-pointer"
-                        onClick={(e) => {
-                          if ((e.target as HTMLElement).closest('button, a')) return;
-                          router.push(`/dashboard/pos-pelkes/${pos.id_pos}`);
-                        }}
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-surface-sunken border border-border-subtle text-text-muted">
-                              {pos.kategori || 'Pos Pelkes'}
-                            </span>
-                            <div className="font-semibold text-brand-primary">{pos.nama_pos}</div>
-                          </div>
-                          <div className="text-xs text-text-muted mt-1 space-x-2">
-                            <span>ID: {pos.id_pos}</span>
-                            {pos.jemaat_induk && (
-                              <>
-                                <span>•</span>
-                                <span className="font-medium text-text-high">Induk: {pos.jemaat_induk.nama_induk}</span>
-                              </>
-                            )}
-                            {pos.jemaat_induk?.mupel && (
-                              <>
-                                <span>•</span>
-                                <span className="text-amber-600 dark:text-amber-400">Mupel: {pos.jemaat_induk.mupel.nama_mupel}</span>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-text-high line-clamp-2">{pos.alamat || '-'}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {pos.tgl_berdiri || '-'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                          <button
-                            type="button"
-                            onClick={(e) => handleOpenElevate(e, pos)}
-                            className="inline-flex items-center text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-md transition-colors text-xs font-bold"
-                            title="Tingkatkan Status"
-                          >
-                            <TrendingUp size={14} className="mr-1" />
-                            Elevasi Status
-                          </button>
+                    {currentData.map((pos) => {
+                      const jemaatObj = pos.jemaat_induk;
+                      const j = Array.isArray(jemaatObj) ? jemaatObj[0] : jemaatObj;
+                      const mupelObj = j?.mupel;
+                      const m = Array.isArray(mupelObj) ? mupelObj[0] : mupelObj;
+                      const cleanedName = cleanQuotes(pos.nama_pos);
+                      const cleanedJemaat = j?.nama_induk ? cleanQuotes(j.nama_induk) : '';
+                      const cleanedMupel = m?.nama_mupel ? cleanQuotes(m.nama_mupel) : '';
+                      const cleanedAddress = pos.alamat ? cleanQuotes(pos.alamat) : '';
 
-                          <Link 
-                            href={`/dashboard/pos-pelkes/${pos.id_pos}`}
-                            className="inline-flex items-center text-brand-primary hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-md transition-colors text-xs font-bold"
-                          >
-                            Detail <ArrowRight size={14} className="ml-1" />
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
+                      return (
+                        <tr 
+                          key={pos.id_pos} 
+                          className="hover:bg-blue-50/50 transition-colors cursor-pointer"
+                          onClick={(e) => {
+                            if ((e.target as HTMLElement).closest('button, a')) return;
+                            router.push(`/dashboard/pos-pelkes/${pos.id_pos}`);
+                          }}
+                        >
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-surface-sunken border border-border-subtle text-text-muted">
+                                {pos.kategori || 'Pos Pelkes'}
+                              </span>
+                              <div className="font-semibold text-brand-primary">{cleanedName}</div>
+                            </div>
+                            <div className="text-xs text-text-muted mt-1 space-x-2">
+                              <span>ID: {pos.id_pos}</span>
+                              {j && (
+                                <>
+                                  <span>•</span>
+                                  <span className="font-medium text-text-high">Induk: {cleanedJemaat}</span>
+                                </>
+                              )}
+                              {m && (
+                                <>
+                                  <span>•</span>
+                                  <span className="text-amber-600 dark:text-amber-400">Mupel: {cleanedMupel}</span>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-text-high line-clamp-2">{cleanedAddress || '-'}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {pos.tgl_berdiri || '-'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                            <button
+                              type="button"
+                              onClick={(e) => handleOpenElevate(e, pos)}
+                              className="inline-flex items-center text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-md transition-colors text-xs font-bold"
+                              title="Tingkatkan Status"
+                            >
+                              <TrendingUp size={14} className="mr-1" />
+                              Elevasi Status
+                            </button>
+
+                            <Link 
+                              href={`/dashboard/pos-pelkes/${pos.id_pos}`}
+                              className="inline-flex items-center text-brand-primary hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-md transition-colors text-xs font-bold"
+                            >
+                              Detail <ArrowRight size={14} className="ml-1" />
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

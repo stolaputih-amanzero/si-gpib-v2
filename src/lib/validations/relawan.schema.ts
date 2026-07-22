@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const KATEGORI_RELAWAN = ['Pemuda', 'Wanita', 'Pria', 'Umum', 'Medis/Kesehatan', 'Pendidikan'] as const;
 
 export const relawanSchema = z.object({
-  id_pos: z.string().min(1, 'Pos Pelkes wajib dipilih'),
+  id_pos: z.string().optional().nullable(),
   nama: z.string().min(3, 'Nama minimal 3 karakter').max(150),
   no_wa: z.string().regex(/^\+62\d{8,13}$/, 'Format No. WA harus diawali +62 (contoh: +6281234567890)'),
   tgl_lahir: z.string().optional().nullable(),

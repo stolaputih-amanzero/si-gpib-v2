@@ -1,18 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useJadwalList, useDeleteJadwal, JadwalItem } from '@/hooks/use-jadwal';
 import { JadwalCard } from '@/components/jadwal/JadwalCard';
 import { JadwalForm } from '@/components/jadwal/JadwalForm';
 import { useToast } from '@/components/ui/toast';
 import { Plus, Search, Calendar } from 'lucide-react';
 
-export default function JadwalPage() {
+function JadwalPageContent() {
+  const searchParams = useSearchParams();
+  const initialPos = searchParams.get('pos') || '';
+  const initialAction = searchParams.get('action') || '';
   const { toast, confirm: confirmModal } = useToast();
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedPos, setSelectedPos] = useState<string>('');
+  const [selectedPos, setSelectedPos] = useState<string>(initialPos);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [editingItem, setEditingItem] = useState<JadwalItem | null>(null);
+
+  useEffect(() => {
+    if (initialAction === 'new') {
+      setEditingItem(null);
+      setShowModal(true);
+    }
+  }, [initialAction]);
 
   const { data: jadwalList, isLoading } = useJadwalList(
     selectedPos || undefined,
@@ -110,7 +121,7 @@ export default function JadwalPage() {
         </h2>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle animate-pulse space-y-3">
                 <div className="h-4 bg-surface-sunken rounded w-3/4"></div>
@@ -119,7 +130,7 @@ export default function JadwalPage() {
             ))}
           </div>
         ) : jadwalList && jadwalList.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             {jadwalList.map((item) => (
               <JadwalCard
                 key={item.id_ibadah}
@@ -130,12 +141,20 @@ export default function JadwalPage() {
             ))}
           </div>
         ) : (
-          <div className="bg-surface-elevated rounded-2xl p-8 text-center border border-border-subtle space-y-2">
+          <div className="bg-surface-elevated rounded-2xl p-8 text-center border border-border-subtle space-y-3 animate-fadeIn">
             <Calendar size={36} className="mx-auto text-text-muted opacity-50" />
             <p className="font-semibold text-text-high text-sm">Belum Ada Jadwal Ibadah Terdaftar</p>
-            <p className="text-xs text-text-muted">
-              Klik tombol "+ Tambah Jadwal" untuk mendaftarkan jadwal ibadah rutin.
+            <p className="text-xs text-text-muted max-w-xs mx-auto">
+              Belum ada jadwal ibadah rutin terdaftar {selectedPos ? `untuk Pos Pelkes ${selectedPos}` : ''}.
             </p>
+            <button
+              type="button"
+              onClick={handleAddNew}
+              className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-brand-primary text-white rounded-xl text-xs font-semibold hover:bg-brand-primary-dark transition-all shadow-soft"
+            >
+              <Plus size={14} />
+              <span>Tambah Jadwal</span>
+            </button>
           </div>
         )}
       </div>
@@ -158,6 +177,7 @@ export default function JadwalPage() {
             </div>
 
             <JadwalForm
+              id_pos={selectedPos || undefined}
               initialData={editingItem}
               onSuccess={() => {
                 setShowModal(false);
@@ -168,5 +188,17 @@ export default function JadwalPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function JadwalPage() {
+  return (
+    <Suspense fallback={
+      <div className="w-full h-48 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div>
+      </div>
+    }>
+      <JadwalPageContent />
+    </Suspense>
   );
 }

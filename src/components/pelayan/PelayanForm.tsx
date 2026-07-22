@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { pelayanSchema, PelayanInput } from '@/lib/validations/pelayan.schema';
 import { useCreatePelayan, useUpdatePelayan, PelayanItem } from '@/hooks/use-pelayan';
-import { Loader2, Save, AlertCircle, Phone } from 'lucide-react';
-import { PosCascadingSelector } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
-import { Controller } from 'react-hook-form';
+import { Loader2, Save, AlertCircle, Phone, Building } from 'lucide-react';
+import { PosCascadingSelector, HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
+import { createClient } from '@/lib/supabase/client';
 
 interface PelayanFormProps {
   id_pos?: string;
@@ -17,6 +17,13 @@ interface PelayanFormProps {
 
 export function PelayanForm({ id_pos = 'POS-001', initialData, onSuccess }: PelayanFormProps) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [targetScope, setTargetScope] = useState<'pos' | 'jemaat'>(
+    initialData?.id_pos && initialData.id_pos !== 'POS-001' ? 'pos' : (id_pos && id_pos !== 'POS-001' ? 'pos' : 'jemaat')
+  );
+  const [hierarchyMeta, setHierarchyMeta] = useState<HierarchyMetaInfo | null>(null);
+  const [currentPosId, setCurrentPosId] = useState<string>(
+    initialData?.id_pos || (id_pos === 'POS-001' ? '' : id_pos)
+  );
 
   const createMutation = useCreatePelayan();
   const updateMutation = useUpdatePelayan();
@@ -24,12 +31,12 @@ export function PelayanForm({ id_pos = 'POS-001', initialData, onSuccess }: Pela
   const {
     register,
     handleSubmit,
-    control,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<PelayanInput>({
     resolver: zodResolver(pelayanSchema),
     defaultValues: {
-      id_pos: initialData?.id_pos || id_pos,
+      id_pos: currentPosId || undefined,
       nama: initialData?.nama || '',
       no_wa: initialData?.no_wa || '+628',
       jabatan: initialData?.jabatan || 'Ketua Pengurus Pos',
@@ -40,13 +47,64 @@ export function PelayanForm({ id_pos = 'POS-001', initialData, onSuccess }: Pela
     },
   });
 
+  // Sync currentPosId with react-hook-form value
+  useEffect(() => {
+    setValue('id_pos', currentPosId);
+  }, [currentPosId, setValue]);
+
   const onSubmit = async (data: PelayanInput) => {
     setErrorMsg(null);
     try {
-      if (initialData) {
-        await updateMutation.mutateAsync({ id_pelayan: initialData.id_pelayan, input: data });
+      const supabase = createClient();
+      let finalPosId = currentPosId;
+
+      if (targetScope === 'pos') {
+        if (!finalPosId || finalPosId === 'POS-001' || finalPosId.trim() === '') {
+          setErrorMsg('Pos Pelkes wajib dipilih.');
+          return;
+        }
       } else {
-        await createMutation.mutateAsync(data);
+        // Target scope: Jemaat Induk
+        const jemaatId = hierarchyMeta?.id_induk;
+        if (!jemaatId) {
+          setErrorMsg('Jemaat Induk wajib dipilih.');
+          return;
+        }
+
+        // Find or create dummy Pos for the Jemaat Induk
+        const { data: posRows } = await supabase
+          .from('m_pos_pelkes')
+          .select('id_pos')
+          .eq('id_induk', jemaatId)
+          .limit(1);
+
+        if (posRows && posRows[0]) {
+          finalPosId = posRows[0].id_pos;
+        } else {
+          const jemaatNama = hierarchyMeta?.jemaatName || jemaatId;
+          const createdPosId = `POS-${Math.floor(10000 + Math.random() * 90000)}`;
+          const { error: insErr } = await supabase.from('m_pos_pelkes').insert({
+            id_pos: createdPosId,
+            id_induk: jemaatId,
+            nama_pos: `Jemaat ${jemaatNama}`,
+            kategori: 'Pos Pelkes',
+          });
+          if (insErr) {
+            throw new Error(insErr.message);
+          }
+          finalPosId = createdPosId;
+        }
+      }
+
+      const payload = {
+        ...data,
+        id_pos: finalPosId,
+      };
+
+      if (initialData) {
+        await updateMutation.mutateAsync({ id_pelayan: initialData.id_pelayan, input: payload });
+      } else {
+        await createMutation.mutateAsync(payload);
       }
 
       if (typeof window !== 'undefined' && 'vibrate' in navigator) {
@@ -71,20 +129,60 @@ export function PelayanForm({ id_pos = 'POS-001', initialData, onSuccess }: Pela
         </div>
       )}
 
+      {/* Target Scope Selector */}
+      <div className="space-y-1.5">
+        <label className="text-xs font-semibold text-text-high">Target Lingkup Pelayan *</label>
+        <div className="grid grid-cols-2 gap-2 bg-surface-sunken p-1 rounded-xl">
+          <button
+            type="button"
+            onClick={() => {
+              setTargetScope('jemaat');
+              setCurrentPosId('');
+            }}
+            className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+              targetScope === 'jemaat'
+                ? 'bg-surface-elevated text-brand-primary shadow-soft'
+                : 'text-text-muted hover:text-text-high'
+            }`}
+          >
+            <span>⛪ Jemaat Induk</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setTargetScope('pos')}
+            className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+              targetScope === 'pos'
+                ? 'bg-surface-elevated text-brand-primary shadow-soft'
+                : 'text-text-muted hover:text-text-high'
+            }`}
+          >
+            <span>📍 Pos Pelkes / Bajem</span>
+          </button>
+        </div>
+      </div>
+
       {/* ID Pos Input */}
       <div className="space-y-1.5 w-full">
-        <Controller
-          name="id_pos"
-          control={control}
-          render={({ field }) => (
-            <PosCascadingSelector
-              value={field.value}
-              onChange={field.onChange}
-              error={errors.id_pos?.message}
-              defaultPosId={initialData?.id_pos || id_pos}
-              disabled={isSubmitting}
-            />
-          )}
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-xs font-bold text-text-high uppercase tracking-wider flex items-center gap-1.5">
+            <Building size={14} className="text-brand-primary" />
+            <span>Pilih Wilayah Lokasi Pelayan *</span>
+          </h2>
+          <span className="text-[11px] font-semibold text-text-muted">
+            {targetScope === 'jemaat'
+              ? 'Pos Pelkes Opsional (Level Jemaat)'
+              : 'Pos Pelkes Wajib (Compulsory)'}
+          </span>
+        </div>
+
+        <PosCascadingSelector
+          value={currentPosId}
+          onChange={setCurrentPosId}
+          onMetaChange={setHierarchyMeta}
+          onJemaatChange={() => setCurrentPosId('')}
+          defaultPosId={initialData?.id_pos || id_pos}
+          required={targetScope === 'pos'}
+          hidePos={targetScope === 'jemaat'}
         />
       </div>
 
