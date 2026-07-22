@@ -11,6 +11,7 @@ export const pelayanSchema = z.object({
   }),
   status: z.enum(['Aktif', 'Nonaktif']),
   keterangan: z.string().max(500, 'Maksimal 500 karakter').optional().nullable(),
+  foto_url: z.string().optional().nullable(),
 });
 
 export type PelayanInput = z.infer<typeof pelayanSchema>;

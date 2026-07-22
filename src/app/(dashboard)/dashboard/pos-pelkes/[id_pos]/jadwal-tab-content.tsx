@@ -5,7 +5,7 @@ import { useJadwalList, useDeleteJadwal, JadwalItem } from '@/hooks/use-jadwal';
 import { JadwalCard } from '@/components/jadwal/JadwalCard';
 import { JadwalForm } from '@/components/jadwal/JadwalForm';
 import { useToast } from '@/components/ui/toast';
-import { Plus, Calendar, Loader2, Share2 } from 'lucide-react';
+import { Plus, Calendar, Loader2, Share2, X } from 'lucide-react';
 
 interface JadwalTabContentProps {
   id_pos: string;
@@ -115,9 +115,9 @@ export function JadwalTabContent({ id_pos, canWrite }: JadwalTabContentProps) {
             <button
               type="button"
               onClick={handleShareAllWhatsApp}
-              className="px-2.5 py-1.5 rounded-lg border border-emerald-600/20 bg-emerald-500/5 hover:bg-emerald-500/10 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 transition-all active:scale-95 shadow-xs"
+              className="px-3.5 py-2 rounded-xl border border-emerald-600/20 bg-emerald-500/10 hover:bg-emerald-500/20 text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5 transition-all active:scale-95 shadow-xs min-h-[36px]"
             >
-              <Share2 size={10} className="shrink-0" />
+              <Share2 size={14} className="shrink-0" />
               <span>Share WA</span>
             </button>
           )}
@@ -125,9 +125,9 @@ export function JadwalTabContent({ id_pos, canWrite }: JadwalTabContentProps) {
             <button
               type="button"
               onClick={handleAddNew}
-              className="px-2.5 py-1.5 rounded-lg border border-border-subtle bg-surface-sunken hover:bg-surface-elevated text-[10px] font-bold text-brand-primary flex items-center gap-1 transition-all active:scale-95 shadow-xs"
+              className="px-3.5 py-2 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-blue-800 transition-all flex items-center gap-1.5 shadow-sm min-h-[36px]"
             >
-              <Plus size={10} />
+              <Plus size={14} />
               <span>Tambah Jadwal</span>
             </button>
           )}
@@ -169,7 +169,7 @@ export function JadwalTabContent({ id_pos, canWrite }: JadwalTabContentProps) {
               className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-brand-primary text-white rounded-xl text-xs font-semibold hover:bg-brand-primary-dark transition-all shadow-soft active:scale-95"
             >
               <Plus size={14} />
-              <span>+ Jadwal</span>
+              <span>Tambah Jadwal</span>
             </button>
           )}
         </div>
@@ -188,29 +188,31 @@ export function JadwalTabContent({ id_pos, canWrite }: JadwalTabContentProps) {
 
       {/* Modal Form */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-surface-elevated w-full max-w-lg rounded-t-3xl sm:rounded-2xl p-5 border border-border-subtle shadow-heavy max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
-            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
-              <h2 className="text-base font-serif font-bold text-brand-primary">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-surface-elevated w-full max-w-xl rounded-2xl border border-border-subtle shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-border-subtle flex items-center justify-between bg-surface-sunken/40">
+              <h3 className="font-serif font-bold text-text-high text-lg">
                 {editingItem ? 'Edit Jadwal Ibadah' : 'Input Jadwal Ibadah Baru'}
-              </h2>
+              </h3>
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="w-9 h-9 rounded-full bg-surface-sunken flex items-center justify-center text-text-muted hover:text-text-high min-h-[44px] min-w-[44px]"
+                className="w-9 h-9 rounded-xl bg-surface-sunken hover:bg-gray-200 dark:hover:bg-gray-800 text-text-muted flex items-center justify-center transition-colors"
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
 
-            <JadwalForm
-              id_pos={id_pos}
-              initialData={editingItem}
-              onSuccess={() => {
-                setShowModal(false);
-                toast.success('Berhasil Disimpan', 'Jadwal ibadah telah diperbarui.');
-              }}
-            />
+            <div className="p-4 sm:p-6 overflow-y-auto">
+              <JadwalForm
+                id_pos={id_pos}
+                initialData={editingItem}
+                onSuccess={() => {
+                  setShowModal(false);
+                  toast.success('Berhasil Disimpan', 'Jadwal ibadah telah diperbarui.');
+                }}
+              />
+            </div>
           </div>
         </div>
       )}

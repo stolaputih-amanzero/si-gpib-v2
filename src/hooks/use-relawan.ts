@@ -12,6 +12,7 @@ export interface RelawanItem {
   kategori: string;
   pelatihan?: string | null;
   keterangan?: string | null;
+  foto_url?: string | null;
   created_at?: string;
   updated_at?: string;
   pos?: {

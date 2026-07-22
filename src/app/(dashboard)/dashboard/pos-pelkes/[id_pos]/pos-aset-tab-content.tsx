@@ -13,7 +13,6 @@ import {
   Plus, Search, Box, X, MapPin, Building, 
   FileText, Share2, Clock, UserCheck, Edit2, Trash2, ExternalLink 
 } from 'lucide-react';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 
 interface PosAsetTabContentProps {
@@ -137,13 +136,14 @@ export function PosAsetTabContent({ id_pos, canWrite }: PosAsetTabContentProps) 
         </div>
 
         {canWrite && (
-          <Link
-            href={`/dashboard/aset/baru?id_pos=${id_pos}`}
-            className="px-3 py-2 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-blue-800 transition-all flex items-center gap-1.5 shadow-sm min-h-[36px]"
+          <button
+            type="button"
+            onClick={() => setSelectedEdit({ id: '', id_pos, kategori: 'TANAH', judul: '', subjudul: '', kondisi: '', tahun: new Date().getFullYear(), lampiran_count: 0, raw: null })}
+            className="px-3.5 py-2 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-blue-800 transition-all flex items-center gap-1.5 shadow-sm min-h-[36px]"
           >
             <Plus size={14} />
-            <span>Kelola & Tambah Aset</span>
-          </Link>
+            <span>Tambah Aset</span>
+          </button>
         )}
       </div>
 
@@ -202,13 +202,14 @@ export function PosAsetTabContent({ id_pos, canWrite }: PosAsetTabContentProps) 
           </p>
           {canWrite && !searchQuery && (
             <div className="pt-1">
-              <Link
-                href={`/dashboard/aset/baru?id_pos=${id_pos}`}
+              <button
+                type="button"
+                onClick={() => setSelectedEdit({ id: '', id_pos, kategori: 'TANAH', judul: '', subjudul: '', kondisi: '', tahun: new Date().getFullYear(), lampiran_count: 0, raw: null })}
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-primary text-white rounded-xl text-xs font-semibold hover:bg-blue-800 transition-all shadow-soft active:scale-95"
               >
                 <Plus size={14} />
-                <span>+ Tambah Aset Pertama</span>
-              </Link>
+                <span>Tambah Aset Pertama</span>
+              </button>
             </div>
           )}
         </div>
@@ -601,32 +602,34 @@ export function PosAsetTabContent({ id_pos, canWrite }: PosAsetTabContentProps) 
         </div>
       )}
 
-      {/* Modal Edit Aset */}
+      {/* Modal Edit / Tambah Aset */}
       {selectedEdit && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-surface-elevated w-full max-w-2xl rounded-t-3xl sm:rounded-2xl p-5 border border-border-subtle shadow-heavy max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
-            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
-              <h3 className="text-base font-serif font-bold text-brand-primary">
-                Edit Data Aset ({selectedEdit.kategori})
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-surface-elevated w-full max-w-2xl rounded-2xl border border-border-subtle shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-border-subtle flex items-center justify-between bg-surface-sunken/40">
+              <h3 className="font-serif font-bold text-text-high text-lg">
+                {selectedEdit.id ? `Edit Data Aset (${selectedEdit.kategori})` : 'Input Data Aset Baru'}
               </h3>
               <button
                 type="button"
                 onClick={() => setSelectedEdit(null)}
-                className="w-9 h-9 rounded-full bg-surface-sunken flex items-center justify-center text-text-muted hover:text-text-high min-h-[44px] min-w-[44px]"
+                className="w-9 h-9 rounded-xl bg-surface-sunken hover:bg-gray-200 dark:hover:bg-gray-800 text-text-muted flex items-center justify-center transition-colors"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <AsetForm
-              id_pos={id_pos}
-              defaultKategori={selectedEdit.kategori}
-              initialData={selectedEdit.raw || selectedEdit}
-              showHierarchySelector={false}
-              onSuccess={() => {
-                setSelectedEdit(null);
-              }}
-            />
+            <div className="p-4 sm:p-6 overflow-y-auto">
+              <AsetForm
+                id_pos={id_pos}
+                defaultKategori={selectedEdit.kategori || 'TANAH'}
+                initialData={selectedEdit.id ? (selectedEdit.raw || selectedEdit) : undefined}
+                showHierarchySelector={true}
+                onSuccess={() => {
+                  setSelectedEdit(null);
+                }}
+              />
+            </div>
           </div>
         </div>
       )}

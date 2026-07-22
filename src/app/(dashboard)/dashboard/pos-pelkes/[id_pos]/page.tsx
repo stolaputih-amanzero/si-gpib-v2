@@ -11,21 +11,20 @@ import {
   AlertCircle, 
   Compass, 
   Activity,
-  ExternalLink,
-  Edit3,
-  Plus
+  ExternalLink
 } from 'lucide-react';
 import PosProfileHeroWrapper from './pos-profile-hero-wrapper';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import PosThumbnailMapWrapper from '@/components/maps/PosThumbnailMapWrapper';
-import AssignPjButton from './assign-pj-button';
 import { JadwalTabContent } from './jadwal-tab-content';
 import { DemografiTabContent } from '@/components/demografi/DemografiTabContent';
 import { PosAsetTabContent } from './pos-aset-tab-content';
+import { LogPastoralTabContent } from './log-pastoral-tab-content';
+import { AnalisisWilayahTabContent } from './analisis-wilayah-tab-content';
+import { PendetaPelayanTabContent } from './pendeta-pelayan-tab-content';
 
 // --- Types ---
 interface PosDetail {
@@ -79,6 +78,7 @@ interface PJDetail {
   no_wa: string | null;
   status_tugas: string;
   tgl_mulai: string;
+  foto_url?: string | null;
 }
 
 interface Pelayan {
@@ -88,6 +88,7 @@ interface Pelayan {
   jabatan: string | null;
   status: string;
   keterangan: string | null;
+  foto_url?: string | null;
 }
 
 interface Relawan {
@@ -99,6 +100,7 @@ interface Relawan {
   kategori: string | null;
   pelatihan: string | null;
   keterangan: string | null;
+  foto_url?: string | null;
 }
 
 interface Kerawanan {
@@ -124,7 +126,7 @@ async function getRelawan(id_pos: string): Promise<Relawan[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from('t_relawan')
-    .select('id_relawan, nama, no_wa, tgl_lahir, gender, kategori, pelatihan, keterangan')
+    .select('id_relawan, nama, no_wa, tgl_lahir, gender, kategori, pelatihan, keterangan, foto_url')
     .eq('id_pos', id_pos);
   return (data as Relawan[]) || [];
 }
@@ -192,7 +194,7 @@ async function getPJDetail(id_pos: string): Promise<PJDetail | null> {
     .from('t_penugasan_pendeta')
     .select(`
       tgl_mulai, status_tugas,
-      pendeta:m_pendeta(id_pendeta, nama_lengkap, no_wa)
+      pendeta:m_pendeta(id_pendeta, nama_lengkap, no_wa, foto_url)
     `)
     .eq('id_pos', id_pos)
     .eq('status_tugas', 'Aktif')
@@ -206,7 +208,8 @@ async function getPJDetail(id_pos: string): Promise<PJDetail | null> {
     nama_lengkap: d.pendeta.nama_lengkap,
     no_wa: d.pendeta.no_wa,
     status_tugas: d.status_tugas,
-    tgl_mulai: d.tgl_mulai
+    tgl_mulai: d.tgl_mulai,
+    foto_url: d.pendeta.foto_url
   };
 }
 
@@ -233,7 +236,7 @@ async function getPelayan(id_pos: string): Promise<Pelayan[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from('t_pelayan')
-    .select('id_pelayan, nama, no_wa, jabatan, status, keterangan')
+    .select('id_pelayan, nama, no_wa, jabatan, status, keterangan, foto_url')
     .eq('id_pos', id_pos)
     .eq('status', 'Aktif');
   
@@ -614,7 +617,7 @@ export default async function PosPelkesDetailPage({
         </TabsContent>
 
         {/* TAB: JADWAL IBADAH */}
-        <TabsContent value="jadwal" className="space-y-4 focus-visible:outline-none">
+        <TabsContent value="jadwal" className="space-y-4 focus-visible:outline-none transition-all duration-300 ease-in-out data-[state=inactive]:hidden data-[state=active]:animate-fadeIn">
           <Card className="border-border-subtle shadow-soft">
             <CardContent className="p-5">
               <JadwalTabContent id_pos={pos.id_pos} canWrite={canWrite} />
@@ -623,212 +626,20 @@ export default async function PosPelkesDetailPage({
         </TabsContent>
 
         {/* TAB 2: PENDETA & PELAYAN */}
-        <TabsContent value="pendeta" className="space-y-6 focus-visible:outline-none">
-          {/* Pendeta Section */}
-          <Card className="border-border-subtle shadow-soft">
-            <CardHeader className="pb-3 border-b border-border-subtle flex flex-row items-center justify-between flex-wrap gap-2">
-              <CardTitle className="flex items-center gap-2 text-base font-extrabold text-text-high">
-                <User className="w-5 h-5 text-brand-primary" />
-                Pendeta Jemaat
-              </CardTitle>
-              {canWrite && <AssignPjButton id_induk={pos.id_induk} nama_induk={pos.jemaat_induk?.nama_induk || ''} />}
-            </CardHeader>
-            <CardContent className="p-5">
-              {pj ? (
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-surface-sunken border border-border-subtle rounded-xl">
-                  <Link
-                    href={`/pendeta/${pj.id_pendeta}`}
-                    className="flex items-center gap-3 group hover:opacity-90 transition-opacity"
-                  >
-                    <div className="w-12 h-12 rounded-xl bg-brand-primary text-white flex items-center justify-center font-black text-xl shrink-0 group-hover:scale-105 transition-transform shadow-xs">
-                      {pj.nama_lengkap.charAt(0)}
-                    </div>
-                    <div>
-                      <h4 className="font-extrabold text-base text-text-high leading-tight group-hover:text-brand-primary group-hover:underline flex items-center gap-1.5">
-                        <span>{pj.nama_lengkap}</span>
-                        <ExternalLink size={15} className="text-brand-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </h4>
-                      <span className="text-xs font-semibold text-text-muted mt-1 inline-block">
-                        Aktif sejak: {new Date(pj.tgl_mulai).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                      </span>
-                    </div>
-                  </Link>
-                  {pj.no_wa && (
-                    <a
-                      href={`https://wa.me/${pj.no_wa.replace(/[^0-9]/g, '')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="min-h-[40px] px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center gap-2 transition-colors shadow-xs w-full sm:w-auto justify-center"
-                    >
-                      <Phone size={14} />
-                      <span>Chat via WhatsApp ({pj.no_wa})</span>
-                    </a>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-8 bg-surface-sunken/40 border border-dashed border-border-subtle rounded-xl text-text-muted space-y-1">
-                  <User size={32} className="mx-auto text-text-muted/40" />
-                  <p className="text-sm font-bold">Belum ada PJ Ditugaskan</p>
-                  <p className="text-xs max-w-sm mx-auto px-4">
-                    Tidak ada Pendeta Jemaat khusus yang ditempatkan secara terdaftar. Tugas pastoral dilayani di bawah naungan KMJ Jemaat Induk.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Pelayan/Relawan Section */}
-          <Card className="border-border-subtle shadow-soft">
-            <CardHeader className="pb-3 border-b border-border-subtle flex flex-row items-center justify-between flex-wrap gap-2">
-              <CardTitle className="flex items-center gap-2 text-base font-extrabold text-text-high">
-                <Users className="w-5 h-5 text-brand-primary" />
-                Majelis & Pelayan Jemaat
-              </CardTitle>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="font-bold text-xs bg-surface-sunken">
-                  {pelayan.length} Aktif
-                </Badge>
-                <Link
-                  href={`/sdm/pelayan?id_pos=${pos.id_pos}`}
-                  className="px-2.5 py-1.5 rounded-lg border border-border-subtle bg-surface-sunken hover:bg-surface-elevated text-[10px] font-bold text-brand-primary flex items-center gap-1 transition-all active:scale-95"
-                >
-                  <Edit3 size={10} />
-                  <span>{canWrite ? 'Kelola Pelayan' : 'Lihat Pelayan'}</span>
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent className="p-5">
-              {pelayan.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {pelayan.map((p) => (
-                    <div 
-                      key={p.id_pelayan} 
-                      className="p-4 border border-border-subtle rounded-xl bg-surface-sunken hover:border-brand-primary/30 transition-all space-y-3"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <h4 className="font-extrabold text-sm text-text-high">{p.nama}</h4>
-                          <p className="text-xs font-semibold text-brand-primary mt-0.5">{p.jabatan || 'Pelayan'}</p>
-                        </div>
-                        <Badge variant="secondary" className="text-[10px] font-bold">
-                          {p.status}
-                        </Badge>
-                      </div>
-                      {p.keterangan && (
-                        <p className="text-xs text-text-muted line-clamp-2 italic bg-surface-elevated/50 p-2 rounded border border-border-subtle/40">
-                          "{p.keterangan}"
-                        </p>
-                      )}
-                      {p.no_wa && (
-                        <a
-                          href={`https://wa.me/${p.no_wa.replace(/[^0-9]/g, '')}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="min-h-[32px] inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
-                        >
-                          <Phone size={12} />
-                          <span>Hubungi WA ({p.no_wa})</span>
-                        </a>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-10 bg-surface-sunken/40 border border-dashed border-border-subtle rounded-xl text-text-muted space-y-1">
-                  <Users size={32} className="mx-auto text-text-muted/40" />
-                  <p className="text-sm font-bold">Tidak ada Data Pelayan</p>
-                  <p className="text-xs">Belum ada majelis jemaat atau penatua/diaken terdaftar untuk pos ini.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Relawan/Volunteer Section */}
-          <Card className="border-border-subtle shadow-soft">
-            <CardHeader className="pb-3 border-b border-border-subtle flex flex-row items-center justify-between flex-wrap gap-2">
-              <CardTitle className="flex items-center gap-2 text-base font-extrabold text-text-high">
-                <Users className="w-5 h-5 text-brand-primary" />
-                Relawan & Volunteer
-              </CardTitle>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="font-bold text-xs bg-surface-sunken">
-                  {relawan.length} Terdaftar
-                </Badge>
-                {canWrite && (
-                  <Link
-                    href={`/dashboard/pos-pelkes/${pos.id_pos}/edit?tab=relawan`}
-                    className="px-2.5 py-1.5 rounded-lg border border-border-subtle bg-surface-sunken hover:bg-surface-elevated text-[10px] font-bold text-brand-primary flex items-center gap-1 transition-all active:scale-95 shadow-xs"
-                  >
-                    <Plus size={10} />
-                    <span>Kelola Relawan</span>
-                  </Link>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="p-5">
-              {relawan.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {relawan.map((r) => (
-                    <div 
-                      key={r.id_relawan} 
-                      className="p-4 border border-border-subtle rounded-xl bg-surface-sunken hover:border-brand-primary/30 transition-all space-y-3"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <h4 className="font-extrabold text-sm text-text-high">{r.nama}</h4>
-                          <div className="flex flex-wrap gap-1.5 mt-1">
-                            <span className="text-[9px] font-black text-brand-primary uppercase tracking-wider bg-brand-primary/5 px-2 py-0.5 rounded border border-brand-primary/10">
-                              {r.kategori || 'Relawan'}
-                            </span>
-                            {r.gender && (
-                              <span className="text-[9px] font-bold text-text-muted px-2 py-0.5 rounded bg-surface-elevated border border-border-subtle">
-                                {r.gender === 'L' ? 'Laki-laki' : r.gender === 'P' ? 'Perempuan' : r.gender}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {r.pelatihan && (
-                        <div className="text-[11px] text-text-muted bg-surface-elevated p-2 rounded-lg border border-border-subtle/50">
-                          <span className="font-bold text-text-high block text-[9px] uppercase tracking-wider mb-0.5">Pelatihan:</span>
-                          {r.pelatihan}
-                        </div>
-                      )}
-
-                      {r.keterangan && (
-                        <p className="text-xs text-text-muted italic bg-surface-elevated/50 p-2 rounded border border-border-subtle/40">
-                          "{r.keterangan}"
-                        </p>
-                      )}
-
-                      {r.no_wa && (
-                        <a
-                          href={`https://wa.me/${r.no_wa.replace(/[^0-9]/g, '')}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="min-h-[32px] inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
-                        >
-                          <Phone size={12} />
-                          <span>Hubungi WA ({r.no_wa})</span>
-                        </a>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-10 bg-surface-sunken/40 border border-dashed border-border-subtle rounded-xl text-text-muted space-y-1">
-                  <Users size={32} className="mx-auto text-text-muted/40" />
-                  <p className="text-sm font-bold">Tidak ada Data Relawan</p>
-                  <p className="text-xs">Belum ada relawan atau volunteer terdaftar untuk pos ini.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+        <TabsContent value="pendeta" className="space-y-6 focus-visible:outline-none transition-all duration-300 ease-in-out data-[state=inactive]:hidden data-[state=active]:animate-fadeIn">
+          <PendetaPelayanTabContent
+            id_pos={pos.id_pos}
+            id_induk={pos.id_induk}
+            nama_induk={pos.jemaat_induk?.nama_induk || ''}
+            pj={pj}
+            pelayan={pelayan}
+            relawan={relawan}
+            canWrite={canWrite}
+          />
         </TabsContent>
 
         {/* TAB 3: DEMOGRAFI */}
-        <TabsContent value="demografi" className="space-y-4 focus-visible:outline-none">
+        <TabsContent value="demografi" className="space-y-4 focus-visible:outline-none transition-all duration-300 ease-in-out data-[state=inactive]:hidden data-[state=active]:animate-fadeIn">
           <Card className="border-border-subtle shadow-soft">
             <CardContent className="p-5">
               <DemografiTabContent id_pos={pos.id_pos} canWrite={canWrite} />
@@ -837,7 +648,7 @@ export default async function PosPelkesDetailPage({
         </TabsContent>
 
         {/* TAB 4: ASET */}
-        <TabsContent value="aset" className="space-y-6 focus-visible:outline-none">
+        <TabsContent value="aset" className="space-y-6 focus-visible:outline-none transition-all duration-300 ease-in-out data-[state=inactive]:hidden data-[state=active]:animate-fadeIn">
           <Card className="border-border-subtle shadow-soft">
             <CardContent className="p-5">
               <PosAsetTabContent id_pos={pos.id_pos} canWrite={canWrite} />
@@ -846,155 +657,18 @@ export default async function PosPelkesDetailPage({
         </TabsContent>
 
         {/* TAB 5: ANALISIS WILAYAH (KERAWANAN & POTENSI) */}
-        <TabsContent value="wilayah" className="space-y-6 focus-visible:outline-none">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
-            {/* Kerawanan Wilayah Card */}
-            <Card className="border-border-subtle shadow-soft">
-              <CardHeader className="pb-3 border-b border-border-subtle flex flex-row items-center justify-between flex-wrap gap-2">
-                <CardTitle className="flex items-center gap-2 text-base font-extrabold text-text-high">
-                  <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
-                  Kerawanan Wilayah (Risiko)
-                </CardTitle>
-                {canWrite && (
-                  <Link
-                    href={`/dashboard/pos-pelkes/${pos.id_pos}/edit?tab=kerawanan`}
-                    className="px-2.5 py-1.5 rounded-lg border border-border-subtle bg-surface-sunken hover:bg-surface-elevated text-[10px] font-bold text-brand-primary flex items-center gap-1 transition-all active:scale-95 shadow-xs"
-                  >
-                    <Plus size={10} />
-                    <span>Kelola Risiko</span>
-                  </Link>
-                )}
-              </CardHeader>
-              <CardContent className="p-5">
-                {kerawanan.length === 0 ? (
-                  <p className="text-xs text-text-muted italic py-2 text-center">Tidak ada risiko kerawanan yang terdaftar.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {kerawanan.map((k) => (
-                      <div key={k.id_risiko} className="p-4 bg-surface-sunken rounded-2xl border border-border-subtle space-y-2">
-                        <div className="flex justify-between items-center flex-wrap gap-2">
-                          <span className="text-[9px] font-black text-red-600 uppercase tracking-wider bg-red-500/5 px-2 py-0.5 rounded border border-red-500/10">
-                            {k.kategori || 'Kerawanan'}
-                          </span>
-                          {k.frekuensi && (
-                            <span className="text-[10px] font-bold text-text-muted italic">
-                              Frekuensi: {k.frekuensi}
-                            </span>
-                          )}
-                        </div>
-                        <h4 className="font-extrabold text-sm text-text-high leading-tight">{k.jenis_risiko}</h4>
-                        {k.keterangan && <p className="text-xs text-text-muted leading-relaxed italic bg-surface-elevated/50 p-2 rounded border border-border-subtle/40">"{k.keterangan}"</p>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Potensi Wilayah Card */}
-            <Card className="border-border-subtle shadow-soft">
-              <CardHeader className="pb-3 border-b border-border-subtle flex flex-row items-center justify-between flex-wrap gap-2">
-                <CardTitle className="flex items-center gap-2 text-base font-extrabold text-text-high">
-                  <Activity className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                  Potensi Wilayah (Sumber Daya)
-                </CardTitle>
-                {canWrite && (
-                  <Link
-                    href={`/dashboard/pos-pelkes/${pos.id_pos}/edit?tab=potensi`}
-                    className="px-2.5 py-1.5 rounded-lg border border-border-subtle bg-surface-sunken hover:bg-surface-elevated text-[10px] font-bold text-brand-primary flex items-center gap-1 transition-all active:scale-95 shadow-xs"
-                  >
-                    <Plus size={10} />
-                    <span>Kelola Potensi</span>
-                  </Link>
-                )}
-              </CardHeader>
-              <CardContent className="p-5">
-                {potensi.length === 0 ? (
-                  <p className="text-xs text-text-muted italic py-2 text-center">Tidak ada potensi wilayah yang terdaftar.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {potensi.map((po) => (
-                      <div key={po.id_potensi} className="p-4 bg-surface-sunken rounded-2xl border border-border-subtle space-y-2">
-                        <div className="flex justify-between items-center flex-wrap gap-2">
-                          <span className="text-[9px] font-black text-emerald-600 uppercase tracking-wider bg-emerald-500/5 px-2 py-0.5 rounded border border-emerald-500/10">
-                            {po.kategori || 'Potensi'}
-                          </span>
-                        </div>
-                        <h4 className="font-extrabold text-sm text-text-high leading-tight">{po.nama_potensi}</h4>
-                        {po.deskripsi && <p className="text-xs text-text-muted leading-relaxed">{po.deskripsi}</p>}
-                        {po.keterangan && <p className="text-xs text-text-muted italic bg-surface-elevated/50 p-2 rounded border border-border-subtle/40">"{po.keterangan}"</p>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-          </div>
+        <TabsContent value="wilayah" className="space-y-6 focus-visible:outline-none transition-all duration-300 ease-in-out data-[state=inactive]:hidden data-[state=active]:animate-fadeIn">
+          <AnalisisWilayahTabContent
+            id_pos={pos.id_pos}
+            initialKerawanan={kerawanan}
+            initialPotensi={potensi}
+            canWrite={canWrite}
+          />
         </TabsContent>
 
         {/* TAB 6: LOG PASTORAL */}
-        <TabsContent value="log" className="space-y-4 focus-visible:outline-none">
-          <div className="flex justify-between items-center gap-3">
-            <h2 className="text-base font-black text-text-high">Riwayat Kegiatan Pastoral</h2>
-            {canWrite && (
-              <Link
-                href={`/dashboard/pastoral/baru?id_pos=${pos.id_pos}`}
-                className="px-3 py-2 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-blue-800 transition-all flex items-center gap-1.5 shadow-sm min-h-[36px]"
-              >
-                <Plus size={14} />
-                <span>Tambah Log Pastoral</span>
-              </Link>
-            )}
-          </div>
-          
-          <Card className="border-border-subtle shadow-soft">
-            <CardHeader className="pb-3 border-b border-border-subtle">
-              <CardTitle className="flex items-center gap-2 text-base font-extrabold text-text-high">
-                <Activity className="w-5 h-5 text-brand-primary" />
-                Daftar Kegiatan Pelayanan
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-5">
-              {logs.length === 0 ? (
-                <div className="text-center py-12 text-text-muted space-y-1">
-                  <Activity size={36} className="mx-auto text-text-muted/40" />
-                  <p className="text-sm font-bold">Belum ada Log Pastoral</p>
-                  <p className="text-xs">Catatan kunjungan pastoral belum terekam di sistem.</p>
-                </div>
-              ) : (
-                <div className="relative border-l-2 border-border-strong ml-4 space-y-6 py-2">
-                  {logs.map((log) => (
-                    <div key={log.id_log} className="relative pl-6">
-                      {/* Timeline Circle */}
-                      <div className="absolute -left-[7px] top-1.5 w-3.5 h-3.5 rounded-full bg-brand-primary border-4 border-surface-base" />
-                      
-                      <div className="space-y-1.5">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                          <h4 className="font-extrabold text-sm text-text-high">{log.kegiatan}</h4>
-                          <span className="text-[10px] font-bold text-text-muted tracking-wider uppercase shrink-0">
-                            {new Date(log.tgl).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                          </span>
-                        </div>
-                        
-                        <p className="text-xs text-text-muted">
-                          Dilayani oleh: <span className="font-semibold text-text-high">{log.pendeta?.nama_lengkap || 'Pendeta Penanggung Jawab'}</span> 
-                          {log.jml_jiwa ? ` • Melibatkan ${log.jml_jiwa} Jiwa` : ''}
-                        </p>
-
-                        {log.catatan && (
-                          <div className="text-xs text-text-high bg-surface-sunken p-3 rounded-xl border border-border-subtle italic leading-relaxed">
-                            "{log.catatan}"
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+        <TabsContent value="log" className="space-y-4 focus-visible:outline-none transition-all duration-300 ease-in-out data-[state=inactive]:hidden data-[state=active]:animate-fadeIn">
+          <LogPastoralTabContent id_pos={pos.id_pos} id_induk={pos.id_induk} initialLogs={logs} canWrite={canWrite} />
         </TabsContent>
       </Tabs>
     </div>

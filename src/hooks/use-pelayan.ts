@@ -12,6 +12,7 @@ export interface PelayanItem {
   gender: 'Laki-laki' | 'Perempuan';
   status: 'Aktif' | 'Nonaktif';
   keterangan?: string | null;
+  foto_url?: string | null;
   created_at?: string;
   updated_at?: string;
   pos?: {

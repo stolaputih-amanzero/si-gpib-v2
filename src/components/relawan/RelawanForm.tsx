@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { relawanSchema, RelawanInput, KATEGORI_RELAWAN } from '@/lib/validations/relawan.schema';
 import { useCreateRelawan, useUpdateRelawan, RelawanItem } from '@/hooks/use-relawan';
-import { Loader2, Save, AlertCircle, Phone, Award, Building } from 'lucide-react';
+import { Loader2, Save, AlertCircle, Phone, Award, Building, Camera, Upload, Calendar } from 'lucide-react';
 import { PosCascadingSelector, HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
 import { createClient } from '@/lib/supabase/client';
 
@@ -25,6 +25,9 @@ export function RelawanForm({ id_pos = 'POS-001', initialData, onSuccess }: Rela
     initialData?.id_pos || (id_pos === 'POS-001' ? '' : id_pos)
   );
 
+  const [photoPreview, setPhotoPreview] = useState<string | null>(initialData?.foto_url || null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+
   const createMutation = useCreateRelawan();
   const updateMutation = useUpdateRelawan();
 
@@ -41,10 +44,65 @@ export function RelawanForm({ id_pos = 'POS-001', initialData, onSuccess }: Rela
       no_wa: initialData?.no_wa || '+628',
       gender: initialData?.gender || 'Laki-laki',
       kategori: initialData?.kategori || KATEGORI_RELAWAN[0],
+      tgl_lahir: initialData?.tgl_lahir || '',
       pelatihan: initialData?.pelatihan || '',
       keterangan: initialData?.keterangan || '',
+      foto_url: initialData?.foto_url || null,
     },
   });
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Show local preview immediately
+    const objectUrl = URL.createObjectURL(file);
+    setPhotoPreview(objectUrl);
+    setPhotoUploading(true);
+
+    try {
+      const supabase = createClient();
+      const fileExt = file.name.split('.').pop() || 'jpg';
+      const fileName = `relawan-${Date.now()}-${Math.random().toString(36).substring(2, 6)}.${fileExt}`;
+      const filePath = `relawan/${fileName}`;
+
+      const { error: uploadErr } = await supabase.storage
+        .from('pos-pelkes-assets')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadErr) {
+        // Fallback: use base64 data url if bucket fails
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64Url = reader.result as string;
+          setPhotoPreview(base64Url);
+          setValue('foto_url', base64Url);
+          setPhotoUploading(false);
+        };
+        reader.readAsDataURL(file);
+        return;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('pos-pelkes-assets')
+        .getPublicUrl(filePath);
+
+      const finalUrl = publicUrlData?.publicUrl || filePath;
+      setPhotoPreview(finalUrl);
+      setValue('foto_url', finalUrl);
+    } catch {
+      // Fallback data url
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64Url = reader.result as string;
+        setPhotoPreview(base64Url);
+        setValue('foto_url', base64Url);
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
 
   // Sync currentPosId with react-hook-form value
   useEffect(() => {
@@ -243,18 +301,32 @@ export function RelawanForm({ id_pos = 'POS-001', initialData, onSuccess }: Rela
         </div>
       </div>
 
-      {/* Pelatihan */}
-      <div className="space-y-1.5">
-        <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
-          <Award size={14} className="text-amber-500" />
-          <span>Pelatihan yang Pernah Diikuti (Opsional)</span>
-        </label>
-        <input
-          type="text"
-          placeholder="Misal: Pelatihan Tanggap Bencana, Pertolongan Pertama, Sekolah Minggu"
-          {...register('pelatihan')}
-          className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-base font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
-        />
+      {/* Tanggal Lahir & Pelatihan */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
+            <Calendar size={14} className="text-brand-primary" />
+            <span>Tanggal Lahir (Opsional)</span>
+          </label>
+          <input
+            type="date"
+            {...register('tgl_lahir')}
+            className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-base font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
+            <Award size={14} className="text-amber-500" />
+            <span>Pelatihan Diikuti (Opsional)</span>
+          </label>
+          <input
+            type="text"
+            placeholder="Misal: Pelatihan Tanggap Bencana, Pertolongan Pertama"
+            {...register('pelatihan')}
+            className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-base font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
+          />
+        </div>
       </div>
 
       {/* Keterangan */}
@@ -266,6 +338,61 @@ export function RelawanForm({ id_pos = 'POS-001', initialData, onSuccess }: Rela
           {...register('keterangan')}
           className="w-full p-3 rounded-xl border border-border-subtle bg-surface-base text-base text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
         />
+      </div>
+
+      {/* Foto Profil (Kamera / File Upload) */}
+      <div className="space-y-1.5">
+        <label className="text-xs font-semibold text-text-high flex items-center justify-between">
+          <span>Foto Profil Relawan (Opsional)</span>
+          {photoUploading && <span className="text-[10px] text-brand-primary animate-pulse">Mengunggah foto...</span>}
+        </label>
+
+        {photoPreview ? (
+          <div className="relative rounded-2xl overflow-hidden border border-border-subtle group bg-surface-sunken p-2 flex items-center gap-3">
+            <img src={photoPreview} alt="Preview Foto" className="w-16 h-16 object-cover rounded-xl shrink-0" />
+            <div className="flex-1">
+              <p className="text-xs font-bold text-text-high">Foto Profil Terpasang</p>
+              <p className="text-[10px] text-text-muted">Siap disimpan bersama data relawan</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setPhotoPreview(null);
+                setValue('foto_url', null);
+              }}
+              className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-bold transition-colors"
+            >
+              Hapus
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            <label className="flex flex-col items-center justify-center p-3 rounded-xl border border-dashed border-border-strong bg-surface-sunken/50 hover:bg-surface-sunken transition-colors cursor-pointer text-center min-h-[64px]">
+              <Camera size={18} className="text-brand-primary mb-1" />
+              <span className="text-[11px] font-bold text-text-high">Potret Kamera</span>
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handlePhotoChange}
+                disabled={photoUploading}
+                className="hidden"
+              />
+            </label>
+
+            <label className="flex flex-col items-center justify-center p-3 rounded-xl border border-dashed border-border-strong bg-surface-sunken/50 hover:bg-surface-sunken transition-colors cursor-pointer text-center min-h-[64px]">
+              <Upload size={18} className="text-brand-primary mb-1" />
+              <span className="text-[11px] font-bold text-text-high">Unggah File</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoChange}
+                disabled={photoUploading}
+                className="hidden"
+              />
+            </label>
+          </div>
+        )}
       </div>
 
       <button
