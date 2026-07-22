@@ -48,7 +48,14 @@ export function generateKerawananWaText(item: any): string {
     posName === 'Pelayanan Jemaat Direct' ||
     posName === '-';
 
-  const displayPosNama = isDirectJemaat ? '-' : posName;
+  const displayPosNama = isDirectJemaat ? null : posName;
+  const posKategori = item.pos?.kategori || 'Pos Pelkes';
+  const isBajem = posKategori.toLowerCase().includes('bajem') || (displayPosNama || '').toLowerCase().includes('bajem');
+  const posLabelHeader = isBajem ? 'Bajem' : 'Pos Pelkes';
+
+  const mainLocationTitle = displayPosNama
+    ? `*${displayPosNama.toUpperCase()}* (${posLabelHeader})`
+    : `*${(item.jenis_risiko || 'KERAWANAN WILAYAH').toUpperCase()}*`;
 
   const updatedAtStr = formatDateTimeIndonesian(item.updated_at || item.created_at);
   const updatedByStr = item.updated_by || 'Pengguna System';
@@ -64,35 +71,36 @@ export function generateKerawananWaText(item: any): string {
 
   lines.push(
     ``,
-    `*Kategori Risiko*: ${item.kategori || '-'}`,
-    `*Jenis Risiko / Ancaman*: ${item.jenis_risiko || '-'}`,
-    `*Tingkat Frekuensi*: ${item.frekuensi || 'Sedang'}`,
+    mainLocationTitle,
+    `_${jemaatName} - ${mupelName}_`,
     ``,
-    `*HIERARKI & WILAYAH*`,
-    `• Mupel: ${mupelName}`,
-    `• Jemaat Induk: ${jemaatName}`,
-    `• Pos Pelkes: ${displayPosNama}`
+    `*RINCIAN KERAWANAN*`,
+    `- Kategori Risiko: ${item.kategori || '-'}`,
+    `- Jenis Risiko / Ancaman: ${item.jenis_risiko || '-'}`,
+    `- Tingkat Frekuensi: ${item.frekuensi || 'Sedang'}`
   );
 
   if (item.keterangan) {
     lines.push(``);
-    lines.push(`*Keterangan & Mitigasi*: ${item.keterangan}`);
+    lines.push(`*KETERANGAN TAMBAHAN*`);
+    lines.push(`- Catatan & Mitigasi: ${item.keterangan}`);
   }
 
   const lat = item.latitude ?? item.pos?.latitude ?? null;
   const lng = item.longitude ?? item.pos?.longitude ?? null;
 
   lines.push(``);
+  lines.push(`*LOKASI & GOOGLE MAPS*`);
   if (lat != null && lng != null) {
     // GPS location strictly without https:// so WA does not unfurl maps over the photo preview
-    lines.push(`*Lokasi GPS*: maps.google.com/?q=${lat},${lng}`);
+    lines.push(`maps.google.com/?q=${lat},${lng}`);
   } else {
-    lines.push(`*Lokasi GPS*: -`);
+    lines.push(`-`);
   }
 
   lines.push(``);
-  lines.push(`*Terakhir Diperbarui*: ${updatedAtStr}`);
-  lines.push(`*Diperbarui Oleh*: ${updatedByStr}`);
+  lines.push(`Tanggal Update: ${updatedAtStr}`);
+  lines.push(`Diperbarui Oleh: ${updatedByStr}`);
 
   return lines.join('\n');
 }

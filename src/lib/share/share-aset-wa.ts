@@ -42,7 +42,18 @@ export function generateAsetWaText(item: any): string {
     item.pos_nama !== 'Pelayanan Jemaat Direct' &&
     item.pos_nama !== '-'
       ? item.pos_nama
-      : '-';
+      : null;
+
+  const posKategori = item.raw?.pos?.kategori || 'Pos Pelkes';
+  const isBajem = posKategori.toLowerCase().includes('bajem') || (displayPosNama || '').toLowerCase().includes('bajem');
+  const posLabelHeader = isBajem ? 'Bajem' : 'Pos Pelkes';
+
+  const jemaatNama = item.jemaat_induk || item.raw?.pos?.jemaat_induk?.nama_induk || '-';
+  const mupelNama = item.mupel_nama || item.raw?.pos?.jemaat_induk?.mupel?.nama_mupel || '-';
+
+  const mainLocationTitle = displayPosNama
+    ? `*${displayPosNama.toUpperCase()}* (${posLabelHeader})`
+    : `*${(item.judul || 'ASET GPIB').toUpperCase()}*`;
 
   const kondisiVal = item.kondisi || item.raw?.kondisi || 'Baik';
   const updatedAtStr = formatDateTimeIndonesian(item.updated_at || item.raw?.updated_at || item.raw?.created_at);
@@ -59,56 +70,57 @@ export function generateAsetWaText(item: any): string {
 
   lines.push(
     ``,
-    `*Kategori*: ${categoryLabel}`,
-    `*Judul Aset*: ${item.judul || '-'}`,
+    mainLocationTitle,
+    `_${jemaatNama} - ${mupelNama}_`,
     ``,
-    `*HIERARKI & WILAYAH*`,
-    `• Mupel: ${item.mupel_nama || item.raw?.pos?.jemaat_induk?.mupel?.nama_mupel || '-'}`,
-    `• Jemaat Induk: ${item.jemaat_induk || item.raw?.pos?.jemaat_induk?.nama_induk || '-'}`,
-    `• Pos Pelkes: ${displayPosNama}`,
+    `*RINCIAN ASET*`,
+    `- Judul Aset: ${item.judul || '-'}`,
+    `- Kategori: ${categoryLabel}`,
     ``,
     `*SPESIFIKASI ASET*`
   );
 
   if (isTanah) {
-    lines.push(`• Luas Lahan: ${item.raw?.luas_m2 || '-'} m²`);
-    lines.push(`• Kondisi Lahan: ${kondisiVal}`);
-    lines.push(`• Tahun Perolehan: ${item.tahun || '-'}`);
-    lines.push(`• Status Hukum: ${item.raw?.status_hukum || '-'}`);
-    if (item.raw?.potensi_sda) lines.push(`• Potensi SDA: ${item.raw.potensi_sda}`);
+    lines.push(`- Luas Lahan: ${item.raw?.luas_m2 || '-'} m²`);
+    lines.push(`- Kondisi Lahan: ${kondisiVal}`);
+    lines.push(`- Tahun Perolehan: ${item.tahun || '-'}`);
+    lines.push(`- Status Hukum: ${item.raw?.status_hukum || '-'}`);
+    if (item.raw?.potensi_sda) lines.push(`- Potensi SDA: ${item.raw.potensi_sda}`);
   } else if (isBangunan) {
-    lines.push(`• Nama Bangunan: ${item.raw?.nama_bangunan || item.judul || '-'}`);
-    lines.push(`• Fungsi Utama: ${item.raw?.fungsi || '-'}`);
-    lines.push(`• Kondisi Bangunan: ${kondisiVal}`);
-    lines.push(`• Tahun Berdiri: ${item.tahun || '-'}`);
+    lines.push(`- Nama Bangunan: ${item.raw?.nama_bangunan || item.judul || '-'}`);
+    lines.push(`- Fungsi Utama: ${item.raw?.fungsi || '-'}`);
+    lines.push(`- Kondisi Bangunan: ${kondisiVal}`);
+    lines.push(`- Tahun Berdiri: ${item.tahun || '-'}`);
   } else if (isBergerak) {
-    lines.push(`• Jenis Aset: ${item.raw?.jenis || '-'}`);
-    lines.push(`• Merk / Tipe: ${item.raw?.merk_tipe || '-'}`);
-    lines.push(`• Kondisi Aset: ${kondisiVal}`);
-    lines.push(`• Tahun Perolehan: ${item.tahun || '-'}`);
-    if (item.raw?.no_polisi) lines.push(`• Nomor Polisi: ${item.raw.no_polisi}`);
-    if (item.raw?.tgl_pajak) lines.push(`• Jatuh Tempo Pajak: ${item.raw.tgl_pajak}`);
+    lines.push(`- Jenis Aset: ${item.raw?.jenis || '-'}`);
+    lines.push(`- Merk / Tipe: ${item.raw?.merk_tipe || '-'}`);
+    lines.push(`- Kondisi Aset: ${kondisiVal}`);
+    lines.push(`- Tahun Perolehan: ${item.tahun || '-'}`);
+    if (item.raw?.no_polisi) lines.push(`- Nomor Polisi: ${item.raw.no_polisi}`);
+    if (item.raw?.tgl_pajak) lines.push(`- Jatuh Tempo Pajak: ${item.raw.tgl_pajak}`);
   }
 
   if (item.keterangan) {
     lines.push(``);
-    lines.push(`*Keterangan*: ${item.keterangan}`);
+    lines.push(`*KETERANGAN TAMBAHAN*`);
+    lines.push(`- Catatan: ${item.keterangan}`);
   }
 
   const lat = item.latitude ?? item.raw?.latitude ?? item.raw?.pos?.latitude ?? null;
   const lng = item.longitude ?? item.raw?.longitude ?? item.raw?.pos?.longitude ?? null;
 
   lines.push(``);
+  lines.push(`*LOKASI & GOOGLE MAPS*`);
   if (lat != null && lng != null) {
     // GPS location strictly without https:// so WA does not unfurl maps over the photo preview
-    lines.push(`*Lokasi GPS*: maps.google.com/?q=${lat},${lng}`);
+    lines.push(`maps.google.com/?q=${lat},${lng}`);
   } else {
-    lines.push(`*Lokasi GPS*: -`);
+    lines.push(`-`);
   }
 
   lines.push(``);
-  lines.push(`*Terakhir Diperbarui*: ${updatedAtStr}`);
-  lines.push(`*Diperbarui Oleh*: ${updatedByStr}`);
+  lines.push(`Tanggal Update: ${updatedAtStr}`);
+  lines.push(`Diperbarui Oleh: ${updatedByStr}`);
 
   return lines.join('\n');
 }

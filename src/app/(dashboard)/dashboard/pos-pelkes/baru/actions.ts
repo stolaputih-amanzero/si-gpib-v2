@@ -117,7 +117,33 @@ export async function savePosPelkes(formData: FormData) {
   // Generate ID Pos (Format: POS-{random5})
   const id_pos = `POS-${Math.floor(10000 + Math.random() * 90000)}`
 
-  // 1. Insert ke m_pos_pelkes
+  let foto_url: string | null = null
+
+  // 1. Jika ada foto, unggah file ke storage bucket 'pos-pelkes-images'
+  if (photo && photo.size > 0) {
+    const fileExt = photo.name.split('.').pop() || 'jpg'
+    const fileName = `${id_pos}-${Date.now()}.${fileExt}`
+    const filePath = `${id_pos}/${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('pos-pelkes-images')
+      .upload(filePath, photo, {
+        contentType: photo.type || 'image/jpeg',
+        upsert: true
+      })
+
+    if (!uploadError) {
+      const { data: publicUrlData } = supabase.storage
+        .from('pos-pelkes-images')
+        .getPublicUrl(filePath)
+
+      foto_url = publicUrlData?.publicUrl || filePath
+    } else {
+      console.error('Failed to upload image:', uploadError.message)
+    }
+  }
+
+  // 2. Insert ke m_pos_pelkes
   const { error: posError } = await supabase
     .from('m_pos_pelkes')
     .insert({
@@ -128,60 +154,13 @@ export async function savePosPelkes(formData: FormData) {
       alamat,
       latitude,
       longitude,
+      foto_url,
       tgl_berdiri: new Date().toISOString().split('T')[0], // Default today
       keterangan: 'Diinput via Sistem PWA'
     })
 
   if (posError) {
     return { error: `Gagal menyimpan Pos Pelkes: ${posError.message}` }
-  }
-
-  // 2. Jika ada foto, proses unggah dan aset
-  if (photo && photo.size > 0) {
-    const fileExt = photo.name.split('.').pop() || 'jpg'
-    const fileName = `${id_pos}-${Date.now()}.${fileExt}`
-    const filePath = `${id_pos}/${fileName}`
-
-    // 2a. Upload file ke storage bucket 'pos-pelkes-images'
-    const { error: uploadError } = await supabase.storage
-      .from('pos-pelkes-images')
-      .upload(filePath, photo, {
-        contentType: 'image/jpeg',
-        upsert: false
-      })
-
-    if (uploadError) {
-      // Continue anyway, but maybe log it. We won't block the whole process just for the image error.
-      console.error('Failed to upload image:', uploadError.message)
-    } else {
-      // 2b. Buat record t_aset_tanah (karena lampiran butuh id_tanah, sesuai instruksi)
-      const id_tanah = `TNH-${Math.floor(10000 + Math.random() * 90000)}`
-      
-      const { error: tanahError } = await supabase
-        .from('t_aset_tanah')
-        .insert({
-          id_tanah,
-          id_pos,
-          keterangan: 'Tanah default dari input awal',
-          status_hukum: 'Belum Diketahui'
-        })
-
-      if (!tanahError) {
-        // 2c. Insert ke t_lampiran_aset
-        const id_lampiran = `LMP-${Math.floor(10000 + Math.random() * 90000)}`
-        await supabase
-          .from('t_lampiran_aset')
-          .insert({
-            id_lampiran,
-            id_tanah,
-            nama_file: fileName,
-            file_path: filePath,
-            tipe_file: 'image/jpeg',
-            ukuran_file: parseFloat((photo.size / 1024).toFixed(2)), // in KB
-            keterangan: 'Foto awal Pos Pelkes'
-          })
-      }
-    }
   }
 
   revalidatePath('/dashboard/pos-pelkes')
@@ -198,6 +177,7 @@ export async function updatePosPelkes(id_pos: string, formData: FormData) {
   const latStr = formData.get('latitude') as string | null
   const lngStr = formData.get('longitude') as string | null
   const keterangan = formData.get('keterangan') as string | null
+  const photo = formData.get('photo') as File | null
 
   if (!id_induk || !nama_pos) {
     return { error: 'Data tidak lengkap' }
@@ -212,18 +192,77 @@ export async function updatePosPelkes(id_pos: string, formData: FormData) {
   const latitude = latStr ? parseFloat(latStr) : null
   const longitude = lngStr ? parseFloat(lngStr) : null
 
-  const { error } = await supabase
+  let foto_url: string | undefined = undefined
+
+  // Upload photo to storage if provided
+  if (photo && photo.size > 0) {
+    const fileExt = photo.name.split('.').pop() || 'jpg'
+    const fileName = `${id_pos}-${Date.now()}.${fileExt}`
+    const filePath = `${id_pos}/${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('pos-pelkes-images')
+      .upload(filePath, photo, {
+        contentType: photo.type || 'image/jpeg',
+        upsert: true
+      })
+
+    if (!uploadError) {
+      const { data: publicUrlData } = supabase.storage
+        .from('pos-pelkes-images')
+        .getPublicUrl(filePath)
+
+      foto_url = publicUrlData?.publicUrl || filePath
+    } else {
+      console.error('Failed to upload pos pelkes photo:', uploadError.message)
+    }
+  }
+
+  const { data: { user } } = await supabase.auth.getUser()
+  let updatedByName = user?.email || 'System'
+  if (user) {
+    const { data: userData } = await supabase
+      .from('users')
+      .select('nama_lengkap')
+      .eq('id', user.id)
+      .maybeSingle()
+    if (userData?.nama_lengkap) {
+      updatedByName = userData.nama_lengkap
+    }
+  }
+
+  const updatePayload: any = {
+    id_induk,
+    nama_pos,
+    kategori,
+    alamat,
+    latitude,
+    longitude,
+    keterangan,
+    updated_at: new Date().toISOString(),
+  }
+
+  if (foto_url) {
+    updatePayload.foto_url = foto_url
+  }
+
+  // Attempt update including updated_by if database column exists
+  let { error } = await supabase
     .from('m_pos_pelkes')
     .update({
-      id_induk,
-      nama_pos,
-      kategori,
-      alamat,
-      latitude,
-      longitude,
-      keterangan
+      ...updatePayload,
+      updated_by: updatedByName,
     })
     .eq('id_pos', id_pos)
+
+  // Fallback if updated_by column is missing from Supabase table schema
+  if (error && error.message.includes('updated_by')) {
+    const fallbackRes = await supabase
+      .from('m_pos_pelkes')
+      .update(updatePayload)
+      .eq('id_pos', id_pos)
+    error = fallbackRes.error
+  }
 
   if (error) {
     return { error: `Gagal memperbarui Pos Pelkes: ${error.message}` }

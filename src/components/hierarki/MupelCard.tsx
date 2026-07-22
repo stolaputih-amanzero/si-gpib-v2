@@ -1,8 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { MupelItem, useDeleteMupel } from '@/hooks/use-hierarki';
 import { Layers, ChevronRight, Church, MapPin, Edit3, Trash2 } from 'lucide-react';
+import { SecureDeleteModal } from '@/components/ui/SecureDeleteModal';
+import { useToast } from '@/components/ui/toast';
+
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 interface MupelCardProps {
   mupel: MupelItem;
@@ -10,18 +15,20 @@ interface MupelCardProps {
 }
 
 export function MupelCard({ mupel, onEdit }: MupelCardProps) {
+  const { toast } = useToast();
+  const { data: currentUser } = useCurrentUser();
+  const isSuperUser = currentUser?.isSuperUser ?? false;
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const deleteMupelMutation = useDeleteMupel();
 
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (confirm(`Apakah Anda yakin ingin menghapus Mupel "${mupel.nama_mupel}"?`)) {
-      try {
-        await deleteMupelMutation.mutateAsync(mupel.id_mupel);
-      } catch (err: any) {
-        alert(err?.message || 'Gagal menghapus Mupel.');
-      }
+  const handleConfirmDelete = async () => {
+    try {
+      await deleteMupelMutation.mutateAsync(mupel.id_mupel);
+      toast.success('Berhasil Dihapus', `Mupel "${mupel.nama_mupel}" telah dihapus.`);
+      setShowDeleteModal(false);
+    } catch (err: any) {
+      toast.error('Gagal Menghapus', err?.message || 'Gagal menghapus Mupel.');
     }
   };
 
@@ -70,15 +77,21 @@ export function MupelCard({ mupel, onEdit }: MupelCardProps) {
             </button>
           )}
 
-          <button
-            type="button"
-            onClick={handleDelete}
-            disabled={deleteMupelMutation.isPending}
-            className="p-2 rounded-xl text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center disabled:opacity-50"
-            title="Hapus Mupel"
-          >
-            <Trash2 size={16} />
-          </button>
+          {isSuperUser && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowDeleteModal(true);
+              }}
+              disabled={deleteMupelMutation.isPending}
+              className="p-2 rounded-xl text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center disabled:opacity-50"
+              title="Hapus Mupel"
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
 
           <div className="hidden sm:flex items-center gap-2">
             <div className="bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl px-2.5 py-1 text-center">
@@ -114,6 +127,17 @@ export function MupelCard({ mupel, onEdit }: MupelCardProps) {
           {mupel.pos_count ?? 0} Pos Pelkes
         </span>
       </div>
+
+      <SecureDeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleConfirmDelete}
+        title="Konfirmasi Hapus MUPEL"
+        targetName={mupel.nama_mupel}
+        targetId={mupel.id_mupel}
+        itemType="Musyawarah Pelayanan (MUPEL)"
+        isDeleting={deleteMupelMutation.isPending}
+      />
     </Link>
   );
 }

@@ -6,6 +6,7 @@ export const logPastoralSchema = z.object({
   id_pendeta: z.string().min(1, 'Pendeta wajib dipilih'),
   tgl: z.union([z.string().min(1, 'Tanggal wajib diisi'), z.date()]),
   jam: z.string().optional().nullable(),
+  zona_waktu: z.enum(['WIB', 'WITA', 'WIT']).default('WIB').optional(),
   kegiatan: z
     .string()
     .min(3, 'Kegiatan minimal 3 karakter')

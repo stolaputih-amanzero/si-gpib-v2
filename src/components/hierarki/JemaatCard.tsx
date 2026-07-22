@@ -1,8 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { JemaatIndukItem, useDeleteJemaat } from '@/hooks/use-hierarki';
-import { Church, ChevronRight, UserCheck, MapPin, AlertCircle, Edit3, Trash2 } from 'lucide-react';
+import { Church, ChevronRight, UserCheck, AlertCircle, Edit3, Trash2 } from 'lucide-react';
+import { SecureDeleteModal } from '@/components/ui/SecureDeleteModal';
+import { useToast } from '@/components/ui/toast';
+
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 interface JemaatCardProps {
   jemaat: JemaatIndukItem;
@@ -11,20 +16,22 @@ interface JemaatCardProps {
 }
 
 export function JemaatCard({ jemaat, id_mupel, onEdit }: JemaatCardProps) {
+  const { toast } = useToast();
+  const { data: currentUser } = useCurrentUser();
+  const isSuperUser = currentUser?.isSuperUser ?? false;
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const hasKmj = Boolean(jemaat.kmj?.nama_lengkap);
   const hasCoordinates = Boolean(jemaat.latitude && jemaat.longitude);
   const deleteJemaatMutation = useDeleteJemaat();
 
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (confirm(`Apakah Anda yakin ingin menghapus Jemaat Induk "${jemaat.nama_induk}"?`)) {
-      try {
-        await deleteJemaatMutation.mutateAsync(jemaat.id_induk);
-      } catch (err: any) {
-        alert(err?.message || 'Gagal menghapus Jemaat Induk.');
-      }
+  const handleConfirmDelete = async () => {
+    try {
+      await deleteJemaatMutation.mutateAsync(jemaat.id_induk);
+      toast.success('Berhasil Dihapus', `Jemaat Induk "${jemaat.nama_induk}" telah dihapus.`);
+      setShowDeleteModal(false);
+    } catch (err: any) {
+      toast.error('Gagal Menghapus', err?.message || 'Gagal menghapus Jemaat Induk.');
     }
   };
 
@@ -88,33 +95,25 @@ export function JemaatCard({ jemaat, id_mupel, onEdit }: JemaatCardProps) {
             </button>
           )}
 
-          <button
-            type="button"
-            onClick={handleDelete}
-            disabled={deleteJemaatMutation.isPending}
-            className="p-2 rounded-xl text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center disabled:opacity-50"
-            title="Hapus Jemaat Induk"
-          >
-            <Trash2 size={16} />
-          </button>
+          {isSuperUser && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowDeleteModal(true);
+              }}
+              disabled={deleteJemaatMutation.isPending}
+              className="p-2 rounded-xl text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center disabled:opacity-50"
+              title="Hapus Jemaat Induk"
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
 
           <div className="p-2 rounded-xl text-text-muted group-hover:text-brand-primary group-hover:bg-surface-sunken transition-all shrink-0">
             <ChevronRight size={20} />
           </div>
-        </div>
-      </div>
-
-      {/* Footer Stat Badges */}
-      <div className="flex flex-wrap items-center justify-between gap-2 mt-3 pt-3 border-t border-border-subtle text-xs text-text-muted">
-        <div className="flex items-center gap-3">
-          <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-            <MapPin size={14} />
-            {jemaat.pos_count ?? 0} Pos Pelkes
-          </span>
-          <span>•</span>
-          <span className="font-semibold text-indigo-600 dark:text-indigo-400">
-            {jemaat.pj_count ?? 0} PJ Aktif
-          </span>
         </div>
 
         {/* GPS Indicator */}
@@ -124,6 +123,17 @@ export function JemaatCard({ jemaat, id_mupel, onEdit }: JemaatCardProps) {
           </span>
         )}
       </div>
+
+      <SecureDeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleConfirmDelete}
+        title="Konfirmasi Hapus Jemaat Induk"
+        targetName={jemaat.nama_induk}
+        targetId={jemaat.id_induk}
+        itemType="Jemaat Induk"
+        isDeleting={deleteJemaatMutation.isPending}
+      />
     </Link>
   );
 }

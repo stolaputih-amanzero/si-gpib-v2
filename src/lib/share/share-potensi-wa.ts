@@ -48,7 +48,14 @@ export function generatePotensiWaText(item: any): string {
     posName === 'Pelayanan Jemaat Direct' ||
     posName === '-';
 
-  const displayPosNama = isDirectJemaat ? '-' : posName;
+  const displayPosNama = isDirectJemaat ? null : posName;
+  const posKategori = item.pos?.kategori || 'Pos Pelkes';
+  const isBajem = posKategori.toLowerCase().includes('bajem') || (displayPosNama || '').toLowerCase().includes('bajem');
+  const posLabelHeader = isBajem ? 'Bajem' : 'Pos Pelkes';
+
+  const mainLocationTitle = displayPosNama
+    ? `*${displayPosNama.toUpperCase()}* (${posLabelHeader})`
+    : `*${(item.nama_potensi || 'POTENSI WILAYAH').toUpperCase()}*`;
 
   const updatedAtStr = formatDateTimeIndonesian(item.updated_at || item.created_at);
   const updatedByStr = item.updated_by || 'Pengguna System';
@@ -64,35 +71,36 @@ export function generatePotensiWaText(item: any): string {
 
   lines.push(
     ``,
-    `*Nama Potensi*: ${item.nama_potensi || '-'}`,
-    `*Kategori Potensi*: ${item.kategori || '-'}`,
-    `*Deskripsi*: ${item.deskripsi || '-'}`,
+    mainLocationTitle,
+    `_${jemaatName} - ${mupelName}_`,
     ``,
-    `*HIERARKI & WILAYAH*`,
-    `• Mupel: ${mupelName}`,
-    `• Jemaat Induk: ${jemaatName}`,
-    `• Pos Pelkes: ${displayPosNama}`
+    `*RINCIAN POTENSI*`,
+    `- Nama Potensi: ${item.nama_potensi || '-'}`,
+    `- Kategori Potensi: ${item.kategori || '-'}`,
+    `- Deskripsi: ${item.deskripsi || '-'}`
   );
 
   if (item.keterangan) {
     lines.push(``);
-    lines.push(`*Keterangan Tambahan*: ${item.keterangan}`);
+    lines.push(`*KETERANGAN TAMBAHAN*`);
+    lines.push(`- Catatan: ${item.keterangan}`);
   }
 
   const lat = item.latitude ?? item.pos?.latitude ?? null;
   const lng = item.longitude ?? item.pos?.longitude ?? null;
 
   lines.push(``);
+  lines.push(`*LOKASI & GOOGLE MAPS*`);
   if (lat != null && lng != null) {
     // GPS location strictly without https:// so WA does not unfurl maps over the photo preview
-    lines.push(`*Lokasi GPS*: maps.google.com/?q=${lat},${lng}`);
+    lines.push(`maps.google.com/?q=${lat},${lng}`);
   } else {
-    lines.push(`*Lokasi GPS*: -`);
+    lines.push(`-`);
   }
 
   lines.push(``);
-  lines.push(`*Terakhir Diperbarui*: ${updatedAtStr}`);
-  lines.push(`*Diperbarui Oleh*: ${updatedByStr}`);
+  lines.push(`Tanggal Update: ${updatedAtStr}`);
+  lines.push(`Diperbarui Oleh: ${updatedByStr}`);
 
   return lines.join('\n');
 }

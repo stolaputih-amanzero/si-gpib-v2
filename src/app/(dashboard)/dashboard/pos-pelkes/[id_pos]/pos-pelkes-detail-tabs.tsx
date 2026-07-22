@@ -60,14 +60,24 @@ export function PosPelkesDetailTabs({ data }: { data: any }) {
               </dl>
             </div>
             
-            {data.asetTanah && data.asetTanah.length > 0 && data.asetTanah[0].t_lampiran_aset && data.asetTanah[0].t_lampiran_aset.length > 0 && (
-               <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                <h3 className="text-lg font-bold text-brand-primary mb-4 border-b pb-2">Foto Utama</h3>
-                <div className="relative h-64 rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
+            {/* Foto Utama Gedung / Lokasi Pos Pelkes */}
+            {(data.posPelkes.foto_url || (data.asetTanah && data.asetTanah.length > 0 && data.asetTanah[0].t_lampiran_aset && data.asetTanah[0].t_lampiran_aset.length > 0)) && (
+              <div className="bg-surface-elevated p-6 rounded-xl border border-border-subtle shadow-soft space-y-3">
+                <div className="flex items-center justify-between border-b border-border-subtle pb-2">
+                  <h3 className="text-base font-bold text-brand-primary">Foto Tampak Depan Gedung / Lokasi</h3>
+                  <span className="text-[10px] font-bold text-text-muted bg-surface-sunken px-2.5 py-1 rounded-md border border-border-subtle">
+                    Tampak Depan
+                  </span>
+                </div>
+                <div className="relative h-64 sm:h-80 rounded-xl overflow-hidden border border-border-subtle bg-surface-sunken">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img 
-                    src={`${storageUrl}${data.asetTanah[0].t_lampiran_aset[0].file_path}`} 
-                    alt="Foto Pos Pelkes" 
+                    src={
+                      data.posPelkes.foto_url 
+                        ? data.posPelkes.foto_url
+                        : `${storageUrl}${data.asetTanah[0].t_lampiran_aset[0].file_path}`
+                    } 
+                    alt={`Foto ${data.posPelkes.nama_pos}`} 
                     className="w-full h-full object-cover"
                     onError={(e) => { e.currentTarget.style.display = 'none' }}
                   />

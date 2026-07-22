@@ -7,6 +7,7 @@ interface ShareButtonProps {
   title: string;
   text: string;
   url?: string;
+  imageUrl?: string | null;
   className?: string;
   variant?: 'primary' | 'ghost' | 'outline';
   iconOnly?: boolean;
@@ -16,6 +17,7 @@ export function ShareButton({
   title, 
   text, 
   url, 
+  imageUrl,
   className = '',
   variant = 'primary',
   iconOnly = false,
@@ -29,7 +31,7 @@ export function ShareButton({
       navigator.vibrate(10); // Light tap
     }
 
-    const success = await shareToWhatsApp({ title, text, url: targetUrl });
+    const success = await shareToWhatsApp({ title, text, url: targetUrl, imageUrl });
     
     if (success && typeof window !== 'undefined' && 'vibrate' in navigator) {
       navigator.vibrate([10, 50, 10]); // Success pattern

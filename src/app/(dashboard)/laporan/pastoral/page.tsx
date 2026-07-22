@@ -34,9 +34,10 @@ import Link from 'next/link';
 
 import { createClient } from '@/lib/supabase/client';
 import { formatPastoralKegiatanText } from '@/lib/formatters/pastoral-text';
+import { SecureDeleteModal } from '@/components/ui/SecureDeleteModal';
 
 export default function LaporanPastoralPage() {
-  const { toast, confirm: confirmModal } = useToast();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPos] = useState('');
 
@@ -50,6 +51,7 @@ export default function LaporanPastoralPage() {
   const [editKegiatan, setEditKegiatan] = useState('');
   const [editTgl, setEditTgl] = useState('');
   const [editJam, setEditJam] = useState('');
+  const [editZonaWaktu, setEditZonaWaktu] = useState<'WIB' | 'WITA' | 'WIT'>('WIB');
   const [editJmlJiwa, setEditJmlJiwa] = useState<number | ''>('');
   const [editCatatan, setEditCatatan] = useState('');
   const [editPhotoBase64, setEditPhotoBase64] = useState<string | null>(null);
@@ -62,17 +64,19 @@ export default function LaporanPastoralPage() {
 
   // Helper to extract time tag, photo, and hierarchy info from catatan string
   const extractMetaFromCatatan = (catatan?: string | null) => {
-    if (!catatan) return { jamStr: '09:00', photoBase64: null, hierarchyInfo: null, cleanNotes: '' };
+    if (!catatan) return { jamStr: '09:00', zonaWaktu: 'WIB', photoBase64: null, hierarchyInfo: null, cleanNotes: '' };
     
     let jamStr = '09:00';
+    let zonaWaktu = 'WIB';
     let photoBase64: string | null = null;
     let hierarchyInfo: { mupelName?: string; jemaatName?: string; posName?: string } | null = null;
     let cleanNotes = catatan;
 
-    const timeMatch = cleanNotes.match(/\[⏰ Jam Pelayanan:\s*([\d:]+)\s*WIB\]/);
-    if (timeMatch && timeMatch[1]) {
+    const timeMatch = cleanNotes.match(/\[⏰ Jam Pelayanan:\s*([\d:]+)\s*(WIB|WITA|WIT)\]/);
+    if (timeMatch) {
       jamStr = timeMatch[1];
-      cleanNotes = cleanNotes.replace(/\[⏰ Jam Pelayanan:\s*[\d:]+\s*WIB\]\n?/, '');
+      zonaWaktu = timeMatch[2];
+      cleanNotes = cleanNotes.replace(/\[⏰ Jam Pelayanan:\s*[\d:]+\s*(WIB|WITA|WIT)\]\n?/, '');
     }
 
     const hierarchyMatch = cleanNotes.match(/\[🏛️ HIERARKI:\s*([^|]+)\|\s*([^|]+)\|\s*([^\]]+)\]/);
@@ -92,7 +96,7 @@ export default function LaporanPastoralPage() {
       cleanNotes = cleanNotes.replace(/\[📷 FOTO_BASE64:[\s\S]+?\]\n?/, '');
     }
 
-    return { jamStr, photoBase64, hierarchyInfo, cleanNotes: cleanNotes.trim() };
+    return { jamStr, zonaWaktu, photoBase64, hierarchyInfo, cleanNotes: cleanNotes.trim() };
   };
 
   // Convert Base64 Data URL to File object for native Web Share API
@@ -125,7 +129,7 @@ export default function LaporanPastoralPage() {
 
   const handleShareWhatsApp = async (e: React.MouseEvent, log: LogPastoralItem) => {
     e.stopPropagation();
-    const { jamStr, photoBase64, hierarchyInfo, cleanNotes } = extractMetaFromCatatan(log.catatan);
+    const { jamStr, zonaWaktu, photoBase64, hierarchyInfo, cleanNotes } = extractMetaFromCatatan(log.catatan);
 
     const posNama = log.pos?.nama_pos || hierarchyInfo?.posName;
     const posKategori = log.pos?.kategori || 'Pos Pelkes';
@@ -147,31 +151,36 @@ export default function LaporanPastoralPage() {
       mapsUrl = `google.com/maps/search/?api=1&query=${encodeURIComponent(locName)}`;
     }
 
-    const posFormatted = posNama && posNama !== 'Pelayanan Jemaat Direct' ? `${posNama} (${posKategori})` : '-';
+    const isBajem = (posKategori || '').toLowerCase().includes('bajem') || (posNama || '').toLowerCase().includes('bajem');
+    const posLabelHeader = isBajem ? 'Bajem' : 'Pos Pelkes';
+    const hasPos = posNama && posNama !== '-' && posNama !== 'Pelayanan Jemaat Direct';
+    const mainLocationTitle = hasPos
+      ? `*${posNama.toUpperCase()}* (${posLabelHeader})`
+      : `*${jemaatNama.toUpperCase()}*`;
+
+    const updatedByStr = (log as any).updated_by || pendetaNama || 'Pelayan Pastoral';
 
     const linesArr = [
       `*LAPORAN PELAYANAN PASTORAL*`,
-      `Gereja Protestan di Indonesia bagian Barat (GPIB)`,
+      ``,
+      mainLocationTitle,
+      `_${jemaatNama} - ${mupelNama}_`,
       ``,
       `*INFORMASI KEGIATAN*`,
-      `Kegiatan: ${log.kegiatan}`,
-      `Waktu: ${tglFormatted} | Pkl. ${jamStr || '09:00'} WIB`,
-      log.jml_jiwa ? `Jumlah Jiwa Dilayani: ${log.jml_jiwa} Jiwa` : null,
-      ``,
-      `*WILAYAH PELAYANAN*`,
-      `Pos Pelkes / Bajem: ${posFormatted}`,
-      `Jemaat Induk: ${jemaatNama}`,
-      `Mupel: ${mupelNama}`,
+      `- Kegiatan: ${log.kegiatan}`,
+      `- Waktu: ${tglFormatted} | Pkl. ${jamStr || '09:00'} ${zonaWaktu || 'WIB'}`,
+      log.jml_jiwa ? `- Jumlah Jiwa Dilayani: ${log.jml_jiwa} Jiwa` : null,
       ``,
       `*PELAYAN & CATATAN*`,
-      `Pelayan Pendeta: ${pendetaNama}`,
-      cleanNotes ? `Catatan Pelayanan:\n"${cleanNotes}"` : null,
+      `- Pelayan Pendeta: ${pendetaNama}`,
+      cleanNotes ? `- Catatan Pelayanan:\n"${cleanNotes}"` : null,
       ``,
       `*LOKASI & GOOGLE MAPS*`,
       `Peta Lokasi Google Maps:`,
       mapsUrl,
       ``,
-      `_Dibagikan dari SI GPIB v2.2_`,
+      `Tanggal Update: ${tglFormatted}`,
+      `Diperbarui Oleh: ${updatedByStr}`,
     ];
 
     const lines = linesArr.filter((item) => item !== null).join('\n');
@@ -199,11 +208,12 @@ export default function LaporanPastoralPage() {
   };
 
   const handleOpenDetailModal = (log: LogPastoralItem) => {
-    const { jamStr, photoBase64, cleanNotes } = extractMetaFromCatatan(log.catatan);
+    const { jamStr, zonaWaktu, photoBase64, cleanNotes } = extractMetaFromCatatan(log.catatan);
     setSelectedLog(log);
     setEditKegiatan(log.kegiatan);
     setEditTgl(log.tgl);
     setEditJam(jamStr || '09:00');
+    setEditZonaWaktu((zonaWaktu as 'WIB' | 'WITA' | 'WIT') || 'WIB');
     setEditJmlJiwa(log.jml_jiwa ?? '');
     setEditCatatan(cleanNotes);
     setEditPhotoBase64(photoBase64);
@@ -274,8 +284,9 @@ export default function LaporanPastoralPage() {
       }
 
       const jamStr = editJam || '09:00';
+      const zonaStr = editZonaWaktu || 'WIB';
       let rawCatatanFormatted = editCatatan ? formatPastoralKegiatanText(editCatatan) : '';
-      const timeTag = `[⏰ Jam Pelayanan: ${jamStr} WIB]`;
+      const timeTag = `[⏰ Jam Pelayanan: ${jamStr} ${zonaStr}]`;
 
       // Construct hierarchy tag if meta info is resolved
       const mupelName = editHierarchyMeta?.mupelName || selectedLog.pos?.jemaat_induk?.mupel?.nama_mupel || 'Mupel GPIB';
@@ -339,25 +350,25 @@ export default function LaporanPastoralPage() {
     }
   };
 
+  const [logToDelete, setLogToDelete] = useState<{ id_log: string; kegiatan: string } | null>(null);
+
   const handleDelete = (e: React.MouseEvent, id_log: string, kegiatan: string) => {
     e.stopPropagation();
-    confirmModal({
-      title: 'Hapus Log Pastoral',
-      message: `Apakah Anda yakin ingin menghapus catatan kegiatan "${kegiatan}"?`,
-      confirmText: 'Hapus Log',
-      variant: 'danger',
-      onConfirm: async () => {
-        try {
-          await deleteMutation.mutateAsync(id_log);
-          toast.success('Berhasil Dihapus', 'Catatan log pastoral telah dihapus.');
-          if (selectedLog?.id_log === id_log) {
-            setSelectedLog(null);
-          }
-        } catch {
-          toast.error('Gagal Menghapus', 'Terjadi kesalahan saat menghapus data.');
-        }
-      },
-    });
+    setLogToDelete({ id_log, kegiatan });
+  };
+
+  const handleConfirmDeleteLog = async () => {
+    if (!logToDelete) return;
+    try {
+      await deleteMutation.mutateAsync(logToDelete.id_log);
+      toast.success('Berhasil Dihapus', 'Catatan log pastoral telah dihapus.');
+      if (selectedLog?.id_log === logToDelete.id_log) {
+        setSelectedLog(null);
+      }
+      setLogToDelete(null);
+    } catch {
+      toast.error('Gagal Menghapus', 'Terjadi kesalahan saat menghapus data.');
+    }
   };
 
   const totalLogs = pastoralLogs?.length || 0;
@@ -450,7 +461,7 @@ export default function LaporanPastoralPage() {
         ) : pastoralLogs && pastoralLogs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {pastoralLogs.map((log) => {
-              const { jamStr, photoBase64, hierarchyInfo, cleanNotes } = extractMetaFromCatatan(log.catatan);
+              const { jamStr, zonaWaktu, photoBase64, hierarchyInfo, cleanNotes } = extractMetaFromCatatan(log.catatan);
 
               const posNama = log.pos?.nama_pos || hierarchyInfo?.posName;
               const posKategori = log.pos?.kategori || 'Pos Pelkes';
@@ -476,7 +487,7 @@ export default function LaporanPastoralPage() {
                         {jamStr ? (
                           <span className="inline-flex items-center gap-1 font-semibold text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-md">
                             <Clock size={12} />
-                            {jamStr} WIB
+                            {jamStr} {zonaWaktu || 'WIB'}
                           </span>
                         ) : null}
                         {log.jml_jiwa ? (
@@ -670,15 +681,26 @@ export default function LaporanPastoralPage() {
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
                       <Clock size={14} className="text-brand-primary" />
-                      Waktu / Jam *
+                      Waktu / Jam & Timezone *
                     </label>
-                    <input
-                      type="time"
-                      value={editJam}
-                      onChange={(e) => setEditJam(e.target.value)}
-                      required
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="time"
+                        value={editJam}
+                        onChange={(e) => setEditJam(e.target.value)}
+                        required
+                        className="flex-1 px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                      />
+                      <select
+                        value={editZonaWaktu}
+                        onChange={(e) => setEditZonaWaktu(e.target.value as 'WIB' | 'WITA' | 'WIT')}
+                        className="px-2.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-xs font-semibold text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px] shrink-0 cursor-pointer"
+                      >
+                        <option value="WIB">WIB</option>
+                        <option value="WITA">WITA</option>
+                        <option value="WIT">WIT</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 
@@ -992,6 +1014,17 @@ export default function LaporanPastoralPage() {
           </div>
         </div>
       )}
+
+      <SecureDeleteModal
+        isOpen={Boolean(logToDelete)}
+        onClose={() => setLogToDelete(null)}
+        onConfirm={handleConfirmDeleteLog}
+        title="Konfirmasi Hapus Log Pastoral"
+        targetName={logToDelete?.kegiatan || ''}
+        targetId={logToDelete?.id_log || ''}
+        itemType="Log Kegiatan Pastoral"
+        isDeleting={deleteMutation.isPending}
+      />
     </div>
   );
 }

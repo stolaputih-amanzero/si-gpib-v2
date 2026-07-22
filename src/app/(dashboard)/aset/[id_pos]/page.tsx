@@ -7,17 +7,27 @@ import { AsetCard } from '@/components/aset/AsetCard';
 import { ArrowLeft, Plus, Box, MapPin } from 'lucide-react';
 import Link from 'next/link';
 
+import { SecureDeleteModal } from '@/components/ui/SecureDeleteModal';
+
 export default function AsetPosDetailPage({ params }: { params: Promise<{ id_pos: string }> }) {
   const resolvedParams = use(params);
   const id_pos = resolvedParams.id_pos;
 
   const [activeCategory, setActiveCategory] = useState<string>('');
+  const [targetToDelete, setTargetToDelete] = useState<{ id: string; kategori: 'TANAH' | 'BANGUNAN' | 'BERGERAK'; nama: string } | null>(null);
   const { data: asetList, isLoading } = useAsetByPos(id_pos);
   const deleteMutation = useDeleteAset();
 
-  const handleDelete = async (id: string, kategori: 'TANAH' | 'BANGUNAN' | 'BERGERAK') => {
-    if (confirm('Apakah Anda yakin ingin menghapus data aset ini? Dokumen lampiran juga akan terhapus.')) {
-      await deleteMutation.mutateAsync({ id, kategori });
+  const handleDeleteClick = (id: string, kategori: 'TANAH' | 'BANGUNAN' | 'BERGERAK') => {
+    const item = asetList?.find(a => a.id === id);
+    const nama = item?.judul || `${kategori} - ${id}`;
+    setTargetToDelete({ id, kategori, nama });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (targetToDelete) {
+      await deleteMutation.mutateAsync({ id: targetToDelete.id, kategori: targetToDelete.kategori });
+      setTargetToDelete(null);
     }
   };
 
@@ -94,7 +104,7 @@ export default function AsetPosDetailPage({ params }: { params: Promise<{ id_pos
           ) : filteredItems && filteredItems.length > 0 ? (
             <div className="space-y-3">
               {filteredItems.map((item) => (
-                <AsetCard key={item.id} item={item} onDelete={handleDelete} />
+                <AsetCard key={item.id} item={item} onDelete={handleDeleteClick} />
               ))}
             </div>
           ) : (
@@ -131,6 +141,17 @@ export default function AsetPosDetailPage({ params }: { params: Promise<{ id_pos
           )}
         </div>
       </main>
+
+      <SecureDeleteModal
+        isOpen={Boolean(targetToDelete)}
+        onClose={() => setTargetToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="Konfirmasi Hapus Data Aset"
+        targetName={targetToDelete?.nama || ''}
+        targetId={targetToDelete?.id || ''}
+        itemType={`Aset ${targetToDelete?.kategori || ''}`}
+        isDeleting={deleteMutation.isPending}
+      />
     </div>
   );
 }

@@ -1,6 +1,5 @@
 import { notFound } from 'next/navigation';
 import { 
-  ArrowLeft, 
   MapPin, 
   Users, 
   Building2, 
@@ -16,17 +15,16 @@ import {
   Edit3,
   Plus
 } from 'lucide-react';
+import PosProfileHeroWrapper from './pos-profile-hero-wrapper';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { ShareButton } from '@/components/mobile/ShareButton';
 import PosThumbnailMapWrapper from '@/components/maps/PosThumbnailMapWrapper';
-import DeletePosButton from './delete-button';
 import AssignPjButton from './assign-pj-button';
 import { JadwalTabContent } from './jadwal-tab-content';
+import { DemografiTabContent } from '@/components/demografi/DemografiTabContent';
 
 // --- Types ---
 interface PosDetail {
@@ -39,6 +37,9 @@ interface PosDetail {
   longitude: number | null;
   tgl_berdiri: string | null;
   keterangan: string | null;
+  foto_url?: string | null;
+  updated_at?: string | null;
+  updated_by?: string | null;
   jumlah_kk?: number | null;
   jumlah_jiwa?: number | null;
   jemaat_induk: {
@@ -157,7 +158,7 @@ async function getPosDetail(id_pos: string): Promise<PosDetail | null> {
   const { data, error } = await supabase
     .from('m_pos_pelkes')
     .select(`
-      id_pos, id_induk, nama_pos, kategori, alamat, latitude, longitude, tgl_berdiri, keterangan, jumlah_kk, jumlah_jiwa,
+      id_pos, id_induk, nama_pos, kategori, alamat, latitude, longitude, tgl_berdiri, keterangan, foto_url, updated_at, jumlah_kk, jumlah_jiwa,
       jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel)
     `)
     .eq('id_pos', id_pos)
@@ -301,16 +302,28 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
   const { data: { user } } = await supabase.auth.getUser();
   
   let canWrite = false;
+  let canDelete = false;
+  let currentUserName = 'Pelayan Pos';
+
   if (user) {
     const { data: userAuth } = await supabase
       .from('users')
-      .select('role, id_mupel, id_induk, id_pos')
+      .select('nama_lengkap, role, id_mupel, id_induk, id_pos')
       .eq('id', user.id)
       .maybeSingle();
 
+    if (userAuth?.nama_lengkap) {
+      currentUserName = userAuth.nama_lengkap;
+    } else if (user.email) {
+      currentUserName = user.email;
+    }
+
     const role = userAuth?.role || user.user_metadata?.role || 'guest';
     
-    if (['super_user', 'superadmin', 'sinode'].includes(role)) {
+    if (['super_user', 'superadmin'].includes(role)) {
+      canWrite = true;
+      canDelete = true;
+    } else if (role === 'sinode') {
       canWrite = true;
     } else {
       const targetJemaatId = pos.id_induk;
@@ -346,71 +359,16 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
 
   return (
     <div className="space-y-6 pb-12 max-w-4xl mx-auto">
-      {/* Header Banner Card (Non-Sticky for seamless layout design integration) */}
-      <div className="bg-surface-elevated p-6 rounded-2xl border border-border-subtle shadow-soft space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="p-3 rounded-2xl bg-brand-primary/10 text-brand-primary mt-0.5 shrink-0">
-              <MapPin className="w-6 h-6" />
-            </div>
-            <div className="space-y-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className={cn("text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded border", catColor)}>
-                  {catLabel}
-                </span>
-                <span className="text-[10px] text-text-muted font-bold tracking-wider bg-surface-sunken px-2 py-0.5 rounded-md border border-border-subtle">
-                  {pos.id_pos}
-                </span>
-                <span className="text-xs font-semibold text-text-muted">
-                  Induk: {pos.jemaat_induk ? (
-                    <Link 
-                      href={`/hierarki/${encodeURIComponent(pos.jemaat_induk.id_mupel)}/${encodeURIComponent(pos.jemaat_induk.id_induk)}`}
-                      className="text-brand-primary hover:underline font-bold"
-                    >
-                      {pos.jemaat_induk.nama_induk}
-                    </Link>
-                  ) : '-'}
-                </span>
-              </div>
-              <h1 className="text-xl sm:text-2xl font-black text-text-high tracking-tight">
-                {pos.nama_pos}
-              </h1>
-              {pos.alamat && <p className="text-xs text-text-muted leading-relaxed">{pos.alamat}</p>}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0 self-end sm:self-start">
-            <ShareButton
-              title={`Profil Detail ${catLabel}: ${pos.nama_pos}`}
-              text={`${catLabel} GPIB: ${pos.nama_pos}\nJemaat Induk: ${pos.jemaat_induk?.nama_induk || '-'}\nAlamat: ${pos.alamat || '-'}\nJumlah KK: ${totalKK}\nTotal Jiwa: ${totalJiwa}`}
-              variant="ghost"
-              iconOnly
-            />
-            
-            {canWrite && (
-              <>
-                <Link
-                  href={`/dashboard/pos-pelkes/${pos.id_pos}/edit`}
-                  className="min-h-[40px] px-3.5 py-2 rounded-xl border border-brand-primary/20 bg-brand-primary/5 hover:bg-brand-primary/10 text-xs font-bold text-brand-primary flex items-center gap-1.5 transition-all active:scale-95 shadow-xs"
-                >
-                  <Edit3 size={16} />
-                  <span>Edit</span>
-                </Link>
-
-                <DeletePosButton id_pos={pos.id_pos} nama_pos={pos.nama_pos} />
-              </>
-            )}
-
-            <Link
-              href="/dashboard/pos-pelkes"
-              className="min-h-[40px] px-3.5 py-2 rounded-xl border border-border-subtle bg-surface-sunken hover:bg-surface-elevated text-xs font-bold text-text-high flex items-center gap-1.5 transition-all active:scale-95 shadow-xs"
-            >
-              <ArrowLeft size={16} />
-              <span>Kembali</span>
-            </Link>
-          </div>
-        </div>
-      </div>
+      {/* Premium Hero Banner Showcase Wrapper with Fullscreen Lightbox */}
+      <PosProfileHeroWrapper
+        pos={pos}
+        catLabel={catLabel}
+        catColor={catColor}
+        totalKK={totalKK}
+        totalJiwa={totalJiwa}
+        canWrite={canWrite}
+        canDelete={canDelete}
+      />
 
       {/* Tabs */}
       <Tabs defaultValue="profil" className="w-full">
@@ -615,21 +573,60 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
               </CardContent>
             </Card>
 
-            {/* Keterangan Side Card */}
+            {/* Keterangan & Foto Side Card */}
             <Card className="border-border-subtle shadow-soft h-full flex flex-col">
               <CardHeader className="pb-3 border-b border-border-subtle">
-                <CardTitle className="text-base font-extrabold text-text-high">Keterangan</CardTitle>
+                <CardTitle className="text-base font-extrabold text-text-high">Foto & Keterangan</CardTitle>
               </CardHeader>
-              <CardContent className="p-5 flex-1 flex flex-col justify-start">
-                {pos.keterangan ? (
-                  <p className="text-xs text-text-muted whitespace-pre-wrap leading-relaxed italic">
-                    "{pos.keterangan}"
-                  </p>
-                ) : (
-                  <p className="text-xs text-text-muted italic my-auto text-center py-6">
-                    Tidak ada keterangan tambahan yang diisi.
-                  </p>
+              <CardContent className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                {/* Foto Profil Pos Pelkes */}
+                {pos.foto_url && (
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider block">Foto Tampak Depan Gedung / Lokasi</span>
+                    <div className="relative aspect-video w-full rounded-xl overflow-hidden border border-border-subtle bg-surface-sunken">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img 
+                        src={pos.foto_url} 
+                        alt={`Foto Profil ${pos.nama_pos}`} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
                 )}
+
+                <div>
+                  <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider block mb-1">Catatan Keterangan</span>
+                  {pos.keterangan ? (
+                    <p className="text-xs text-text-muted whitespace-pre-wrap leading-relaxed italic bg-surface-sunken/60 p-3 rounded-xl border border-border-subtle/50">
+                      "{pos.keterangan}"
+                    </p>
+                  ) : (
+                    <p className="text-xs text-text-muted italic py-3">
+                      Tidak ada keterangan tambahan yang diisi.
+                    </p>
+                  )}
+                </div>
+
+                {/* Audit Information Metadata */}
+                <div className="pt-3 border-t border-border-subtle/60 text-[11px] text-text-muted space-y-1 bg-surface-sunken/40 p-3 rounded-xl">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-text-muted">Tanggal Diperbarui:</span>
+                    <span className="font-bold text-text-high font-mono">
+                      {pos.updated_at 
+                        ? new Date(pos.updated_at).toLocaleString('id-ID', {
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                          })
+                        : '-'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-text-muted">Diperbarui Oleh:</span>
+                    <span className="font-bold text-brand-primary truncate max-w-[170px]" title={pos.updated_by || currentUserName}>
+                      {pos.updated_by || currentUserName}
+                    </span>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -846,126 +843,8 @@ export default async function PosPelkesDetailPage({ params }: { params: Promise<
         {/* TAB 3: DEMOGRAFI */}
         <TabsContent value="demografi" className="space-y-4 focus-visible:outline-none">
           <Card className="border-border-subtle shadow-soft">
-            <CardHeader className="pb-3 border-b border-border-subtle flex flex-row items-center justify-between flex-wrap gap-3">
-              <CardTitle className="flex items-center gap-2 text-base font-extrabold text-text-high">
-                <Users className="w-5 h-5 text-brand-primary" />
-                Rincian Profil Demografi per Pelkat
-              </CardTitle>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-xs font-bold text-text-muted shrink-0 bg-surface-sunken px-2.5 py-1.5 rounded-lg border border-border-subtle">
-                  <span>Total: {totalKK} KK</span>
-                  <span>•</span>
-                  <span>{totalJiwa} Jiwa</span>
-                </div>
-                <Link
-                  href={canWrite && demografi.length === 0 ? `/demografi/${pos.id_pos}?action=new` : `/demografi/${pos.id_pos}`}
-                  className="px-2.5 py-1.5 rounded-lg border border-border-subtle bg-surface-sunken hover:bg-surface-elevated text-[10px] font-bold text-brand-primary flex items-center gap-1 transition-all active:scale-95 shadow-xs"
-                >
-                  <Edit3 size={10} />
-                  <span>{canWrite ? 'Kelola Demografi' : 'Lihat Demografi'}</span>
-                </Link>
-              </div>
-            </CardHeader>
             <CardContent className="p-5">
-              {demografi.length === 0 ? (
-                <div className="text-center py-12 text-text-muted space-y-4">
-                  <Users size={40} className="mx-auto text-text-muted/40" />
-                  <div className="space-y-1">
-                    <p className="text-sm font-bold">Belum ada Data Demografi</p>
-                    <p className="text-xs">Data kuantitatif Pelkat belum diisi untuk Pos Pelkes / Bajem ini.</p>
-                  </div>
-                  {canWrite && (
-                    <Link
-                      href={`/demografi/${pos.id_pos}?action=new`}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-primary text-white text-xs font-bold rounded-xl hover:bg-blue-800 transition-colors shadow-xs"
-                    >
-                      <Plus size={14} />
-                      <span>Input Data Demografi</span>
-                    </Link>
-                  )}
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {demografi.map((d, idx) => {
-                    const totalRatio = d.laki + d.perempuan;
-                    const pctLaki = totalRatio > 0 ? (d.laki / totalRatio) * 100 : 0;
-                    const pctPerempuan = totalRatio > 0 ? (d.perempuan / totalRatio) * 100 : 0;
-
-                    return (
-                      <div key={idx} className="p-4 bg-surface-sunken border border-border-subtle rounded-2xl flex flex-col justify-between space-y-4">
-                        <div className="flex items-start justify-between gap-2 border-b border-border-subtle/50 pb-2">
-                          <div>
-                            <h4 className="font-extrabold text-sm text-text-high capitalize">{d.kategori_pelkat}</h4>
-                            <p className="text-[10px] text-text-muted font-bold mt-0.5">PELAYANAN KATEGORIAL</p>
-                          </div>
-                          <Badge variant="outline" className="font-bold text-xs bg-surface-elevated shrink-0">
-                            {d.jml_kk} KK
-                          </Badge>
-                        </div>
-
-                        {/* Stat Grid per Pelkat */}
-                        <div className="grid grid-cols-3 gap-2 text-center">
-                          <div className="p-2 bg-surface-elevated rounded-xl border border-border-subtle/50">
-                            <span className="text-[9px] text-text-muted font-bold block">JIWA</span>
-                            <span className="text-sm font-extrabold text-text-high">{totalRatio}</span>
-                          </div>
-                          <div className="p-2 bg-surface-elevated rounded-xl border border-border-subtle/50">
-                            <span className="text-[9px] text-blue-500 font-bold block">PRIA</span>
-                            <span className="text-sm font-extrabold text-blue-600 dark:text-blue-400">{d.laki}</span>
-                          </div>
-                          <div className="p-2 bg-surface-elevated rounded-xl border border-border-subtle/50">
-                            <span className="text-[9px] text-pink-500 font-bold block">WANITA</span>
-                            <span className="text-sm font-extrabold text-pink-600 dark:text-pink-400">{d.perempuan}</span>
-                          </div>
-                        </div>
-
-                        {/* Visual Ratio Bar */}
-                        {totalRatio > 0 && (
-                          <div className="space-y-1.5">
-                            <div className="flex items-center justify-between text-[10px] font-bold text-text-muted">
-                              <span className="text-blue-600 dark:text-blue-400">{pctLaki.toFixed(0)}% Laki-laki</span>
-                              <span className="text-pink-600 dark:text-pink-400">{pctPerempuan.toFixed(0)}% Perempuan</span>
-                            </div>
-                            <div className="h-2 w-full rounded-full bg-border-strong overflow-hidden flex">
-                              <div 
-                                style={{ width: `${pctLaki}%` }} 
-                                className="bg-blue-500 h-full transition-all" 
-                                title={`Laki-laki: ${d.laki}`}
-                              />
-                              <div 
-                                style={{ width: `${pctPerempuan}%` }} 
-                                className="bg-pink-500 h-full transition-all" 
-                                title={`Perempuan: ${d.perempuan}`}
-                              />
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Additional Metadata */}
-                        {(d.profesi || d.pendidikan || d.keterangan) && (
-                          <div className="pt-2 border-t border-border-subtle/40 text-[11px] text-text-muted space-y-1 bg-surface-elevated/20 p-2 rounded-lg">
-                            {d.profesi && (
-                              <div>
-                                <span className="font-extrabold text-text-high">Pekerjaan Utama:</span> {d.profesi}
-                              </div>
-                            )}
-                            {d.pendidikan && (
-                              <div>
-                                <span className="font-extrabold text-text-high">Pendidikan Terbanyak:</span> {d.pendidikan}
-                              </div>
-                            )}
-                            {d.keterangan && (
-                              <div className="italic">
-                                "{d.keterangan}"
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              <DemografiTabContent id_pos={pos.id_pos} canWrite={canWrite} />
             </CardContent>
           </Card>
         </TabsContent>

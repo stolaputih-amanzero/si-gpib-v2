@@ -6,7 +6,7 @@ async function getPosDetail(id_pos: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from('m_pos_pelkes')
-    .select('id_pos, id_induk, nama_pos, kategori, alamat, latitude, longitude, keterangan')
+    .select('id_pos, id_induk, nama_pos, kategori, alamat, latitude, longitude, keterangan, foto_url')
     .eq('id_pos', id_pos)
     .single();
 

@@ -84,17 +84,35 @@ export function useLogPastoralList(search?: string, id_pos?: string) {
       const { data, error } = await query;
       if (error) {
         console.warn('Falling back to simple pastoral query:', error);
-        // Fallback for flat query if relationship names differ
+        // Fallback query without tight inner join dependencies
         const { data: rawData, error: rawErr } = await supabase
           .from('t_log_pastoral')
           .select(`
             *,
-            pos:m_pos_pelkes(id_pos, nama_pos),
+            pos:m_pos_pelkes(
+              id_pos,
+              nama_pos,
+              kategori,
+              jemaat_induk:m_jemaat_induk(
+                id_induk,
+                nama_induk,
+                mupel:m_mupel(id_mupel, nama_mupel)
+              )
+            ),
             pendeta:m_pendeta(id_pendeta, nama_lengkap)
           `)
           .order('tgl', { ascending: false });
 
-        if (rawErr) throw rawErr;
+        if (rawErr) {
+          // Ultima fallback: fetch pure flat table records
+          const { data: flatData, error: flatErr } = await supabase
+            .from('t_log_pastoral')
+            .select('*')
+            .order('tgl', { ascending: false });
+
+          if (flatErr) throw flatErr;
+          return (flatData || []) as LogPastoralItem[];
+        }
         return (rawData || []) as LogPastoralItem[];
       }
 

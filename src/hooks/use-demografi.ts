@@ -11,11 +11,36 @@ export function useDemografiByPos(id_pos: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('t_demografi_pelkat')
-        .select('*')
+        .select(`
+          *,
+          pos:m_pos_pelkes(
+            id_pos,
+            nama_pos,
+            kategori,
+            alamat,
+            latitude,
+            longitude,
+            jemaat_induk:m_jemaat_induk(
+              id_induk,
+              nama_induk,
+              mupel:m_mupel(id_mupel, nama_mupel)
+            )
+          )
+        `)
         .eq('id_pos', id_pos)
         .order('kategori_pelkat');
       
-      if (error) throw error;
+      if (error) {
+        // Fallback flat query if join fails
+        const { data: flatData, error: flatErr } = await supabase
+          .from('t_demografi_pelkat')
+          .select('*')
+          .eq('id_pos', id_pos)
+          .order('kategori_pelkat');
+
+        if (flatErr) throw flatErr;
+        return flatData;
+      }
       return data;
     },
     enabled: !!id_pos,

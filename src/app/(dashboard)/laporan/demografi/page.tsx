@@ -87,17 +87,18 @@ export default function LaporanDemografiPage() {
         const userMeta = user.user_metadata || {};
         const { data: userRow } = await supabase
           .from('users')
-          .select('email, no_telepon')
+          .select('nama_lengkap, nama, email, no_telepon')
           .eq('id', user.id)
           .maybeSingle();
 
         const displayUser =
-          userRow?.email ||
-          user.email ||
+          userRow?.nama_lengkap ||
+          (userRow as any)?.nama ||
+          userMeta.nama_lengkap ||
           userMeta.full_name ||
           userMeta.name ||
-          userRow?.no_telepon ||
-          user.phone ||
+          userRow?.email ||
+          user.email ||
           'Pengguna System';
 
         setCurrentUserEmail(displayUser);
@@ -316,12 +317,14 @@ export default function LaporanDemografiPage() {
       mapsUrl = `google.com/maps/search/?api=1&query=${encodeURIComponent(locName)}`;
     }
 
+    const isBajem = (detail.posName || '').toLowerCase().includes('bajem');
+    const posLabelHeader = isBajem ? 'Bajem' : 'Pos Pelkes';
+    const formattedPosTitle = `*${(detail.posName || '-').toUpperCase()}* (${posLabelHeader})`;
+    const formattedSubHierarchy = `_${detail.jemaatName || '-'} - ${detail.mupelName || '-'}_`;
+
     const lines = [
-      `Mupel: ${detail.mupelName || '-'}`,
-      `Jemaat Induk: ${detail.jemaatName || '-'}`,
-      `Pos Pelkes/Bajem: ${detail.posName || '-'}`,
-      `Tanggal Update: ${tglFormatted}`,
-      `Diperbarui Oleh: ${updatedUser}`,
+      formattedPosTitle,
+      formattedSubHierarchy,
       ``,
       `*RINGKASAN DEMOGRAFI*`,
       `- Total Kepala Keluarga (KK): ${detail.total_kk} KK`,
@@ -348,6 +351,9 @@ export default function LaporanDemografiPage() {
       `*LOKASI & GOOGLE MAPS*`,
       `Peta Lokasi Google Maps:`,
       mapsUrl,
+      ``,
+      `Tanggal Update: ${tglFormatted}`,
+      `Diperbarui Oleh: ${updatedUser}`,
     );
 
     if (detail.alamat) {

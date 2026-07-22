@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { MapPin, Loader2, ArrowLeft } from 'lucide-react';
+import { MapPin, Loader2, ArrowLeft, Camera, Upload, Image as ImageIcon, Eye, X } from 'lucide-react';
 import Link from 'next/link';
 import { updatePosPelkes } from '../../baru/actions';
 import { JemaatCascadingSelector } from '@/components/hierarki/HierarkiSelector/JemaatCascadingSelector';
@@ -19,6 +19,7 @@ const formSchema = z.object({
   latitude: z.number().nullable(),
   longitude: z.number().nullable(),
   keterangan: z.string().nullable().optional(),
+  foto_url: z.string().nullable().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -198,6 +199,18 @@ export default function EditPosPelkesForm({ pos }: { pos: any }) {
     }
   };
 
+  const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(pos.foto_url || null);
+  const [showLightbox, setShowLightbox] = useState(false);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedPhoto(file);
+      setPhotoPreview(URL.createObjectURL(file));
+    }
+  };
+
   const onSubmit = async (data: FormValues) => {
     setServerError(null);
     const formData = new FormData();
@@ -208,6 +221,7 @@ export default function EditPosPelkesForm({ pos }: { pos: any }) {
     if (data.latitude !== null && data.latitude !== undefined) formData.append('latitude', data.latitude.toString());
     if (data.longitude !== null && data.longitude !== undefined) formData.append('longitude', data.longitude.toString());
     if (data.keterangan) formData.append('keterangan', data.keterangan);
+    if (selectedPhoto) formData.append('photo', selectedPhoto);
 
     const result = await updatePosPelkes(pos.id_pos, formData);
     
@@ -313,6 +327,89 @@ export default function EditPosPelkesForm({ pos }: { pos: any }) {
             />
             {errors.keterangan && <p className="mt-1 text-xs text-red-500 font-semibold">{errors.keterangan.message}</p>}
           </div>
+
+          {/* Foto Profil Pos Pelkes (Kamera / Unggah) */}
+          <div className="space-y-2 pt-2 border-t border-border-subtle">
+            <div>
+              <label className="block text-xs font-black text-text-high uppercase tracking-wider">
+                Foto Profil Gedung / Lokasi <span className="text-text-muted">(Kamera / Unggah File)</span>
+              </label>
+              <p className="text-[11px] text-text-muted font-medium mt-0.5">
+                💡 <span className="font-bold text-brand-primary">Catatan:</span> Disarankan mengunggah foto <span className="font-bold underline text-text-high">tampak depan</span> dari gedung Pos Pelkes / Bajem untuk identifikasi lokasi yang presisi.
+              </p>
+            </div>
+            
+            {photoPreview ? (
+              <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black/90 border border-border-subtle shadow-medium group">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={photoPreview} alt="Preview Profil Pos Pelkes" className="w-full h-full object-cover" />
+                
+                {/* Sleek Eye icon button to view full screen */}
+                <button
+                  type="button"
+                  onClick={() => setShowLightbox(true)}
+                  className="absolute top-3 left-3 z-20 min-h-[36px] min-w-[36px] p-2 rounded-full bg-black/50 hover:bg-black/80 text-white border border-white/20 backdrop-blur-md flex items-center justify-center transition-all shadow-md"
+                  title="Lihat Foto Layar Penuh"
+                >
+                  <Eye size={18} />
+                </button>
+
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowLightbox(true)}
+                    className="px-3 py-2 bg-black/60 hover:bg-black/80 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-soft border border-white/20"
+                  >
+                    <Eye size={14} />
+                    <span>Layar Penuh</span>
+                  </button>
+
+                  <label className="px-3 py-2 bg-brand-primary hover:bg-blue-800 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors flex items-center gap-1.5 shadow-soft">
+                    <Camera size={14} />
+                    <span>Ganti Foto</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handlePhotoChange}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-border-strong rounded-2xl p-6 text-center bg-surface-sunken/50 hover:bg-surface-sunken transition-colors">
+                <ImageIcon className="w-10 h-10 mx-auto text-text-muted opacity-50 mb-2" />
+                <p className="text-xs font-bold text-text-high mb-1">Belum Ada Foto Profil</p>
+                <p className="text-[11px] text-text-muted mb-4">Gunakan kamera HP langsung atau pilih gambar dari galeri/file</p>
+                
+                <div className="flex items-center justify-center gap-3 flex-wrap">
+                  <label className="px-4 py-2.5 bg-brand-primary text-white text-xs font-bold rounded-xl hover:bg-blue-800 transition-colors shadow-soft cursor-pointer flex items-center gap-2">
+                    <Camera size={16} />
+                    <span>Potret via Kamera</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handlePhotoChange}
+                      className="hidden"
+                    />
+                  </label>
+
+                  <label className="px-4 py-2.5 bg-surface-elevated border border-border-subtle text-text-high text-xs font-bold rounded-xl hover:bg-surface-sunken transition-colors shadow-xs cursor-pointer flex items-center gap-2">
+                    <Upload size={16} className="text-brand-primary" />
+                    <span>Unggah dari File</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="bg-surface-elevated p-6 rounded-2xl border border-border-subtle shadow-soft space-y-5">
@@ -394,6 +491,38 @@ export default function EditPosPelkesForm({ pos }: { pos: any }) {
           )}
         </button>
       </form>
+
+      {/* FULLSCREEN LIGHTBOX PREVIEW MODAL */}
+      {showLightbox && photoPreview && (
+        <div 
+          onClick={() => setShowLightbox(false)}
+          className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4 backdrop-blur-md animate-fade-in cursor-zoom-out"
+        >
+          <div className="absolute top-4 right-4 z-50 flex items-center gap-3">
+            <span className="text-white text-xs font-bold bg-white/10 px-3 py-1.5 rounded-xl backdrop-blur-md">
+              Preview Foto Profil Pos Pelkes
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowLightbox(false)}
+              className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-colors min-h-[44px] min-w-[44px]"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="relative max-w-5xl max-h-[85vh] w-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              src={photoPreview} 
+              alt="Preview Foto Layar Penuh" 
+              className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-white/10"
+            />
+          </div>
+
+          <p className="text-white/70 text-xs mt-3 font-medium">Klik di mana saja untuk menutup tampilan layar penuh</p>
+        </div>
+      )}
     </div>
   );
 }

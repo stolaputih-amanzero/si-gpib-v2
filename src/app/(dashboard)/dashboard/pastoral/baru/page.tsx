@@ -62,6 +62,7 @@ function LogPastoralBaruContentPage() {
       id_pos: undefined,
       tgl: getTodayDateString(),
       jam: getNowTimeString(),
+      zona_waktu: 'WIB',
       kegiatan: '',
       jml_jiwa: undefined,
       catatan: '',
@@ -205,10 +206,11 @@ function LogPastoralBaruContentPage() {
         : getTodayDateString();
 
       const jamStr = data.jam || getNowTimeString();
+      const zonaStr = data.zona_waktu || 'WIB';
 
       // Combine time prefix and hierarchy metadata into catatan
       let rawCatatanFormatted = data.catatan ? formatPastoralKegiatanText(data.catatan) : '';
-      const timeTag = `[⏰ Jam Pelayanan: ${jamStr} WIB]`;
+      const timeTag = `[⏰ Jam Pelayanan: ${jamStr} ${zonaStr}]`;
       let finalCatatan = rawCatatanFormatted ? `${timeTag}\n${rawCatatanFormatted}` : timeTag;
 
       // Format hierarchy metadata tag
@@ -316,13 +318,23 @@ function LogPastoralBaruContentPage() {
           <div className="space-y-2">
             <label className="text-sm font-medium text-text-high flex items-center gap-2">
               <Clock className="w-4 h-4 text-brand-primary" />
-              Waktu / Jam Pelayanan *
+              Waktu / Jam & Timezone *
             </label>
-            <input
-              type="time"
-              {...register('jam')}
-              className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-text-high text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
-            />
+            <div className="flex gap-2">
+              <input
+                type="time"
+                {...register('jam')}
+                className="flex-1 min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-text-high text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+              />
+              <select
+                {...register('zona_waktu')}
+                className="min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-text-high text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-primary shrink-0 cursor-pointer"
+              >
+                <option value="WIB">WIB (UTC+7)</option>
+                <option value="WITA">WITA (UTC+8)</option>
+                <option value="WIT">WIT (UTC+9)</option>
+              </select>
+            </div>
             {errors.jam && (
               <p className="text-xs text-error font-medium">{errors.jam.message}</p>
             )}
