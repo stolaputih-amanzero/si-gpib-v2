@@ -45,7 +45,18 @@ export function useAnalitikKPI(filter?: AnalitikFilter) {
       }
       const { count: totalPos } = await posQuery;
 
-      // 1b. Query Total Jiwa (Demografi)
+      // 1b. Query Total Jiwa (m_pos_pelkes jumlah_jiwa & t_demografi_pelkat fallback)
+      let posJiwaQuery = supabase.from('m_pos_pelkes').select('jumlah_jiwa, id_induk');
+      if (filter?.id_induk) {
+        posJiwaQuery = posJiwaQuery.eq('id_induk', filter.id_induk);
+      } else if (filter?.id_mupel) {
+        const { data: jemaat } = await supabase.from('m_jemaat_induk').select('id_induk').eq('id_mupel', filter.id_mupel);
+        const idInduks = jemaat?.map((j) => j.id_induk) || [];
+        posJiwaQuery = posJiwaQuery.in('id_induk', idInduks);
+      }
+      const { data: posJiwaData } = await posJiwaQuery;
+      const totalJiwaFromPos = (posJiwaData || []).reduce((sum: number, curr: any) => sum + (curr.jumlah_jiwa || 0), 0);
+
       let demoQuery = supabase.from('t_demografi_pelkat').select('laki, perempuan, id_pos!inner(id_induk)');
       const { data: demoData } = await demoQuery;
 
@@ -53,13 +64,13 @@ export function useAnalitikKPI(filter?: AnalitikFilter) {
       if (filter?.id_induk) {
         filteredDemo = filteredDemo.filter((d: any) => d.id_pos?.id_induk === filter.id_induk);
       } else if (filter?.id_mupel) {
-        // We will fetch jemaat list for mupel if needed
         const { data: jemaat } = await supabase.from('m_jemaat_induk').select('id_induk').eq('id_mupel', filter.id_mupel);
         const idInduks = new Set(jemaat?.map((j) => j.id_induk) || []);
         filteredDemo = filteredDemo.filter((d: any) => idInduks.has(d.id_pos?.id_induk));
       }
 
-      const totalJiwa = filteredDemo.reduce((sum: number, curr: any) => sum + (curr.laki || 0) + (curr.perempuan || 0), 0);
+      const totalJiwaFromPelkat = filteredDemo.reduce((sum: number, curr: any) => sum + (curr.laki || 0) + (curr.perempuan || 0), 0);
+      const totalJiwa = totalJiwaFromPos > 0 ? totalJiwaFromPos : totalJiwaFromPelkat;
 
       // 1c. Query Total Pendeta Aktif
       let pendetaQuery = supabase.from('m_pendeta').select('id_pendeta', { count: 'exact' }).eq('status', 'Aktif');

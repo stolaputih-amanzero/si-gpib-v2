@@ -25,6 +25,7 @@ export default async function Dashboard() {
     { count: jemaatCount },
     { count: logCount },
     { data: demografiData },
+    { data: posPelkesSumData },
     { data: recentLogs }
   ] = await Promise.all([
     supabase.from('m_pos_pelkes').select('*', { count: 'exact', head: true }),
@@ -38,6 +39,9 @@ export default async function Dashboard() {
       .from('t_demografi_pelkat')
       .select('kategori_pelkat, laki, perempuan'),
     supabase
+      .from('m_pos_pelkes')
+      .select('jumlah_jiwa'),
+    supabase
       .from('t_log_pastoral')
       .select(`
         id_log, tgl, kegiatan,
@@ -50,7 +54,7 @@ export default async function Dashboard() {
   ]);
 
   // Process Demografi Data
-  let totalJiwa = 0;
+  let totalJiwaFromPelkat = 0;
   const chartDataMap: Record<string, number> = {
     'Pelayanan Anak (PA)': 0,
     'Persekutuan Teruna (PT)': 0,
@@ -63,20 +67,24 @@ export default async function Dashboard() {
   if (demografiData) {
     (demografiData as DemografiRow[]).forEach((row) => {
       const sum = row.laki + row.perempuan;
-      totalJiwa += sum;
+      totalJiwaFromPelkat += sum;
       
       let category = row.kategori_pelkat;
-      if (category.toLowerCase().includes('anak')) category = 'PA';
-      else if (category.toLowerCase().includes('teruna')) category = 'PT';
-      else if (category.toLowerCase().includes('pemuda')) category = 'GP';
-      else if (category.toLowerCase().includes('perempuan')) category = 'PKP';
-      else if (category.toLowerCase().includes('bapak') || category.toLowerCase().includes('bapa')) category = 'PKB';
-      else if (category.toLowerCase().includes('lanjut usia') || category.toLowerCase().includes('lansia')) category = 'PKLU';
+      if (category.toLowerCase().includes('anak') || category === 'PA') category = 'PA';
+      else if (category.toLowerCase().includes('teruna') || category === 'PT') category = 'PT';
+      else if (category.toLowerCase().includes('pemuda') || category === 'GP') category = 'GP';
+      else if (category.toLowerCase().includes('perempuan') || category === 'PKP') category = 'PKP';
+      else if (category.toLowerCase().includes('bapak') || category.toLowerCase().includes('bapa') || category === 'PKB') category = 'PKB';
+      else if (category.toLowerCase().includes('lanjut usia') || category.toLowerCase().includes('lansia') || category === 'PKLU') category = 'PKLU';
       else category = category.substring(0, 4).toUpperCase();
       
       chartDataMap[category] = (chartDataMap[category] || 0) + sum;
     });
   }
+
+  // Sum total jiwa from m_pos_pelkes as primary reference
+  const totalJiwaFromPos = (posPelkesSumData || []).reduce((acc: number, curr: any) => acc + (curr.jumlah_jiwa || 0), 0);
+  const totalJiwa = totalJiwaFromPos > 0 ? totalJiwaFromPos : totalJiwaFromPelkat;
 
   // Convert map to array for Recharts
   const chartData = Object.entries(chartDataMap)
