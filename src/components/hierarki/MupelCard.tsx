@@ -81,7 +81,7 @@ export function MupelCard({ mupel }: MupelCardProps) {
       <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-border-subtle text-xs text-text-muted">
         <span className="flex items-center gap-1 font-semibold text-indigo-600 dark:text-indigo-400">
           <Church size={14} />
-          {mupel.jemaat_count ?? 0} Jemaat Induk
+          {mupel.jemaat_count ?? 0} Jemaat
         </span>
         <span>•</span>
         <span className="flex items-center gap-1 font-semibold text-purple-600 dark:text-purple-400">

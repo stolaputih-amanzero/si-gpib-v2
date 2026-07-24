@@ -80,7 +80,7 @@ export function MupelDetailClient({ id_mupel }: MupelDetailClientProps) {
           <div className="w-full bg-surface-sunken p-3 rounded-2xl border border-border-subtle flex items-center justify-between gap-3">
             <div className="flex-1 space-y-1.5 min-w-0">
               <div className="flex items-center justify-between px-2 py-0.5 text-xs sm:text-sm">
-                <span className="font-bold text-text-muted">Jemaat Induk</span>
+                <span className="font-bold text-text-muted">Jemaat</span>
                 <span className="font-black text-indigo-700 dark:text-indigo-300 text-sm sm:text-base tabular-nums">
                   {jemaatList?.length || 0}
                 </span>
@@ -103,8 +103,8 @@ export function MupelDetailClient({ id_mupel }: MupelDetailClientProps) {
               type="button"
               onClick={handleOpenAddModal}
               className="w-10 h-10 rounded-xl bg-brand-primary text-white flex items-center justify-center shrink-0 hover:opacity-90 active:scale-95 transition-all shadow-xs"
-              title="Tambah Jemaat Induk Baru"
-              aria-label="Tambah Jemaat Induk Baru"
+              title="Tambah Jemaat Baru"
+              aria-label="Tambah Jemaat Baru"
             >
               <Plus size={18} className="stroke-[2.5px]" />
             </button>
@@ -123,7 +123,7 @@ export function MupelDetailClient({ id_mupel }: MupelDetailClientProps) {
         <Search size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-text-muted" />
         <input
           type="text"
-          placeholder="Cari Jemaat Induk atau nama KMJ..."
+          placeholder="Cari Jemaat atau nama KMJ..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full min-h-[44px] pl-10 pr-4 rounded-xl border border-border-subtle bg-surface-base text-xs sm:text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
@@ -141,12 +141,12 @@ export function MupelDetailClient({ id_mupel }: MupelDetailClientProps) {
       ) : isError ? (
         <div className="p-8 text-center bg-surface-elevated rounded-2xl border border-border-subtle text-red-600 space-y-2">
           <AlertCircle className="w-8 h-8 mx-auto" />
-          <p className="text-sm font-semibold">Gagal memuat data Jemaat Induk.</p>
+          <p className="text-sm font-semibold">Gagal memuat data Jemaat.</p>
         </div>
       ) : !jemaatList || jemaatList.length === 0 ? (
         <div className="p-8 text-center bg-surface-elevated rounded-2xl border border-border-subtle text-text-muted space-y-2">
           <Church className="w-8 h-8 mx-auto text-text-muted opacity-50" />
-          <p className="text-sm font-semibold">Tidak ada Jemaat Induk di bawah Mupel ini.</p>
+          <p className="text-sm font-semibold">Tidak ada Jemaat di bawah Mupel ini.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

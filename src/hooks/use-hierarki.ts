@@ -73,7 +73,9 @@ export interface PosPelkesItem {
 export interface HierarchyStatsData {
   total_mupel: number;
   total_jemaat: number;
+  total_bajem: number;
   total_pos: number;
+  total_kk: number;
   total_jiwa: number;
 }
 
@@ -463,17 +465,34 @@ export function useHierarchyStats() {
   return useQuery<HierarchyStatsData>({
     queryKey: ['hierarchy-stats'],
     queryFn: async () => {
-      const [{ count: mCount }, { count: jCount }, { count: pCount }] = await Promise.all([
+      const [{ count: mCount }, { count: jCount }, { data: posData }, { data: demoData }, { data: jemaatData }] = await Promise.all([
         supabase.from('m_mupel').select('*', { count: 'exact', head: true }),
         supabase.from('m_jemaat_induk').select('*', { count: 'exact', head: true }),
-        supabase.from('m_pos_pelkes').select('*', { count: 'exact', head: true }),
+        supabase.from('m_pos_pelkes').select('kategori, nama_pos'),
+        supabase.from('t_demografi_pelkat').select('jml_kk, laki, perempuan'),
+        supabase.from('m_jemaat_induk').select('jumlah_kk, jumlah_jiwa'),
       ]);
 
+      const allPos = posData || [];
+      const bCount = allPos.filter((p) => isBajemPos(p)).length;
+      const pCount = allPos.filter((p) => !isBajemPos(p)).length;
+
+      const demoKk = (demoData || []).reduce((sum, d) => sum + (d.jml_kk || 0), 0);
+      const demoJiwa = (demoData || []).reduce((sum, d) => sum + (d.laki || 0) + (d.perempuan || 0), 0);
+
+      const jemaatKk = (jemaatData || []).reduce((sum, j) => sum + (j.jumlah_kk || 0), 0);
+      const jemaatJiwa = (jemaatData || []).reduce((sum, j) => sum + (j.jumlah_jiwa || 0), 0);
+
+      const totalKk = demoKk + jemaatKk;
+      const totalJiwa = demoJiwa + jemaatJiwa;
+
       return {
-        total_mupel: mCount || 25,
-        total_jemaat: jCount || 350,
-        total_pos: pCount || 500,
-        total_jiwa: (pCount || 500) * 100,
+        total_mupel: mCount || 0,
+        total_jemaat: jCount || 0,
+        total_bajem: bCount,
+        total_pos: pCount,
+        total_kk: totalKk,
+        total_jiwa: totalJiwa,
       };
     },
     staleTime: 5 * 60 * 1000,
