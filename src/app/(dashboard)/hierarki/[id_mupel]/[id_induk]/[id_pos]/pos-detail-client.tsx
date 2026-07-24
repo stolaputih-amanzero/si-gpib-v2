@@ -70,12 +70,12 @@ export function PosDetailClient({ id_mupel, id_induk, id_pos }: PosDetailClientP
         <Skeleton className="h-32 w-full rounded-2xl" />
       ) : (
         <div className="bg-surface-elevated p-5 rounded-2xl border border-border-subtle shadow-soft space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="p-3 rounded-2xl bg-brand-primary/10 text-brand-primary mt-0.5 shrink-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="p-3.5 rounded-2xl bg-brand-primary/10 text-brand-primary shrink-0 flex items-center justify-center">
                 <MapPin className="w-6 h-6" />
               </div>
-              <div className="space-y-1 min-w-0">
+              <div className="flex flex-col justify-center space-y-0.5 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-surface-sunken border border-border-subtle text-text-muted">
                     {id_pos}
@@ -87,7 +87,7 @@ export function PosDetailClient({ id_mupel, id_induk, id_pos }: PosDetailClientP
                     Jemaat Induk: {jemaat?.nama_induk}
                   </span>
                 </div>
-                <h1 className="text-xl sm:text-2xl font-black text-text-high tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-black text-text-high tracking-tight leading-tight">
                   {pos?.nama_pos || id_pos}
                 </h1>
                 {pos?.alamat && <p className="text-xs text-text-muted leading-relaxed">{pos.alamat}</p>}

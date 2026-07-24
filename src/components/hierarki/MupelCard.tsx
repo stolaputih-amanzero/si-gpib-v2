@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { MupelItem, useDeleteMupel } from '@/hooks/use-hierarki';
-import { Layers, ChevronRight, Church, MapPin, Edit3, Trash2 } from 'lucide-react';
+import { Layers, Church, MapPin, Trash2 } from 'lucide-react';
 import { SecureDeleteModal } from '@/components/ui/SecureDeleteModal';
 import { useToast } from '@/components/ui/toast';
 
@@ -14,7 +14,7 @@ interface MupelCardProps {
   onEdit?: (mupel: MupelItem) => void;
 }
 
-export function MupelCard({ mupel, onEdit }: MupelCardProps) {
+export function MupelCard({ mupel }: MupelCardProps) {
   const { toast } = useToast();
   const { data: currentUser } = useCurrentUser();
   const isSuperUser = currentUser?.isSuperUser ?? false;
@@ -30,12 +30,6 @@ export function MupelCard({ mupel, onEdit }: MupelCardProps) {
     } catch (err: any) {
       toast.error('Gagal Menghapus', err?.message || 'Gagal menghapus Mupel.');
     }
-  };
-
-  const handleEdit = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onEdit) onEdit(mupel);
   };
 
   return (
@@ -65,18 +59,6 @@ export function MupelCard({ mupel, onEdit }: MupelCardProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Action Buttons */}
-          {onEdit && (
-            <button
-              type="button"
-              onClick={handleEdit}
-              className="p-2 rounded-xl text-text-muted hover:text-brand-primary hover:bg-surface-sunken transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
-              title="Edit Mupel"
-            >
-              <Edit3 size={16} />
-            </button>
-          )}
-
           {isSuperUser && (
             <button
               type="button"
@@ -93,7 +75,7 @@ export function MupelCard({ mupel, onEdit }: MupelCardProps) {
             </button>
           )}
 
-          <div className="hidden sm:flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <div className="bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl px-2.5 py-1 text-center">
               <span className="block text-[10px] font-bold text-indigo-700 dark:text-indigo-300 uppercase">Jemaat</span>
               <span className="text-xs font-black text-indigo-950 dark:text-indigo-200 tabular-nums">
@@ -107,10 +89,6 @@ export function MupelCard({ mupel, onEdit }: MupelCardProps) {
                 {mupel.pos_count ?? 0}
               </span>
             </div>
-          </div>
-
-          <div className="p-2 rounded-xl text-text-muted group-hover:text-brand-primary group-hover:bg-surface-sunken transition-all">
-            <ChevronRight size={20} />
           </div>
         </div>
       </div>

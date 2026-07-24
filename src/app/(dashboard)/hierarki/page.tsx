@@ -2,13 +2,12 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { useMupelList, MupelItem } from '@/hooks/use-hierarki';
+import { useMupelList } from '@/hooks/use-hierarki';
 import { HierarchyStats } from '@/components/hierarki/HierarchyStats';
 import { MupelCard } from '@/components/hierarki/MupelCard';
-import { BreadcrumbNav } from '@/components/hierarki/BreadcrumbNav';
-import { MupelFormModal } from '@/components/hierarki/MupelFormModal';
+import { SearchBar } from '@/components/ui/search-bar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Layers, Search, LayoutList, GitFork, AlertCircle } from 'lucide-react';
+import { Layers, LayoutList, GitFork, AlertCircle } from 'lucide-react';
 
 const HierarchyTree = dynamic(
   () => import('@/components/hierarki/HierarchyTree').then((mod) => mod.HierarchyTree),
@@ -23,20 +22,11 @@ type ViewMode = 'list' | 'tree';
 export default function HierarkiEntryPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editMupel, setEditMupel] = useState<MupelItem | null>(null);
 
   const { data: mupelList, isLoading, isError } = useMupelList(searchQuery);
 
-  const handleOpenEditModal = (mupel: MupelItem) => {
-    setEditMupel(mupel);
-    setIsModalOpen(true);
-  };
-
   return (
     <div className="space-y-6 pb-12">
-      {/* Breadcrumb Nav */}
-      <BreadcrumbNav items={[]} />
 
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-elevated p-5 rounded-2xl border border-border-subtle shadow-soft">
@@ -90,15 +80,12 @@ export default function HierarkiEntryPage() {
       {/* Global Hierarchy Stats */}
       <HierarchyStats />
 
-      {/* Search Input Bar */}
-      <div className="relative bg-surface-elevated p-3 rounded-2xl border border-border-subtle shadow-soft">
-        <Search size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-text-muted" />
-        <input
-          type="text"
-          placeholder="Cari Mupel (contoh: M - 02 BABEL)..."
+      {/* Global Search Input Bar */}
+      <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft">
+        <SearchBar
+          placeholder="Cari mupel, ID, jemaat induk, atau pos pelkes secara global..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full min-h-[44px] pl-10 pr-4 rounded-xl border border-border-subtle bg-surface-base text-xs sm:text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
         />
       </div>
 
@@ -126,17 +113,10 @@ export default function HierarkiEntryPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {mupelList.map((mupel) => (
-            <MupelCard key={mupel.id_mupel} mupel={mupel} onEdit={handleOpenEditModal} />
+            <MupelCard key={mupel.id_mupel} mupel={mupel} />
           ))}
         </div>
       )}
-
-      {/* Mupel Form Modal */}
-      <MupelFormModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        editData={editMupel}
-      />
     </div>
   );
 }

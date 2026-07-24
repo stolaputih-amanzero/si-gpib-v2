@@ -155,35 +155,43 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
         <Skeleton className="h-36 w-full rounded-2xl" />
       ) : (
         <div className="bg-surface-elevated p-5 rounded-2xl border border-border-subtle shadow-soft space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 mt-0.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="p-3.5 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 shrink-0 flex items-center justify-center">
                 <Church className="w-6 h-6" />
               </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-surface-sunken border border-border-subtle text-text-muted">
-                    {id_induk}
-                  </span>
+              <div className="flex flex-col justify-center space-y-0.5">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs font-semibold text-text-muted">
-                    Mupel: {jemaat?.mupel?.nama_mupel} ({id_mupel})
+                    Mupel: {jemaat?.mupel?.nama_mupel || id_mupel} ({id_mupel})
                   </span>
                 </div>
-                <h1 className="text-xl sm:text-2xl font-black text-text-high tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-black text-text-high tracking-tight leading-tight">
                   {jemaat?.nama_induk}
                 </h1>
+                <p className="text-xs text-text-muted font-medium mt-0.5">
+                  <span className="font-bold text-text-high">{id_induk}</span>
+                  {jemaat?.keterangan ? ` • ${jemaat.keterangan}` : ''}
+                </p>
                 {jemaat?.alamat && <p className="text-xs text-text-muted">{jemaat.alamat}</p>}
               </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0 flex-wrap">
+              <ShareButton
+                title={`Jemaat Induk GPIB: ${jemaat?.nama_induk}`}
+                text={`Jemaat Induk: ${jemaat?.nama_induk}\nMupel: ${jemaat?.mupel?.nama_mupel}\nKMJ: ${jemaat?.kmj?.nama_lengkap || 'Belum ada'}\nAlamat: ${jemaat?.alamat || '-'}`}
+                variant="ghost"
+                iconOnly
+              />
+
               <button
                 type="button"
                 onClick={() => setShowJemaatModal(true)}
                 className="min-h-[40px] px-3.5 py-2 rounded-xl border border-brand-primary/20 bg-brand-primary/5 hover:bg-brand-primary/10 text-xs font-extrabold text-brand-primary flex items-center gap-1.5 transition-all active:scale-95 shadow-xs"
               >
                 <Edit3 size={16} />
-                <span>Edit Jemaat</span>
+                <span>Edit</span>
               </button>
 
               <button
@@ -193,7 +201,7 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
                 className="min-h-[40px] px-3.5 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-xs font-extrabold text-red-600 flex items-center gap-1.5 transition-all active:scale-95 shadow-xs disabled:opacity-50"
               >
                 <Trash2 size={16} />
-                <span>Hapus Jemaat</span>
+                <span>Hapus</span>
               </button>
 
               <button
@@ -202,23 +210,10 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
                 className="min-h-[40px] px-3.5 py-2 rounded-xl bg-brand-primary text-white text-xs font-extrabold flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all shadow-sm"
               >
                 <Plus size={16} />
-                <span>Tambah Pos</span>
+                <span>Pos</span>
               </button>
-
-              <ShareButton
-                title={`Jemaat Induk GPIB: ${jemaat?.nama_induk}`}
-                text={`Jemaat Induk: ${jemaat?.nama_induk}\nMupel: ${jemaat?.mupel?.nama_mupel}\nKMJ: ${jemaat?.kmj?.nama_lengkap || 'Belum ada'}\nAlamat: ${jemaat?.alamat || '-'}`}
-                variant="ghost"
-                iconOnly
-              />
             </div>
           </div>
-
-          {jemaat?.keterangan && (
-            <p className="text-xs text-text-muted bg-surface-sunken p-3 rounded-xl border border-border-subtle">
-              {jemaat.keterangan}
-            </p>
-          )}
         </div>
       )}
 
@@ -256,7 +251,7 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
           {/* Stat Cards Summary */}
           <div className="grid grid-cols-3 gap-3">
             <div className="bg-surface-elevated p-3.5 rounded-2xl border border-border-subtle shadow-soft space-y-1 text-center">
-              <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Jumlah Sektor</span>
+              <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Sektor</span>
               <p className="text-xl font-black text-text-high tabular-nums">{jemaat?.jumlah_sektor ?? 0}</p>
             </div>
 

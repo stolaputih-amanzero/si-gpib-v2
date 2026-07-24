@@ -32,11 +32,6 @@ export function MupelDetailClient({ id_mupel }: MupelDetailClientProps) {
     setIsModalOpen(true);
   };
 
-  const handleOpenEditModal = (jemaat: JemaatIndukItem) => {
-    setEditJemaat(jemaat);
-    setIsModalOpen(true);
-  };
-
   if (!mounted) {
     return (
       <div className="space-y-6 pb-12">
@@ -65,15 +60,17 @@ export function MupelDetailClient({ id_mupel }: MupelDetailClientProps) {
       ) : (
         <div className="bg-surface-elevated p-5 rounded-2xl border border-border-subtle shadow-soft space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-2xl bg-brand-primary/10 text-brand-primary">
+            <div className="flex items-center gap-3.5">
+              <div className="p-3.5 rounded-2xl bg-brand-primary/10 text-brand-primary shrink-0 flex items-center justify-center">
                 <Layers className="w-6 h-6" />
               </div>
-              <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-surface-sunken border border-border-subtle text-text-muted">
-                  {id_mupel}
-                </span>
-                <h1 className="text-xl sm:text-2xl font-black text-text-high tracking-tight mt-0.5">
+              <div className="flex flex-col justify-center">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-surface-sunken border border-border-subtle text-text-muted">
+                    {id_mupel}
+                  </span>
+                </div>
+                <h1 className="text-xl sm:text-2xl font-black text-text-high tracking-tight leading-tight mt-0.5">
                   {mupel?.nama_mupel || id_mupel}
                 </h1>
               </div>
@@ -81,15 +78,6 @@ export function MupelDetailClient({ id_mupel }: MupelDetailClientProps) {
 
             {/* Quick Stat Badges & Add Button */}
             <div className="flex items-center gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={handleOpenAddModal}
-                className="min-h-[40px] px-4 py-2 rounded-xl bg-brand-primary text-white font-bold text-xs flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all shadow-sm"
-              >
-                <Plus size={16} />
-                <span>Tambah Jemaat Induk</span>
-              </button>
-
               <div className="bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl px-3 py-1.5 text-center">
                 <span className="block text-[10px] font-bold text-indigo-700 dark:text-indigo-300 uppercase">Jemaat Induk</span>
                 <span className="text-sm font-black text-indigo-950 dark:text-indigo-200 tabular-nums">
@@ -103,6 +91,15 @@ export function MupelDetailClient({ id_mupel }: MupelDetailClientProps) {
                   {totalPosCount}
                 </span>
               </div>
+
+              <button
+                type="button"
+                onClick={handleOpenAddModal}
+                className="min-h-[40px] px-4 py-2 rounded-xl bg-brand-primary text-white font-bold text-xs flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all shadow-sm"
+              >
+                <Plus size={16} />
+                <span>Jemaat</span>
+              </button>
             </div>
           </div>
 
@@ -151,7 +148,6 @@ export function MupelDetailClient({ id_mupel }: MupelDetailClientProps) {
               key={jemaat.id_induk}
               jemaat={jemaat}
               id_mupel={id_mupel}
-              onEdit={handleOpenEditModal}
             />
           ))}
         </div>

@@ -88,12 +88,12 @@ export function useMupelList(search?: string) {
       // Query Counts Jemaat Induk
       const { data: jemaatData } = await supabase
         .from('m_jemaat_induk')
-        .select('id_mupel, id_induk');
+        .select('id_mupel, id_induk, nama_induk');
 
       // Query Counts Pos Pelkes
       const { data: posData } = await supabase
         .from('m_pos_pelkes')
-        .select('id_pos, id_induk, jemaat:m_jemaat_induk(id_mupel)');
+        .select('id_pos, id_induk, nama_pos, jemaat:m_jemaat_induk(id_mupel)');
 
       const jemaatList = jemaatData || [];
       const posList = posData || [];
@@ -110,12 +110,29 @@ export function useMupelList(search?: string) {
       });
 
       if (search) {
-        const q = search.toLowerCase();
-        return result.filter(
-          (m) =>
+        const q = search.trim().toLowerCase();
+        return result.filter((m) => {
+          const matchesMupel =
             m.nama_mupel.toLowerCase().includes(q) ||
-            m.id_mupel.toLowerCase().includes(q)
-        );
+            m.id_mupel.toLowerCase().includes(q) ||
+            (m.keterangan && m.keterangan.toLowerCase().includes(q));
+
+          const matchesJemaat = jemaatList.some(
+            (j: any) =>
+              j.id_mupel === m.id_mupel &&
+              (j.id_induk?.toLowerCase().includes(q) ||
+                (j.nama_induk && j.nama_induk.toLowerCase().includes(q)))
+          );
+
+          const matchesPos = posList.some(
+            (p: any) =>
+              p.jemaat?.id_mupel === m.id_mupel &&
+              (p.id_pos.toLowerCase().includes(q) ||
+                (p.nama_pos && p.nama_pos.toLowerCase().includes(q)))
+          );
+
+          return matchesMupel || matchesJemaat || matchesPos;
+        });
       }
 
       return result;

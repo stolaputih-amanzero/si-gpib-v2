@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { JemaatIndukItem, useDeleteJemaat } from '@/hooks/use-hierarki';
-import { Church, ChevronRight, UserCheck, AlertCircle, Edit3, Trash2 } from 'lucide-react';
+import { Church, UserCheck, AlertCircle, Trash2 } from 'lucide-react';
 import { SecureDeleteModal } from '@/components/ui/SecureDeleteModal';
 import { useToast } from '@/components/ui/toast';
 
@@ -15,7 +15,7 @@ interface JemaatCardProps {
   onEdit?: (jemaat: JemaatIndukItem) => void;
 }
 
-export function JemaatCard({ jemaat, id_mupel, onEdit }: JemaatCardProps) {
+export function JemaatCard({ jemaat, id_mupel }: JemaatCardProps) {
   const { toast } = useToast();
   const { data: currentUser } = useCurrentUser();
   const isSuperUser = currentUser?.isSuperUser ?? false;
@@ -35,12 +35,6 @@ export function JemaatCard({ jemaat, id_mupel, onEdit }: JemaatCardProps) {
     }
   };
 
-  const handleEdit = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onEdit) onEdit(jemaat);
-  };
-
   return (
     <Link
       href={`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(jemaat.id_induk)}`}
@@ -53,48 +47,39 @@ export function JemaatCard({ jemaat, id_mupel, onEdit }: JemaatCardProps) {
           </div>
 
           <div className="space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-surface-sunken border border-border-subtle text-text-muted">
+            {/* Baris 1: Keterangan */}
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-surface-sunken border border-border-subtle text-text-muted shrink-0">
                 {jemaat.id_induk}
               </span>
-
-              {/* Status KMJ Badge */}
-              {hasKmj ? (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800">
-                  <UserCheck size={12} className="text-indigo-600 dark:text-indigo-400" />
-                  KMJ: {jemaat.kmj?.nama_lengkap}
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800">
-                  <AlertCircle size={12} className="text-amber-600 dark:text-amber-400" />
-                  Belum ada KMJ
-                </span>
-              )}
+              <span className="text-xs text-text-muted line-clamp-1">
+                {jemaat.keterangan || '-'}
+              </span>
             </div>
 
+            {/* Baris 2: Nama Jemaat */}
             <h3 className="font-extrabold text-text-high text-base group-hover:text-brand-primary transition-colors leading-snug">
               {jemaat.nama_induk}
             </h3>
 
-            {jemaat.alamat && (
-              <p className="text-xs text-text-muted line-clamp-1">{jemaat.alamat}</p>
-            )}
+            {/* Baris 3: Nama KMJ */}
+            <div className="pt-0.5">
+              {hasKmj ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-700 dark:text-indigo-300">
+                  <UserCheck size={12} className="text-indigo-600 dark:text-indigo-400" />
+                  KMJ: {jemaat.kmj?.nama_lengkap}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 dark:text-amber-400">
+                  <AlertCircle size={12} className="text-amber-600 dark:text-amber-400" />
+                  KMJ: Belum ada KMJ
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
-          {/* Actions */}
-          {onEdit && (
-            <button
-              type="button"
-              onClick={handleEdit}
-              className="p-2 rounded-xl text-text-muted hover:text-brand-primary hover:bg-surface-sunken transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
-              title="Edit Jemaat Induk"
-            >
-              <Edit3 size={16} />
-            </button>
-          )}
-
           {isSuperUser && (
             <button
               type="button"
@@ -110,10 +95,6 @@ export function JemaatCard({ jemaat, id_mupel, onEdit }: JemaatCardProps) {
               <Trash2 size={16} />
             </button>
           )}
-
-          <div className="p-2 rounded-xl text-text-muted group-hover:text-brand-primary group-hover:bg-surface-sunken transition-all shrink-0">
-            <ChevronRight size={20} />
-          </div>
         </div>
 
         {/* GPS Indicator */}

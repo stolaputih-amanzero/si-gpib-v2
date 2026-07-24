@@ -36,13 +36,13 @@ export function BreadcrumbNav({ items }: BreadcrumbNavProps) {
             {item.href && !isLast ? (
               <Link
                 href={item.href}
-                className="min-h-[36px] px-2 py-1 rounded-lg hover:bg-surface-sunken hover:text-brand-primary transition-colors font-semibold max-w-[160px] sm:max-w-[220px] truncate"
+                className="flex items-center min-h-[36px] px-2 py-1 rounded-lg hover:bg-surface-sunken hover:text-brand-primary transition-colors font-semibold max-w-[160px] sm:max-w-[220px] truncate"
               >
                 {item.label}
               </Link>
             ) : (
               <span
-                className={`px-2 py-1 rounded-lg max-w-[180px] sm:max-w-[260px] truncate ${
+                className={`inline-flex items-center px-2.5 py-1 rounded-lg max-w-[180px] sm:max-w-[260px] truncate ${
                   isLast || item.isCurrent
                     ? 'bg-brand-primary/10 text-brand-primary font-bold'
                     : 'text-text-high font-medium'
