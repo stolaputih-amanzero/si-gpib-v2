@@ -30,7 +30,7 @@ export default function DashboardLayout({
           </div>
         </main>
 
-        {/* Mobile Bottom Navigation (5 items: Beranda, Hierarki, FAB, Laporan, Pengaturan) */}
+        {/* Mobile Bottom Navigation (5 items: Peta, Struktur, FAB, Pos & Bajem, Pengaturan) */}
         <BottomNavigation onFabClick={() => setIsQuickActionOpen(true)} />
 
         {/* FAB Quick Action Sheet (Mobile Bottom Sheet Modal) */}

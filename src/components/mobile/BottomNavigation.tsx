@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Map, Plus, FileText, Settings } from 'lucide-react';
+import { Map, GitFork, Plus, Database, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface BottomNavigationProps {
@@ -16,10 +16,10 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Beranda', href: '/dashboard', icon: Home },
-  { label: 'Hierarki', href: '/hierarki', icon: Map },
+  { label: 'Peta', href: '/dashboard/peta', icon: Map },
+  { label: 'Struktur', href: '/hierarki', icon: GitFork },
   { label: 'Input', href: '#', icon: Plus, isFAB: true },
-  { label: 'Laporan', href: '/laporan', icon: FileText },
+  { label: 'Pos & Bajem', href: '/dashboard/pos-pelkes', icon: Database },
   { label: 'Pengaturan', href: '/settings', icon: Settings },
 ];
 
@@ -48,8 +48,8 @@ export function BottomNavigation({ onFabClick }: BottomNavigationProps) {
           }
 
           const isActive =
-            pathname === item.href ||
-            (item.href !== '/dashboard' && pathname.startsWith(item.href));
+            item.href !== '#' &&
+            (pathname === item.href || pathname.startsWith(item.href + '/'));
           const Icon = item.icon;
 
           return (
@@ -65,7 +65,7 @@ export function BottomNavigation({ onFabClick }: BottomNavigationProps) {
               aria-current={isActive ? 'page' : undefined}
             >
               <Icon className={cn('w-6 h-6', isActive ? 'stroke-[2.5px]' : 'stroke-[1.8px]')} />
-              <span className="text-[10px] font-medium tracking-tight truncate max-w-[64px]">
+              <span className="text-[10px] font-medium tracking-tight truncate max-w-[64px] text-center">
                 {item.label}
               </span>
             </button>
