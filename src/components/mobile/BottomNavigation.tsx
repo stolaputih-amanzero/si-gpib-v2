@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Map, GitFork, Plus, Database, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -26,6 +27,14 @@ const NAV_ITEMS: NavItem[] = [
 export function BottomNavigation({ onFabClick }: BottomNavigationProps) {
   const pathname = usePathname();
   const router = useRouter();
+
+  useEffect(() => {
+    NAV_ITEMS.forEach((item) => {
+      if (item.href !== '#') {
+        router.prefetch(item.href);
+      }
+    });
+  }, [router]);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-surface-elevated/95 backdrop-blur-md border-t border-border-subtle pb-[env(safe-area-inset-bottom)] md:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.06)] select-none">

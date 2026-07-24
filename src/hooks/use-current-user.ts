@@ -39,5 +39,7 @@ export function useCurrentUser() {
         isSuperUser,
       };
     },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
   });
 }

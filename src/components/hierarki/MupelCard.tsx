@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { MupelItem, useDeleteMupel } from '@/hooks/use-hierarki';
-import { Layers, Church, MapPin, Trash2 } from 'lucide-react';
+import { Layers, Church, MapPin, Trash2, Building2 } from 'lucide-react';
 import { SecureDeleteModal } from '@/components/ui/SecureDeleteModal';
 import { useToast } from '@/components/ui/toast';
 
@@ -58,7 +58,7 @@ export function MupelCard({ mupel }: MupelCardProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {isSuperUser && (
             <button
               type="button"
@@ -74,30 +74,19 @@ export function MupelCard({ mupel }: MupelCardProps) {
               <Trash2 size={16} />
             </button>
           )}
-
-          <div className="flex items-center gap-2">
-            <div className="bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl px-2.5 py-1 text-center">
-              <span className="block text-[10px] font-bold text-indigo-700 dark:text-indigo-300 uppercase">Jemaat</span>
-              <span className="text-xs font-black text-indigo-950 dark:text-indigo-200 tabular-nums">
-                {mupel.jemaat_count ?? 0}
-              </span>
-            </div>
-
-            <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl px-2.5 py-1 text-center">
-              <span className="block text-[10px] font-bold text-emerald-700 dark:text-emerald-300 uppercase">Pos</span>
-              <span className="text-xs font-black text-emerald-950 dark:text-emerald-200 tabular-nums">
-                {mupel.pos_count ?? 0}
-              </span>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* Mobile Stat Badges */}
-      <div className="flex sm:hidden items-center gap-2 mt-3 pt-3 border-t border-border-subtle text-xs text-text-muted">
+      {/* Stat Summary Footer */}
+      <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-border-subtle text-xs text-text-muted">
         <span className="flex items-center gap-1 font-semibold text-indigo-600 dark:text-indigo-400">
           <Church size={14} />
           {mupel.jemaat_count ?? 0} Jemaat Induk
+        </span>
+        <span>•</span>
+        <span className="flex items-center gap-1 font-semibold text-purple-600 dark:text-purple-400">
+          <Building2 size={14} />
+          {mupel.bajem_count ?? 0} Bajem
         </span>
         <span>•</span>
         <span className="flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">

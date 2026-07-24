@@ -2,11 +2,19 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { cleanQuotes } from '@/lib/utils';
 
+export function isBajemPos(pos: { kategori?: string | null; nama_pos?: string | null }): boolean {
+  if (!pos) return false;
+  const kat = (pos.kategori || '').trim().toUpperCase();
+  const nama = (pos.nama_pos || '').trim().toLowerCase();
+  return kat === 'BAJEM' || kat === 'BAKAL JEMAAT' || nama.startsWith('bajem') || nama.includes('bakal jemaat');
+}
+
 export interface MupelItem {
   id_mupel: string;
   nama_mupel: string;
   keterangan: string | null;
   jemaat_count?: number;
+  bajem_count?: number;
   pos_count?: number;
 }
 
@@ -91,21 +99,32 @@ export function useMupelList(search?: string) {
         .from('m_jemaat_induk')
         .select('id_mupel, id_induk, nama_induk');
 
-      // Query Counts Pos Pelkes
+      // Query Counts Pos Pelkes & Bajem
       const { data: posData } = await supabase
         .from('m_pos_pelkes')
-        .select('id_pos, id_induk, nama_pos, jemaat:m_jemaat_induk(id_mupel)');
+        .select('id_pos, id_induk, nama_pos, kategori');
 
       const jemaatList = jemaatData || [];
       const posList = posData || [];
 
+      // Map id_induk -> id_mupel for 100% reliable relation resolution
+      const jemaatToMupelMap = new Map<string, string>();
+      jemaatList.forEach((j) => {
+        if (j.id_induk && j.id_mupel) {
+          jemaatToMupelMap.set(j.id_induk, j.id_mupel);
+        }
+      });
+
       const result: MupelItem[] = (mupelData || []).map((mupel) => {
         const jCount = jemaatList.filter((j) => j.id_mupel === mupel.id_mupel).length;
-        const pCount = posList.filter((p: any) => p.jemaat?.id_mupel === mupel.id_mupel).length;
+        const mupelPosList = posList.filter((p: any) => jemaatToMupelMap.get(p.id_induk) === mupel.id_mupel);
+        const bCount = mupelPosList.filter((p: any) => isBajemPos(p)).length;
+        const pCount = mupelPosList.filter((p: any) => !isBajemPos(p)).length;
 
         return {
           ...mupel,
           jemaat_count: jCount,
+          bajem_count: bCount,
           pos_count: pCount,
         };
       });
@@ -127,7 +146,7 @@ export function useMupelList(search?: string) {
 
           const matchesPos = posList.some(
             (p: any) =>
-              p.jemaat?.id_mupel === m.id_mupel &&
+              jemaatToMupelMap.get(p.id_induk) === m.id_mupel &&
               (p.id_pos.toLowerCase().includes(q) ||
                 (p.nama_pos && p.nama_pos.toLowerCase().includes(q)))
           );
@@ -138,6 +157,8 @@ export function useMupelList(search?: string) {
 
       return result;
     },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 }
 
@@ -160,6 +181,8 @@ export function useMupelDetail(id_mupel?: string) {
       if (error) throw error;
       return data as MupelItem;
     },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
     enabled: Boolean(id_mupel),
   });
 }
@@ -225,12 +248,8 @@ export function useJemaatByMupel(id_mupel?: string, search?: string) {
         allPendeta.filter((p) => p.id_induk === j.id_induk).forEach((p) => pjSet.add(p.id_pendeta));
 
         const jemaatPosList = allPos.filter((p) => p.id_induk === j.id_induk);
-        const bCount = jemaatPosList.filter(
-          (p) => p.kategori === 'Bajem' || p.nama_pos?.toLowerCase().startsWith('bajem')
-        ).length;
-        const pCount = jemaatPosList.filter(
-          (p) => p.kategori !== 'Bajem' && !p.nama_pos?.toLowerCase().startsWith('bajem')
-        ).length;
+        const bCount = jemaatPosList.filter((p: any) => isBajemPos(p)).length;
+        const pCount = jemaatPosList.filter((p: any) => !isBajemPos(p)).length;
 
         return {
           ...j,
@@ -255,6 +274,8 @@ export function useJemaatByMupel(id_mupel?: string, search?: string) {
 
       return result;
     },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 }
 
@@ -324,6 +345,8 @@ export function useJemaatDetail(id_induk?: string) {
         pj_count: pjSet.size,
       } as JemaatIndukItem;
     },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
     enabled: Boolean(id_induk),
   });
 }
@@ -426,6 +449,8 @@ export function usePosByJemaat(id_induk?: string, search?: string) {
 
       return result;
     },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 }
 
@@ -451,6 +476,8 @@ export function useHierarchyStats() {
         total_jiwa: (pCount || 500) * 100,
       };
     },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 }
 
@@ -844,6 +871,8 @@ export function useHistoriStatus(id_pos: string) {
       if (error) throw error;
       return data || [];
     },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
     enabled: !!id_pos,
   });
 }
