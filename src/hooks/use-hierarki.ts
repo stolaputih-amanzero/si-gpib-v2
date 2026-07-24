@@ -31,6 +31,7 @@ export interface JemaatIndukItem {
     nama_mupel: string;
   } | null;
   pos_count?: number;
+  bajem_count?: number;
   pj_count?: number;
 }
 
@@ -189,7 +190,7 @@ export function useJemaatByMupel(id_mupel?: string, search?: string) {
         .from('m_pendeta')
         .select('id_pendeta, id_induk, nama_lengkap, no_wa, is_kmj, is_pj, jabatan');
 
-      const { data: posData } = await supabase.from('m_pos_pelkes').select('id_pos, id_induk');
+      const { data: posData } = await supabase.from('m_pos_pelkes').select('id_pos, id_induk, kategori, nama_pos');
       const { data: pjData } = await supabase.from('t_pj_jemaat').select('id_induk, id_pendeta').is('tanggal_selesai', null);
 
       const allPendeta = pendetaData || [];
@@ -223,7 +224,13 @@ export function useJemaatByMupel(id_mupel?: string, search?: string) {
         allPjAssignments.filter((pj) => pj.id_induk === j.id_induk).forEach((pj) => pjSet.add(pj.id_pendeta));
         allPendeta.filter((p) => p.id_induk === j.id_induk).forEach((p) => pjSet.add(p.id_pendeta));
 
-        const pCount = allPos.filter((p) => p.id_induk === j.id_induk).length;
+        const jemaatPosList = allPos.filter((p) => p.id_induk === j.id_induk);
+        const bCount = jemaatPosList.filter(
+          (p) => p.kategori === 'Bajem' || p.nama_pos?.toLowerCase().startsWith('bajem')
+        ).length;
+        const pCount = jemaatPosList.filter(
+          (p) => p.kategori !== 'Bajem' && !p.nama_pos?.toLowerCase().startsWith('bajem')
+        ).length;
 
         return {
           ...j,
@@ -231,6 +238,7 @@ export function useJemaatByMupel(id_mupel?: string, search?: string) {
           keterangan: cleanQuotes(j.keterangan),
           kmj: resolvedKmj,
           pos_count: pCount,
+          bajem_count: bCount,
           pj_count: pjSet.size,
         };
       });

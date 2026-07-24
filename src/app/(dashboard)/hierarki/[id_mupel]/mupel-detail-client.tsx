@@ -25,7 +25,8 @@ export function MupelDetailClient({ id_mupel }: MupelDetailClientProps) {
   const { data: mupel, isLoading: isLoadingMupel } = useMupelDetail(id_mupel);
   const { data: jemaatList, isLoading: isLoadingJemaat, isError } = useJemaatByMupel(id_mupel, searchQuery);
 
-  const totalPosCount = (jemaatList || []).reduce((acc, curr) => acc + (curr.pos_count || 0), 0);
+  const totalBajemCount = (jemaatList || []).reduce((acc, curr) => acc + (curr.bajem_count || 0), 0);
+  const totalPosPelkesCount = (jemaatList || []).reduce((acc, curr) => acc + (curr.pos_count || 0), 0);
 
   const handleOpenAddModal = () => {
     setEditJemaat(null);
@@ -59,48 +60,54 @@ export function MupelDetailClient({ id_mupel }: MupelDetailClientProps) {
         <Skeleton className="h-28 w-full rounded-2xl" />
       ) : (
         <div className="bg-surface-elevated p-5 rounded-2xl border border-border-subtle shadow-soft space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3.5">
-              <div className="p-3.5 rounded-2xl bg-brand-primary/10 text-brand-primary shrink-0 flex items-center justify-center">
-                <Layers className="w-6 h-6" />
-              </div>
-              <div className="flex flex-col justify-center">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-surface-sunken border border-border-subtle text-text-muted">
-                    {id_mupel}
-                  </span>
-                </div>
-                <h1 className="text-xl sm:text-2xl font-black text-text-high tracking-tight leading-tight mt-0.5">
-                  {mupel?.nama_mupel || id_mupel}
-                </h1>
-              </div>
+          <div className="flex items-center gap-3.5">
+            <div className="p-3.5 rounded-2xl bg-brand-primary/10 text-brand-primary shrink-0 flex items-center justify-center">
+              <Layers className="w-6 h-6" />
             </div>
+            <div className="flex flex-col justify-center">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-surface-sunken border border-border-subtle text-text-muted">
+                  {id_mupel}
+                </span>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-black text-text-high tracking-tight leading-tight mt-0.5">
+                {mupel?.nama_mupel || id_mupel}
+              </h1>
+            </div>
+          </div>
 
-            {/* Quick Stat Badges & Add Button */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl px-3 py-1.5 text-center">
-                <span className="block text-[10px] font-bold text-indigo-700 dark:text-indigo-300 uppercase">Jemaat Induk</span>
-                <span className="text-sm font-black text-indigo-950 dark:text-indigo-200 tabular-nums">
+          {/* Quick Stat Summary (3 Rows Full Width + Add Button on Far Right) */}
+          <div className="w-full bg-surface-sunken p-3 rounded-2xl border border-border-subtle flex items-center justify-between gap-3">
+            <div className="flex-1 space-y-1.5 min-w-0">
+              <div className="flex items-center justify-between px-2 py-0.5 text-xs sm:text-sm">
+                <span className="font-bold text-text-muted">Jemaat Induk</span>
+                <span className="font-black text-indigo-700 dark:text-indigo-300 text-sm sm:text-base tabular-nums">
                   {jemaatList?.length || 0}
                 </span>
               </div>
-
-              <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl px-3 py-1.5 text-center">
-                <span className="block text-[10px] font-bold text-emerald-700 dark:text-emerald-300 uppercase">Total Pos Pelkes</span>
-                <span className="text-sm font-black text-emerald-950 dark:text-emerald-200 tabular-nums">
-                  {totalPosCount}
+              <div className="flex items-center justify-between px-2 py-0.5 text-xs sm:text-sm border-t border-border-subtle/60 pt-1.5">
+                <span className="font-bold text-text-muted">Bajem</span>
+                <span className="font-black text-purple-700 dark:text-purple-300 text-sm sm:text-base tabular-nums">
+                  {totalBajemCount}
                 </span>
               </div>
-
-              <button
-                type="button"
-                onClick={handleOpenAddModal}
-                className="min-h-[40px] px-4 py-2 rounded-xl bg-brand-primary text-white font-bold text-xs flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all shadow-sm"
-              >
-                <Plus size={16} />
-                <span>Jemaat</span>
-              </button>
+              <div className="flex items-center justify-between px-2 py-0.5 text-xs sm:text-sm border-t border-border-subtle/60 pt-1.5">
+                <span className="font-bold text-text-muted">Pos Pelkes</span>
+                <span className="font-black text-emerald-700 dark:text-emerald-300 text-sm sm:text-base tabular-nums">
+                  {totalPosPelkesCount}
+                </span>
+              </div>
             </div>
+
+            <button
+              type="button"
+              onClick={handleOpenAddModal}
+              className="w-10 h-10 rounded-xl bg-brand-primary text-white flex items-center justify-center shrink-0 hover:opacity-90 active:scale-95 transition-all shadow-xs"
+              title="Tambah Jemaat Induk Baru"
+              aria-label="Tambah Jemaat Induk Baru"
+            >
+              <Plus size={18} className="stroke-[2.5px]" />
+            </button>
           </div>
 
           {mupel?.keterangan && (
