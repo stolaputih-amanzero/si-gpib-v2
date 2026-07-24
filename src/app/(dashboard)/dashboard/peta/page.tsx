@@ -4,7 +4,6 @@ import { useWilayahMapData, useJemaatMapData } from '@/hooks/use-wilayah';
 import { WilayahMap } from '@/components/wilayah/WilayahMap';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Map, RefreshCw } from 'lucide-react';
-import { HierarkiNavTabs } from '@/components/hierarki/HierarkiNavTabs';
 
 export default function PetaPage() {
   const { data: posData, isLoading: isLoadingPos, refetch: refetchPos } = useWilayahMapData();
@@ -17,8 +16,6 @@ export default function PetaPage() {
 
   return (
     <div className="w-full min-h-full bg-surface-base pb-24 md:pb-12 space-y-4">
-      {/* Unified Hierarki Navigation Tabs for Mobile */}
-      <HierarkiNavTabs />
 
       {/* Header */}
       <div className="flex items-center justify-between">
