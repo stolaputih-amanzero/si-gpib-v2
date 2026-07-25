@@ -133,7 +133,7 @@ export function useUpdateUserRole() {
 
   return useMutation({
     mutationFn: async (payload: UpdateUserPayload) => {
-      return updateUserRoleAction({
+      const res = await updateUserRoleAction({
         id: payload.id,
         role: payload.role,
         nama_lengkap: payload.nama_lengkap,
@@ -143,6 +143,10 @@ export function useUpdateUserRole() {
         id_pos: payload.id_pos || null,
         status: payload.status || 'Active',
       });
+      if (!res.success) {
+        throw new Error(res.error);
+      }
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users-management-list'] });
@@ -168,7 +172,11 @@ export function useCreateUser() {
       id_pos: string | null;
       status: 'Active' | 'Inactive' | 'Pending';
     }) => {
-      return createUserAction(payload);
+      const res = await createUserAction(payload);
+      if (!res.success) {
+        throw new Error(res.error);
+      }
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users-management-list'] });
@@ -184,7 +192,11 @@ export function useDeleteUser() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      return deleteUserAction(id);
+      const res = await deleteUserAction(id);
+      if (!res.success) {
+        throw new Error(res.error);
+      }
+      return res;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users-management-list'] });

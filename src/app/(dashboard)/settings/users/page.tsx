@@ -127,7 +127,7 @@ export default function UserManagementPage() {
 
       toast.success(
         'Pengguna Dibuat',
-        `Akun ${addNamaLengkap} berhasil dibuat.${result.password ? ` Password sementara: ${result.password}` : ''}`
+        `Akun ${addNamaLengkap} berhasil dibuat.${result?.password ? ` Password sementara: ${result.password}` : ''}`
       );
       
       // Reset state
