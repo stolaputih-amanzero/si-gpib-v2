@@ -46,52 +46,53 @@ export function useUsersList(search?: string, roleFilter?: string) {
   return useQuery<UserManagementItem[]>({
     queryKey: ['users-management-list', search || 'all', roleFilter || 'all'],
     queryFn: async () => {
-      let query = supabase
-        .from('users')
-        .select(`
-          id,
-          email,
-          nama_lengkap,
-          role,
-          id_mupel,
-          id_induk,
-          id_pos,
-          status,
-          created_at,
-          mupel:m_mupel(id_mupel, nama_mupel),
-          jemaat_induk:m_jemaat_induk(id_induk, nama_induk),
-          pos_pelkes:m_pos_pelkes(id_pos, nama_pos)
-        `)
-        .order('created_at', { ascending: false });
+      let rawData: any[] = [];
 
-      if (roleFilter && roleFilter !== 'all') {
-        query = query.eq('role', roleFilter);
+      try {
+        const res = await fetch('/api/admin/users');
+        if (res.ok) {
+          const body = await res.json();
+          if (Array.isArray(body.users)) {
+            rawData = body.users;
+          }
+        }
+      } catch (e) {
+        console.warn('API route /api/admin/users failed, falling back to client query:', e);
       }
 
-      const { data, error } = await query;
-      if (error) {
-        console.warn('Falling back from joined users query:', error);
-        // Fallback for simple users table structure
-        const { data: rawUsers, error: rawErr } = await supabase
-          .from('users')
-          .select('*')
-          .order('created_at', { ascending: false });
-          
-        if (rawErr) throw rawErr;
-        return (rawUsers || []).map((u: any) => ({
-          id: u.id,
-          email: u.email || 'user@gpib.or.id',
-          nama_lengkap: u.nama_lengkap || u.nama || 'Pengguna SI GPIB',
-          role: u.role || 'pelayan',
-          id_mupel: u.id_mupel || null,
-          id_induk: u.id_induk || null,
-          id_pos: u.id_pos || null,
-          status: u.status || 'Active',
-          created_at: u.created_at || new Date().toISOString(),
-        })) as UserManagementItem[];
+      if (rawData.length === 0) {
+        try {
+          const { data, error } = await supabase
+            .from('users')
+            .select(`
+              id,
+              email,
+              nama_lengkap,
+              role,
+              id_mupel,
+              id_induk,
+              id_pos,
+              status,
+              created_at,
+              mupel:m_mupel(id_mupel, nama_mupel),
+              jemaat_induk:m_jemaat_induk(id_induk, nama_induk),
+              pos_pelkes:m_pos_pelkes(id_pos, nama_pos)
+            `)
+            .order('created_at', { ascending: false });
+
+          if (!error && data) {
+            rawData = data;
+          } else {
+            const { data: rawUsers } = await supabase
+              .from('users')
+              .select('*')
+              .order('created_at', { ascending: false });
+            rawData = rawUsers || [];
+          }
+        } catch {}
       }
 
-      let result = (data || []).map((u: any) => ({
+      let result = (rawData || []).map((u: any) => ({
         id: u.id,
         email: u.email || 'user@gpib.or.id',
         nama_lengkap: u.nama_lengkap || u.nama || 'Pengguna SI GPIB',
@@ -100,11 +101,15 @@ export function useUsersList(search?: string, roleFilter?: string) {
         id_induk: u.id_induk || null,
         id_pos: u.id_pos || null,
         status: u.status || 'Active',
-        created_at: u.created_at,
+        created_at: u.created_at || new Date().toISOString(),
         mupel: u.mupel || null,
         jemaat_induk: u.jemaat_induk || null,
         pos_pelkes: u.pos_pelkes || null,
       })) as UserManagementItem[];
+
+      if (roleFilter && roleFilter !== 'all') {
+        result = result.filter((u) => u.role === roleFilter);
+      }
 
       if (search) {
         const q = search.toLowerCase();
@@ -121,7 +126,7 @@ export function useUsersList(search?: string, roleFilter?: string) {
 
       return result;
     },
-    staleTime: 1000 * 60 * 5, // 5 mins cache
+    staleTime: 1000 * 60 * 5,
   });
 }
 
