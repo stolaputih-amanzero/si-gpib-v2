@@ -1,7 +1,6 @@
 'use client';
 
 import { WifiOff, Map, RefreshCw, CheckCircle2 } from 'lucide-react';
-import Link from 'next/link';
 
 export default function OfflinePage() {
   const handleReload = () => {
@@ -38,13 +37,18 @@ export default function OfflinePage() {
           <span>Cek Koneksi Ulang</span>
         </button>
 
-        <Link
-          href="/dashboard"
+        <button
+          type="button"
+          onClick={() => {
+            if (typeof window !== 'undefined') {
+              window.location.href = '/dashboard';
+            }
+          }}
           className="w-full min-h-[48px] px-4 rounded-xl font-semibold text-sm text-brand-primary bg-surface-elevated hover:bg-surface-sunken border border-border-subtle flex items-center justify-center gap-2 shadow-soft transition-all active:scale-[0.98]"
         >
           <Map className="w-5 h-5" />
           <span>Kembali ke Beranda Dashboard</span>
-        </Link>
+        </button>
       </div>
 
       <div className="mt-8 p-4 rounded-xl bg-surface-elevated border border-border-subtle max-w-sm space-y-2 text-xs text-text-muted">

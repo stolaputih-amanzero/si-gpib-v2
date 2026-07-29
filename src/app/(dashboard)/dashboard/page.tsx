@@ -19,39 +19,49 @@ export default async function Dashboard() {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-  // Execute ALL database queries concurrently in parallel to eliminate network waterfall lag
-  const [
-    { count: posCount },
-    { count: jemaatCount },
-    { count: logCount },
-    { data: demografiData },
-    { data: posPelkesSumData },
-    { data: recentLogs }
-  ] = await Promise.all([
-    supabase.from('m_pos_pelkes').select('*', { count: 'exact', head: true }),
-    supabase.from('m_jemaat_induk').select('*', { count: 'exact', head: true }),
-    supabase
-      .from('t_log_pastoral')
-      .select('*', { count: 'exact', head: true })
-      .gte('tgl', startOfMonth)
-      .lte('tgl', endOfMonth),
-    supabase
-      .from('t_demografi_pelkat')
-      .select('kategori_pelkat, laki, perempuan'),
-    supabase
-      .from('m_pos_pelkes')
-      .select('jumlah_jiwa'),
-    supabase
-      .from('t_log_pastoral')
-      .select(`
-        id_log, tgl, kegiatan,
-        pos_pelkes:m_pos_pelkes(nama_pos),
-        pendeta:m_pendeta(nama_lengkap)
-      `)
-      .order('tgl', { ascending: false })
-      .order('created_at', { ascending: false })
-      .limit(5)
-  ]);
+  let posCount: number | null = 0;
+  let jemaatCount: number | null = 0;
+  let logCount: number | null = 0;
+  let demografiData: any[] | null = [];
+  let posPelkesSumData: any[] | null = [];
+  let recentLogs: any[] | null = [];
+
+  try {
+    const [resPos, resJemaat, resLog, resDemo, resSum, resRecent] = await Promise.all([
+      supabase.from('m_pos_pelkes').select('*', { count: 'exact', head: true }),
+      supabase.from('m_jemaat_induk').select('*', { count: 'exact', head: true }),
+      supabase
+        .from('t_log_pastoral')
+        .select('*', { count: 'exact', head: true })
+        .gte('tgl', startOfMonth)
+        .lte('tgl', endOfMonth),
+      supabase
+        .from('t_demografi_pelkat')
+        .select('kategori_pelkat, laki, perempuan'),
+      supabase
+        .from('m_pos_pelkes')
+        .select('jumlah_jiwa'),
+      supabase
+        .from('t_log_pastoral')
+        .select(`
+          id_log, tgl, kegiatan,
+          pos_pelkes:m_pos_pelkes(nama_pos),
+          pendeta:m_pendeta(nama_lengkap)
+        `)
+        .order('tgl', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(5)
+    ]);
+
+    posCount = resPos.count;
+    jemaatCount = resJemaat.count;
+    logCount = resLog.count;
+    demografiData = resDemo.data;
+    posPelkesSumData = resSum.data;
+    recentLogs = resRecent.data;
+  } catch (err) {
+    console.error('Offline / network error loading dashboard stats:', err);
+  }
 
   // Process Demografi Data
   let totalJiwaFromPelkat = 0;
