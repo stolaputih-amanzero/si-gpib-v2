@@ -16,7 +16,32 @@ export default function LoginCallback() {
 
     const handleAuth = async () => {
       try {
-        // 1. Cek apakah ada token di URL Hash (fragment #access_token=...)
+        // 1. Cek query string URL (code atau token_hash dari Supabase Magic Link)
+        const searchParams = new URLSearchParams(window.location.search);
+        const code = searchParams.get('code');
+        const tokenHash = searchParams.get('token_hash');
+        const type = searchParams.get('type') as any;
+
+        if (code) {
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          if (!error && data.session) {
+            window.location.href = '/dashboard';
+            return;
+          }
+        }
+
+        if (tokenHash && type) {
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: type || 'magiclink',
+          });
+          if (!error && data.session) {
+            window.location.href = '/dashboard';
+            return;
+          }
+        }
+
+        // 2. Cek apakah ada token di URL Hash (fragment #access_token=...)
         const hash = window.location.hash;
         if (hash && hash.includes('access_token')) {
           const hashParams = new URLSearchParams(hash.substring(1));
@@ -29,19 +54,18 @@ export default function LoginCallback() {
               refresh_token: refreshToken,
             });
 
-            if (error) throw error;
-
-            if (data.session) {
-              // Hard redirect ke /dashboard agar browser mengirimkan cookies baru ke Next.js Server
+            if (!error && data.session) {
               window.location.href = '/dashboard';
               return;
             }
           }
         }
 
-        // 2. Cek sesi eksis jika hash tidak ada
+        // 3. Cek sesi eksis (Supabase Session atau si_gpib_user_session cookie)
         const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
+        const hasCustomSessionCookie = document.cookie.includes('si_gpib_user_session');
+
+        if (session || hasCustomSessionCookie) {
           window.location.href = '/dashboard';
         } else {
           setErrorMsg('Sesi tidak ditemukan dari token biometrik');

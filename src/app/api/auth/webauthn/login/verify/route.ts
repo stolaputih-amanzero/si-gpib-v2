@@ -104,14 +104,35 @@ export async function POST(req: NextRequest) {
       keterangan: 'Berhasil login menggunakan Biometric (WebAuthn)',
     });
 
-    // 7. Ambil email user dan generate session link (Magic Link)
-    const { data: userData } = await supabase.from('users').select('email').eq('id', userId).single();
-    let redirectUrl = null;
+    // 7. Ambil data user dari tabel users & tetapkan cookie si_gpib_user_session
+    const { data: dbUser } = await supabase.from('users').select('*').eq('id', userId).maybeSingle();
 
-    if (userData?.email) {
+    const sessionData = {
+      id: userId,
+      email: dbUser?.email || '',
+      role: dbUser?.role || 'pendeta',
+      nama_lengkap: dbUser?.nama_lengkap || dbUser?.email || 'User Biometrik',
+      user_metadata: {
+        role: dbUser?.role || 'pendeta',
+        nama_lengkap: dbUser?.nama_lengkap || dbUser?.email || 'User Biometrik',
+      },
+    };
+
+    const cookieOptions = {
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      sameSite: 'lax' as const,
+    };
+
+    cookieStore.set('si_gpib_user_session', JSON.stringify(sessionData), cookieOptions);
+
+    let redirectUrl = null;
+    if (dbUser?.email) {
       const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
         type: 'magiclink',
-        email: userData.email,
+        email: dbUser.email,
         options: { redirectTo: `${appUrl}/login/callback` }
       });
 
@@ -120,12 +141,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ 
+    const response = NextResponse.json({ 
       success: true, 
       message: 'Login biometric berhasil',
       redirectUrl,
       userId 
     });
+
+    response.cookies.set('si_gpib_user_session', JSON.stringify(sessionData), cookieOptions);
+
+    return response;
 
   } catch (error) {
     console.error('Login verify error:', error);
