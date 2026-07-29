@@ -26,6 +26,9 @@ export function useUser(): UserProfile {
         const { data } = await supabase.auth.getUser();
         if (data?.user && isMounted) {
           setUser(data.user);
+          try {
+            localStorage.setItem('si_gpib_cached_user', JSON.stringify(data.user));
+          } catch {}
           setIsLoading(false);
           return;
         }
@@ -38,9 +41,22 @@ export function useUser(): UserProfile {
           const body = await res.json();
           if (body?.user && isMounted) {
             setUser(body.user);
+            try {
+              localStorage.setItem('si_gpib_cached_user', JSON.stringify(body.user));
+            } catch {}
             setIsLoading(false);
             return;
           }
+        }
+      } catch {}
+
+      // Resilient Offline Fallback: Membaca profil user dari localStorage
+      try {
+        const cached = localStorage.getItem('si_gpib_cached_user');
+        if (cached && isMounted) {
+          setUser(JSON.parse(cached));
+          setIsLoading(false);
+          return;
         }
       } catch {}
 
@@ -56,6 +72,9 @@ export function useUser(): UserProfile {
       (_event, session) => {
         if (session?.user && isMounted) {
           setUser(session.user);
+          try {
+            localStorage.setItem('si_gpib_cached_user', JSON.stringify(session.user));
+          } catch {}
         }
         setIsLoading(false);
       }
@@ -83,6 +102,8 @@ export function useUser(): UserProfile {
 
   const logout = async () => {
     try {
+      localStorage.removeItem('si_gpib_cached_user');
+      localStorage.removeItem('si_gpib_cached_current_user');
       const supabase = createClient();
       await supabase.auth.signOut();
     } catch {

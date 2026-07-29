@@ -40,7 +40,20 @@ export function useCurrentUser() {
         } catch {}
       }
 
-      if (!user) return null;
+      if (!user) {
+        try {
+          const cached = localStorage.getItem('si_gpib_cached_user');
+          if (cached) user = JSON.parse(cached);
+        } catch {}
+      }
+
+      if (!user) {
+        try {
+          const cachedCurr = localStorage.getItem('si_gpib_cached_current_user');
+          if (cachedCurr) return JSON.parse(cachedCurr);
+        } catch {}
+        return null;
+      }
 
       let userDb: any = null;
       try {
@@ -56,15 +69,21 @@ export function useCurrentUser() {
       if (role === 'user' || role === 'User') role = 'pendeta';
       const isSuperUser = isSuperUserRole(role);
 
-      return {
-        id: user.id,
+      const currentUserObj: CurrentUserAuth = {
+        id: user.id || 'usr-mock-001',
         email: user.email || '',
         role,
-        id_mupel: userDb?.id_mupel || user.user_metadata?.id_mupel || null,
-        id_induk: userDb?.id_induk || user.user_metadata?.id_induk || null,
-        id_pos: userDb?.id_pos || user.user_metadata?.id_pos || null,
+        id_mupel: userDb?.id_mupel || user.user_metadata?.id_mupel || user.id_mupel || null,
+        id_induk: userDb?.id_induk || user.user_metadata?.id_induk || user.id_induk || null,
+        id_pos: userDb?.id_pos || user.user_metadata?.id_pos || user.id_pos || null,
         isSuperUser,
       };
+
+      try {
+        localStorage.setItem('si_gpib_cached_current_user', JSON.stringify(currentUserObj));
+      } catch {}
+
+      return currentUserObj;
     },
     staleTime: 10 * 60 * 1000,
     gcTime: 60 * 60 * 1000,
