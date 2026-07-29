@@ -41,8 +41,12 @@ const ROLE_LABELS: Record<UserRole, { label: string; bg: string; text: string }>
   relawan: { label: 'Relawan', bg: 'bg-rose-500/10', text: 'text-rose-600 dark:text-rose-400' },
 };
 
+import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
+
 export default function UserManagementPage() {
   const { toast } = useToast();
+  const { data: currentUser, isLoading: isUserLoading } = useCurrentUser();
+  const isAuthorized = isSuperUserRole(currentUser?.role);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRoleFilter, setSelectedRoleFilter] = useState('all');
   const [editingUser, setEditingUser] = useState<UserManagementItem | null>(null);
@@ -71,6 +75,28 @@ export default function UserManagementPage() {
   const updateRoleMutation = useUpdateUserRole();
   const createUserMutation = useCreateUser();
   const deleteUserMutation = useDeleteUser();
+
+  if (!isUserLoading && currentUser && !isAuthorized) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6 space-y-4">
+        <div className="w-16 h-16 rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center border border-red-500/20">
+          <Lock className="w-8 h-8" />
+        </div>
+        <div>
+          <h2 className="text-xl font-serif font-bold text-text-high">Otorisasi Akses Dibatasi</h2>
+          <p className="text-xs sm:text-sm text-text-muted max-w-md mt-1">
+            Halaman Manajemen User & Role hanya dapat diakses oleh pengguna dengan role <strong>SuperAdmin</strong> atau <strong>Super User</strong>.
+          </p>
+        </div>
+        <Link
+          href="/dashboard"
+          className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold shadow-soft hover:bg-brand-primary-dark transition-all min-h-[44px]"
+        >
+          Kembali ke Dashboard
+        </Link>
+      </div>
+    );
+  }
 
   const handleOpenEditModal = (user: UserManagementItem) => {
     setEditingUser(user);

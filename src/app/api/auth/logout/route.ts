@@ -1,17 +1,17 @@
-import { createClient } from '@/lib/supabase/server';
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server'
+import { cookies } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
 
-export async function GET(request: Request) {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
+export async function GET(request: NextRequest) {
+  const supabase = await createClient()
+  const cookieStore = await cookies()
 
-  const url = new URL('/login', request.url);
-  return NextResponse.redirect(url, { status: 302 });
-}
+  await supabase.auth.signOut().catch(() => {})
+  cookieStore.delete('si_gpib_user_session')
 
-export async function POST(_request: Request) {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
+  const host = request.headers.get('host') || 'localhost:3000'
+  const proto = request.headers.get('x-forwarded-proto') || 'http'
+  const cleanHost = host.includes('0.0.0.0') ? host.replace('0.0.0.0', 'localhost') : host
 
-  return NextResponse.json({ success: true, redirect: '/login' });
+  return NextResponse.redirect(`${proto}://${cleanHost}/login`)
 }

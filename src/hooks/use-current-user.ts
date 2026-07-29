@@ -11,23 +11,50 @@ export interface CurrentUserAuth {
   isSuperUser: boolean;
 }
 
+export function isSuperUserRole(role?: string): boolean {
+  if (!role) return false;
+  const r = role.toLowerCase().trim().replace(/[\s_]/g, '');
+  return r === 'superuser' || r === 'superadmin' || r === 'sinode' || r === 'admin';
+}
+
 export function useCurrentUser() {
   const supabase = createClient();
 
   return useQuery<CurrentUserAuth | null>({
     queryKey: ['current-user-auth'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      let user: any = null;
+
+      try {
+        const { data } = await supabase.auth.getUser();
+        user = data.user;
+      } catch {}
+
+      if (!user) {
+        try {
+          const res = await fetch('/api/auth/me');
+          if (res.ok) {
+            const body = await res.json();
+            user = body.user;
+          }
+        } catch {}
+      }
+
       if (!user) return null;
 
-      const { data: userDb } = await supabase
-        .from('users')
-        .select('role, id_mupel, id_induk, id_pos')
-        .eq('id', user.id)
-        .maybeSingle();
+      let userDb: any = null;
+      try {
+        const { data } = await supabase
+          .from('users')
+          .select('role, id_mupel, id_induk, id_pos')
+          .or(`id.eq.${user.id},email.eq.${user.email}`)
+          .maybeSingle();
+        userDb = data;
+      } catch {}
 
-      const role = userDb?.role || user.user_metadata?.role || 'guest';
-      const isSuperUser = role === 'super_user' || role === 'superadmin';
+      let role = userDb?.role || user.user_metadata?.role || user.role || 'pendeta';
+      if (role === 'user' || role === 'User') role = 'pendeta';
+      const isSuperUser = isSuperUserRole(role);
 
       return {
         id: user.id,

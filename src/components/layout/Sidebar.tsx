@@ -101,11 +101,15 @@ export const NAV_GROUPS: NavGroup[] = [
   },
 ];
 
+import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
+
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useUser();
   const { confirm, toast } = useToast();
+  const { data: currentUser } = useCurrentUser();
+  const isSuperUser = isSuperUserRole(currentUser?.role);
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<string[]>([
@@ -223,8 +227,17 @@ export function Sidebar() {
       {/* Navigation Content */}
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-3 scrollbar-thin">
         {NAV_GROUPS.map((group) => {
+          const validItems = group.items.filter((item) => {
+            if (item.href === '/settings/users') {
+              return isSuperUser;
+            }
+            return true;
+          });
+
+          if (validItems.length === 0) return null;
+
           const isExpanded = expandedGroups.includes(group.label);
-          const isGroupActive = group.items.some(
+          const isGroupActive = validItems.some(
             (item) => pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
           );
           const GroupIcon = group.icon;
@@ -234,7 +247,7 @@ export function Sidebar() {
               <div key={group.label} className="group relative flex flex-col items-center my-1">
                 <button
                   type="button"
-                  onClick={() => router.push(group.items[0].href)}
+                  onClick={() => router.push(validItems[0].href)}
                   className={cn(
                     'flex items-center justify-center w-12 h-12 rounded-xl transition-all min-h-[44px]',
                     isGroupActive
@@ -280,7 +293,7 @@ export function Sidebar() {
               {/* Group Sub-Items */}
               {isExpanded && (
                 <div className="ml-3 pl-3 border-l-2 border-border-subtle/60 space-y-1 my-1">
-                  {group.items.map((item) => {
+                  {validItems.map((item) => {
                     const isItemActive =
                       item.href === '/hierarki' || item.href === '/dashboard' || item.href === '/bantuan' || item.href === '/settings' || item.href === '/laporan'
                         ? pathname === item.href

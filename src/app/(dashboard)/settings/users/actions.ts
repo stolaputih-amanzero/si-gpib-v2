@@ -73,8 +73,27 @@ export async function createUserAction(payload: {
       }
     })
 
-    if (authError || !createdAuth.user) {
-      return { success: false, error: `Gagal membuat akun auth: ${authError?.message || 'Data user kosong'}` }
+    if (authError || !createdAuth?.user) {
+      let detailMsg = '';
+      if (authError) {
+        detailMsg =
+          authError.message ||
+          (authError as any).error_description ||
+          (authError as any).msg ||
+          (authError as any).error ||
+          '';
+        if (!detailMsg && typeof authError === 'object') {
+          try {
+            detailMsg = JSON.stringify(authError);
+          } catch {
+            detailMsg = String(authError);
+          }
+        }
+      }
+      if (!detailMsg) {
+        detailMsg = 'Data pengguna auth baru tidak berhasil dibuat atau dikembalikan oleh server';
+      }
+      return { success: false, error: `Gagal membuat akun auth: ${detailMsg}` }
     }
 
     const newUserId = createdAuth.user.id

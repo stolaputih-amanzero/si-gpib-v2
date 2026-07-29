@@ -9,8 +9,12 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { BiometricSetup } from '@/components/biometric/BiometricSetup';
 
+import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
+
 export default function SettingsHubPage() {
   const { user, nama, email, role, avatarUrl, isLoading, logout } = useUser();
+  const { data: currentUser } = useCurrentUser();
+  const isSuperUser = isSuperUserRole(currentUser?.role || role);
   const { toast, confirm } = useToast();
   
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -146,34 +150,36 @@ export default function SettingsHubPage() {
       {/* Settings Sections */}
       <div className="space-y-4">
         {/* Superadmin User & Role Management Hub */}
-        <Card className="border-purple-500/30 bg-purple-500/5 dark:bg-purple-950/10">
-          <CardHeader>
-            <Link
-              href="/settings/users"
-              className="flex items-center justify-between w-full group min-h-[44px]"
-            >
-              <div className="flex items-center gap-3 min-w-0 pr-4">
-                <div className="p-2.5 rounded-xl bg-purple-500/20 text-purple-600 dark:text-purple-300 shrink-0 group-hover:scale-105 transition-transform">
-                  <Crown className="w-5 h-5" />
-                </div>
-                <div className="min-w-0 text-left">
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-base truncate group-hover:text-purple-600 transition-colors">
-                      Manajemen User & Role (Superadmin)
-                    </CardTitle>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-purple-500 text-white">
-                      Superuser
-                    </span>
+        {isSuperUser && (
+          <Card className="border-purple-500/30 bg-purple-500/5 dark:bg-purple-950/10">
+            <CardHeader>
+              <Link
+                href="/settings/users"
+                className="flex items-center justify-between w-full group min-h-[44px]"
+              >
+                <div className="flex items-center gap-3 min-w-0 pr-4">
+                  <div className="p-2.5 rounded-xl bg-purple-500/20 text-purple-600 dark:text-purple-300 shrink-0 group-hover:scale-105 transition-transform">
+                    <Crown className="w-5 h-5" />
                   </div>
-                  <CardDescription className="line-clamp-1 mt-0.5">
-                    Atur otorisasi akun pengguna, penetapan role, dan penguncian Poka-Yoke RBAC
-                  </CardDescription>
+                  <div className="min-w-0 text-left">
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-base truncate group-hover:text-purple-600 transition-colors">
+                        Manajemen User & Role (Superadmin)
+                      </CardTitle>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-purple-500 text-white">
+                        Superuser
+                      </span>
+                    </div>
+                    <CardDescription className="line-clamp-1 mt-0.5">
+                      Atur otorisasi akun pengguna, penetapan role, dan penguncian Poka-Yoke RBAC
+                    </CardDescription>
+                  </div>
                 </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-purple-500 group-hover:translate-x-1 transition-transform shrink-0" />
-            </Link>
-          </CardHeader>
-        </Card>
+                <ChevronRight className="w-5 h-5 text-purple-500 group-hover:translate-x-1 transition-transform shrink-0" />
+              </Link>
+            </CardHeader>
+          </Card>
+        )}
 
         {/* Biometric Setup & Security */}
         <BiometricSetup initialEnabled={biometricsEnabled} />

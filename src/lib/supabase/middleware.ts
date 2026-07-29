@@ -27,9 +27,22 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user: any = null
+
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch {}
+
+  // Fallback to custom session cookie if Supabase Auth user is not active
+  if (!user) {
+    const sessionCookie = request.cookies.get('si_gpib_user_session')?.value
+    if (sessionCookie) {
+      try {
+        user = JSON.parse(sessionCookie)
+      } catch {}
+    }
+  }
 
   if (
     !user &&
@@ -41,7 +54,6 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith('/icons') && 
     !request.nextUrl.pathname.startsWith('/manifest.json')
   ) {
-    // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
@@ -59,14 +71,15 @@ export async function updateSession(request: NextRequest) {
   }
 
   // RBAC (Role-Based Access Control) Logic
-  if (user && request.nextUrl.pathname.startsWith('/dashboard')) {
-    const userRole = user.user_metadata?.role || 'user';
+  if (user && (request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname.startsWith('/settings/users'))) {
+    const userRole = user.user_metadata?.role || user.role || 'pendeta';
     const pathname = request.nextUrl.pathname;
 
     const protectedRoutes: Record<string, string[]> = {
-      '/dashboard/mupel': ['super_user'],
-      '/dashboard/jemaat': ['super_user', 'admin_mupel', 'kmj'],
-      '/dashboard/pos-pelkes': ['super_user', 'admin_mupel', 'kmj', 'pj', 'user'],
+      '/settings/users': ['super_user', 'superadmin', 'sinode', 'Super User', 'SuperAdmin', 'Admin', 'admin'],
+      '/dashboard/mupel': ['super_user', 'superadmin', 'sinode', 'Super User', 'SuperAdmin', 'Admin', 'admin'],
+      '/dashboard/jemaat': ['super_user', 'superadmin', 'sinode', 'admin_mupel', 'kmj', 'pendeta', 'Super User', 'SuperAdmin', 'Admin', 'admin'],
+      '/dashboard/pos-pelkes': ['super_user', 'superadmin', 'sinode', 'admin_mupel', 'kmj', 'pj', 'user', 'pendeta', 'pelayan', 'relawan', 'Super User', 'SuperAdmin', 'Admin', 'admin'],
     };
 
     let isAuthorized = true;
