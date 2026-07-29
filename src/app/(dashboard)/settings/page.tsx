@@ -24,29 +24,13 @@ export default function SettingsHubPage() {
     if (!user) return;
     const fetchBiometricsStatus = async () => {
       try {
-        const supabase = createClient();
-        
-        // 1. Cek tabel m_webauthn_credentials untuk kredensial terdaftar
-        const { data: creds } = await supabase
-          .from('m_webauthn_credentials')
-          .select('id')
-          .eq('id_user', user.id)
-          .limit(1);
-
-        if (creds && creds.length > 0) {
-          setBiometricsEnabled(true);
-          return;
-        }
-
-        // 2. Fallback cek flag biometric_enabled di tabel users
-        const { data, error } = await supabase
-          .from('users')
-          .select('biometric_enabled')
-          .eq('id', user.id)
-          .maybeSingle();
-
-        if (!error && data) {
-          setBiometricsEnabled(!!data.biometric_enabled);
+        const res = await fetch('/api/auth/webauthn/status');
+        if (res.ok) {
+          const body = await res.json();
+          if (typeof body.enabled === 'boolean') {
+            setBiometricsEnabled(body.enabled);
+            return;
+          }
         }
       } catch (err) {
         console.error('Error fetching biometric status:', err);
