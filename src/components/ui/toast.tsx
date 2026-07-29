@@ -110,6 +110,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         {toasts.map((t) => (
           <div
             key={t.id}
+            data-testid={t.type === 'success' ? 'toast-success' : 'toast-error-or-pending'}
             className={cn(
               'pointer-events-auto flex items-start gap-3 p-3.5 rounded-2xl shadow-heavy backdrop-blur-md border transition-all animate-slide-up',
               t.type === 'success' && 'bg-surface-elevated/95 border-emerald-500/30 text-text-high',

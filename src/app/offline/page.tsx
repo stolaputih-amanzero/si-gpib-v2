@@ -15,7 +15,7 @@ export default function OfflinePage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-surface-base text-text-high">
-      <div className="w-20 h-20 bg-amber-50 dark:bg-amber-950/60 rounded-2xl flex items-center justify-center mb-6 shadow-soft border border-amber-200 dark:border-amber-900/40">
+      <div data-testid="offline-page-icon" className="w-20 h-20 bg-amber-50 dark:bg-amber-950/60 rounded-2xl flex items-center justify-center mb-6 shadow-soft border border-amber-200 dark:border-amber-900/40">
         <WifiOff className="w-10 h-10 text-amber-600 dark:text-amber-400 animate-pulse" />
       </div>
 
@@ -30,6 +30,7 @@ export default function OfflinePage() {
       <div className="w-full max-w-sm space-y-3">
         <button
           type="button"
+          data-testid="button-retry-connection"
           onClick={handleReload}
           className="w-full min-h-[48px] px-4 rounded-xl font-semibold text-sm text-white bg-brand-primary hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-brand-primary flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98]"
         >

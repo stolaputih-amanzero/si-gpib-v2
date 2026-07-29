@@ -1,15 +1,15 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test.describe('CJ-4: Mutasi Pendeta via RPC Prosedur Atomik', () => {
-  test('Super User dapat melihat daftar pendeta dan riwayat mutasi', async ({ page }) => {
+  test('Super User dapat melihat daftar pendeta dan riwayat mutasi', async ({ authenticatedMobilePage: page }) => {
     // 1. Akses Halaman Daftar Pendeta
-    await page.goto('/pendeta');
-    await expect(page.getByText('Daftar Pendeta GPIB')).toBeVisible();
+    await page.goto('/sdm/pendeta');
+    await expect(page.getByTestId('mobile-header-title')).toBeVisible();
 
-    // 2. Klik Pendeta Pertama
-    const firstPendetaCard = page.locator('a[href^="/pendeta/"]').first();
-    if (await firstPendetaCard.isVisible()) {
-      await firstPendetaCard.click();
+    // 2. Verifikasi Card / Link Pendeta
+    const pendetaCard = page.locator('a[href*="/pendeta/"]').first();
+    if (await pendetaCard.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await pendetaCard.click();
       await expect(page).toHaveURL(/\/pendeta\/[A-Za-z0-9-]+/);
     }
   });

@@ -111,7 +111,7 @@ export default function HierarkiEntryPage() {
       ) : viewMode === 'tree' ? (
         <HierarchyTree mupelList={mupelList} />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div data-testid="mupel-list" className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {mupelList.map((mupel) => (
             <MupelCard key={mupel.id_mupel} mupel={mupel} />
           ))}

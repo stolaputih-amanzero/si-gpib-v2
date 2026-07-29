@@ -37,7 +37,7 @@ export function BottomNavigation({ onFabClick }: BottomNavigationProps) {
   }, [router]);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-surface-elevated/95 backdrop-blur-md border-t border-border-subtle pb-[env(safe-area-inset-bottom)] md:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.06)] select-none">
+    <nav data-testid="bottom-nav" className="fixed bottom-0 left-0 right-0 z-40 bg-surface-elevated/95 backdrop-blur-md border-t border-border-subtle pb-[env(safe-area-inset-bottom)] md:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.06)] select-none">
       <div className="flex items-center justify-around h-16 px-2 max-w-md mx-auto relative">
         {NAV_ITEMS.map((item) => {
           if (item.isFAB) {
@@ -45,6 +45,7 @@ export function BottomNavigation({ onFabClick }: BottomNavigationProps) {
               <div key="fab-container" className="flex-shrink-0 w-14 flex justify-center -mt-6">
                 <button
                   type="button"
+                  data-testid="bottom-nav-fab"
                   onClick={onFabClick}
                   className="flex items-center justify-center w-14 h-14 bg-brand-primary text-white rounded-full shadow-lg hover:bg-brand-primary-dark active:scale-95 transition-all border-4 border-surface-elevated focus:outline-none focus:ring-4 focus:ring-brand-primary/20"
                   aria-label="Aksi Cepat"
@@ -61,10 +62,19 @@ export function BottomNavigation({ onFabClick }: BottomNavigationProps) {
             (pathname === item.href || pathname.startsWith(item.href + '/'));
           const Icon = item.icon;
 
+          const itemTestId = item.label === 'Peta' 
+            ? 'bottom-nav-peta' 
+            : item.label === 'Pos & Bajem' || item.label === 'Laporan' 
+            ? 'bottom-nav-laporan' 
+            : `bottom-nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`;
+
           return (
             <button
               key={item.href}
               type="button"
+              data-testid="bottom-nav-item"
+              data-nav-id={itemTestId}
+              id={itemTestId}
               onClick={() => router.push(item.href)}
               className={cn(
                 'flex flex-col items-center justify-center gap-1 min-h-[44px] min-w-[64px] active:scale-95 transition-transform py-1',

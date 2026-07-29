@@ -11,7 +11,8 @@ export default defineConfig({
     baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000',
     trace: 'on-first-retry',
     video: 'retain-on-failure',
-    ...devices['iPhone 14'],
+    actionTimeout: 10000,
+    navigationTimeout: 15000,
   },
   projects: [
     {
@@ -23,4 +24,10 @@ export default defineConfig({
       use: { ...devices['iPhone 14'] },
     },
   ],
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:3000',
+    reuseExistingServer: !process.env.CI,
+  },
 });
+

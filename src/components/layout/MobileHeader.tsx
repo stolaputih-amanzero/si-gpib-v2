@@ -103,7 +103,7 @@ export function MobileHeader() {
           )}
 
           {/* Page Title */}
-          <h1 className="font-serif font-bold text-base sm:text-lg text-text-high truncate leading-snug min-w-0">
+          <h1 data-testid="mobile-header-title" className="font-serif font-bold text-base sm:text-lg text-text-high truncate leading-snug min-w-0">
             {title}
           </h1>
         </div>

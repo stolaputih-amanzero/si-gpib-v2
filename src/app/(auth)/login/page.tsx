@@ -68,6 +68,7 @@ export default function LoginPage() {
                 id="email"
                 name="email"
                 type="text"
+                data-testid="input-phone"
                 required 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -87,6 +88,7 @@ export default function LoginPage() {
                 id="password"
                 name="password"
                 type="password" 
+                data-testid="input-password"
                 required 
                 className="w-full pl-10 pr-4 py-3 border border-border-subtle rounded-xl bg-surface-base text-text-high placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-primary/40 text-xs sm:text-sm min-h-[46px] transition-all"
                 placeholder="Masukkan kata sandi"
@@ -96,6 +98,7 @@ export default function LoginPage() {
 
           <button 
             type="submit" 
+            data-testid="button-login"
             disabled={isPending}
             className="w-full mt-2 flex justify-center items-center py-3.5 px-4 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-brand-primary via-blue-700 to-brand-primary hover:opacity-95 active:scale-[0.98] shadow-lg shadow-brand-primary/20 focus:outline-none focus:ring-4 focus:ring-brand-primary/20 min-h-[48px] disabled:opacity-50 transition-all"
           >

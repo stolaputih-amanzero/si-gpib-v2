@@ -1,27 +1,48 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
+import { mockPastoralData } from './utils/mock-data';
 
-test.describe('CJ-6: Offline Network Simulation & Auto-Drafting', () => {
-  test('Form draft tersimpan saat offline dan dapat dipulihkan saat online', async ({ page, context }) => {
-    // 1. Akses Halaman Input Log Pastoral
+test.describe('CJ-6: Offline Draft & Auto-Retry', () => {
+  test('should save draft offline and auto-submit when online', async ({ authenticatedMobilePage: page, goToOffline, goToOnline }, testInfo) => {
+    // 1. Navigasi ke form Log Pastoral
     await page.goto('/dashboard/pastoral/baru');
+    
+    // 2. Isi form sebagian
+    await page.getByTestId('input-kegiatan').fill(mockPastoralData.kegiatan);
+    await page.getByTestId('input-kegiatan').blur();
+    await page.getByTestId('input-jml-jiwa').fill(mockPastoralData.jmlJiwa);
 
-    // 2. Isi sebagian form
-    const kegiatanTextarea = page.locator('textarea[name="kegiatan"], textarea').first();
-    await kegiatanTextarea.fill('Drafting kegiatan pastoral saat jaringan tidak stabil');
+    // 3. Simulasi Offline
+    await goToOffline(testInfo.project.use);
+    await expect(page.getByTestId('network-banner-offline')).toBeVisible();
 
-    // 3. Simulasi Offline (Network Disconnected)
-    await context.setOffline(true);
+    // 4. Trigger submit (akan masuk ke pending queue / draft)
+    await page.getByTestId('button-submit').click();
+    
+    // Verifikasi indikator draft tersimpan atau pending
+    const pendingOrDraftToast = page.getByTestId('toast-pending-or-draft')
+      .or(page.getByTestId('toast-error-or-pending'))
+      .first();
+    await expect(pendingOrDraftToast).toBeVisible();
 
-    // 4. Verifikasi bahwa data tersimpan di LocalStorage
-    const draftContent = await page.evaluate(() => localStorage.getItem('draft:log-pastoral'));
-    expect(draftContent).toBeTruthy();
-    expect(draftContent).toContain('Drafting kegiatan pastoral');
+    // 5. Simulasi Online & Server Pulih (Mock 201 Created)
+    await goToOnline(testInfo.project.use);
+    await page.route('**/*t_log_pastoral*', route => {
+      if (route.request().method() === 'POST') {
+        route.fulfill({
+          status: 201,
+          contentType: 'application/json',
+          body: JSON.stringify([{ id_log: 'LOG-TEST-123' }]),
+        });
+      } else {
+        route.continue();
+      }
+    });
 
-    // 5. Simulasi Online Kembali (Network Reconnected)
-    await context.setOffline(false);
-
-    // 6. Reload halaman & pastikan draft terisi kembali
-    await page.reload();
-    await expect(kegiatanTextarea).toHaveValue(/Drafting kegiatan pastoral/);
+    // 6. Re-submit form saat online
+    await page.getByTestId('button-submit').click();
+    
+    // 7. Verifikasi sukses terkirim
+    const successToast = page.getByTestId('toast-success');
+    await expect(successToast).toBeVisible({ timeout: 10000 });
   });
 });

@@ -22,6 +22,7 @@ export function NetworkBanner() {
 
   return (
     <div
+      data-testid={!isOnline ? "network-banner-offline" : undefined}
       className={`fixed top-0 left-0 right-0 z-50 min-h-[44px] px-4 py-2.5 flex items-center justify-between shadow-float backdrop-blur-md transition-all animate-in slide-in-from-top ${
         !isOnline
           ? 'bg-amber-500 text-white font-medium'
