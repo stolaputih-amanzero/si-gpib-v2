@@ -4,6 +4,7 @@ import QueryProvider from '@/components/providers/QueryProvider';
 import { ToastProvider } from '@/components/ui/toast';
 import { NetworkBanner } from '@/components/mobile/NetworkBanner';
 import { MobileSplashScreen } from '@/components/mobile/MobileSplashScreen';
+import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
 
 export const metadata: Metadata = {
   title: 'SI GPIB v2.2 - Sistem Informasi GPIB',
@@ -57,6 +58,7 @@ export default function RootLayout({
       <body className="bg-surface-base text-text-high" suppressHydrationWarning>
         <QueryProvider>
           <ToastProvider>
+            <ServiceWorkerRegister />
             <MobileSplashScreen />
             <NetworkBanner />
             {children}
