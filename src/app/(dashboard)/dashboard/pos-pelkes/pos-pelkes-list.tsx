@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { SearchBar } from '@/components/ui/search-bar';
 import { cleanQuotes } from '@/lib/utils';
 import Link from 'next/link';
@@ -28,6 +28,7 @@ interface PosPelkes {
 
 export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
   const router = useRouter();
+  const [dataList, setDataList] = useState<PosPelkes[]>(initialData || []);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMupel, setSelectedMupel] = useState('');
   const [selectedJemaat, setSelectedJemaat] = useState('');
@@ -35,10 +36,30 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
   const [elevatePosItem, setElevatePosItem] = useState<{ id_pos: string; nama_pos: string; kategori?: string | null; id_induk: string } | null>(null);
   const itemsPerPage = 10;
 
+  useEffect(() => {
+    if (initialData && initialData.length > 0) {
+      setDataList(initialData);
+      try {
+        localStorage.setItem('draft:pos-pelkes-cache', JSON.stringify(initialData));
+      } catch {}
+    } else {
+      // Resilient Offline Fallback: Membaca cache master data Pos Pelkes dari localStorage
+      try {
+        const cached = localStorage.getItem('draft:pos-pelkes-cache');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setDataList(parsed);
+          }
+        }
+      } catch {}
+    }
+  }, [initialData]);
+
   // Extract unique Mupel options from data
   const mupelOptions = useMemo(() => {
     const mupels: Record<string, string> = {};
-    initialData.forEach((pos) => {
+    dataList.forEach((pos) => {
       const jemaatObj = pos.jemaat_induk;
       const j = Array.isArray(jemaatObj) ? jemaatObj[0] : jemaatObj;
       const mupelObj = j?.mupel;
@@ -51,12 +72,12 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
     return Object.entries(mupels)
       .map(([id, name]) => ({ id, name }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [initialData]);
+  }, [dataList]);
 
   // Extract unique Jemaat options from data (filtered by selected Mupel)
   const jemaatOptions = useMemo(() => {
     const jemaats: Record<string, string> = {};
-    initialData.forEach((pos) => {
+    dataList.forEach((pos) => {
       const jemaatObj = pos.jemaat_induk;
       const j = Array.isArray(jemaatObj) ? jemaatObj[0] : jemaatObj;
       if (j?.id_induk && j?.nama_induk) {
@@ -68,10 +89,10 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
     return Object.entries(jemaats)
       .map(([id, name]) => ({ id, name }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [initialData, selectedMupel]);
+  }, [dataList, selectedMupel]);
 
   const filteredData = useMemo(() => {
-    const list = initialData.filter((pos) => {
+    const list = dataList.filter((pos) => {
       const jemaatObj = pos.jemaat_induk;
       const j = Array.isArray(jemaatObj) ? jemaatObj[0] : jemaatObj;
       const mupelObj = j?.mupel;
@@ -158,7 +179,7 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
     }
 
     return list;
-  }, [initialData, searchQuery, selectedMupel, selectedJemaat]);
+  }, [dataList, searchQuery, selectedMupel, selectedJemaat]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   
