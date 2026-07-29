@@ -4,7 +4,6 @@ import { DemografiChart } from "@/components/dashboard/DemografiChart";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 
-// --- Types ---
 interface DemografiRow {
   kategori_pelkat: string;
   laki: number;
@@ -14,7 +13,6 @@ interface DemografiRow {
 export default async function Dashboard() {
   const supabase = await createClient();
 
-  // Current month bounds for pastoral logs
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
@@ -63,7 +61,6 @@ export default async function Dashboard() {
     console.error('Offline / network error loading dashboard stats:', err);
   }
 
-  // Process Demografi Data
   let totalJiwaFromPelkat = 0;
   const chartDataMap: Record<string, number> = {
     'Pelayanan Anak (PA)': 0,
@@ -92,26 +89,22 @@ export default async function Dashboard() {
     });
   }
 
-  // Sum total jiwa from m_pos_pelkes as primary reference
   const totalJiwaFromPos = (posPelkesSumData || []).reduce((acc: number, curr: any) => acc + (curr.jumlah_jiwa || 0), 0);
   const totalJiwa = totalJiwaFromPos > 0 ? totalJiwaFromPos : totalJiwaFromPelkat;
 
-  // Convert map to array for Recharts
   const chartData = Object.entries(chartDataMap)
     .map(([name, total]) => ({ name, total }))
     .filter(item => item.total > 0)
     .sort((a, b) => b.total - a.total);
 
   return (
-    <div className="w-full min-h-full bg-surface-base pb-6">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-40 bg-surface-elevated/85 backdrop-blur-md border-b border-border-subtle pt-safe px-4 py-3.5 md:px-6">
+    <div className="w-full min-h-full bg-surface-base pb-24 pt-safe">
+      <div className="sticky top-0 z-40 bg-surface-elevated/90 backdrop-blur-md border-b border-border-subtle px-4 py-3.5 md:px-6">
         <h1 className="text-xl md:text-2xl font-serif font-bold text-brand-primary">Dashboard Utama</h1>
-        <p className="text-xs md:text-sm text-text-muted mt-0.5">Sistem Informasi Pelayanan & Kesaksian GPIB</p>
+        <p className="text-xs md:text-sm text-text-secondary mt-0.5">Sistem Informasi Pelayanan & Kesaksian GPIB</p>
       </div>
 
       <main className="max-w-6xl mx-auto px-4 py-5 md:px-6 space-y-6">
-        {/* Row 1: KPI Cards */}
         <StatCards 
           posCount={posCount || 0}
           jemaatCount={jemaatCount || 0}
@@ -119,7 +112,6 @@ export default async function Dashboard() {
           logCount={logCount || 0}
         />
 
-        {/* Row 2: Charts & Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <DemografiChart data={chartData} />
@@ -130,7 +122,6 @@ export default async function Dashboard() {
         </div>
       </main>
 
-      {/* Floating Action Button */}
       <QuickActions />
     </div>
   );
