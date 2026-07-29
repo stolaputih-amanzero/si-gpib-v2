@@ -1,36 +1,20 @@
-/**
- * Haptic feedback helper
- * Triggers device vibration on supported devices
- */
-export const haptic = {
-  light: () => {
-    if (typeof window !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate(10);
-    }
-  },
-  medium: () => {
-    if (typeof window !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate(30);
-    }
-  },
-  heavy: () => {
-    if (typeof window !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate(30);
-    }
-  },
-  selection: () => {
-    if (typeof window !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate(5);
-    }
-  },
-  success: () => {
-    if (typeof window !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate([10, 50, 10]);
-    }
-  },
-  error: () => {
-    if (typeof window !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate([50, 100, 50]);
-    }
+export function haptic(type: 'light' | 'medium' | 'heavy' | 'selection' | 'success' | 'error') {
+  if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+    const patterns = {
+      light: [10],
+      medium: [20],
+      heavy: [30],
+      selection: [5],
+      success: [10, 50, 10],
+      error: [50, 100, 50],
+    };
+    navigator.vibrate(patterns[type]);
   }
-};
+}
+
+haptic.light = () => haptic('light');
+haptic.medium = () => haptic('medium');
+haptic.heavy = () => haptic('heavy');
+haptic.selection = () => haptic('selection');
+haptic.success = () => haptic('success');
+haptic.error = () => haptic('error');
