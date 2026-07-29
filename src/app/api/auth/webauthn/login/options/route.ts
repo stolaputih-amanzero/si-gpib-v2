@@ -9,9 +9,31 @@ export async function GET(req: NextRequest) {
   try {
     const { rpID } = getWebAuthnConfig(req);
 
-    // Generate options without allowCredentials (username-less)
+    const supabase = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // Ambil kredensial terdaftar untuk membantu Android Credential Manager
+    const { data: credentials } = await supabase
+      .from('m_webauthn_credentials')
+      .select('credential_id, transports')
+      .order('last_used_at', { ascending: false })
+      .limit(20);
+
+    const allowCredentials =
+      credentials && credentials.length > 0
+        ? credentials.map((cred) => ({
+            id: cred.credential_id,
+            type: 'public-key' as const,
+            transports: cred.transports ? (cred.transports as any) : undefined,
+          }))
+        : undefined;
+
+    // Generate options dengan allowCredentials terisi jika ada
     const options: PublicKeyCredentialRequestOptionsJSON = await generateAuthenticationOptions({
       timeout: 60000,
+      allowCredentials,
       userVerification: 'preferred',
       rpID,
     });

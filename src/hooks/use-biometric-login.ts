@@ -27,8 +27,25 @@ export function useBiometricLogin() {
 
       const { options, userId } = await optionsRes.json();
 
-      // 2. Mulai proses biometric di device (Fingerprint/Face ID)
-      const assertionResponse = await startAuthentication({ optionsJSON: options });
+      // 2. Mulai proses biometric di device (Fingerprint/Face ID) dengan auto-retry jika Credential Manager terdistraksi saat logout
+      let assertionResponse;
+      try {
+        assertionResponse = await startAuthentication({ optionsJSON: options });
+      } catch (authErr: any) {
+        const errMsg = (authErr?.message || authErr?.name || '').toLowerCase();
+        if (
+          errMsg.includes('credential manager') ||
+          errMsg.includes('notallowederror') ||
+          errMsg.includes('unknown error') ||
+          errMsg.includes('invalidstateerror')
+        ) {
+          // Tunggu 300ms agar Android Credential Manager siap pasca-logout lalu coba lagi
+          await new Promise((resolve) => setTimeout(resolve, 300));
+          assertionResponse = await startAuthentication({ optionsJSON: options });
+        } else {
+          throw authErr;
+        }
+      }
 
       // 3. Kirim respons ke server untuk verifikasi
       const verifyRes = await fetch('/api/auth/webauthn/login/verify', {
