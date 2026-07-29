@@ -4,12 +4,29 @@ import type { PublicKeyCredentialCreationOptionsJSON } from '@simplewebauthn/ser
 import { createClient } from '@/lib/supabase/server';
 import { getWebAuthnConfig } from '@/lib/auth/webauthn-config';
 
+import { cookies } from 'next/headers';
+
 export async function GET(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    let user: any = null;
 
-    if (authError || !user) {
+    try {
+      const { data } = await supabase.auth.getUser();
+      user = data?.user;
+    } catch {}
+
+    if (!user) {
+      const cookieStore = await cookies();
+      const sessionCookie = cookieStore.get('si_gpib_user_session')?.value;
+      if (sessionCookie) {
+        try {
+          user = JSON.parse(sessionCookie);
+        } catch {}
+      }
+    }
+
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

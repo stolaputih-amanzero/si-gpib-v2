@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // 1. Cari user berdasarkan email untuk mendapatkan ID dan credentials
+    // 1. Cari user berdasarkan email untuk mendapatkan ID
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('id, email, biometric_enabled')
@@ -56,11 +56,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'User tidak ditemukan' }, { status: 404 });
     }
 
-    if (!userData.biometric_enabled) {
-      return NextResponse.json({ error: 'Biometric belum diaktifkan untuk akun ini' }, { status: 403 });
-    }
-
-    // 2. Ambil credentials yang terdaftar untuk user ini
+    // 2. Ambil credentials yang terdaftar untuk user ini dari tabel m_webauthn_credentials
     const { data: credentials, error: credError } = await supabase
       .from('m_webauthn_credentials')
       .select('credential_id, public_key, counter, transports')
@@ -68,6 +64,13 @@ export async function POST(req: NextRequest) {
 
     if (credError || !credentials || credentials.length === 0) {
       return NextResponse.json({ error: 'Tidak ada device biometric terdaftar' }, { status: 400 });
+    }
+
+    // Auto-sync flag biometric_enabled jika belum set true
+    if (!userData.biometric_enabled) {
+      try {
+        await supabase.from('users').update({ biometric_enabled: true }).eq('id', userData.id);
+      } catch {}
     }
 
     const { rpID } = getWebAuthnConfig(req);
