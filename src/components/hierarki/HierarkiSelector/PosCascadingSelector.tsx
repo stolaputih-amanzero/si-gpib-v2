@@ -25,6 +25,7 @@ export interface HierarchyMetaInfo {
 interface PosCascadingSelectorProps {
   value?: string | null;
   onChange: (value: string) => void;
+  onMupelChange?: (id_mupel: string) => void;
   onJemaatChange?: (id_induk: string) => void;
   onMetaChange?: (meta: HierarchyMetaInfo) => void;
   error?: string;
@@ -39,6 +40,7 @@ interface PosCascadingSelectorProps {
 export function PosCascadingSelector({
   value,
   onChange,
+  onMupelChange,
   onJemaatChange,
   onMetaChange,
   error,
@@ -55,6 +57,9 @@ export function PosCascadingSelector({
   // Refs for callbacks to prevent infinite re-render loops from inline prop functions
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+
+  const onMupelChangeRef = useRef(onMupelChange);
+  onMupelChangeRef.current = onMupelChange;
 
   const onJemaatChangeRef = useRef(onJemaatChange);
   onJemaatChangeRef.current = onJemaatChange;
@@ -100,6 +105,9 @@ export function PosCascadingSelector({
       const jemaatId = posHierarchy.id_induk || '';
       if (mupelId && selectedMupel !== mupelId) {
         setSelectedMupel(mupelId);
+        if (onMupelChangeRef.current) {
+          onMupelChangeRef.current(mupelId);
+        }
       }
       if (jemaatId && selectedJemaat !== jemaatId) {
         setSelectedJemaat(jemaatId);
@@ -117,6 +125,9 @@ export function PosCascadingSelector({
       const jemaatId = jemaatHierarchy.id_induk || '';
       if (mupelId && selectedMupel !== mupelId) {
         setSelectedMupel(mupelId);
+        if (onMupelChangeRef.current) {
+          onMupelChangeRef.current(mupelId);
+        }
       }
       if (jemaatId && selectedJemaat !== jemaatId) {
         setSelectedJemaat(jemaatId);
@@ -130,6 +141,9 @@ export function PosCascadingSelector({
       if (userAuth.id_mupel && (!selectedMupel || isMupelLocked)) {
         if (selectedMupel !== userAuth.id_mupel) {
           setSelectedMupel(userAuth.id_mupel);
+          if (onMupelChangeRef.current) {
+            onMupelChangeRef.current(userAuth.id_mupel);
+          }
         }
       }
       if (userAuth.id_induk && (!selectedJemaat || isJemaatLocked)) {
@@ -195,6 +209,7 @@ export function PosCascadingSelector({
   const handleMupelChange = (mupelId: string) => {
     if (isMupelLocked) return;
     setSelectedMupel(mupelId);
+    if (onMupelChange) onMupelChange(mupelId);
     setSelectedJemaat(''); // Reset Jemaat
     if (onJemaatChange) onJemaatChange('');
     onChange(''); // Reset Pos

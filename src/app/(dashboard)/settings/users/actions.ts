@@ -57,6 +57,45 @@ async function getAuthenticatedCaller(supabase: any) {
   return null
 }
 
+async function resolveHierarchyMupel(
+  client: any,
+  id_mupel: string | null,
+  id_induk: string | null,
+  id_pos: string | null
+): Promise<{ resolved_mupel: string | null; resolved_induk: string | null }> {
+  let finalMupel = id_mupel || null
+  let finalInduk = id_induk || null
+
+  if (id_pos) {
+    const { data: pos } = await client
+      .from('m_pos_pelkes')
+      .select('id_induk, jemaat_induk:m_jemaat_induk(id_mupel)')
+      .eq('id_pos', id_pos)
+      .maybeSingle()
+
+    if (pos) {
+      if (!finalInduk && pos.id_induk) finalInduk = pos.id_induk
+      if (!finalMupel && pos.jemaat_induk?.id_mupel) {
+        finalMupel = pos.jemaat_induk.id_mupel
+      }
+    }
+  }
+
+  if (finalInduk && !finalMupel) {
+    const { data: jemaat } = await client
+      .from('m_jemaat_induk')
+      .select('id_mupel')
+      .eq('id_induk', finalInduk)
+      .maybeSingle()
+
+    if (jemaat?.id_mupel) {
+      finalMupel = jemaat.id_mupel
+    }
+  }
+
+  return { resolved_mupel: finalMupel, resolved_induk: finalInduk }
+}
+
 export async function createUserAction(payload: {
   email: string;
   nama_lengkap: string;
@@ -92,6 +131,14 @@ export async function createUserAction(payload: {
       return { success: false, error: 'Unauthorized: Anda tidak memiliki hak akses untuk membuat pengguna baru' }
     }
 
+    // Resolve hierarchy IDs defensively
+    const { resolved_mupel, resolved_induk } = await resolveHierarchyMupel(
+      clientForRead,
+      payload.id_mupel,
+      payload.id_induk,
+      payload.id_pos
+    )
+
     // 2. Create the user in auth or DB
     const tempPassword = payload.password || `Gpib-${Math.floor(100000 + Math.random() * 900000)}`
     let newUserId = `usr-${Date.now()}`
@@ -123,8 +170,8 @@ export async function createUserAction(payload: {
         nama_lengkap: payload.nama_lengkap,
         email: payload.email,
         role: payload.role,
-        id_mupel: payload.id_mupel || null,
-        id_induk: payload.id_induk || null,
+        id_mupel: resolved_mupel,
+        id_induk: resolved_induk,
         id_pos: payload.id_pos || null,
         status: payload.status,
         updated_at: new Date().toISOString()
@@ -177,6 +224,14 @@ export async function updateUserRoleAction(payload: {
       return { success: false, error: 'Unauthorized: Anda tidak memiliki hak akses untuk manajemen user' }
     }
 
+    // Resolve hierarchy IDs defensively
+    const { resolved_mupel, resolved_induk } = await resolveHierarchyMupel(
+      clientForRead,
+      payload.id_mupel,
+      payload.id_induk,
+      payload.id_pos
+    )
+
     // 2. Update auth user metadata if adminClient is available
     if (adminClient) {
       try {
@@ -197,8 +252,8 @@ export async function updateUserRoleAction(payload: {
       role: payload.role,
       nama_lengkap: payload.nama_lengkap,
       email: payload.email,
-      id_mupel: payload.id_mupel || null,
-      id_induk: payload.id_induk || null,
+      id_mupel: resolved_mupel,
+      id_induk: resolved_induk,
       id_pos: payload.id_pos || null,
       status: payload.status,
       updated_at: new Date().toISOString(),

@@ -530,6 +530,7 @@ export default function UserManagementPage() {
                     <JemaatCascadingSelector
                       value={formInduk}
                       onChange={setFormInduk}
+                      onMupelChange={setFormMupel}
                       defaultIndukId={formInduk || undefined}
                     />
                     <p className="text-[11px] text-text-muted">
@@ -541,6 +542,7 @@ export default function UserManagementPage() {
                     <PosCascadingSelector
                       value={formPos}
                       onChange={setFormPos}
+                      onMupelChange={setFormMupel}
                       onJemaatChange={setFormInduk}
                       defaultPosId={formPos || undefined}
                       required={false}
@@ -709,6 +711,7 @@ export default function UserManagementPage() {
                     <JemaatCascadingSelector
                       value={addInduk}
                       onChange={setAddInduk}
+                      onMupelChange={setAddMupel}
                       defaultIndukId={addInduk || undefined}
                     />
                     <p className="text-[11px] text-text-muted">
@@ -720,6 +723,7 @@ export default function UserManagementPage() {
                     <PosCascadingSelector
                       value={addPos}
                       onChange={setAddPos}
+                      onMupelChange={setAddMupel}
                       onJemaatChange={setAddInduk}
                       defaultPosId={addPos || undefined}
                       required={false}

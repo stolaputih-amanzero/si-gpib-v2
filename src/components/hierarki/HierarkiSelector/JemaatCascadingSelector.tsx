@@ -8,6 +8,7 @@ import { useUserMupelAuth, useJemaatReverseLookup } from '@/hooks/use-hierarki-s
 interface JemaatCascadingSelectorProps {
   value: string;
   onChange: (value: string) => void;
+  onMupelChange?: (id_mupel: string) => void;
   error?: string;
   disabled?: boolean;
   defaultIndukId?: string; // Untuk mode Edit
@@ -16,6 +17,7 @@ interface JemaatCascadingSelectorProps {
 export function JemaatCascadingSelector({
   value,
   onChange,
+  onMupelChange,
   error,
   disabled,
   defaultIndukId,
@@ -40,6 +42,7 @@ export function JemaatCascadingSelector({
     // Priority 1: Reverse Lookup Data (Edit Mode)
     if (jemaatHierarchy) {
       setSelectedMupel(jemaatHierarchy.id_mupel);
+      if (onMupelChange) onMupelChange(jemaatHierarchy.id_mupel);
       if (value !== jemaatHierarchy.id_induk) {
         onChange(jemaatHierarchy.id_induk);
       }
@@ -48,6 +51,7 @@ export function JemaatCascadingSelector({
     else if (userAuth) {
       if (userAuth.id_mupel && (!selectedMupel || isMupelLocked)) {
         setSelectedMupel(userAuth.id_mupel);
+        if (onMupelChange) onMupelChange(userAuth.id_mupel);
       }
       if (userAuth.id_induk && (!value || isJemaatLocked)) {
         if (value !== userAuth.id_induk) {
@@ -55,12 +59,13 @@ export function JemaatCascadingSelector({
         }
       }
     }
-  }, [jemaatHierarchy, userAuth, isMupelLocked, isJemaatLocked, value, onChange, selectedMupel]);
+  }, [jemaatHierarchy, userAuth, isMupelLocked, isJemaatLocked, value, onChange, selectedMupel, onMupelChange]);
 
   // Handlers
   const handleMupelChange = (mupelId: string) => {
     if (isMupelLocked) return;
     setSelectedMupel(mupelId);
+    if (onMupelChange) onMupelChange(mupelId);
     onChange(''); // Reset child
   };
 
