@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/hooks/use-user';
 import { useToast } from '@/components/ui/toast';
-import { Shield, Bell, LogOut, ChevronRight, Check, User as UserIcon, RefreshCw, Crown, Lock, X, Palette } from 'lucide-react';
+import { Shield, Bell, LogOut, ChevronRight, Check, User as UserIcon, RefreshCw, Crown, Lock, X, Palette, Edit3 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { BiometricSetup } from '@/components/biometric/BiometricSetup';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { updateOwnProfileAction } from './actions';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
 
@@ -18,8 +20,57 @@ export default function SettingsHubPage() {
   const isSuperUser = isSuperUserRole(currentUser?.role || role);
   const { toast, confirm } = useToast();
   
+  const queryClient = useQueryClient();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
+
+  // States for Profile Editing
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editNama, setEditNama] = useState('');
+  const [editNoHp, setEditNoHp] = useState('');
+  const [editAvatar, setEditAvatar] = useState('');
+  const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
+
+  const handleOpenEditProfile = () => {
+    setEditNama(nama || '');
+    setEditNoHp('');
+    setEditAvatar(avatarUrl || '');
+    setIsEditingProfile(true);
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editNama.trim()) {
+      toast.error('Nama Wajib Diisi', 'Silakan masukkan nama lengkap Anda.');
+      return;
+    }
+
+    setIsSubmittingProfile(true);
+    try {
+      const res = await updateOwnProfileAction({
+        nama_lengkap: editNama.trim(),
+        no_hp: editNoHp.trim(),
+        avatar_url: editAvatar.trim(),
+      });
+
+      if (!res.success) {
+        throw new Error(res.error);
+      }
+
+      toast.success('Profil Diperbarui', 'Data profil Anda berhasil disimpan.');
+      setIsEditingProfile(false);
+      
+      // Invalidate queries & reload user states
+      queryClient.invalidateQueries({ queryKey: ['current-user-auth'] });
+      if (typeof window !== 'undefined') {
+        window.location.reload();
+      }
+    } catch (err: any) {
+      toast.error('Gagal Simpan Profil', err?.message || 'Terjadi kesalahan saat menyimpan profil.');
+    } finally {
+      setIsSubmittingProfile(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -112,36 +163,47 @@ export default function SettingsHubPage() {
       </div>
 
       {/* Dynamic Profile Card */}
-      <Card>
+      <Card className="relative overflow-hidden group">
         <CardHeader>
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold text-xl overflow-hidden shrink-0 border border-brand-primary/20">
-              {avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={avatarUrl} alt={nama} className="w-full h-full object-cover" />
-              ) : (
-                <UserIcon className="w-8 h-8 text-brand-primary" />
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <CardTitle className="truncate">{isLoading ? 'Memuat Profil...' : nama}</CardTitle>
-                {isLoading && <RefreshCw className="w-3.5 h-3.5 animate-spin text-text-muted" />}
-              </div>
-              <CardDescription className="truncate mt-0.5 font-mono text-xs">
-                {email}
-              </CardDescription>
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-brand-primary/10 text-brand-primary border border-brand-primary/20 uppercase">
-                  {role}
-                </span>
-                {user && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
-                    <Check className="w-3 h-3" /> Sesi Terverifikasi
-                  </span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-16 h-16 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold text-xl overflow-hidden shrink-0 border border-brand-primary/20">
+                {avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={avatarUrl} alt={nama} className="w-full h-full object-cover" />
+                ) : (
+                  <UserIcon className="w-8 h-8 text-brand-primary" />
                 )}
               </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <CardTitle className="truncate">{isLoading ? 'Memuat Profil...' : nama}</CardTitle>
+                  {isLoading && <RefreshCw className="w-3.5 h-3.5 animate-spin text-text-muted" />}
+                </div>
+                <CardDescription className="truncate mt-0.5 font-mono text-xs">
+                  {email}
+                </CardDescription>
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-brand-primary/10 text-brand-primary border border-brand-primary/20 uppercase">
+                    {role}
+                  </span>
+                  {user && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
+                      <Check className="w-3 h-3" /> Sesi Terverifikasi
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
+
+            <button
+              type="button"
+              onClick={handleOpenEditProfile}
+              className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white transition-all text-xs font-bold shrink-0 min-h-[40px] border border-brand-primary/20 active:scale-95 shadow-2xs"
+            >
+              <Edit3 size={15} />
+              <span>Edit Profil</span>
+            </button>
           </div>
         </CardHeader>
       </Card>
@@ -266,6 +328,111 @@ export default function SettingsHubPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modal Edit Profil Pengguna */}
+      {isEditingProfile && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-surface-elevated w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 border border-border-subtle shadow-heavy max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
+            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+              <div>
+                <h2 className="text-base font-serif font-bold text-brand-primary flex items-center gap-2">
+                  <UserIcon size={18} />
+                  <span>Edit Profil Pengguna</span>
+                </h2>
+                <p className="text-xs text-text-muted mt-0.5">
+                  Perbarui nama lengkap dan informasi profil akun Anda
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditingProfile(false)}
+                className="w-9 h-9 rounded-full bg-surface-sunken flex items-center justify-center text-text-muted hover:text-text-high min-h-[44px] min-w-[44px]"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProfile} className="space-y-4">
+              {/* Nama Lengkap */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-high">Nama Lengkap *</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Pdt. Otniel Jonatan"
+                  value={editNama}
+                  onChange={(e) => setEditNama(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  required
+                />
+              </div>
+
+              {/* Email (Read Only) */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-muted">Email Terdaftar (Read-Only)</label>
+                <input
+                  type="email"
+                  value={email || ''}
+                  disabled
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-sunken text-sm text-text-muted cursor-not-allowed font-mono min-h-[44px]"
+                />
+              </div>
+
+              {/* Role & Otorisasi (Read Only) */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-muted">Role & Otorisasi Akses</label>
+                <input
+                  type="text"
+                  value={role?.toUpperCase() || ''}
+                  disabled
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-sunken text-sm font-extrabold text-brand-primary cursor-not-allowed uppercase min-h-[44px]"
+                />
+              </div>
+
+              {/* Nomor Telepon / WhatsApp */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-high">Nomor Telepon / WhatsApp</label>
+                <input
+                  type="tel"
+                  placeholder="Contoh: 08123456789"
+                  value={editNoHp}
+                  onChange={(e) => setEditNoHp(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                />
+              </div>
+
+              {/* Foto Profil / Avatar URL */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-high">URL Foto Profil / Avatar</label>
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  value={editAvatar}
+                  onChange={(e) => setEditAvatar(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 pt-3 border-t border-border-subtle">
+                <button
+                  type="button"
+                  onClick={() => setIsEditingProfile(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-border-subtle text-xs font-bold text-text-high hover:bg-surface-sunken transition-all min-h-[44px]"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingProfile}
+                  className="flex-1 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] disabled:opacity-50"
+                >
+                  {isSubmittingProfile ? 'Memproses...' : 'Simpan Profil'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Modal Ubah Kata Sandi */}
       {isChangingPassword && (
