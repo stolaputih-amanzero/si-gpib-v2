@@ -14,19 +14,16 @@ ALTER TABLE public.m_pendeta
   ADD COLUMN IF NOT EXISTS foto_url TEXT,
   ADD COLUMN IF NOT EXISTS email VARCHAR(150);
 
--- 2. Kebijakan RLS SELECT (Izin MEMBACA Profil Sendiri berdasarkan ID atau Email)
+-- 2. Kebijakan RLS SELECT (Izin MEMBACA Profil Pengguna - Publik/Autentikasi)
 DROP POLICY IF EXISTS "Users can view their own profile" ON public.users;
 DROP POLICY IF EXISTS "Users can view profile policy" ON public.users;
+DROP POLICY IF EXISTS "Enable read access for users table" ON public.users;
 
-CREATE POLICY "Users can view profile policy"
+CREATE POLICY "Enable read access for users table"
 ON public.users FOR SELECT
-USING (
-  id = auth.uid() 
-  OR email = (SELECT email FROM auth.users WHERE id = auth.uid())
-  OR (auth.jwt() ->> 'role') IN ('super_user', 'superadmin', 'sinode', 'admin_mupel', 'admin_jemaat', 'kmj')
-);
+USING (true);
 
--- 3. Kebijakan RLS UPDATE (Izin MENGUBAH Profil Sendiri)
+-- 3. Kebijakan RLS UPDATE (Izin MENGUBAH Profil Sendiri / Super User)
 DROP POLICY IF EXISTS "Users can update their own profile" ON public.users;
 
 CREATE POLICY "Users can update their own profile"
@@ -42,9 +39,13 @@ WITH CHECK (
   OR (auth.jwt() ->> 'role') IN ('super_user', 'superadmin', 'sinode')
 );
 
--- 4. Kebijakan RLS m_pendeta
-DROP POLICY IF EXISTS "Pendeta can update their own profile" ON public.m_pendeta;
+-- 4. Kebijakan RLS m_pendeta SELECT & UPDATE
+DROP POLICY IF EXISTS "Enable read access for m_pendeta table" ON public.m_pendeta;
+CREATE POLICY "Enable read access for m_pendeta table"
+ON public.m_pendeta FOR SELECT
+USING (true);
 
+DROP POLICY IF EXISTS "Pendeta can update their own profile" ON public.m_pendeta;
 CREATE POLICY "Pendeta can update their own profile"
 ON public.m_pendeta FOR ALL
 USING (

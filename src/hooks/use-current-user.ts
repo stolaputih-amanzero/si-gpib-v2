@@ -25,21 +25,24 @@ export function useCurrentUser() {
     queryFn: async () => {
       let user: any = null;
 
+      // 1. Fetch from /api/auth/me Server Route first (server authenticated, no 401 CORS/REST errors)
       try {
-        const { data } = await supabase.auth.getUser();
-        user = data.user;
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const body = await res.json();
+          user = body.user;
+        }
       } catch {}
 
+      // 2. Fallback to auth.getUser()
       if (!user) {
         try {
-          const res = await fetch('/api/auth/me');
-          if (res.ok) {
-            const body = await res.json();
-            user = body.user;
-          }
+          const { data } = await supabase.auth.getUser();
+          user = data.user;
         } catch {}
       }
 
+      // 3. Fallback to localStorage
       if (!user) {
         try {
           const cached = localStorage.getItem('si_gpib_cached_user');
@@ -74,9 +77,7 @@ export function useCurrentUser() {
             .maybeSingle();
           userDb = data;
         }
-      } catch (err) {
-        console.warn('Network or Supabase REST connection error in useCurrentUser, using metadata fallback:', err);
-      }
+      } catch {}
 
       let role = userDb?.role || user.user_metadata?.role || user.role || 'pendeta';
       if (role === 'user' || role === 'User') role = 'pendeta';
