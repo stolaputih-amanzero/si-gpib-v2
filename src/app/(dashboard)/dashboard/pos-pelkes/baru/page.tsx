@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useRef, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { MapPin, Camera, Loader2 } from 'lucide-react';
+import { MapPin, Camera, Loader2, ArrowLeft } from 'lucide-react';
 import { savePosPelkes } from './actions';
 import { JemaatCascadingSelector } from '@/components/hierarki/HierarkiSelector/JemaatCascadingSelector';
 import { useToast } from '@/components/ui/toast';
@@ -106,9 +107,21 @@ const geocodeAddress = async (rawText: string): Promise<{ lat: string; lon: stri
   return null;
 };
 
-export default function TambahPosPelkesPage() {
+function TambahPosPelkesFormContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
+
+  const paramInduk = searchParams.get('id_induk') || '';
+  const paramMupel = searchParams.get('id_mupel') || '';
+  const paramFrom = searchParams.get('from') || '';
+
+  const backUrl = paramFrom 
+    ? paramFrom 
+    : (paramMupel && paramInduk 
+      ? `/hierarki/${encodeURIComponent(paramMupel)}/${encodeURIComponent(paramInduk)}` 
+      : '/dashboard/pos-pelkes');
+
   const [photoBlob, setPhotoBlob] = useState<Blob | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
@@ -117,6 +130,28 @@ export default function TambahPosPelkesPage() {
 
   const [gmapsInput, setGmapsInput] = useState('');
   const [isExtracting, setIsExtracting] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      id_induk: paramInduk,
+      kategori: 'Pos Pelkes',
+      latitude: null,
+      longitude: null,
+    }
+  });
+
+  useEffect(() => {
+    if (paramInduk) {
+      setValue('id_induk', paramInduk);
+    }
+  }, [paramInduk, setValue]);
 
   const handleExtractCoordinates = async () => {
     if (!gmapsInput.trim()) {
@@ -158,21 +193,7 @@ export default function TambahPosPelkesPage() {
       setIsExtracting(false);
     }
   };
-  
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    control,
-    formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      kategori: 'Pos Pelkes',
-      latitude: null,
-      longitude: null,
-    }
-  });
+
   const getLocation = () => {
     setIsGettingLocation(true);
     if ('geolocation' in navigator) {
@@ -240,6 +261,7 @@ export default function TambahPosPelkesPage() {
       };
     };
   };
+
   const onSubmit = async (data: FormValues) => {
     setServerError(null);
     const formData = new FormData();
@@ -260,13 +282,22 @@ export default function TambahPosPelkesPage() {
       setServerError(result.error);
     } else {
       toast.success('Penyimpanan Berhasil', 'Unit pelayanan baru berhasil ditambahkan.');
-      router.push(`/dashboard/pos-pelkes/${result.id_pos}`);
+      router.push(backUrl);
     }
   };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 pb-24 md:pb-8">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        {(paramFrom || paramInduk) && (
+          <Link 
+            href={backUrl}
+            className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-xl border border-border-subtle bg-surface-sunken hover:bg-surface-elevated text-text-high transition-colors"
+            title="Kembali"
+          >
+            <ArrowLeft size={16} />
+          </Link>
+        )}
         <h1 className="text-2xl font-bold text-brand-primary">Tambah Unit Pelayanan</h1>
       </div>
 
@@ -458,3 +489,12 @@ export default function TambahPosPelkesPage() {
     </div>
   );
 }
+
+export default function TambahPosPelkesPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center flex items-center justify-center gap-2"><Loader2 className="animate-spin text-brand-primary" size={24} /><span>Memuat Form Pos Pelkes...</span></div>}>
+      <TambahPosPelkesFormContent />
+    </Suspense>
+  );
+}
+

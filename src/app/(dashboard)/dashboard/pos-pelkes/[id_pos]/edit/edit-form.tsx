@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -109,9 +109,13 @@ const geocodeAddress = async (rawText: string): Promise<{ lat: string; lon: stri
   return null;
 };
 
-export default function EditPosPelkesForm({ pos }: { pos: any }) {
+function EditPosPelkesFormContent({ pos }: { pos: any }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
+  const paramFrom = searchParams.get('from') || '';
+  const backUrl = paramFrom || `/dashboard/pos-pelkes/${pos.id_pos}`;
+
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -229,7 +233,7 @@ export default function EditPosPelkesForm({ pos }: { pos: any }) {
       setServerError(result.error);
     } else {
       toast.success('Pembaruan Berhasil', 'Data unit pelayanan berhasil diperbarui.');
-      router.push(`/dashboard/pos-pelkes/${pos.id_pos}`);
+      router.push(backUrl);
     }
   };
 
@@ -237,7 +241,7 @@ export default function EditPosPelkesForm({ pos }: { pos: any }) {
     <div className="max-w-2xl mx-auto px-3.5 sm:px-6 space-y-6 pb-24 md:pb-8">
       <div className="flex items-center gap-3">
         <Link 
-          href={`/dashboard/pos-pelkes/${pos.id_pos}`}
+          href={backUrl}
           className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-xl border border-border-subtle bg-surface-sunken hover:bg-surface-elevated text-text-high transition-colors"
         >
           <ArrowLeft size={16} />
@@ -526,3 +530,12 @@ export default function EditPosPelkesForm({ pos }: { pos: any }) {
     </div>
   );
 }
+
+export default function EditPosPelkesForm({ pos }: { pos: any }) {
+  return (
+    <Suspense fallback={<div className="p-8 text-center flex items-center justify-center gap-2"><Loader2 className="animate-spin text-brand-primary" size={24} /><span>Memuat Form Edit Pos Pelkes...</span></div>}>
+      <EditPosPelkesFormContent pos={pos} />
+    </Suspense>
+  );
+}
+

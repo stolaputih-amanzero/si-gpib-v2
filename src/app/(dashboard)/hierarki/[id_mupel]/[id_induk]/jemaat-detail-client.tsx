@@ -8,7 +8,6 @@ import { BreadcrumbNav } from '@/components/hierarki/BreadcrumbNav';
 import { KMJSelector } from '@/components/hierarki/KMJSelector';
 import { JemaatFormModal } from '@/components/hierarki/JemaatFormModal';
 import { PJSelector } from '@/components/hierarki/PJSelector';
-import { PosFormModal } from '@/components/hierarki/PosFormModal';
 import { StatusElevationModal } from '@/components/hierarki/StatusElevationModal';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -49,9 +48,7 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
   const [showPjModal, setShowPjModal] = useState(false);
   const [showJemaatModal, setShowJemaatModal] = useState(false);
 
-  // Pos CRUD & Elevation Modal States
-  const [showPosModal, setShowPosModal] = useState(false);
-  const [editPosData, setEditPosData] = useState<PosPelkesItem | null>(null);
+  // Pos Elevation Modal State
   const [showElevateModal, setShowElevateModal] = useState(false);
   const [elevatePosItem, setElevatePosItem] = useState<{ id_pos: string; nama_pos: string; kategori?: string | null; id_induk: string } | null>(null);
 
@@ -86,15 +83,15 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
   );
 
   const handleOpenAddPos = () => {
-    setEditPosData(null);
-    setShowPosModal(true);
+    const currentPath = `/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(id_induk)}`;
+    router.push(`/dashboard/pos-pelkes/baru?id_induk=${encodeURIComponent(id_induk)}&id_mupel=${encodeURIComponent(id_mupel)}&from=${encodeURIComponent(currentPath)}`);
   };
 
   const handleOpenEditPos = (e: React.MouseEvent, pos: PosPelkesItem) => {
     e.preventDefault();
     e.stopPropagation();
-    setEditPosData(pos);
-    setShowPosModal(true);
+    const currentPath = `/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(id_induk)}`;
+    router.push(`/dashboard/pos-pelkes/${encodeURIComponent(pos.id_pos)}/edit?from=${encodeURIComponent(currentPath)}`);
   };
 
   const handleOpenElevate = (e: React.MouseEvent, pos: PosPelkesItem) => {
@@ -629,14 +626,6 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
           onClose={() => setShowPjModal(false)}
         />
       )}
-
-      {/* Pos Form Modal */}
-      <PosFormModal
-        isOpen={showPosModal}
-        onClose={() => setShowPosModal(false)}
-        id_induk={id_induk}
-        editData={editPosData}
-      />
 
       {/* Status Elevation Modal */}
       {showElevateModal && elevatePosItem && (
