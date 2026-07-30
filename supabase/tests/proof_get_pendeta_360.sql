@@ -9,6 +9,7 @@ RETURNS TABLE (no INT, skenario TEXT, harapan TEXT, hasil TEXT, status TEXT)
 LANGUAGE plpgsql SECURITY INVOKER AS $$
 DECLARE
   v_pdt_m01 VARCHAR; v_pdt_m23 VARCHAR; v_pdt_null VARCHAR;
+  v_mupel_01 VARCHAR; v_mupel_23 VARCHAR;
   v_su UUID   := '11111111-1111-1111-1111-111111111111';
   v_am01 UUID := '22222222-2222-2222-2222-222222222222';
   v_am23 UUID := '33333333-3333-3333-3333-333333333333';
@@ -21,14 +22,33 @@ BEGIN
   -- ===== Pre-cleanup test users buatan script ini =====
   DELETE FROM public.users WHERE id IN (v_su, v_am01, v_am23, v_amno, v_own, v_other) OR no_telepon LIKE '+629999000%';
 
-  -- ===== Ambil target dari data aktual (fallback ke ID known) =====
-  SELECT p.id_pendeta INTO v_pdt_m01 FROM m_pendeta p
-    JOIN m_jemaat_induk j ON j.id_induk = p.id_induk WHERE j.id_mupel = 'M-01' LIMIT 1;
-  SELECT p.id_pendeta INTO v_pdt_m23 FROM m_pendeta p
-    JOIN m_jemaat_induk j ON j.id_induk = p.id_induk WHERE j.id_mupel = 'M-23' LIMIT 1;
-  SELECT p.id_pendeta INTO v_pdt_null FROM m_pendeta p WHERE p.id_induk IS NULL LIMIT 1;
-  IF v_pdt_m01 IS NULL THEN v_pdt_m01 := 'PDT-70501119'; END IF;
-  IF v_pdt_m23 IS NULL THEN v_pdt_m23 := 'PDT-41915346'; END IF;
+  -- ===== Dynamic Mupel & Pendeta Target Selection (100% FK Safe) =====
+  -- Target 1 (Mupel A & Pendeta Mupel A)
+  SELECT p.id_pendeta, j.id_mupel 
+  INTO v_pdt_m01, v_mupel_01
+  FROM public.m_pendeta p
+  JOIN public.m_jemaat_induk j ON j.id_induk = p.id_induk 
+  WHERE j.id_mupel IS NOT NULL
+  LIMIT 1;
+
+  -- Target 2 (Mupel B & Pendeta Mupel B — Lintas Mupel)
+  SELECT p.id_pendeta, j.id_mupel 
+  INTO v_pdt_m23, v_mupel_23
+  FROM public.m_pendeta p
+  JOIN public.m_jemaat_induk j ON j.id_induk = p.id_induk 
+  WHERE j.id_mupel IS NOT NULL AND j.id_mupel <> v_mupel_01
+  LIMIT 1;
+
+  -- Target 3 (Pendeta tanpa jemaat / unassigned)
+  SELECT p.id_pendeta INTO v_pdt_null 
+  FROM public.m_pendeta p 
+  WHERE p.id_induk IS NULL 
+  LIMIT 1;
+
+  -- Fallback jika DB belum punya pendeta dengan id_mupel
+  IF v_pdt_m23 IS NULL THEN
+    SELECT id_pendeta INTO v_pdt_m23 FROM public.m_pendeta LIMIT 1;
+  END IF;
 
   -- ===== Deteksi apakah v_pdt_m23 sudah terhubung ke akun user eksis =====
   SELECT id INTO v_existing_own FROM public.users WHERE id_pendeta = v_pdt_m23 LIMIT 1;
@@ -41,17 +61,17 @@ BEGIN
     ON CONFLICT (id) DO UPDATE SET role = EXCLUDED.role, id_pendeta = EXCLUDED.id_pendeta;
   END IF;
 
-  -- ===== Setup test users lainnya =====
+  -- ===== Setup test users lainnya dengan FK id_mupel terverifikasi =====
   INSERT INTO public.users (id, no_telepon, role, status, id_mupel, id_pendeta) VALUES
-    (v_su,   '+629999000001', 'super_user',  'Aktif', NULL,   NULL),
-    (v_am01, '+629999000002', 'admin_mupel', 'Aktif', 'M-01', NULL),
-    (v_am23, '+629999000003', 'admin_mupel', 'Aktif', 'M-23', NULL),
-    (v_amno, '+629999000004', 'admin_mupel', 'Aktif', NULL,   NULL),
-    (v_other,'+629999000006', 'user',        'Aktif', NULL,   NULL)
+    (v_su,   '+629999000001', 'super_user',  'Aktif', NULL,         NULL),
+    (v_am01, '+629999000002', 'admin_mupel', 'Aktif', v_mupel_01,   NULL),
+    (v_am23, '+629999000003', 'admin_mupel', 'Aktif', v_mupel_23,   NULL),
+    (v_amno, '+629999000004', 'admin_mupel', 'Aktif', NULL,         NULL),
+    (v_other,'+629999000006', 'user',        'Aktif', NULL,         NULL)
   ON CONFLICT (id) DO UPDATE SET
     role = EXCLUDED.role, id_mupel = EXCLUDED.id_mupel, id_pendeta = EXCLUDED.id_pendeta;
 
-  -- ===== Skenario 1: Super User → M-23 → SUCCESS + keluarga =====
+  -- ===== Skenario 1: Super User → Pendeta Target → SUCCESS + keluarga =====
   v_n := v_n + 1;
   IF p_scenario_no IS NULL OR p_scenario_no = v_n THEN
     BEGIN
@@ -61,7 +81,7 @@ BEGIN
       v_status := CASE WHEN v_res ? 'keluarga' THEN 'PASS' ELSE 'FAIL' END;
     EXCEPTION WHEN OTHERS THEN v_hasil := 'ERROR: ' || SQLERRM; v_status := 'FAIL';
     END;
-    no := v_n; skenario := 'Super User → pendeta M-23 (CANARY TEST)'; harapan := 'SUCCESS + keluarga';
+    no := v_n; skenario := 'Super User → pendeta target (CANARY TEST)'; harapan := 'SUCCESS + keluarga';
     hasil := v_hasil; status := v_status; RETURN NEXT;
   END IF;
 
@@ -79,7 +99,7 @@ BEGIN
     hasil := v_hasil; status := v_status; RETURN NEXT;
   END IF;
 
-  -- ===== Skenario 3: Admin M-23 (se-scope) → M-23 → SUCCESS TANPA keluarga =====
+  -- ===== Skenario 3: Admin Mupel B (se-scope) → Pendeta Mupel B → SUCCESS TANPA keluarga =====
   v_n := v_n + 1;
   IF p_scenario_no IS NULL OR p_scenario_no = v_n THEN
     BEGIN
@@ -89,11 +109,11 @@ BEGIN
       v_status := CASE WHEN (v_res->'keluarga') = '[]'::jsonb OR (NOT (v_res ? 'keluarga')) THEN 'PASS' ELSE 'FAIL' END;
     EXCEPTION WHEN OTHERS THEN v_hasil := 'ERROR: ' || SQLERRM; v_status := 'FAIL';
     END;
-    no := v_n; skenario := 'Admin M-23 (se-scope) → pendeta M-23'; harapan := 'SUCCESS tanpa keluarga';
+    no := v_n; skenario := 'Admin Mupel (se-scope) → pendeta Mupel se-scope'; harapan := 'SUCCESS tanpa keluarga';
     hasil := v_hasil; status := v_status; RETURN NEXT;
   END IF;
 
-  -- ===== Skenario 4 (#7 KRITIS): Admin M-01 → M-23 (lintas scope) → FORBIDDEN =====
+  -- ===== Skenario 4 (#7 KRITIS): Admin Mupel A → Pendeta Mupel B (LINTAS SCOPE) → FORBIDDEN =====
   v_n := v_n + 1;
   IF p_scenario_no IS NULL OR p_scenario_no = v_n THEN
     BEGIN
@@ -104,7 +124,7 @@ BEGIN
       v_hasil := CASE WHEN SQLERRM ILIKE '%forbidden%' THEN 'FORBIDDEN (ditolak)' ELSE 'ERROR lain: ' || SQLERRM END;
       v_status := CASE WHEN SQLERRM ILIKE '%forbidden%' THEN 'PASS' ELSE 'FAIL' END;
     END;
-    no := v_n; skenario := '#7 Admin M-01 → pendeta M-23 (LINTAS SCOPE)'; harapan := 'FORBIDDEN';
+    no := v_n; skenario := '#7 Admin Mupel A → pendeta Mupel B (LINTAS SCOPE)'; harapan := 'FORBIDDEN';
     hasil := v_hasil; status := v_status; RETURN NEXT;
   END IF;
 
@@ -119,7 +139,7 @@ BEGIN
       v_hasil := CASE WHEN SQLERRM ILIKE '%forbidden%' THEN 'FORBIDDEN' ELSE 'ERROR: ' || SQLERRM END;
       v_status := CASE WHEN SQLERRM ILIKE '%forbidden%' THEN 'PASS' ELSE 'FAIL' END;
     END;
-    no := v_n; skenario := 'Admin tanpa id_mupel → pendeta M-23'; harapan := 'FORBIDDEN';
+    no := v_n; skenario := 'Admin tanpa id_mupel → pendeta Mupel B'; harapan := 'FORBIDDEN';
     hasil := v_hasil; status := v_status; RETURN NEXT;
   END IF;
 
@@ -134,7 +154,7 @@ BEGIN
       v_hasil := CASE WHEN SQLERRM ILIKE '%forbidden%' THEN 'FORBIDDEN' ELSE 'ERROR: ' || SQLERRM END;
       v_status := CASE WHEN SQLERRM ILIKE '%forbidden%' THEN 'PASS' ELSE 'FAIL' END;
     END;
-    no := v_n; skenario := 'User biasa (bukan pemilik) → pendeta M-23'; harapan := 'FORBIDDEN';
+    no := v_n; skenario := 'User biasa (bukan pemilik) → pendeta Mupel B'; harapan := 'FORBIDDEN';
     hasil := v_hasil; status := v_status; RETURN NEXT;
   END IF;
 
@@ -149,11 +169,11 @@ BEGIN
       v_hasil := CASE WHEN SQLERRM ILIKE '%forbidden%' THEN 'FORBIDDEN' ELSE 'ERROR: ' || SQLERRM END;
       v_status := CASE WHEN SQLERRM ILIKE '%forbidden%' THEN 'PASS' ELSE 'FAIL' END;
     END;
-    no := v_n; skenario := 'Anonymous (tanpa JWT) → pendeta M-23'; harapan := 'FORBIDDEN';
+    no := v_n; skenario := 'Anonymous (tanpa JWT) → pendeta Mupel B'; harapan := 'FORBIDDEN';
     hasil := v_hasil; status := v_status; RETURN NEXT;
   END IF;
 
-  -- ===== Skenario 8: Admin M-23 → pendeta unassigned (NULL) → FORBIDDEN (default deny) =====
+  -- ===== Skenario 8: Admin Mupel B → pendeta unassigned (NULL) → FORBIDDEN (default deny) =====
   IF v_pdt_null IS NOT NULL THEN
     v_n := v_n + 1;
     IF p_scenario_no IS NULL OR p_scenario_no = v_n THEN
@@ -165,12 +185,12 @@ BEGIN
         v_hasil := CASE WHEN SQLERRM ILIKE '%forbidden%' THEN 'FORBIDDEN' ELSE 'ERROR: ' || SQLERRM END;
         v_status := CASE WHEN SQLERRM ILIKE '%forbidden%' THEN 'PASS' ELSE 'FAIL' END;
       END;
-      no := v_n; skenario := 'Admin M-23 → pendeta unassigned (id_induk NULL)'; harapan := 'FORBIDDEN';
+      no := v_n; skenario := 'Admin Mupel → pendeta unassigned (id_induk NULL)'; harapan := 'FORBIDDEN';
       hasil := v_hasil; status := v_status; RETURN NEXT;
     END IF;
   END IF;
 
-  -- ===== Teardown (hanya hapus test users yang dibuat oleh script ini) =====
+  -- ===== Teardown =====
   DELETE FROM public.users WHERE id IN (v_su, v_am01, v_am23, v_amno, v_other) AND no_telepon LIKE '+629999000%';
   IF v_existing_own IS NULL THEN
     DELETE FROM public.users WHERE id = v_own;
