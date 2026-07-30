@@ -130,41 +130,74 @@ export function useProfilePelayanan(idPendeta?: string | null) {
     queryFn: async () => {
       if (!idPendeta) return null;
 
+      let pendetaRow: any = null;
+
       const { data, error } = await supabase
         .from('m_pendeta')
         .select(`
           *,
-          jemaat_induk:m_jemaat_induk(nama_induk),
-          mupel:m_mupel(nama_mupel)
+          jemaat_induk:m_jemaat_induk(
+            id_induk,
+            nama_induk,
+            id_mupel,
+            mupel:m_mupel(id_mupel, nama_mupel)
+          )
         `)
         .eq('id_pendeta', idPendeta)
         .maybeSingle();
 
-      if (error || !data) return null;
+      if (!error && data) {
+        pendetaRow = data;
+      } else {
+        const { data: rawData } = await supabase
+          .from('m_pendeta')
+          .select('*')
+          .eq('id_pendeta', idPendeta)
+          .maybeSingle();
+        pendetaRow = rawData;
+      }
 
-      const jemaatObj = data.jemaat_induk as { nama_induk: string } | null;
-      const mupelObj = data.mupel as { nama_mupel: string } | null;
+      if (!pendetaRow) return null;
+
+      const jemaatObj = pendetaRow.jemaat_induk as any;
+      const mupelObj = jemaatObj?.mupel as any;
+
+      let jemaatNama = jemaatObj?.nama_induk || null;
+      let mupelNama = mupelObj?.nama_mupel || null;
+
+      // Fallback query for jemaat and mupel if missing
+      if (!jemaatNama && pendetaRow.id_induk) {
+        const { data: jData } = await supabase
+          .from('m_jemaat_induk')
+          .select('nama_induk, id_mupel, mupel:m_mupel(nama_mupel)')
+          .eq('id_induk', pendetaRow.id_induk)
+          .maybeSingle();
+        if (jData) {
+          jemaatNama = jData.nama_induk;
+          mupelNama = (jData.mupel as any)?.nama_mupel || null;
+        }
+      }
 
       return {
-        id_pendeta: data.id_pendeta,
-        nama_pendeta: data.nama_pendeta || 'Pendeta GPIB',
-        gelar_depan: data.gelar_depan || null,
-        gelar_belakang: data.gelar_belakang || null,
-        foto_url: data.foto_url || null,
-        nip: data.nip || null,
-        nik: data.nik || null,
-        tempat_lahir: data.tempat_lahir || null,
-        tgl_lahir: data.tgl_lahir || null,
-        jenis_kelamin: data.jenis_kelamin || null,
-        no_telepon: data.no_telepon || null,
-        email: data.email || null,
-        tgl_tugas_awal: data.tgl_tugas_awal || null,
-        status_aktif: Boolean(data.status_aktif ?? true),
-        id_induk: data.id_induk || null,
-        is_kmj: Boolean(data.is_kmj),
-        is_pj: Boolean(data.is_pj),
-        jemaat_induk_nama: jemaatObj?.nama_induk || null,
-        mupel_nama: mupelObj?.nama_mupel || null,
+        id_pendeta: pendetaRow.id_pendeta,
+        nama_pendeta: pendetaRow.nama_lengkap || pendetaRow.nama_pendeta || 'Pendeta GPIB',
+        gelar_depan: pendetaRow.gelar_depan || null,
+        gelar_belakang: pendetaRow.gelar_belakang || null,
+        foto_url: pendetaRow.foto_url || null,
+        nip: pendetaRow.nip || null,
+        nik: pendetaRow.nik || null,
+        tempat_lahir: pendetaRow.tempat_lahir || null,
+        tgl_lahir: pendetaRow.tgl_lahir || null,
+        jenis_kelamin: pendetaRow.jenis_kelamin || pendetaRow.gender || null,
+        no_telepon: pendetaRow.no_telepon || pendetaRow.no_wa || null,
+        email: pendetaRow.email || null,
+        tgl_tugas_awal: pendetaRow.tgl_tugas_awal || pendetaRow.tgl_tugas || null,
+        status_aktif: Boolean(pendetaRow.status_aktif ?? true),
+        id_induk: pendetaRow.id_induk || null,
+        is_kmj: Boolean(pendetaRow.is_kmj),
+        is_pj: Boolean(pendetaRow.is_pj),
+        jemaat_induk_nama: jemaatNama,
+        mupel_nama: mupelNama,
       };
     },
     staleTime: 0,
@@ -323,34 +356,86 @@ export function usePenugasanPj(idPendeta?: string | null) {
     queryFn: async () => {
       if (!idPendeta) return [];
 
+      let rawData: any[] = [];
       const { data, error } = await supabase
-        .from('t_penugasan_pj')
+        .from('t_penugasan_pendeta')
         .select(`
-          id_penugasan,
+          id_tugas,
           id_pendeta,
           id_pos,
           tgl_mulai,
           tgl_selesai,
-          status_aktif,
+          status_tugas,
           pos:m_pos_pelkes(nama_pos, id_induk)
         `)
-        .eq('id_pendeta', idPendeta)
-        .order('tgl_mulai', { ascending: false });
+        .eq('id_pendeta', idPendeta);
 
-      if (error || !data) return [];
+      if (!error && data) {
+        rawData = data;
+      } else {
+        const { data: altData } = await supabase
+          .from('t_pj_jemaat')
+          .select('*, pos:m_pos_pelkes(nama_pos, id_induk)')
+          .eq('id_pendeta', idPendeta);
+        if (altData) rawData = altData;
+      }
 
-      return data.map((p: any) => ({
-        id_penugasan: p.id_penugasan,
+      return rawData.map((p: any) => ({
+        id_penugasan: p.id_tugas || p.id_penugasan || String(p.id || ''),
         id_pendeta: p.id_pendeta,
         id_pos: p.id_pos,
         nama_pos: (p.pos as any)?.nama_pos || null,
         id_induk: (p.pos as any)?.id_induk || null,
-        tgl_mulai: p.tgl_mulai || null,
-        tgl_selesai: p.tgl_selesai || null,
-        status_aktif: Boolean(p.status_aktif ?? true),
+        tgl_mulai: p.tgl_mulai || p.tanggal_mulai || null,
+        tgl_selesai: p.tgl_selesai || p.tanggal_selesai || null,
+        status_aktif: p.status_tugas === 'Aktif' || p.status === 'Aktif' || true,
       }));
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
+  });
+}
+
+/**
+ * 5.b Fetch Hierarki Names directly for account fallback
+ */
+export function useHierarkiInfo(idMupel?: string | null, idInduk?: string | null, idPos?: string | null) {
+  const supabase = createClient();
+
+  return useQuery({
+    queryKey: ['hierarki-info', idMupel, idInduk, idPos],
+    queryFn: async () => {
+      let mupelNama: string | null = null;
+      let jemaatNama: string | null = null;
+      let posNama: string | null = null;
+
+      if (idMupel) {
+        const { data } = await supabase.from('m_mupel').select('nama_mupel').eq('id_mupel', idMupel).maybeSingle();
+        mupelNama = data?.nama_mupel || null;
+      }
+
+      if (idInduk) {
+        const { data } = await supabase
+          .from('m_jemaat_induk')
+          .select('nama_induk, id_mupel, mupel:m_mupel(nama_mupel)')
+          .eq('id_induk', idInduk)
+          .maybeSingle();
+        if (data) {
+          jemaatNama = data.nama_induk || null;
+          if (!mupelNama && (data.mupel as any)?.nama_mupel) {
+            mupelNama = (data.mupel as any).nama_mupel;
+          }
+        }
+      }
+
+      if (idPos) {
+        const { data } = await supabase.from('m_pos_pelkes').select('nama_pos').eq('id_pos', idPos).maybeSingle();
+        posNama = data?.nama_pos || null;
+      }
+
+      return { mupelNama, jemaatNama, posNama };
+    },
+    enabled: Boolean(idMupel || idInduk || idPos),
+    staleTime: 0,
   });
 }
 

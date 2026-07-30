@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useProfileAkun, useProfilePelayanan, usePenugasanPj } from '@/hooks/use-profile';
+import { useProfileAkun, useProfilePelayanan, usePenugasanPj, useHierarkiInfo } from '@/hooks/use-profile';
 import { Network, Building2, Church, MapPin, ExternalLink, ChevronRight } from 'lucide-react';
 
 interface HierarkiPelayananSectionProps {
@@ -14,15 +14,18 @@ export function HierarkiPelayananSection({ userId, idPendeta }: HierarkiPelayana
   const { data: pelayanan, isLoading: isPelayananLoading } = useProfilePelayanan(idPendeta);
   const { data: penugasanPos, isLoading: isPosLoading } = usePenugasanPj(idPendeta);
 
+  const mupelId = akun?.id_mupel;
+  const jemaatId = pelayanan?.id_induk || akun?.id_induk;
+  const posId = akun?.id_pos;
+
+  const { data: hierarkiInfo } = useHierarkiInfo(mupelId, jemaatId, posId);
+
   if (isAkunLoading || isPelayananLoading || isPosLoading) {
     return <div className="card-flat p-6 h-64 skeleton" />;
   }
 
-  const mupelNama = pelayanan?.mupel_nama || 'Mupel GPIB';
-  const mupelId = akun?.id_mupel;
-
-  const jemaatNama = pelayanan?.jemaat_induk_nama || 'Jemaat Induk';
-  const jemaatId = pelayanan?.id_induk || akun?.id_induk;
+  const mupelNama = pelayanan?.mupel_nama || hierarkiInfo?.mupelNama || (mupelId ? `Mupel (${mupelId})` : 'Musyawarah Pelayanan (Mupel)');
+  const jemaatNama = pelayanan?.jemaat_induk_nama || hierarkiInfo?.jemaatNama || (jemaatId ? `Jemaat (${jemaatId})` : 'Jemaat Induk GPIB');
 
   return (
     <div className="card-flat p-5 space-y-5 bg-surface-1 animate-rise">
