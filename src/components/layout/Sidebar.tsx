@@ -100,7 +100,8 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Pengaturan',
     icon: Settings,
     items: [
-      { label: 'Profil & Sistem', href: '/settings', icon: Settings },
+      { label: 'Profile 360° Saya', href: '/settings/profile', icon: UserCheck },
+      { label: 'Pengaturan Sistem', href: '/settings', icon: Settings },
       { label: 'Manajemen User & Role', href: '/settings/users', icon: Crown },
     ],
   },

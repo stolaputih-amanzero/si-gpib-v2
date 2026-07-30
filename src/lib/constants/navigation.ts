@@ -65,8 +65,9 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
   {
     title: 'Sistem & Akun',
     items: [
+      { label: 'Profile 360° Saya', href: '/settings/profile', icon: UserCheck, badge: '360°', description: 'Medan pandang pelayan seutuhnya' },
+      { label: 'Pengaturan Sistem', href: '/settings', icon: User, description: 'Tema, biometrik & notifikasi' },
       { label: 'Aktivitas Log', href: '/dashboard/aktivitas', icon: Activity, description: 'Riwayat aktivitas pengguna' },
-      { label: 'Profil Saya', href: '/dashboard/profil', icon: User, description: 'Pengaturan akun & sandi' },
     ],
   },
 ];

@@ -252,20 +252,59 @@ export default function SettingsHubPage() {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={handleOpenEditProfile}
-              className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white transition-all text-xs font-bold shrink-0 min-h-[40px] border border-brand-primary/20 active:scale-95 shadow-2xs"
-            >
-              <Edit3 size={15} />
-              <span>Edit Profil</span>
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <Link
+                href="/settings/profile"
+                className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-brand-600 text-white hover:bg-brand-700 transition-all text-xs font-bold shrink-0 min-h-[44px] shadow-sm active:scale-95"
+              >
+                <UserIcon size={16} />
+                <span>Buka Profile 360°</span>
+              </Link>
+
+              <button
+                type="button"
+                onClick={handleOpenEditProfile}
+                className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white transition-all text-xs font-bold shrink-0 min-h-[44px] border border-brand-primary/20 active:scale-95 shadow-2xs"
+              >
+                <Edit3 size={15} />
+                <span>Edit Foto & Nama</span>
+              </button>
+            </div>
           </div>
         </CardHeader>
       </Card>
 
       {/* Settings Sections */}
       <div className="space-y-4">
+        {/* Profile 360 Dedicated Hub Card */}
+        <Card className="border-brand-500/30 bg-brand-500/5 dark:bg-brand-950/10">
+          <CardHeader>
+            <Link
+              href="/settings/profile"
+              className="flex items-center justify-between w-full group min-h-[44px]"
+            >
+              <div className="flex items-center gap-3 min-w-0 pr-4">
+                <div className="p-2.5 rounded-xl bg-brand-600 text-white shrink-0 group-hover:scale-105 transition-transform shadow-sm">
+                  <UserIcon className="w-5 h-5" />
+                </div>
+                <div className="min-w-0 text-left">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-base truncate group-hover:text-brand-600 transition-colors font-bold">
+                      Profile 360° Saya (Pelayan Seutuhnya)
+                    </CardTitle>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-brand-600 text-white">
+                      11 Section
+                    </span>
+                  </div>
+                  <CardDescription className="line-clamp-1 mt-0.5">
+                    Medan pandang terpadu: Akun, Identitas, Keluarga, Kompetensi, Hierarki, Mutasi, Log, Keterlibatan &amp; Draft
+                  </CardDescription>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-brand-600 group-hover:translate-x-1 transition-transform shrink-0" />
+            </Link>
+          </CardHeader>
+        </Card>
         {/* Superadmin User & Role Management Hub */}
         {isSuperUser && (
           <Card className="border-purple-500/30 bg-purple-500/5 dark:bg-purple-950/10">
