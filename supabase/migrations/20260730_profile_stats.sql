@@ -1,5 +1,6 @@
--- Migration: RPC get_profile_stats and RLS Policy Updates for Profile 360°
+-- Migration: RPC get_profile_stats Security Hardening & Strict RLS Audit Policies for Profile 360°
 
+-- 1. SECURITY DEFINER Guard for get_profile_stats
 CREATE OR REPLACE FUNCTION get_profile_stats(p_id_pendeta text)
 RETURNS json
 LANGUAGE plpgsql
@@ -13,9 +14,29 @@ DECLARE
   v_log_bulan_ini bigint := 0;
   v_lama_melayani_bulan integer := 0;
   v_tgl_tugas timestamptz;
+  v_caller_role text;
+  v_caller_pendeta text;
   v_result json;
 BEGIN
   IF p_id_pendeta IS NULL OR p_id_pendeta = '' THEN
+    RETURN json_build_object(
+      'total_log', 0,
+      'total_jiwa', 0,
+      'pos_aktif', 0,
+      'log_bulan_ini', 0,
+      'lama_melayani_bulan', 0
+    );
+  END IF;
+
+  -- Security Guard: Verify caller authorization
+  v_caller_role := COALESCE(auth.jwt() ->> 'role', 'authenticated');
+
+  SELECT id_pendeta INTO v_caller_pendeta
+  FROM users
+  WHERE id = auth.uid();
+
+  IF v_caller_role NOT IN ('super_user', 'superadmin', 'sinode', 'admin_mupel', 'kmj')
+     AND (v_caller_pendeta IS NULL OR v_caller_pendeta IS DISTINCT FROM p_id_pendeta) THEN
     RETURN json_build_object(
       'total_log', 0,
       'total_jiwa', 0,
@@ -68,3 +89,35 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION get_profile_stats(text) TO authenticated;
+
+-- 2. Enable RLS & Strict Private Policies for Audit Logs (t_log_aktivitas)
+ALTER TABLE IF EXISTS t_log_aktivitas ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "aktivitas_privat_read" ON t_log_aktivitas;
+CREATE POLICY "aktivitas_privat_read" ON t_log_aktivitas
+FOR SELECT
+USING (
+  user_id = auth.uid()
+  OR (auth.jwt() ->> 'role') IN ('super_user', 'superadmin', 'sinode')
+  OR EXISTS (
+    SELECT 1 FROM users
+    WHERE users.id = auth.uid()
+    AND users.role IN ('super_user', 'superadmin', 'sinode')
+  )
+);
+
+-- 3. Enable RLS & Strict Private Policies for Biometric Devices (m_webauthn_credentials)
+ALTER TABLE IF EXISTS m_webauthn_credentials ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "webauthn_privat_read" ON m_webauthn_credentials;
+CREATE POLICY "webauthn_privat_read" ON m_webauthn_credentials
+FOR SELECT
+USING (
+  user_id = auth.uid()
+  OR (auth.jwt() ->> 'role') IN ('super_user', 'superadmin', 'sinode')
+  OR EXISTS (
+    SELECT 1 FROM users
+    WHERE users.id = auth.uid()
+    AND users.role IN ('super_user', 'superadmin', 'sinode')
+  )
+);
