@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateRegistrationOptions } from '@simplewebauthn/server';
 import type { PublicKeyCredentialCreationOptionsJSON } from '@simplewebauthn/server';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { getWebAuthnConfig } from '@/lib/auth/webauthn-config';
 
 import { cookies } from 'next/headers';
@@ -49,8 +50,16 @@ export async function GET(req: NextRequest) {
       supportedAlgorithmIDs: [-7, -257], // ES256, RS256
     });
 
-    // Simpan challenge ke database (expire 5 menit)
-    const { error: dbError } = await supabase
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // Hapus challenge lama jika ada
+    await supabaseAdmin.from('webauthn_challenges').delete().eq('user_id', user.id);
+
+    // Simpan challenge baru ke database menggunakan supabaseAdmin (menghindari blokir RLS)
+    const { error: dbError } = await supabaseAdmin
       .from('webauthn_challenges')
       .insert({
         user_id: user.id,
@@ -58,7 +67,10 @@ export async function GET(req: NextRequest) {
         expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
       });
 
-    if (dbError) throw dbError;
+    if (dbError) {
+      console.error('WebAuthn challenge DB insert error:', dbError);
+      throw dbError;
+    }
 
     return NextResponse.json(options);
   } catch (error) {

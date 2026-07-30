@@ -40,19 +40,19 @@ export async function GET() {
 
     const hasCreds = Boolean(creds && creds.length > 0);
 
-    // 2. Cek flag biometric_enabled di tabel users
+    // 2. Status dianggap aktif HANYA JIKA user memang memiliki setidaknya 1 kredensial biometrik terdaftar
+    const isEnabled = hasCreds;
+
+    // Auto-sync flag biometric_enabled di tabel users agar konsisten
     const { data: uData } = await supabaseAdmin
       .from('users')
       .select('biometric_enabled')
       .eq('id', user.id)
       .maybeSingle();
 
-    const isEnabled = Boolean(hasCreds || uData?.biometric_enabled);
-
-    // Sync flag di tabel users jika kredensial terdaftar
-    if (hasCreds && !uData?.biometric_enabled) {
+    if (uData && uData.biometric_enabled !== isEnabled) {
       try {
-        await supabaseAdmin.from('users').update({ biometric_enabled: true }).eq('id', user.id);
+        await supabaseAdmin.from('users').update({ biometric_enabled: isEnabled }).eq('id', user.id);
       } catch {}
     }
 

@@ -110,7 +110,10 @@ export function BiometricSetup({ initialEnabled = false }: BiometricSetupProps) 
             <p className="text-xs font-semibold text-red-900 dark:text-red-200">Gagal mengaktifkan biometrik</p>
             <p className="text-xs text-red-700 dark:text-red-300 mt-0.5 leading-tight">{error}</p>
             <button 
-              onClick={handleReset} 
+              onClick={() => {
+                resetStatus();
+                setIsOverrideReset(true);
+              }} 
               className="text-xs text-red-700 dark:text-red-300 font-semibold underline mt-2 inline-block hover:text-red-900"
             >
               Coba Lagi

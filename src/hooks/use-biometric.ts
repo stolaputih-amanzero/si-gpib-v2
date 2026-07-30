@@ -12,9 +12,16 @@ export function useBiometric() {
     setError(null);
 
     try {
+      if (typeof window === 'undefined' || !window.PublicKeyCredential) {
+        throw new Error('Perangkat atau peramban ini belum mendukung sensor biometrik / Passkey.');
+      }
+
       // 1. Get options from server
       const optionsRes = await fetch('/api/auth/webauthn/register/options');
-      if (!optionsRes.ok) throw new Error('Gagal mengambil opsi registrasi');
+      if (!optionsRes.ok) {
+        const errJson = await optionsRes.json().catch(() => null);
+        throw new Error(errJson?.error || 'Gagal mengambil opsi registrasi biometrik');
+      }
       const options = await optionsRes.json();
 
       // 2. Start biometric registration (Fingerprint/Face ID)
@@ -28,13 +35,19 @@ export function useBiometric() {
       });
 
       if (!verifyRes.ok) {
-        const errData = await verifyRes.json();
-        throw new Error(errData.error || 'Verifikasi gagal');
+        const errData = await verifyRes.json().catch(() => null);
+        throw new Error(errData?.error || 'Verifikasi biometrik gagal');
       }
 
       setStatus('success');
     } catch (err: any) {
-      setError(err.message || 'Terjadi kesalahan');
+      let msg = err.message || 'Terjadi kesalahan saat pendaftaran biometrik';
+      if (err.name === 'NotAllowedError') {
+        msg = 'Pendaftaran biometrik dibatalkan oleh pengguna atau tidak diizinkan oleh peramban.';
+      } else if (err.name === 'InvalidStateError') {
+        msg = 'Perangkat biometrik ini sudah pernah terdaftar untuk akun Anda.';
+      }
+      setError(msg);
       setStatus('error');
     }
   };

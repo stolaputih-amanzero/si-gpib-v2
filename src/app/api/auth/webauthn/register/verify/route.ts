@@ -31,16 +31,23 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
 
-    // Ambil challenge terakhir
-    const { data: challengeData } = await supabase
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // Ambil challenge terakhir menggunakan supabaseAdmin
+    const { data: challengeData } = await supabaseAdmin
       .from('webauthn_challenges')
       .select('challenge')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    if (!challengeData) throw new Error('Challenge not found');
+    if (!challengeData) {
+      return NextResponse.json({ error: 'Sesi registrasi biometrik telah kadaluarsa. Silakan coba lagi.' }, { status: 400 });
+    }
 
     const { rpID, origin } = getWebAuthnConfig(req);
 
@@ -54,11 +61,11 @@ export async function POST(req: NextRequest) {
     const { verified, registrationInfo } = await verifyRegistrationResponse(verification);
 
     if (!verified || !registrationInfo) {
-      return NextResponse.json({ error: 'Verification failed' }, { status: 400 });
+      return NextResponse.json({ error: 'Verifikasi biometrik gagal' }, { status: 400 });
     }
 
-    // Simpan credential ke tabel m_webauthn_credentials
-    const { error: insertError } = await supabase.from('m_webauthn_credentials').insert({
+    // Simpan credential ke tabel m_webauthn_credentials menggunakan admin client
+    const { error: insertError } = await supabaseAdmin.from('m_webauthn_credentials').insert({
       id_user: user.id,
       credential_id: registrationInfo.credential.id,
       public_key: Buffer.from(registrationInfo.credential.publicKey).toString('base64'),
@@ -68,16 +75,15 @@ export async function POST(req: NextRequest) {
       last_used_at: new Date().toISOString(),
     });
 
-    if (insertError) throw insertError;
+    if (insertError) {
+      console.error('Error inserting credential:', insertError);
+      return NextResponse.json({ error: 'Gagal menyimpan kredensial biometrik' }, { status: 500 });
+    }
 
     // Hapus challenge yang sudah dipakai
-    await supabase.from('webauthn_challenges').delete().eq('user_id', user.id);
+    await supabaseAdmin.from('webauthn_challenges').delete().eq('user_id', user.id);
 
-    // Update flag di tabel users menggunakan Admin Client karena RLS tidak mengizinkan UPDATE oleh user biasa
-    const supabaseAdmin = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    // Update flag biometric_enabled di tabel users
     const { error: updateError } = await supabaseAdmin.from('users').update({ biometric_enabled: true }).eq('id', user.id);
     if (updateError) console.error('Gagal update biometric_enabled:', updateError);
 
