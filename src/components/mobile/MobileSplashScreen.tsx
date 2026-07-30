@@ -114,8 +114,8 @@ export function MobileSplashScreen() {
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-300/90">
             Sistem Informasi GPIB
           </p>
-          <p className="text-xs text-white/70 font-medium max-w-[240px] mx-auto leading-relaxed pt-1">
-            Pos Pelayanan Kesaksian & Bagian Jemaat di Seluruh Indonesia
+          <p className="text-xs text-white/70 font-medium max-w-[280px] mx-auto leading-relaxed pt-1">
+            Pos Pelayanan & Kesaksian dan Bakal Jemaat di Seluruh Wilayah Pelayanan GPIB
           </p>
         </div>
       </div>

@@ -25,7 +25,7 @@ const fraunces = Fraunces({
 
 export const metadata: Metadata = {
   title: 'SI GPIB v2.2 - Sistem Informasi GPIB',
-  description: 'Platform Digital Terpadu GPIB di Seluruh Indonesia.',
+  description: 'Platform Digital Terpadu GPIB di Seluruh Wilayah Pelayanan GPIB.',
   manifest: '/manifest.json',
   metadataBase: new URL('https://sigpib.amanzero.space'),
   alternates: {
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'SI GPIB v2.2 - Sistem Informasi GPIB',
-    description: 'Platform Digital Terpadu GPIB di Seluruh Indonesia.',
+    description: 'Platform Digital Terpadu GPIB di Seluruh Wilayah Pelayanan GPIB.',
     url: 'https://sigpib.amanzero.space',
     siteName: 'SI GPIB',
     images: [
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'SI GPIB v2.2 - Sistem Informasi GPIB',
-    description: 'Platform Digital Terpadu GPIB di Seluruh Indonesia.',
+    description: 'Platform Digital Terpadu GPIB di Seluruh Wilayah Pelayanan GPIB.',
     images: ['https://sigpib.amanzero.space/og-image-si-gpib.png'],
   },
 };
