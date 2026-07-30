@@ -10,10 +10,15 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Lock, X, User as UserIcon, Camera, Image as ImageIcon, RefreshCw } from 'lucide-react';
 import { compressAvatarImage } from '@/lib/camera/compress';
 
+import { useProfileAkun, useProfilePelayanan } from '@/hooks/use-profile';
+
 export default function MyProfilePage() {
   const { user } = useUser();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const { data: akun } = useProfileAkun(user?.id);
+  const { data: pelayanan } = useProfilePelayanan(akun?.id_pendeta);
 
   // Password Modal State
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -24,6 +29,7 @@ export default function MyProfilePage() {
   // Edit Profile Modal State
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editNama, setEditNama] = useState('');
+  const [editEmail, setEditEmail] = useState('');
   const [editNoHp, setEditNoHp] = useState('');
   const [editAvatar, setEditAvatar] = useState('');
   const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
@@ -57,9 +63,19 @@ export default function MyProfilePage() {
   };
 
   const handleOpenEditProfile = () => {
-    setEditNama(user?.nama_lengkap || user?.user_metadata?.nama_lengkap || '');
-    setEditNoHp(user?.no_hp || user?.user_metadata?.no_hp || '');
-    setEditAvatar(user?.avatar_url || user?.user_metadata?.avatar_url || '');
+    const phoneValue =
+      pelayanan?.no_telepon ||
+      akun?.no_hp ||
+      user?.no_telepon ||
+      user?.no_hp ||
+      user?.user_metadata?.no_telepon ||
+      user?.user_metadata?.no_hp ||
+      '';
+
+    setEditNama(pelayanan?.nama_pendeta || akun?.nama_lengkap || user?.nama_lengkap || user?.user_metadata?.nama_lengkap || '');
+    setEditEmail(user?.email || '');
+    setEditNoHp(phoneValue);
+    setEditAvatar(akun?.avatar_url || akun?.foto_url || pelayanan?.foto_url || user?.avatar_url || user?.user_metadata?.avatar_url || '');
     setIsEditingProfile(true);
   };
 
@@ -74,6 +90,7 @@ export default function MyProfilePage() {
     try {
       const res = await updateOwnProfileAction({
         nama_lengkap: editNama.trim(),
+        email: editEmail.trim(),
         no_hp: editNoHp.trim(),
         avatar_url: editAvatar.trim(),
       });
@@ -249,6 +266,7 @@ export default function MyProfilePage() {
                 />
               </div>
 
+              {/* 2. Nama Lengkap */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-text-high">Nama Lengkap *</label>
                 <input
@@ -261,14 +279,39 @@ export default function MyProfilePage() {
                 />
               </div>
 
+              {/* 3. Email Terdaftar */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-high">Email Terdaftar *</label>
+                <input
+                  type="email"
+                  placeholder="Contoh: user@gpib.or.id"
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                  className="field font-mono"
+                  required
+                />
+              </div>
+
+              {/* 4. Role & Otorisasi Akses (Read-Only) */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-muted">Role & Otorisasi Akses</label>
+                <input
+                  type="text"
+                  value={(user?.role || user?.user_metadata?.role || 'PELAYAN')?.toUpperCase()}
+                  disabled
+                  className="field bg-surface-sunken font-extrabold text-brand-primary cursor-not-allowed uppercase"
+                />
+              </div>
+
+              {/* 5. Nomor Telepon / WhatsApp */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-text-high">Nomor Telepon / WhatsApp</label>
                 <input
                   type="tel"
-                  placeholder="Contoh: 08123456789"
+                  placeholder="Contoh: +6287730116407"
                   value={editNoHp}
                   onChange={(e) => setEditNoHp(e.target.value)}
-                  className="field"
+                  className="field font-mono"
                 />
               </div>
 

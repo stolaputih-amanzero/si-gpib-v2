@@ -12,6 +12,8 @@ import { MupelSelect } from '@/components/hierarki/HierarkiSelector/MupelSelect'
 import { JemaatCascadingSelector } from '@/components/hierarki/HierarkiSelector/JemaatCascadingSelector';
 import { PosCascadingSelector } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
 
+import { User as UserIcon } from 'lucide-react';
+
 interface UserDetailPageProps {
   params: Promise<{ id: string }>;
 }
@@ -34,6 +36,12 @@ export default function UserDetailProfile360Page({ params }: UserDetailPageProps
   const [formInduk, setFormInduk] = useState<string>('');
   const [formPos, setFormPos] = useState<string>('');
   const [formStatus, setFormStatus] = useState<'Active' | 'Inactive' | 'Pending'>('Active');
+
+  // Modal State for Edit Profile Details (Supervise Mode)
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editNama, setEditNama] = useState('');
+  const [editNoHp, setEditNoHp] = useState('');
+  const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
 
   const updateRoleMutation = useUpdateUserRole();
 
@@ -86,6 +94,39 @@ export default function UserDetailProfile360Page({ params }: UserDetailPageProps
     setIsChangingRole(true);
   };
 
+  const handleOpenEditProfile = () => {
+    if (!targetAkun) return;
+    setEditNama(targetAkun.nama_lengkap || '');
+    setEditNoHp(targetAkun.no_hp || (targetAkun as any).no_telepon || '');
+    setIsEditingProfile(true);
+  };
+
+  const handleSaveProfileDetails = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!targetAkun || !editNama.trim()) return;
+
+    setIsSubmittingProfile(true);
+    try {
+      await updateRoleMutation.mutateAsync({
+        id: targetAkun.id,
+        role: (targetAkun.role as UserRole) || 'pelayan',
+        nama_lengkap: editNama.trim(),
+        email: targetAkun.email,
+        id_mupel: targetAkun.id_mupel || null,
+        id_induk: targetAkun.id_induk || null,
+        id_pos: targetAkun.id_pos || null,
+        status: targetAkun.status || 'Active',
+      });
+
+      toast.success('Profil Pengguna Diperbarui', `Data profil ${editNama} berhasil disimpan.`);
+      setIsEditingProfile(false);
+    } catch (error: any) {
+      toast.error('Gagal Menyimpan Profil', error?.message || 'Terjadi kesalahan saat memperbarui profil pengguna.');
+    } finally {
+      setIsSubmittingProfile(false);
+    }
+  };
+
   const handleSaveRole = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!targetAkun) return;
@@ -129,8 +170,76 @@ export default function UserDetailProfile360Page({ params }: UserDetailPageProps
       <ProfileView
         userId={targetUserId}
         mode="supervise"
+        onEditProfile={handleOpenEditProfile}
         onChangeRole={handleOpenChangeRole}
       />
+
+      {/* Modal Edit Profile Details (Supervision) */}
+      {isEditingProfile && targetAkun && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-surface-elevated w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 border border-border-subtle shadow-heavy max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
+            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+              <div>
+                <h2 className="text-base font-serif font-bold text-brand-primary flex items-center gap-2">
+                  <UserIcon size={18} />
+                  <span>Edit Profil Pengguna (Supervision)</span>
+                </h2>
+                <p className="text-xs text-text-muted mt-0.5">
+                  Pengguna: <strong className="text-text-high">{targetAkun.nama_lengkap}</strong> ({targetAkun.email})
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditingProfile(false)}
+                className="w-9 h-9 rounded-full bg-surface-sunken flex items-center justify-center text-text-muted hover:text-text-high min-h-[44px] min-w-[44px]"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProfileDetails} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-high">Nama Lengkap *</label>
+                <input
+                  type="text"
+                  value={editNama}
+                  onChange={(e) => setEditNama(e.target.value)}
+                  className="field"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-high">Nomor Telepon / WhatsApp</label>
+                <input
+                  type="tel"
+                  value={editNoHp}
+                  onChange={(e) => setEditNoHp(e.target.value)}
+                  className="field font-mono"
+                  placeholder="Contoh: +6287730116407"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-3 border-t border-border-subtle">
+                <button
+                  type="button"
+                  onClick={() => setIsEditingProfile(false)}
+                  className="btn btn-secondary flex-1"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingProfile}
+                  className="btn btn-primary flex-1 disabled:opacity-50"
+                >
+                  {isSubmittingProfile ? 'Memproses...' : 'Simpan Perubahan'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Modal Change Role & Hierarchy */}
       {isChangingRole && targetAkun && (

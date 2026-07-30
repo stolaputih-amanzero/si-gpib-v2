@@ -15,6 +15,8 @@ import { compressImage } from '@/lib/camera/compress';
 
 import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
 
+import { useProfileAkun, useProfilePelayanan } from '@/hooks/use-profile';
+
 export default function SettingsHubPage() {
   const { user, nama, email, role, avatarUrl, isLoading, logout } = useUser();
   const { data: currentUser } = useCurrentUser();
@@ -22,12 +24,16 @@ export default function SettingsHubPage() {
   const { toast, confirm } = useToast();
   
   const queryClient = useQueryClient();
+  const { data: akun } = useProfileAkun(user?.id);
+  const { data: pelayanan } = useProfilePelayanan(akun?.id_pendeta);
+
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
 
   // States for Profile Editing
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editNama, setEditNama] = useState('');
+  const [editEmail, setEditEmail] = useState('');
   const [editNoHp, setEditNoHp] = useState('');
   const [editAvatar, setEditAvatar] = useState('');
   const [savedAvatar, setSavedAvatar] = useState<string>('');
@@ -64,8 +70,18 @@ export default function SettingsHubPage() {
   };
 
   const handleOpenEditProfile = () => {
-    setEditNama(nama || '');
-    setEditNoHp('');
+    const phoneValue =
+      pelayanan?.no_telepon ||
+      akun?.no_hp ||
+      user?.no_telepon ||
+      user?.no_hp ||
+      user?.user_metadata?.no_telepon ||
+      user?.user_metadata?.no_hp ||
+      '';
+
+    setEditNama(pelayanan?.nama_pendeta || akun?.nama_lengkap || nama || '');
+    setEditEmail(email || '');
+    setEditNoHp(phoneValue);
     setEditAvatar(displayAvatar || '');
     setIsEditingProfile(true);
   };
@@ -81,6 +97,7 @@ export default function SettingsHubPage() {
     try {
       const res = await updateOwnProfileAction({
         nama_lengkap: editNama.trim(),
+        email: editEmail.trim(),
         no_hp: editNoHp.trim(),
         avatar_url: editAvatar.trim(),
       });
@@ -448,54 +465,7 @@ export default function SettingsHubPage() {
             </div>
 
             <form onSubmit={handleSaveProfile} className="space-y-4">
-              {/* Nama Lengkap */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-high">Nama Lengkap *</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Pdt. Otniel Jonatan"
-                  value={editNama}
-                  onChange={(e) => setEditNama(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
-                  required
-                />
-              </div>
-
-              {/* Email (Read Only) */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-muted">Email Terdaftar (Read-Only)</label>
-                <input
-                  type="email"
-                  value={email || ''}
-                  disabled
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-sunken text-sm text-text-muted cursor-not-allowed font-mono min-h-[44px]"
-                />
-              </div>
-
-              {/* Role & Otorisasi (Read Only) */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-muted">Role & Otorisasi Akses</label>
-                <input
-                  type="text"
-                  value={role?.toUpperCase() || ''}
-                  disabled
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-sunken text-sm font-extrabold text-brand-primary cursor-not-allowed uppercase min-h-[44px]"
-                />
-              </div>
-
-              {/* Nomor Telepon / WhatsApp */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-high">Nomor Telepon / WhatsApp</label>
-                <input
-                  type="tel"
-                  placeholder="Contoh: 08123456789"
-                  value={editNoHp}
-                  onChange={(e) => setEditNoHp(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
-                />
-              </div>
-
-              {/* Foto Profil / Avatar Picker */}
+              {/* 1. Foto Profil / Avatar Picker */}
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-text-high">Foto Profil / Avatar</label>
                 <div className="flex items-center gap-4 p-3 rounded-2xl bg-surface-sunken border border-border-subtle">
@@ -560,6 +530,55 @@ export default function SettingsHubPage() {
                   accept="image/*"
                   onChange={handleAvatarFileSelect}
                   className="hidden"
+                />
+              </div>
+
+              {/* 2. Nama Lengkap */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-high">Nama Lengkap *</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Pdt. Otniel Jonatan"
+                  value={editNama}
+                  onChange={(e) => setEditNama(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  required
+                />
+              </div>
+
+              {/* 3. Email Terdaftar */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-high">Email Terdaftar *</label>
+                <input
+                  type="email"
+                  placeholder="Contoh: user@gpib.or.id"
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary font-mono min-h-[44px]"
+                  required
+                />
+              </div>
+
+              {/* 4. Role & Otorisasi (Read Only) */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-muted">Role & Otorisasi Akses</label>
+                <input
+                  type="text"
+                  value={role?.toUpperCase() || ''}
+                  disabled
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-sunken text-sm font-extrabold text-brand-primary cursor-not-allowed uppercase min-h-[44px]"
+                />
+              </div>
+
+              {/* 5. Nomor Telepon / WhatsApp */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-high">Nomor Telepon / WhatsApp</label>
+                <input
+                  type="tel"
+                  placeholder="Contoh: +6287730116407"
+                  value={editNoHp}
+                  onChange={(e) => setEditNoHp(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
                 />
               </div>
 

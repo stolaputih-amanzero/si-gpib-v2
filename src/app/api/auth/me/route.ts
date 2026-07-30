@@ -54,16 +54,22 @@ export async function GET() {
           finalRole = 'pj';
         }
 
+        const resolvedPhone = dbUser?.no_telepon || dbUser?.no_hp || user.no_telepon || user.no_hp || user.user_metadata?.no_telepon || user.user_metadata?.no_hp || '';
+
         user = {
           ...user,
           role: finalRole,
           nama_lengkap: dbUser?.nama_lengkap || user.nama_lengkap || user.user_metadata?.nama_lengkap,
+          no_telepon: resolvedPhone,
+          no_hp: resolvedPhone,
           avatar_url: resolvedAvatar,
           foto_url: resolvedAvatar,
           user_metadata: {
             ...(user.user_metadata || {}),
             role: finalRole,
             nama_lengkap: dbUser?.nama_lengkap || user.user_metadata?.nama_lengkap,
+            no_telepon: resolvedPhone,
+            no_hp: resolvedPhone,
             avatar_url: resolvedAvatar,
             foto_url: resolvedAvatar,
             picture: resolvedAvatar,

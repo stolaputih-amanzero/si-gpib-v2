@@ -77,9 +77,9 @@ export async function updateSession(request: NextRequest) {
 
     const protectedRoutes: Record<string, string[]> = {
       '/settings/users': ['super_user', 'superadmin', 'sinode', 'Super User', 'SuperAdmin', 'Admin', 'admin'],
-      '/dashboard/mupel': ['super_user', 'superadmin', 'sinode', 'Super User', 'SuperAdmin', 'Admin', 'admin'],
-      '/dashboard/jemaat': ['super_user', 'superadmin', 'sinode', 'admin_mupel', 'kmj', 'pendeta', 'Super User', 'SuperAdmin', 'Admin', 'admin'],
-      '/dashboard/pos-pelkes': ['super_user', 'superadmin', 'sinode', 'admin_mupel', 'kmj', 'pj', 'user', 'pendeta', 'pelayan', 'relawan', 'Super User', 'SuperAdmin', 'Admin', 'admin'],
+      '/dashboard/mupel': ['super_user', 'superadmin', 'sinode', 'admin_mupel', 'Super User', 'SuperAdmin', 'Admin', 'admin'],
+      '/dashboard/jemaat': ['super_user', 'superadmin', 'sinode', 'admin_mupel', 'admin_jemaat', 'kmj', 'pendeta', 'pj_pos', 'pj', 'user', 'pelayan', 'relawan', 'Super User', 'SuperAdmin', 'Admin', 'admin'],
+      '/dashboard/pos-pelkes': ['super_user', 'superadmin', 'sinode', 'admin_mupel', 'admin_jemaat', 'kmj', 'pj_pos', 'pj', 'user', 'pendeta', 'pelayan', 'relawan', 'Super User', 'SuperAdmin', 'Admin', 'admin'],
     };
 
     let isAuthorized = true;

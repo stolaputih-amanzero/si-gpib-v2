@@ -418,7 +418,7 @@ export function usePenugasanPj(idPendeta?: string | null) {
 }
 
 /**
- * 5.b Fetch Hierarki Names directly for account fallback
+ * 5.b Fetch Hierarki Names & IDs directly for account & routing fallback
  */
 export function useHierarkiInfo(idMupel?: string | null, idInduk?: string | null, idPos?: string | null) {
   const supabase = createClient();
@@ -429,35 +429,77 @@ export function useHierarkiInfo(idMupel?: string | null, idInduk?: string | null
       let mupelNama: string | null = null;
       let jemaatNama: string | null = null;
       let posNama: string | null = null;
+      let resolvedIdMupel: string | null = idMupel || null;
+      let resolvedIdInduk: string | null = idInduk || null;
+      let resolvedIdPos: string | null = idPos || null;
+      let posList: { id_pos: string; nama_pos: string; kategori?: string | null }[] = [];
 
-      if (idMupel) {
-        const { data } = await supabase.from('m_mupel').select('nama_mupel').eq('id_mupel', idMupel).maybeSingle();
-        mupelNama = data?.nama_mupel || null;
-      }
-
-      if (idInduk) {
-        const { data } = await supabase
-          .from('m_jemaat_induk')
-          .select('nama_induk, id_mupel, mupel:m_mupel(nama_mupel)')
-          .eq('id_induk', idInduk)
+      if (idPos) {
+        const { data: posData } = await supabase
+          .from('m_pos_pelkes')
+          .select('id_pos, nama_pos, kategori, id_induk, jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, mupel:m_mupel(id_mupel, nama_mupel))')
+          .eq('id_pos', idPos)
           .maybeSingle();
-        if (data) {
-          jemaatNama = data.nama_induk || null;
-          if (!mupelNama && (data.mupel as any)?.nama_mupel) {
-            mupelNama = (data.mupel as any).nama_mupel;
+
+        if (posData) {
+          posNama = posData.nama_pos || null;
+          if (!resolvedIdInduk && posData.id_induk) resolvedIdInduk = posData.id_induk;
+          const jObj = posData.jemaat_induk as any;
+          if (jObj) {
+            if (!jemaatNama && jObj.nama_induk) jemaatNama = jObj.nama_induk;
+            if (!resolvedIdMupel && jObj.id_mupel) resolvedIdMupel = jObj.id_mupel;
+            if (!mupelNama && jObj.mupel?.nama_mupel) mupelNama = jObj.mupel.nama_mupel;
           }
         }
       }
 
-      if (idPos) {
-        const { data } = await supabase.from('m_pos_pelkes').select('nama_pos').eq('id_pos', idPos).maybeSingle();
-        posNama = data?.nama_pos || null;
+      if (resolvedIdInduk) {
+        const { data: jData } = await supabase
+          .from('m_jemaat_induk')
+          .select('id_induk, nama_induk, id_mupel, mupel:m_mupel(id_mupel, nama_mupel)')
+          .eq('id_induk', resolvedIdInduk)
+          .maybeSingle();
+
+        if (jData) {
+          if (!jemaatNama) jemaatNama = jData.nama_induk || null;
+          if (!resolvedIdMupel && jData.id_mupel) resolvedIdMupel = jData.id_mupel;
+          if (!mupelNama && (jData.mupel as any)?.nama_mupel) {
+            mupelNama = (jData.mupel as any).nama_mupel;
+          }
+        }
+
+        const { data: posRows } = await supabase
+          .from('m_pos_pelkes')
+          .select('id_pos, nama_pos, kategori')
+          .eq('id_induk', resolvedIdInduk)
+          .order('nama_pos', { ascending: true });
+
+        if (posRows && posRows.length > 0) {
+          posList = posRows;
+        }
       }
 
-      return { mupelNama, jemaatNama, posNama };
+      if (resolvedIdMupel && !mupelNama) {
+        const { data: mData } = await supabase
+          .from('m_mupel')
+          .select('nama_mupel')
+          .eq('id_mupel', resolvedIdMupel)
+          .maybeSingle();
+        mupelNama = mData?.nama_mupel || null;
+      }
+
+      return {
+        mupelNama,
+        jemaatNama,
+        posNama,
+        resolvedIdMupel,
+        resolvedIdInduk,
+        resolvedIdPos,
+        posList,
+      };
     },
     enabled: Boolean(idMupel || idInduk || idPos),
-    staleTime: 0,
+    staleTime: 1000 * 60 * 5,
   });
 }
 

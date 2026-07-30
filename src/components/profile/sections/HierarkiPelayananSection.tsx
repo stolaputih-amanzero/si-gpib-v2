@@ -14,18 +14,52 @@ export function HierarkiPelayananSection({ userId, idPendeta }: HierarkiPelayana
   const { data: pelayanan, isLoading: isPelayananLoading } = useProfilePelayanan(idPendeta);
   const { data: penugasanPos, isLoading: isPosLoading } = usePenugasanPj(idPendeta);
 
-  const mupelId = akun?.id_mupel;
-  const jemaatId = pelayanan?.id_induk || akun?.id_induk;
-  const posId = akun?.id_pos;
+  const rawMupelId = akun?.id_mupel;
+  const rawJemaatId = pelayanan?.id_induk || akun?.id_induk;
+  const rawPosId = akun?.id_pos;
 
-  const { data: hierarkiInfo } = useHierarkiInfo(mupelId, jemaatId, posId);
+  const { data: hierarkiInfo } = useHierarkiInfo(rawMupelId, rawJemaatId, rawPosId);
 
   if (isAkunLoading || isPelayananLoading || isPosLoading) {
     return <div className="card-flat p-6 h-64 skeleton" />;
   }
 
-  const mupelNama = pelayanan?.mupel_nama || hierarkiInfo?.mupelNama || (mupelId ? `Mupel (${mupelId})` : 'Musyawarah Pelayanan (Mupel)');
-  const jemaatNama = pelayanan?.jemaat_induk_nama || hierarkiInfo?.jemaatNama || (jemaatId ? `Jemaat (${jemaatId})` : 'Jemaat Induk GPIB');
+  const effMupelId = rawMupelId || hierarkiInfo?.resolvedIdMupel;
+  const effJemaatId = rawJemaatId || hierarkiInfo?.resolvedIdInduk;
+
+  const mupelNama = pelayanan?.mupel_nama || hierarkiInfo?.mupelNama || (effMupelId ? `Mupel (${effMupelId})` : 'Musyawarah Pelayanan (Mupel)');
+  const jemaatNama = pelayanan?.jemaat_induk_nama || hierarkiInfo?.jemaatNama || (effJemaatId ? `Jemaat (${effJemaatId})` : 'Jemaat Induk GPIB');
+
+  // Multi-Pos Display List: combination of explicit penugasan or Jemaat Induk pos list
+  let displayPosList: { id_pos: string; nama_pos: string; tgl_mulai?: string | null }[] = [];
+
+  if (penugasanPos && penugasanPos.length > 0) {
+    displayPosList = penugasanPos.map((p) => ({
+      id_pos: p.id_pos,
+      nama_pos: p.nama_pos || `Pos Pelkes ${p.id_pos}`,
+      tgl_mulai: p.tgl_mulai || 'Aktif',
+    }));
+  } else if (hierarkiInfo?.posList && hierarkiInfo.posList.length > 0) {
+    displayPosList = hierarkiInfo.posList.map((p) => ({
+      id_pos: p.id_pos,
+      nama_pos: p.nama_pos,
+      tgl_mulai: 'Aktif di Jemaat Induk',
+    }));
+  } else if (rawPosId && hierarkiInfo?.posNama) {
+    displayPosList = [{
+      id_pos: rawPosId,
+      nama_pos: hierarkiInfo.posNama,
+      tgl_mulai: 'Aktif',
+    }];
+  }
+
+  // Safe URI Routes
+  const mupelHref = effMupelId ? `/hierarki/${encodeURIComponent(effMupelId)}` : '/hierarki';
+  const jemaatHref = effJemaatId && effMupelId 
+    ? `/hierarki/${encodeURIComponent(effMupelId)}/${encodeURIComponent(effJemaatId)}`
+    : effJemaatId
+    ? `/dashboard/jemaat/${encodeURIComponent(effJemaatId)}`
+    : '/hierarki';
 
   return (
     <div className="card-flat p-5 space-y-5 bg-surface-1 animate-rise">
@@ -40,7 +74,7 @@ export function HierarkiPelayananSection({ userId, idPendeta }: HierarkiPelayana
       <div className="max-w-xl mx-auto space-y-0 relative">
         {/* Node 1: Mupel */}
         <Link
-          href={mupelId ? `/hierarki/${mupelId}` : '/hierarki'}
+          href={mupelHref}
           className="card-flat p-4 flex items-center justify-between gap-3 hover:border-brand-500/50 hover:bg-surface-sunken transition-all tap group border-l-4 border-l-purple-500"
         >
           <div className="flex items-center gap-3">
@@ -52,7 +86,7 @@ export function HierarkiPelayananSection({ userId, idPendeta }: HierarkiPelayana
               <p className="font-semibold text-sm text-ink-primary group-hover:text-purple-600 transition-colors">
                 {mupelNama}
               </p>
-              {mupelId && <p className="text-[11px] font-mono text-ink-tertiary">ID: {mupelId}</p>}
+              {effMupelId && <p className="text-[11px] font-mono text-ink-tertiary">ID: {effMupelId}</p>}
             </div>
           </div>
           <ChevronRight size={18} className="text-ink-tertiary group-hover:text-purple-600 group-hover:translate-x-1 transition-all" />
@@ -63,7 +97,7 @@ export function HierarkiPelayananSection({ userId, idPendeta }: HierarkiPelayana
 
         {/* Node 2: Jemaat Induk */}
         <Link
-          href={jemaatId && mupelId ? `/hierarki/${mupelId}/${jemaatId}` : '/hierarki'}
+          href={jemaatHref}
           className="card-flat p-4 flex items-center justify-between gap-3 hover:border-brand-500/50 hover:bg-surface-sunken transition-all tap group border-l-4 border-l-blue-500"
         >
           <div className="flex items-center gap-3">
@@ -75,7 +109,7 @@ export function HierarkiPelayananSection({ userId, idPendeta }: HierarkiPelayana
               <p className="font-semibold text-sm text-ink-primary group-hover:text-blue-600 transition-colors">
                 {jemaatNama}
               </p>
-              {jemaatId && <p className="text-[11px] font-mono text-ink-tertiary">ID: {jemaatId}</p>}
+              {effJemaatId && <p className="text-[11px] font-mono text-ink-tertiary">ID: {effJemaatId}</p>}
             </div>
           </div>
           <ChevronRight size={18} className="text-ink-tertiary group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
@@ -87,14 +121,14 @@ export function HierarkiPelayananSection({ userId, idPendeta }: HierarkiPelayana
         {/* Node 3: Pos Pelkes List */}
         <div className="space-y-2">
           <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 block text-center">
-            Pos Pelkes Dalam Wilayah Penugasan ({penugasanPos?.length || 0})
+            Pos Pelkes Dalam Wilayah Penugasan ({displayPosList.length})
           </span>
 
-          {penugasanPos && penugasanPos.length > 0 ? (
-            penugasanPos.map((pos) => (
+          {displayPosList.length > 0 ? (
+            displayPosList.map((pos) => (
               <Link
-                key={pos.id_penugasan}
-                href={`/dashboard/pos-pelkes/${pos.id_pos}`}
+                key={pos.id_pos}
+                href={`/dashboard/pos-pelkes/${encodeURIComponent(pos.id_pos)}`}
                 className="card-flat p-3.5 flex items-center justify-between gap-3 hover:border-brand-500/50 hover:bg-surface-sunken transition-all tap group border-l-4 border-l-emerald-500"
               >
                 <div className="flex items-center gap-3">
@@ -106,7 +140,7 @@ export function HierarkiPelayananSection({ userId, idPendeta }: HierarkiPelayana
                       {pos.nama_pos || `Pos Pelkes ${pos.id_pos}`}
                     </p>
                     <p className="text-[11px] font-mono text-ink-tertiary">
-                      Mulai: {pos.tgl_mulai || 'Aktif'}
+                      {pos.tgl_mulai ? `Status: ${pos.tgl_mulai}` : `ID: ${pos.id_pos}`}
                     </p>
                   </div>
                 </div>
