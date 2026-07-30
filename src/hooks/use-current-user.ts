@@ -57,13 +57,26 @@ export function useCurrentUser() {
 
       let userDb: any = null;
       try {
-        const { data } = await supabase
-          .from('users')
-          .select('role, id_mupel, id_induk, id_pos')
-          .or(`id.eq.${user.id},email.eq.${user.email}`)
-          .maybeSingle();
-        userDb = data;
-      } catch {}
+        if (user.id) {
+          const { data } = await supabase
+            .from('users')
+            .select('role, id_mupel, id_induk, id_pos')
+            .eq('id', user.id)
+            .maybeSingle();
+          userDb = data;
+        }
+
+        if (!userDb && user.email) {
+          const { data } = await supabase
+            .from('users')
+            .select('role, id_mupel, id_induk, id_pos')
+            .eq('email', user.email)
+            .maybeSingle();
+          userDb = data;
+        }
+      } catch (err) {
+        console.warn('Network or Supabase REST connection error in useCurrentUser, using metadata fallback:', err);
+      }
 
       let role = userDb?.role || user.user_metadata?.role || user.role || 'pendeta';
       if (role === 'user' || role === 'User') role = 'pendeta';
