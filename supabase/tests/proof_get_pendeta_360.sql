@@ -9,16 +9,17 @@ RETURNS TABLE (no INT, skenario TEXT, harapan TEXT, hasil TEXT, status TEXT)
 LANGUAGE plpgsql SECURITY INVOKER AS $$
 DECLARE
   v_pdt_m01 VARCHAR; v_pdt_m23 VARCHAR; v_pdt_null VARCHAR;
-  v_su UUID := '11111111-1111-1111-1111-111111111111';
+  v_su UUID   := '11111111-1111-1111-1111-111111111111';
   v_am01 UUID := '22222222-2222-2222-2222-222222222222';
   v_am23 UUID := '33333333-3333-3333-3333-333333333333';
   v_amno UUID := '44444444-4444-4444-4444-444444444444';
   v_own  UUID := '55555555-5555-5555-5555-555555555555';
-  v_other UUID := '66666666-6666-6666-6666-666666666666';
+  v_other UUID:= '66666666-6666-6666-6666-666666666666';
+  v_existing_own UUID;
   v_res JSONB; v_hasil TEXT; v_status TEXT; v_n INT := 0;
 BEGIN
-  -- ===== Pre-cleanup (idempotency) =====
-  DELETE FROM public.users WHERE id IN (v_su, v_am01, v_am23, v_amno, v_own, v_other);
+  -- ===== Pre-cleanup test users buatan script ini =====
+  DELETE FROM public.users WHERE id IN (v_su, v_am01, v_am23, v_amno, v_own, v_other) OR no_telepon LIKE '+629999000%';
 
   -- ===== Ambil target dari data aktual (fallback ke ID known) =====
   SELECT p.id_pendeta INTO v_pdt_m01 FROM m_pendeta p
@@ -29,13 +30,23 @@ BEGIN
   IF v_pdt_m01 IS NULL THEN v_pdt_m01 := 'PDT-70501119'; END IF;
   IF v_pdt_m23 IS NULL THEN v_pdt_m23 := 'PDT-41915346'; END IF;
 
-  -- ===== Setup test users =====
+  -- ===== Deteksi apakah v_pdt_m23 sudah terhubung ke akun user eksis =====
+  SELECT id INTO v_existing_own FROM public.users WHERE id_pendeta = v_pdt_m23 LIMIT 1;
+
+  IF v_existing_own IS NOT NULL THEN
+    v_own := v_existing_own;
+  ELSE
+    INSERT INTO public.users (id, no_telepon, role, status, id_mupel, id_pendeta)
+    VALUES (v_own, '+629999000005', 'user', 'Aktif', NULL, v_pdt_m23)
+    ON CONFLICT (id) DO UPDATE SET role = EXCLUDED.role, id_pendeta = EXCLUDED.id_pendeta;
+  END IF;
+
+  -- ===== Setup test users lainnya =====
   INSERT INTO public.users (id, no_telepon, role, status, id_mupel, id_pendeta) VALUES
     (v_su,   '+629999000001', 'super_user',  'Aktif', NULL,   NULL),
     (v_am01, '+629999000002', 'admin_mupel', 'Aktif', 'M-01', NULL),
     (v_am23, '+629999000003', 'admin_mupel', 'Aktif', 'M-23', NULL),
     (v_amno, '+629999000004', 'admin_mupel', 'Aktif', NULL,   NULL),
-    (v_own,  '+629999000005', 'user',        'Aktif', NULL,   v_pdt_m23),
     (v_other,'+629999000006', 'user',        'Aktif', NULL,   NULL)
   ON CONFLICT (id) DO UPDATE SET
     role = EXCLUDED.role, id_mupel = EXCLUDED.id_mupel, id_pendeta = EXCLUDED.id_pendeta;
@@ -159,8 +170,12 @@ BEGIN
     END IF;
   END IF;
 
-  -- ===== Teardown =====
-  DELETE FROM public.users WHERE id IN (v_su, v_am01, v_am23, v_amno, v_own, v_other);
+  -- ===== Teardown (hanya hapus test users yang dibuat oleh script ini) =====
+  DELETE FROM public.users WHERE id IN (v_su, v_am01, v_am23, v_amno, v_other) AND no_telepon LIKE '+629999000%';
+  IF v_existing_own IS NULL THEN
+    DELETE FROM public.users WHERE id = v_own;
+  END IF;
+
   RETURN;
 END;
 $$;
