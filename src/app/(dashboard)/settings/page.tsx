@@ -89,7 +89,12 @@ export default function SettingsHubPage() {
       toast.success('Profil Diperbarui', 'Data profil Anda berhasil disimpan.');
       setIsEditingProfile(false);
       
-      // Invalidate queries & reload user states
+      // Clear stale user cache & reload
+      try {
+        localStorage.removeItem('si_gpib_cached_user');
+        localStorage.removeItem('si_gpib_cached_current_user');
+      } catch {}
+
       queryClient.invalidateQueries({ queryKey: ['current-user-auth'] });
       if (typeof window !== 'undefined') {
         window.location.reload();
