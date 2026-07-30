@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, Layers, RotateCw, Sun, Moon } from 'lucide-react';
+import { ChevronLeft, Layers, Sun, Moon, LogOut } from 'lucide-react';
+import { useUser } from '@/hooks/use-user';
 import { useToast } from '@/components/ui/toast';
 import { useSmoothTheme } from '@/hooks/useSmoothTheme';
 import { haptic } from '@/lib/haptic/vibrate';
+
+import { NetworkStatusBadge } from '@/components/ui/NetworkStatusBadge';
 
 // Route path to human-readable title mapping
 const PAGE_TITLES: Record<string, string> = {
@@ -30,13 +32,27 @@ const PAGE_TITLES: Record<string, string> = {
 export function MobileHeader() {
   const pathname = usePathname();
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { logout } = useUser();
+  const { confirm, toast } = useToast();
   const { resolvedTheme, setTheme } = useSmoothTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
+
+  const handleLogoutClick = () => {
+    haptic.selection();
+    confirm({
+      title: 'Konfirmasi Keluar Sesi',
+      message: 'Apakah Anda yakin ingin keluar dari akun SI GPIB?',
+      confirmText: 'Ya, Keluar',
+      cancelText: 'Batal',
+      variant: 'danger',
+      onConfirm: async () => {
+        toast.info('Mengakhiri Sesi...', 'Mengeluarkan akun dari sistem SI GPIB.');
+        await logout();
+      },
+    });
+  };
 
   // Find exact title match or fallback to closest matching prefix or generic label
   let title = PAGE_TITLES[pathname];
@@ -55,22 +71,6 @@ export function MobileHeader() {
   }
 
   const isRoot = pathname === '/dashboard' || pathname === '/';
-
-  const handleRefreshData = async () => {
-    setIsRefreshing(true);
-    try {
-      await queryClient.invalidateQueries();
-      router.refresh();
-      haptic.light();
-      toast.success('Data Diperbarui', 'Data aplikasi berhasil disegarkan secara real-time.');
-    } catch {
-      toast.error('Gagal Memperbarui', 'Terjadi kesalahan saat menyegarkan data.');
-    } finally {
-      setTimeout(() => {
-        setIsRefreshing(false);
-      }, 500);
-    }
-  };
 
   return (
     <header className="sticky top-0 z-40 w-full bg-surface-1/95 backdrop-blur-md hairline-b md:hidden shadow-xs select-none">
@@ -100,8 +100,9 @@ export function MobileHeader() {
           </h1>
         </div>
 
-        {/* Quick Header Actions: Theme Toggle + Refresh */}
-        <div className="flex items-center shrink-0 gap-1">
+        {/* Quick Header Actions: Live/Offline Badge + Theme Toggle + Logout */}
+        <div className="flex items-center shrink-0 gap-1.5">
+          <NetworkStatusBadge />
           <button
             type="button"
             onClick={() => {
@@ -121,13 +122,12 @@ export function MobileHeader() {
 
           <button
             type="button"
-            onClick={handleRefreshData}
-            disabled={isRefreshing}
-            className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-xl text-brand-600 hover:bg-surface-brand active:scale-95 transition-all border border-line-subtle/40 disabled:opacity-50"
-            aria-label="Segarkan Data"
-            title="Segarkan Data Real-Time"
+            onClick={handleLogoutClick}
+            className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 active:scale-95 transition-all border border-red-200/60 dark:border-red-900/40"
+            aria-label="Keluar Sesi Akun"
+            title="Keluar Sesi Akun (Logout)"
           >
-            <RotateCw size={18} className={isRefreshing ? 'animate-spin text-brand-600' : ''} />
+            <LogOut size={18} />
           </button>
         </div>
       </div>

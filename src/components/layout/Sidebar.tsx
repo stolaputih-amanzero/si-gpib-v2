@@ -31,6 +31,7 @@ import {
   Database,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { NetworkStatusBadge } from '@/components/ui/NetworkStatusBadge';
 
 export interface NavItem {
   label: string;
@@ -184,11 +185,14 @@ export function Sidebar() {
               />
             </div>
             <div className="truncate">
-              <h1 className="text-base font-serif font-black text-brand-primary leading-tight tracking-tight truncate">
-                SI GPIB
-              </h1>
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-base font-serif font-black text-brand-primary leading-tight tracking-tight truncate">
+                  SI GPIB
+                </h1>
+                <NetworkStatusBadge />
+              </div>
               <p className="text-[10px] font-medium text-text-muted truncate">
-                Pos Pelayanan Kesaksian
+                Pos Pelayanan & Kesaksian
               </p>
             </div>
           </Link>
@@ -208,20 +212,32 @@ export function Sidebar() {
           </Link>
         )}
 
-        {/* Toggle Button */}
-        <button
-          type="button"
-          onClick={toggleCollapse}
-          className="p-2 rounded-xl text-text-muted hover:text-text-high hover:bg-surface-sunken active:scale-95 transition-all min-h-[40px] min-w-[40px] flex items-center justify-center shrink-0"
-          aria-label={isCollapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'}
-          title={isCollapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'}
-        >
-          {isCollapsed ? (
-            <PanelLeftOpen size={20} className="text-brand-primary" />
-          ) : (
-            <PanelLeftClose size={20} />
-          )}
-        </button>
+        {/* Action Controls: Logout & Collapse */}
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={handleLogoutClick}
+            className="p-2 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 active:scale-95 transition-all min-h-[40px] min-w-[40px] flex items-center justify-center shrink-0 border border-red-200/50 dark:border-red-900/30"
+            aria-label="Keluar Sesi Akun"
+            title="Keluar Sesi Akun (Logout)"
+          >
+            <LogOut size={18} />
+          </button>
+
+          <button
+            type="button"
+            onClick={toggleCollapse}
+            className="p-2 rounded-xl text-text-muted hover:text-text-high hover:bg-surface-sunken active:scale-95 transition-all min-h-[40px] min-w-[40px] flex items-center justify-center shrink-0"
+            aria-label={isCollapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'}
+            title={isCollapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'}
+          >
+            {isCollapsed ? (
+              <PanelLeftOpen size={20} className="text-brand-primary" />
+            ) : (
+              <PanelLeftClose size={20} />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Navigation Content */}
@@ -322,32 +338,6 @@ export function Sidebar() {
           );
         })}
       </nav>
-
-      {/* Footer Logout */}
-      <div className="p-3 border-t border-border-subtle bg-surface-elevated shrink-0">
-        <button
-          type="button"
-          onClick={handleLogoutClick}
-          className={cn(
-            'group relative flex items-center w-full min-h-[44px] text-xs font-bold text-red-600 dark:text-red-400 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors',
-            isCollapsed ? 'justify-center p-2.5' : 'justify-between px-3.5 py-2.5'
-          )}
-          title={isCollapsed ? 'Keluar Sesi' : undefined}
-          aria-label="Keluar Sesi"
-        >
-          <div className="flex items-center gap-2.5">
-            <LogOut className="w-4 h-4 shrink-0" />
-            {!isCollapsed && <span>Keluar Sesi</span>}
-          </div>
-          {!isCollapsed && <ChevronRight className="w-3.5 h-3.5 opacity-50" />}
-
-          {isCollapsed && (
-            <div className="absolute left-16 bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-heavy z-50 whitespace-nowrap">
-              Keluar Sesi
-            </div>
-          )}
-        </button>
-      </div>
     </aside>
   );
 }

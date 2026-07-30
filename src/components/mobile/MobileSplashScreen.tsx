@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Sparkles, ShieldCheck } from 'lucide-react';
+import { NetworkStatusBadge } from '@/components/ui/NetworkStatusBadge';
 
 export function MobileSplashScreen() {
   const [isVisible, setIsVisible] = useState(true);
@@ -80,9 +81,12 @@ export function MobileSplashScreen() {
           <Sparkles size={13} className="text-amber-400 animate-pulse" />
           <span>GPIB DIGITAL PLATFORM</span>
         </div>
-        <div className="flex items-center gap-1 text-[10px] font-semibold text-white/60 bg-black/20 px-2.5 py-1 rounded-full border border-white/10">
-          <ShieldCheck size={12} className="text-emerald-400" />
-          <span>v2.2 Official</span>
+        <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 text-[10px] font-semibold text-white/60 bg-black/20 px-2.5 py-1 rounded-full border border-white/10">
+            <ShieldCheck size={12} className="text-emerald-400" />
+            <span>v2.2 Official</span>
+          </div>
+          <NetworkStatusBadge />
         </div>
       </div>
 
