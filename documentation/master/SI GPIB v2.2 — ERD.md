@@ -931,6 +931,20 @@ Pos Pelkes → KMJ → Admin Mupel → Super User Sinode
 | 14 | **Form draft** auto-delete 30 hari | Cron job + `expires_at` |
 | 15 | **Workflow bantuan**: Pos → KMJ → Mupel → Sinode | Status enum + `t_approval_bantuan` |
 
+### 🆕 Catatan: Profile 360° (Read-Only Aggregation)
+
+Profile 360° TIDAK membuat tabel baru. Ia mengagregasi data dari tabel existing:
+
+| Sumbu | Tabel yang Dibaca | Via |
+|---|---|---|
+| **Akun** | `users`, `m_webauthn_credentials`, `m_push_subscription`, `t_log_aktivitas`, `t_form_draft` | `users.id` |
+| **Pelayanan** | `m_pendeta`, `m_jemaat_induk`, `m_mupel`, `t_penugasan_pendeta`, `t_pj_jemaat`, `t_riwayat_mutasi_pendeta`, `t_log_pastoral` | `users.id_pendeta` → `m_pendeta.id_pendeta` |
+
+**RPC Agregat:** `get_profile_stats(p_id_pendeta)` — STABLE, SECURITY DEFINER
+**RLS Asimetri:**
+- `t_log_aktivitas`, `m_webauthn_credentials`: diri sendiri + super_user SAJA
+- Tabel pelayanan: sesuai scope role (super_user global, admin_mupel per mupel, kmj per jemaat)
+
 ### 🔄 Atomic Operations (Database Functions)
 
 ```sql

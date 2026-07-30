@@ -153,6 +153,49 @@ Pengujian ini memvalidasi **6 Critical User Journeys (CJ-1 s/d CJ-6)** sesuai PR
 
 ---
 
+## 🧪 UAT: Profile 360° & Manajemen Pengguna (CJ-7)
+
+### Skenario A: My Profile (Pdt. Otniel — Pendeta)
+| # | Langkah | Expected Result | Pass |
+|---|---|---|---|
+| A-1 | Login sebagai Pdt. Otniel (+62 815 4682 6865 / Elsjo123) | Masuk dashboard | ⬜ |
+| A-2 | Buka /settings/profile | Hero tampil: nama "Pdt. Otniel Jonatan Panjinegara Adua", glow biru-muda, role badge "User" | ⬜ |
+| A-3 | Verifikasi stat strip | Total log pastoral, jiwa dilayani, pos aktif (POS-81917), lama melayani — angka tampil (bukan 0/error) | ⬜ |
+| A-4 | Buka tab "Hierarki" | Rantai: M-23 KALTIM II → 23-03-ET EFATA Tenggarong → POS-81917 Eben Haezer Tripariq Makmur | ⬜ |
+| A-5 | Klik simpul Jemaat "23-03-ET" | Navigate ke halaman detail Jemaat EFATA Tenggarong | ⬜ |
+| A-6 | Kembali ke profil, buka tab "Mutasi" | Timeline tampil (atau pesan "Belum ada riwayat mutasi") | ⬜ |
+| A-7 | Buka tab "Aktivitas" | Jejak: CREATE AKUN PDT-41915346, EDIT POS PELKES POS-81917, LOGIN | ⬜ |
+| A-8 | Buka tab "Akun & Keamanan" | Email otnieljonatanpanji@gmail.com, perangkat biometrik (jika ada), status push | ⬜ |
+
+### Skenario B: My Profile (Bpk. Stolaputih — Super User, Non-Pendeta)
+| # | Langkah | Expected Result | Pass |
+|---|---|---|---|
+| B-1 | Login sebagai Super User (+62 8111550543 / sayur321) | Masuk dashboard | ⬜ |
+| B-2 | Buka /settings/profile | Hero tampil: glow biru, role badge "Super User" | ⬜ |
+| B-3 | Verifikasi section "Identitas Pelayanan" | Pesan anggun: "Akun ini tidak terikat pada data pendeta" (BUKAN error/kotak kosong) | ⬜ |
+| B-4 | Verifikasi stat strip | Metrik akun (bukan metrik pelayanan): peran, status, login terakhir | ⬜ |
+
+### Skenario C: Supervision (Super User → Profile Pdt. Otniel)
+| # | Langkah | Expected Result | Pass |
+|---|---|---|---|
+| C-1 | Login sebagai Super User | Masuk dashboard | ⬜ |
+| C-2 | Buka /settings/users | Daftar pengguna tampil dengan search & filter | ⬜ |
+| C-3 | Cari "Otniel" | Kartu Pdt. Otniel muncul | ⬜ |
+| C-4 | Klik kartu | /settings/users/[id] terbuka — Profile 360° supervision mode | ⬜ |
+| C-5 | Verifikasi 8 section | Semua section tampil dengan data Pdt. Otniel | ⬜ |
+| C-6 | Verifikasi tab "Aktivitas" | TERLIHAT (super_user boleh lihat audit user lain) | ⬜ |
+| C-7 | Verifikasi tombol edit organisasional | Aktif (super_user boleh edit data pelayanan) | ⬜ |
+
+### Skenario D: Admin Mupel (Scope Terbatas)
+| # | Langkah | Expected Result | Pass |
+|---|---|---|---|
+| D-1 | Login sebagai Admin Mupel (+628176588277 / admin123) | Masuk dashboard | ⬜ |
+| D-2 | Buka /settings/users | Hanya user dalam scope Mupel yang tampil | ⬜ |
+| D-3 | Klik salah satu user → Profile 360° | Section tampil sesuai scope | ⬜ |
+| D-4 | Verifikasi tab "Aktivitas" | TIDAK TERLIHAT (admin_mupel tidak boleh lihat audit user lain) | ⬜ |
+
+---
+
 ## 📊 Form Sign-Off UAT
 
 | Peran Penguji | Nama Lengkap | Hasil Pengujian (Pass/Fail) | Catatan / Masukan | Tanda Tangan |

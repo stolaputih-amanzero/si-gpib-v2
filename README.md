@@ -21,7 +21,43 @@ Aplikasi ini mengintegrasikan pemetaan digital Pos Pelkes, pencatatan log pastor
    - **Auto-Retry Mutation Queue**: Menyimpan antrean transaksi saat offline dan mengirimkannya secara otomatis saat jaringan pulih.
    - **Service Worker Cache**: Halaman utama dan data master tetap dapat diakses dalam mode *read-only* saat offline.
 4. **🔑 Biometric Login (Passkeys / WebAuthn)**: Kemudahan masuk menggunakan sidik jari atau Face ID tanpa perlu mengetik kata sandi.
-5. **🛡️ Keamanan & Poka-Yoke RBAC**: Control akses berbasis peran (*Role-Based Access Control*) dengan kebijakan Supabase Row Level Security (RLS) serta penguncian hierarki otomatis berdasarkan penugasan user.
+5. **👤 Profile 360° — Manajemen Pengguna Terpadu**: Satu medan pandang yang menyatukan seluruh dimensi seorang pengguna — akun & otorisasi, identitas pelayanan pendeta, hierarki wilayah (Mupel -> Jemaat -> Pos Pelkes), penugasan KMJ/PJ, riwayat mutasi, log pastoral, audit biometrik, dan draf PWA lokal.
+6. **🛡️ Keamanan & Poka-Yoke RBAC**: Control akses berbasis peran (*Role-Based Access Control*) dengan kebijakan Supabase Row Level Security (RLS) serta penguncian hierarki otomatis berdasarkan penugasan user.
+
+---
+
+## 👤 Profile 360° — Manajemen Pengguna Terpadu
+
+Fitur yang menyatukan **seluruh dimensi seorang pengguna** dalam satu medan pandang:
+
+### Dua Mode Akses
+| Mode | URL | Akses |
+|---|---|---|
+| **My Profile** | `/settings/profile` | Semua user — lihat & edit profil sendiri |
+| **User Management** | `/settings/users` | Super User & Admin Mupel — kelola semua user |
+| **Supervision** | `/settings/users/[id]` | Super User & Admin Mupel — lihat 360° user lain |
+
+### 8 Section Profil
+1. **Akun & Keamanan** — email, telepon, role, status, perangkat biometrik, push notification
+2. **Identitas Pelayanan** — data pendeta (nama, jabatan, gender, tgl tugas, flag KMJ/PJ)
+3. **Hierarki Pelayanan** — rantai Mupel → Jemaat Induk → Pos Pelkes (deep-link dua arah)
+4. **Peran & Penugasan** — blok KMJ, PJ, penugasan Pos aktif
+5. **Riwayat Mutasi** — timeline: kapan, dari mana → ke mana, jenis, alasan
+6. **Log Pastoral** — 8 log terakhir + link ke laporan lengkap
+7. **Aktivitas & Audit** — jejak login, create, edit, approve (privat: diri sendiri + super_user)
+8. **Data Lokal** — draft PWA tersimpan (lanjutkan/hapus)
+
+### Arsitektur Teknis
+- **RPC:** `get_profile_stats(p_id_pendeta)` — agregat 1 round-trip (total log, jiwa, pos aktif, lama melayani)
+- **Hooks:** 11 hook terisolasi di `src/hooks/use-profile.ts` (paralel, per-section)
+- **Komponen:** 15+ komponen di `src/components/profile/`
+- **RLS:** Asimetri privat/organisasional — audit & biometrik hanya diri sendiri + super_user
+
+### Prinsip Desain
+- **Dua sumbu:** Akun (via `users.id`) + Pelayanan (via `users.id_pendeta`)
+- **Kekosongan anggun:** Non-pendeta menampilkan pesan penjelasan, bukan kotak kosong
+- **Stat strip adaptif:** Metrik pelayanan (pendeta) vs metrik akun (non-pendeta)
+- **Deep-link dua arah:** Dari profil ke entitas, dari entitas ke profil
 
 ---
 

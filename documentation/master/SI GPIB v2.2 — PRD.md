@@ -379,6 +379,21 @@ usage:
 
 ---
 
+### 📱 Modul 23: Profile 360° & Manajemen Pengguna
+
+| ID | User Story | Priority | Acceptance Criteria |
+|---|---|---|---|
+| US-23.1 | Sebagai User, saya ingin melihat profil lengkap saya (akun, pelayanan, hierarki, mutasi, log, aktivitas) dalam satu halaman | 🟠 Should | - 8 section tampil dengan data yang benar <br> - Stat strip menampilkan metrik relevan <br> - Load < 2 detik |
+| US-23.2 | Sebagai User non-pendeta, saya ingin profil saya tetap informatif tanpa error | 🟠 Should | - Section pelayanan menampilkan pesan anggun <br> - Stat strip beralih ke metrik akun |
+| US-23.3 | Sebagai User, saya ingin mengelola perangkat biometrik saya dari profil | 🟠 Should | - List device dengan last_used_at <br> - Tombol cabut per device <br> - Konfirmasi sebelum cabut |
+| US-23.4 | Sebagai User, saya ingin melihat riwayat mutasi saya (kapan, dari mana, ke mana) | 🟠 Should | - Timeline vertikal <br> - Jenis mutasi sebagai badge <br> - Alasan tampil |
+| US-23.5 | Sebagai Super User, saya ingin melihat daftar semua pengguna dan mengelola mereka | 🟠 Should | - List dengan search & filter role/status <br> - Klik → Profile 360° supervision <br> - Aksi: nonaktifkan, ubah peran |
+| US-23.6 | Sebagai Super User, saya ingin melihat Profile 360° pengguna lain termasuk jejak audit | 🟠 Should | - Semua 8 section tampil <br> - Tab aktivitas terlihat (privat → super_user) <br> - Tombol edit organisasional aktif |
+| US-23.7 | Sebagai Admin Mupel, saya ingin melihat Profile 360° pengguna di Mupel saya | 🟠 Should | - Scope terbatas ke Mupel <br> - Tab aktivitas TIDAK terlihat (privat) |
+| US-23.8 | Sebagai User, saya ingin navigasi dari profil ke entitas terkait (jemaat, pos, log) | 🟡 Could | - Deep-link dua arah <br> - Breadcrumb kembali ke profil |
+
+---
+
 ## 6. Functional Requirements
 
 ### 🔴 Must Have (Fase 1-2)
@@ -708,6 +723,7 @@ Semua User Story harus memenuhi:
 | CJ-4 | **Super User mutasi pendeta** | Login → Cari pendeta → Klik "Mutasi" → Pilih Jemaat baru → Konfirmasi → Riwayat tercatat |
 | CJ-5 | **User input aset dengan kamera** | Login → Buka Pos Pelkes → Tab Aset → Tambah Aset → Foto dengan kamera → GPS auto-fill → Submit |
 | CJ-6 | **User offline lalu online** | Login → Input form → Sinyal hilang → Form auto-save → Sinyal kembali → Auto-submit → Notifikasi sukses |
+| CJ-7 | **Super User melihat Profile 360° pendeta** | Login Super User → /settings/users → Cari "Otniel" → Klik → 8 section tampil → Klik hierarki → Navigate ke Jemaat 23-03-ET → Kembali ke profil |
 
 ---
 

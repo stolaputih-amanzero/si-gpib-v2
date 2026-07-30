@@ -73,6 +73,31 @@ Bapak/Ibu dapat membagikan ringkasan informasi Pos Pelkes, lokasi peta, atau lap
 
 ---
 
+## 👤 5. Melihat Profil Anda (Profile 360°)
+
+### Cara Membuka
+1. Ketuk ikon **Profil** di Bottom Navigation
+2. Ketuk **"Profil Saya"** atau buka langsung `/settings/profile`
+
+### Apa yang Bisa Anda Lihat
+- **Kartu Identitas** — Nama, peran, dan status Anda
+- **Angka Pelayanan** — Total log pastoral, jiwa dilayani, pos aktif, lama melayani
+- **Hierarki** — Mupel → Jemaat → Pos Pelkes tempat Anda melayani
+- **Riwayat Mutasi** — Kapan dan ke mana Anda pernah dipindahkan
+- **Log Pastoral** — 8 kegiatan terakhir yang Anda catat
+- **Perangkat** — HP/laptop yang terdaftar untuk login biometrik
+
+### Mengelola Perangkat Biometrik
+1. Di profil, buka tab **"Akun & Keamanan"**
+2. Lihat daftar perangkat yang terdaftar
+3. Untuk menghapus perangkat: ketuk **"Cabut"** → konfirmasi
+
+### Tips
+- Ketuk simpul hierarki (Mupel/Jemaat/Pos) untuk langsung membuka halaman terkait
+- Ketuk email atau nomor telepon untuk menyalin ke clipboard
+
+---
+
 ## ❓ Pertanyaan yang Sering Ditanyakan (FAQ)
 
 - **Q: Apakah foto yang diambil saat offline akan hilang jika HP dimatikan?**

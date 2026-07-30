@@ -203,6 +203,12 @@ CREATE TABLE m_webauthn_credentials (
 );
 
 CREATE INDEX idx_webauthn_user ON m_webauthn_credentials(id_user);
+
+-- 🆕 RPC: get_profile_stats(p_id_pendeta VARCHAR)
+-- Mengembalikan JSONB agregat untuk stat strip Profile 360° dalam 1 round-trip
+-- Field: total_log, total_jiwa, pos_aktif, log_bulan_ini, lama_melayani_bulan
+-- Properties: STABLE, SECURITY DEFINER
+-- Grant: EXECUTE TO authenticated
 ```
 
 ---
@@ -257,6 +263,7 @@ CREATE INDEX idx_webauthn_user ON m_webauthn_credentials(id_user);
 | 20 | Portal Umat (Public) | 4 | 🟢 Enhancement | ✅ |
 | 21 | **🆕 Badge Counter** | 4 | 🟢 Enhancement | ✅ |
 | 22 | **🆕 Background Sync** | 4 | 🟢 Enhancement | ✅ |
+| 23 | **🆕 Profile 360° & Manajemen Pengguna** | 5 | 🟢 Enhancement | ✅ |
 
 ---
 
@@ -427,6 +434,9 @@ si-gpib-v2/
 | 16 | **Foto aset** wajib ada EXIF GPS (kecuali manual override) | Client validation |
 | 17 | **Form draft** auto-delete setelah 30 hari | Client-side cleanup |
 | 18 | **Pull-to-refresh** hanya di halaman list (bukan form) | UX rule |
+| 19 | **Profile 360° Audit & Biometric Privacy**: Jejak audit & perangkat biometrik HANYA terlihat oleh diri sendiri + super_user | RLS policy |
+| 20 | **Profile 360° Data Scope**: Data pelayanan (hierarki, mutasi, log) terlihat sesuai scope role | RLS policy |
+| 21 | **Profile 360° Graceful Fallback**: User non-pendeta menampilkan pesan penjelasan, bukan error/kotak kosong | Client-side |
 
 ---
 
