@@ -166,7 +166,7 @@ export default function UserDetailProfile360Page({ params }: UserDetailPageProps
                   <option value="superadmin">Superadmin (Sinode) - Akses Penuh Nasional</option>
                   <option value="admin_mupel">Admin Mupel - Terkunci 1 Mupel</option>
                   <option value="admin_jemaat">Admin Jemaat / KMJ - Terkunci 1 Jemaat</option>
-                  <option value="pj_pos">PJ Pos Pelkes - Terkunci 1 Pos Pelkes</option>
+                  <option value="pj_pos">PJ Pos Pelkes - Terkunci 1 Jemaat Induk (Akses Multi-Pos Pelkes)</option>
                   <option value="pendeta">Pendeta GPIB</option>
                   <option value="pelayan">Pelayan Field</option>
                   <option value="relawan">Relawan</option>
@@ -208,6 +208,7 @@ export default function UserDetailProfile360Page({ params }: UserDetailPageProps
                     <JemaatCascadingSelector
                       value={formInduk}
                       onChange={setFormInduk}
+                      onMupelChange={setFormMupel}
                       defaultIndukId={formInduk || undefined}
                     />
                   </div>
@@ -216,8 +217,10 @@ export default function UserDetailProfile360Page({ params }: UserDetailPageProps
                     <PosCascadingSelector
                       value={formPos}
                       onChange={setFormPos}
+                      onMupelChange={setFormMupel}
                       onJemaatChange={setFormInduk}
                       defaultPosId={formPos || undefined}
+                      required={false}
                     />
                   </div>
                 )}

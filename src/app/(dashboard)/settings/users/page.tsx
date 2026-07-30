@@ -480,7 +480,7 @@ export default function UserManagementPage() {
                   <option value="superadmin">Superadmin (Sinode) - Akses Penuh Nasional</option>
                   <option value="admin_mupel">Admin Mupel - Terkunci 1 Mupel</option>
                   <option value="admin_jemaat">Admin Jemaat / KMJ - Terkunci 1 Jemaat</option>
-                  <option value="pj_pos">PJ Pos Pelkes - Terkunci 1 Pos Pelkes</option>
+                  <option value="pj_pos">PJ Pos Pelkes - Terkunci 1 Jemaat Induk (Akses Multi-Pos Pelkes)</option>
                   <option value="pendeta">Pendeta GPIB</option>
                   <option value="pelayan">Pelayan Field</option>
                   <option value="relawan">Relawan</option>
@@ -548,7 +548,7 @@ export default function UserManagementPage() {
                       required={false}
                     />
                     <p className="text-[11px] text-text-muted">
-                      PJ / Pelayan / Relawan terkunci pada Mupel, Jemaat, dan Pos Pelkes ini.
+                      PJ Pos Pelkes / Pelayan / Relawan terkunci pada Mupel & Jemaat Induk ini (PJ memiliki hak akses ke seluruh Pos Pelkes di wilayah Jemaat Induk).
                     </p>
                   </div>
                 )}
@@ -661,7 +661,7 @@ export default function UserManagementPage() {
                   <option value="superadmin">Superadmin (Sinode) - Akses Penuh Nasional</option>
                   <option value="admin_mupel">Admin Mupel - Terkunci 1 Mupel</option>
                   <option value="admin_jemaat">Admin Jemaat / KMJ - Terkunci 1 Jemaat</option>
-                  <option value="pj_pos">PJ Pos Pelkes - Terkunci 1 Pos Pelkes</option>
+                  <option value="pj_pos">PJ Pos Pelkes - Terkunci 1 Jemaat Induk (Akses Multi-Pos Pelkes)</option>
                   <option value="pendeta">Pendeta GPIB</option>
                   <option value="pelayan">Pelayan Field</option>
                   <option value="relawan">Relawan</option>
@@ -729,7 +729,7 @@ export default function UserManagementPage() {
                       required={false}
                     />
                     <p className="text-[11px] text-text-muted">
-                      PJ / Pelayan / Relawan terkunci pada Mupel, Jemaat, dan Pos Pelkes ini.
+                      PJ Pos Pelkes / Pelayan / Relawan terkunci pada Mupel & Jemaat Induk ini (PJ memiliki hak akses ke seluruh Pos Pelkes di wilayah Jemaat Induk).
                     </p>
                   </div>
                 )}

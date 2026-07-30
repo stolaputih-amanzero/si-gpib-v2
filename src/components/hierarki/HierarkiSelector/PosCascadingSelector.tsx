@@ -86,7 +86,7 @@ export function PosCascadingSelector({
   );
   const isPosLocked = Boolean(
     userAuth?.id_pos &&
-    ['pj_pos', 'pelayan', 'relawan'].includes(userAuth?.role || '')
+    ['pelayan', 'relawan'].includes(userAuth?.role || '')
   );
 
   // 2. Jika ada defaultPosId atau defaultJemaatId (Edit Mode), lakukan reverse lookup
