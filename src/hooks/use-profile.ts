@@ -101,6 +101,7 @@ export function useProfileAkun(userId?: string) {
         created_at: dbUser.created_at || null,
         no_hp: dbUser.no_hp || dbUser.no_telepon || null,
         avatar_url: dbUser.avatar_url || dbUser.foto_url || null,
+        foto_url: dbUser.foto_url || dbUser.avatar_url || null,
         biometric_enabled: Boolean(dbUser.biometric_enabled),
       };
     },
@@ -140,6 +141,7 @@ export function useProfilePelayanan(idPendeta?: string | null) {
         nama_pendeta: data.nama_pendeta || 'Pendeta GPIB',
         gelar_depan: data.gelar_depan || null,
         gelar_belakang: data.gelar_belakang || null,
+        foto_url: data.foto_url || null,
         nip: data.nip || null,
         nik: data.nik || null,
         tempat_lahir: data.tempat_lahir || null,
@@ -156,7 +158,7 @@ export function useProfilePelayanan(idPendeta?: string | null) {
         mupel_nama: mupelObj?.nama_mupel || null,
       };
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
   });
 }
 

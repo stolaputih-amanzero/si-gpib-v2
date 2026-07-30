@@ -6,6 +6,8 @@ import { CopyableContact } from './CopyableContact';
 import { Mail, Phone, Edit3, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+import { useUser } from '@/hooks/use-user';
+
 interface ProfileHeroProps {
   userId?: string;
   mode?: 'self' | 'supervise';
@@ -16,6 +18,7 @@ interface ProfileHeroProps {
 export function ProfileHero({ userId, mode = 'self', onEditProfile, onChangeRole }: ProfileHeroProps) {
   const { data: akun, isLoading: isAkunLoading } = useProfileAkun(userId);
   const { data: pelayanan, isLoading: isPelayananLoading } = useProfilePelayanan(akun?.id_pendeta);
+  const { avatarUrl: userAvatarUrl } = useUser();
 
   if (isAkunLoading || isPelayananLoading) {
     return (
@@ -46,7 +49,7 @@ export function ProfileHero({ userId, mode = 'self', onEditProfile, onChangeRole
   };
 
   const initials = getInitials(displayName);
-  const avatarUrl = akun?.avatar_url;
+  const avatarUrl = akun?.avatar_url || akun?.foto_url || pelayanan?.foto_url || (mode === 'self' ? userAvatarUrl : null);
   const email = pelayanan?.email || akun?.email;
   const phone = pelayanan?.no_telepon || akun?.no_hp;
 

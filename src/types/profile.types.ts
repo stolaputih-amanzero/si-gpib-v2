@@ -24,6 +24,7 @@ export interface ProfileAkun {
   created_at?: string | null;
   no_hp?: string | null;
   avatar_url?: string | null;
+  foto_url?: string | null;
   biometric_enabled?: boolean;
 }
 
@@ -32,6 +33,7 @@ export interface ProfilePelayanan {
   nama_pendeta: string;
   gelar_depan?: string | null;
   gelar_belakang?: string | null;
+  foto_url?: string | null;
   nip?: string | null;
   nik?: string | null;
   tempat_lahir?: string | null;
