@@ -43,6 +43,35 @@ const ROLE_LABELS: Record<UserRole, { label: string; bg: string; text: string }>
 
 import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
 
+function getHierarchyDisplayLabel(user: UserManagementItem) {
+  const role = user.role;
+
+  let mupelLabel = user.mupel?.nama_mupel || user.id_mupel;
+  if (!mupelLabel) {
+    mupelLabel = role === 'superadmin' ? 'Semua (Nasional)' : 'Belum Ditentukan';
+  }
+
+  let jemaatLabel = user.jemaat_induk?.nama_induk || user.id_induk;
+  if (!jemaatLabel) {
+    if (role === 'superadmin') jemaatLabel = 'Semua (Nasional)';
+    else if (role === 'admin_mupel') jemaatLabel = 'Seluruh Jemaat di Mupel';
+    else jemaatLabel = 'Belum Ditentukan';
+  }
+
+  let posLabel = user.pos_pelkes?.nama_pos || user.id_pos;
+  if (!posLabel) {
+    if (role === 'superadmin') posLabel = 'Semua (Nasional)';
+    else if (role === 'admin_mupel') posLabel = 'Seluruh Pos Pelkes di Mupel';
+    else if (role === 'pj_pos') posLabel = 'Seluruh Pos Pelkes di Jemaat (Akses Multi-Pos)';
+    else if (role === 'admin_jemaat' || role === 'pendeta') posLabel = 'Seluruh Pos Pelkes di Jemaat';
+    else posLabel = 'Belum Ditentukan';
+  } else if (role === 'pj_pos') {
+    posLabel = `${posLabel} (Akses Multi-Pos Pelkes)`;
+  }
+
+  return { mupelLabel, jemaatLabel, posLabel };
+}
+
 export default function UserManagementPage() {
   const { toast } = useToast();
   const { data: currentUser, isLoading: isUserLoading } = useCurrentUser();
@@ -320,6 +349,7 @@ export default function UserManagementPage() {
                 bg: 'bg-surface-sunken',
                 text: 'text-text-high',
               };
+              const { mupelLabel, jemaatLabel, posLabel } = getHierarchyDisplayLabel(user);
 
               return (
                 <div
@@ -355,19 +385,19 @@ export default function UserManagementPage() {
                     <div className="flex items-center justify-between text-text-muted">
                       <span>Assigned Mupel:</span>
                       <span className="font-semibold text-text-high">
-                        {user.mupel?.nama_mupel || user.id_mupel || 'Semua (Bebas)'}
+                        {mupelLabel}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-text-muted">
                       <span>Assigned Jemaat:</span>
                       <span className="font-semibold text-text-high">
-                        {user.jemaat_induk?.nama_induk || user.id_induk || 'Semua (Bebas)'}
+                        {jemaatLabel}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-text-muted">
                       <span>Assigned Pos Pelkes:</span>
                       <span className="font-semibold text-text-high">
-                        {user.pos_pelkes?.nama_pos || user.id_pos || 'Semua (Bebas)'}
+                        {posLabel}
                       </span>
                     </div>
                   </div>
