@@ -124,7 +124,7 @@ export default function WilayahMapInner({ data, jemaatData = [], selectedPosId, 
           </LayersControl.BaseLayer>
 
           {/* OVERLAY LAYER 1: JEMAAT INDUK (GEREJA INDUK) */}
-          <LayersControl.Overlay checked name="🏛️ Jemaat Induk (Gereja)">
+          <LayersControl.Overlay checked name="⛪ Jemaat Induk (Gereja)">
             <LayerGroup>
               <MarkerClusterGroup chunkedLoading maxClusterRadius={35}>
                 {jemaatData.map((jemaat) => (
@@ -187,7 +187,7 @@ export default function WilayahMapInner({ data, jemaatData = [], selectedPosId, 
           </LayersControl.Overlay>
 
           {/* OVERLAY LAYER 2: POS PELKES & BAJEM */}
-          <LayersControl.Overlay checked name="📍 Pos Pelkes & Bajem">
+          <LayersControl.Overlay checked name="🔹 Pos Pelkes & Bajem">
             <LayerGroup>
               <MarkerClusterGroup
                 chunkedLoading

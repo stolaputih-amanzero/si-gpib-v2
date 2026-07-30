@@ -3,7 +3,7 @@
 import { useWilayahMapData, useJemaatMapData } from '@/hooks/use-wilayah';
 import { WilayahMap } from '@/components/wilayah/WilayahMap';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Map, RefreshCw } from 'lucide-react';
+import { Map, MapPin, RefreshCw } from 'lucide-react';
 
 export default function PetaPage() {
   const { data: posData, isLoading: isLoadingPos, refetch: refetchPos } = useWilayahMapData();
@@ -27,7 +27,18 @@ export default function PetaPage() {
             <h1 className="text-xl font-serif font-bold text-brand-primary">
               Peta Sebaran Terpadu
             </h1>
-            <p className="text-xs text-text-muted">Gereja Jemaat Induk (🏛️) & Pos Pelkes/Bajem (📍) GPIB</p>
+            <p className="text-xs text-text-muted flex items-center gap-1.5 flex-wrap mt-0.5">
+              <span className="inline-flex items-center gap-1 font-medium">
+                <span className="w-4 h-4 rounded-full bg-[#1E40AF] text-white flex items-center justify-center text-[10px] shadow-sm">⛪</span>
+                <span>Gereja Jemaat Induk</span>
+              </span>
+              <span>&</span>
+              <span className="inline-flex items-center gap-1 font-medium">
+                <MapPin size={15} className="text-blue-600 fill-blue-600/30 shrink-0" />
+                <span>Pos Pelkes/Bajem</span>
+              </span>
+              <span>GPIB</span>
+            </p>
           </div>
         </div>
 

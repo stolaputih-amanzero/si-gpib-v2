@@ -29,9 +29,13 @@ import {
   Crown,
   GitFork,
   Database,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NetworkStatusBadge } from '@/components/ui/NetworkStatusBadge';
+import { useSmoothTheme } from '@/hooks/useSmoothTheme';
+import { haptic } from '@/lib/haptic/vibrate';
 
 export interface NavItem {
   label: string;
@@ -122,7 +126,11 @@ export function Sidebar() {
     'Pengaturan',
   ]);
 
+  const { resolvedTheme, setTheme } = useSmoothTheme();
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
     const saved = localStorage.getItem('gpib_sidebar_collapsed');
     if (saved !== null) {
       setIsCollapsed(saved === 'true');
@@ -185,12 +193,9 @@ export function Sidebar() {
               />
             </div>
             <div className="truncate">
-              <div className="flex items-center gap-1.5">
-                <h1 className="text-base font-serif font-black text-brand-primary leading-tight tracking-tight truncate">
-                  SI GPIB
-                </h1>
-                <NetworkStatusBadge />
-              </div>
+              <h1 className="text-base font-serif font-black text-brand-primary leading-tight tracking-tight truncate">
+                SI GPIB
+              </h1>
               <p className="text-[10px] font-medium text-text-muted truncate">
                 Pos Pelayanan & Kesaksian
               </p>
@@ -212,32 +217,20 @@ export function Sidebar() {
           </Link>
         )}
 
-        {/* Action Controls: Logout & Collapse */}
-        <div className="flex items-center gap-1 shrink-0">
-          <button
-            type="button"
-            onClick={handleLogoutClick}
-            className="p-2 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 active:scale-95 transition-all min-h-[40px] min-w-[40px] flex items-center justify-center shrink-0 border border-red-200/50 dark:border-red-900/30"
-            aria-label="Keluar Sesi Akun"
-            title="Keluar Sesi Akun (Logout)"
-          >
-            <LogOut size={18} />
-          </button>
-
-          <button
-            type="button"
-            onClick={toggleCollapse}
-            className="p-2 rounded-xl text-text-muted hover:text-text-high hover:bg-surface-sunken active:scale-95 transition-all min-h-[40px] min-w-[40px] flex items-center justify-center shrink-0"
-            aria-label={isCollapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'}
-            title={isCollapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'}
-          >
-            {isCollapsed ? (
-              <PanelLeftOpen size={20} className="text-brand-primary" />
-            ) : (
-              <PanelLeftClose size={20} />
-            )}
-          </button>
-        </div>
+        {/* Action Control: Collapse Toggle */}
+        <button
+          type="button"
+          onClick={toggleCollapse}
+          className="p-2 rounded-xl text-text-muted hover:text-text-high hover:bg-surface-sunken active:scale-95 transition-all min-h-[40px] min-w-[40px] flex items-center justify-center shrink-0"
+          aria-label={isCollapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'}
+          title={isCollapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'}
+        >
+          {isCollapsed ? (
+            <PanelLeftOpen size={20} className="text-brand-primary" />
+          ) : (
+            <PanelLeftClose size={20} />
+          )}
+        </button>
       </div>
 
       {/* Navigation Content */}
@@ -338,6 +331,90 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      {/* Footer System & Profile Controls */}
+      <div className="border-t border-border-subtle p-3 shrink-0 bg-surface-sunken/40 space-y-2">
+        {!isCollapsed ? (
+          <div className="space-y-2">
+            {/* Status & User Profile Row */}
+            <div className="flex items-center justify-between gap-2 px-1">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <NetworkStatusBadge />
+                <span className="text-[11px] font-bold text-text-high truncate">
+                  {currentUser?.email || 'SI GPIB System'}
+                </span>
+              </div>
+            </div>
+
+            {/* Quick Action Buttons: Theme Toggle & Logout */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  haptic.selection();
+                  setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
+                }}
+                className="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl border border-border-subtle bg-surface-elevated hover:bg-surface-sunken text-text-high text-xs font-semibold active:scale-95 transition-all min-h-[40px]"
+                aria-label="Ganti tema tampilan"
+                title="Ganti Tema Tampilan (Terang / Gelap)"
+              >
+                {mounted && resolvedTheme === 'dark' ? (
+                  <>
+                    <Sun size={15} className="text-amber-500 shrink-0" />
+                    <span>Terang</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon size={15} className="text-brand-primary shrink-0" />
+                    <span>Gelap</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleLogoutClick}
+                className="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl border border-red-200 dark:border-red-900/40 bg-red-50/50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/50 text-xs font-semibold active:scale-95 transition-all min-h-[40px]"
+                aria-label="Keluar Sesi Akun"
+                title="Keluar Sesi Akun (Logout)"
+              >
+                <LogOut size={15} className="shrink-0" />
+                <span>Keluar</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Collapsed Mode Stacked Icons */
+          <div className="flex flex-col items-center gap-2">
+            <NetworkStatusBadge />
+            <button
+              type="button"
+              onClick={() => {
+                haptic.selection();
+                setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
+              }}
+              className="p-2 rounded-xl text-text-muted hover:text-text-high hover:bg-surface-sunken active:scale-95 transition-all min-h-[40px] min-w-[40px] flex items-center justify-center border border-border-subtle"
+              aria-label="Ganti tema"
+              title="Ganti Tema (Terang / Gelap)"
+            >
+              {mounted && resolvedTheme === 'dark' ? (
+                <Sun size={18} className="text-amber-500" />
+              ) : (
+                <Moon size={18} className="text-brand-primary" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={handleLogoutClick}
+              className="p-2 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 active:scale-95 transition-all min-h-[40px] min-w-[40px] flex items-center justify-center border border-red-200/50 dark:border-red-900/30"
+              aria-label="Keluar Sesi Akun"
+              title="Keluar Sesi Akun (Logout)"
+            >
+              <LogOut size={18} />
+            </button>
+          </div>
+        )}
+      </div>
     </aside>
   );
 }
