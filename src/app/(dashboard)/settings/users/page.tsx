@@ -525,7 +525,7 @@ export default function UserManagementPage() {
                       Admin Mupel hanya dapat mengakses data dalam Mupel ini.
                     </p>
                   </div>
-                ) : formRole === 'admin_jemaat' || formRole === 'pendeta' ? (
+                ) : formRole === 'admin_jemaat' || formRole === 'pendeta' || formRole === 'pj_pos' ? (
                   <div className="space-y-2">
                     <JemaatCascadingSelector
                       value={formInduk}
@@ -534,7 +534,7 @@ export default function UserManagementPage() {
                       defaultIndukId={formInduk || undefined}
                     />
                     <p className="text-[11px] text-text-muted">
-                      Admin Jemaat / KMJ terkunci pada Mupel & Jemaat Induk ini.
+                      PJ Pos Pelkes / Admin Jemaat / KMJ terkunci pada Mupel & Jemaat Induk ini (otomatis memiliki hak akses ke seluruh Pos Pelkes di wilayah Jemaat Induk).
                     </p>
                   </div>
                 ) : (
@@ -706,7 +706,7 @@ export default function UserManagementPage() {
                       Admin Mupel hanya dapat mengakses data dalam Mupel ini.
                     </p>
                   </div>
-                ) : addRole === 'admin_jemaat' || addRole === 'pendeta' ? (
+                ) : addRole === 'admin_jemaat' || addRole === 'pendeta' || addRole === 'pj_pos' ? (
                   <div className="space-y-2">
                     <JemaatCascadingSelector
                       value={addInduk}
@@ -715,7 +715,7 @@ export default function UserManagementPage() {
                       defaultIndukId={addInduk || undefined}
                     />
                     <p className="text-[11px] text-text-muted">
-                      Admin Jemaat / KMJ terkunci pada Mupel & Jemaat Induk ini.
+                      PJ Pos Pelkes / Admin Jemaat / KMJ terkunci pada Mupel & Jemaat Induk ini (otomatis memiliki hak akses ke seluruh Pos Pelkes di wilayah Jemaat Induk).
                     </p>
                   </div>
                 ) : (

@@ -203,7 +203,7 @@ export default function UserDetailProfile360Page({ params }: UserDetailPageProps
                   <div className="space-y-2">
                     <MupelSelect value={formMupel} onChange={setFormMupel} required={true} />
                   </div>
-                ) : formRole === 'admin_jemaat' || formRole === 'pendeta' ? (
+                ) : formRole === 'admin_jemaat' || formRole === 'pendeta' || formRole === 'pj_pos' ? (
                   <div className="space-y-2">
                     <JemaatCascadingSelector
                       value={formInduk}
@@ -211,6 +211,9 @@ export default function UserDetailProfile360Page({ params }: UserDetailPageProps
                       onMupelChange={setFormMupel}
                       defaultIndukId={formInduk || undefined}
                     />
+                    <p className="text-[11px] text-text-muted">
+                      PJ Pos Pelkes / Admin Jemaat terkunci pada Mupel & Jemaat Induk ini (otomatis memiliki hak akses ke seluruh Pos Pelkes di wilayah Jemaat Induk).
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-2">
