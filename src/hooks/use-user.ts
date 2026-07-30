@@ -22,19 +22,7 @@ export function useUser(): UserProfile {
     let isMounted = true;
 
     async function loadUser() {
-      try {
-        const { data } = await supabase.auth.getUser();
-        if (data?.user && isMounted) {
-          setUser(data.user);
-          try {
-            localStorage.setItem('si_gpib_cached_user', JSON.stringify(data.user));
-          } catch {}
-          setIsLoading(false);
-          return;
-        }
-      } catch {}
-
-      // Fallback fetch from /api/auth/me (cookie session)
+      // 1. Fetch from /api/auth/me first (merges auth session + public.users table avatar & profile)
       try {
         const res = await fetch('/api/auth/me');
         if (res.ok) {
@@ -50,7 +38,20 @@ export function useUser(): UserProfile {
         }
       } catch {}
 
-      // Resilient Offline Fallback: Membaca profil user dari localStorage
+      // 2. Fallback to supabase.auth.getUser()
+      try {
+        const { data } = await supabase.auth.getUser();
+        if (data?.user && isMounted) {
+          setUser(data.user);
+          try {
+            localStorage.setItem('si_gpib_cached_user', JSON.stringify(data.user));
+          } catch {}
+          setIsLoading(false);
+          return;
+        }
+      } catch {}
+
+      // 3. Resilient Offline Fallback: Membaca profil user dari localStorage
       try {
         const cached = localStorage.getItem('si_gpib_cached_user');
         if (cached && isMounted) {

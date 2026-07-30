@@ -24,11 +24,15 @@ export async function GET() {
 
   if (user) {
     try {
-      const { data: dbUser } = await supabase
-        .from('users')
-        .select('nama_lengkap, avatar_url, role, no_hp')
-        .eq('id', user.id)
-        .maybeSingle()
+      let query = supabase.from('users').select('nama_lengkap, avatar_url, role, no_hp')
+      if (user.id && user.email) {
+        query = query.or(`id.eq.${user.id},email.eq.${user.email}`)
+      } else if (user.id) {
+        query = query.eq('id', user.id)
+      } else if (user.email) {
+        query = query.eq('email', user.email)
+      }
+      const { data: dbUser } = await query.maybeSingle()
 
       if (dbUser) {
         user = {
