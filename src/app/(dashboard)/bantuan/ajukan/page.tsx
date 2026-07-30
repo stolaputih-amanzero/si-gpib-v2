@@ -83,8 +83,8 @@ export default function AjukanBantuanPage() {
         </div>
       </div>
 
-      <main className="max-w-5xl mx-auto px-2.5 sm:px-4 md:px-6 py-6 space-y-6">
-        <div className="bg-surface-elevated p-4 sm:p-6 rounded-2xl border border-border-subtle shadow-soft space-y-4">
+      <main className="w-full max-w-5xl mx-auto py-6 space-y-6">
+        <div className="bg-surface-elevated p-3.5 sm:p-6 rounded-xl sm:rounded-2xl border border-border-subtle shadow-soft space-y-4">
 
           {successMsg && (
             <div className="flex items-center gap-2 p-3.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-medium">

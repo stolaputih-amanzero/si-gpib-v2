@@ -21,9 +21,5 @@ export default async function EditPosPelkesPage({ params }: { params: Promise<{ 
     notFound();
   }
 
-  return (
-    <div className="p-4 sm:p-6 md:p-8">
-      <EditPosPelkesForm pos={pos} />
-    </div>
-  );
+  return <EditPosPelkesForm pos={pos} />;
 }

@@ -290,7 +290,7 @@ function TambahPosPelkesFormContent() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-2.5 sm:px-4 md:px-6 space-y-6 pb-24 md:pb-8">
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-24 md:pb-8">
       <div className="flex items-center gap-3">
         {(paramFrom || paramInduk) && (
           <Link 
@@ -315,7 +315,7 @@ function TambahPosPelkesFormContent() {
           </div>
         )}
 
-        <div className="bg-surface-elevated p-4 sm:p-6 rounded-2xl border border-border-subtle shadow-soft space-y-5">
+        <div className="bg-surface-elevated p-3.5 sm:p-6 rounded-xl sm:rounded-2xl border border-border-subtle shadow-soft space-y-5">
           <h2 className="text-lg font-semibold border-b pb-2">Informasi Dasar</h2>
           
           <div className="space-y-1.5 w-full">

@@ -241,7 +241,7 @@ function EditPosPelkesFormContent({ pos }: { pos: any }) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-2.5 sm:px-4 md:px-6 space-y-6 pb-24 md:pb-8">
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-24 md:pb-8">
       <div className="flex items-center gap-3">
         <Link 
           href={backUrl}
@@ -263,7 +263,7 @@ function EditPosPelkesFormContent({ pos }: { pos: any }) {
           </div>
         )}
 
-        <div className="bg-surface-elevated p-4 sm:p-6 rounded-2xl border border-border-subtle shadow-soft space-y-5">
+        <div className="bg-surface-elevated p-3.5 sm:p-6 rounded-xl sm:rounded-2xl border border-border-subtle shadow-soft space-y-5">
           <h2 className="text-base font-black border-b border-border-subtle pb-3 text-text-high">Informasi Dasar</h2>
           
           <div className="space-y-1.5 w-full">

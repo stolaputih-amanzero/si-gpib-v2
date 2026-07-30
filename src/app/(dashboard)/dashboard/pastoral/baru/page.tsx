@@ -284,7 +284,7 @@ function LogPastoralBaruContentPage() {
     <div className="min-h-screen bg-surface-base pb-safe">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-surface-elevated/80 backdrop-blur-md border-b border-border-subtle pt-safe">
-        <div className="max-w-4xl mx-auto px-2.5 sm:px-4 md:px-6 py-3 flex items-center justify-between">
+        <div className="w-full max-w-5xl mx-auto py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -307,7 +307,7 @@ function LogPastoralBaruContentPage() {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="max-w-4xl mx-auto px-2.5 sm:px-4 md:px-6 py-6 space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-5xl mx-auto py-6 space-y-6">
         {/* Tanggal & Waktu / Jam (Side by Side) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-2">
