@@ -341,8 +341,8 @@ function TambahPosPelkesFormContent() {
               {...register('kategori')}
               className="mt-1 block w-full px-3 py-3 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm"
             >
-              <option value="Pos Pelkes">Pos Pelkes (Pos Pelayanan Kesaksian)</option>
-              <option value="Bajem">Bajem (Bakal Jemaat)</option>
+              <option value="Pos Pelkes">Pos Pelkes</option>
+              <option value="Bajem">Bajem</option>
             </select>
             {errors.kategori && <p className="mt-1 text-xs text-red-500">{errors.kategori.message}</p>}
           </div>
@@ -379,7 +379,7 @@ function TambahPosPelkesFormContent() {
           </div>
         </div>
 
-        <div className="bg-surface-elevated p-6 rounded-xl border border-gray-100 shadow-sm space-y-5">
+        <div className="bg-surface-elevated p-3.5 sm:p-6 rounded-xl sm:rounded-2xl border border-gray-100 shadow-sm space-y-5">
           <div className="flex justify-between items-center border-b pb-2">
             <h2 className="text-lg font-semibold">Lokasi (GPS)</h2>
             <button
@@ -397,19 +397,19 @@ function TambahPosPelkesFormContent() {
             <label className="block text-sm font-medium text-text-high">
               Ekstrak dari Link Google Maps / Koordinat / Alamat
             </label>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2 w-full min-w-0">
               <input 
                 type="text"
-                placeholder="Tempel link Google Maps, koordinat, atau alamat (Cth: Miau Merah, Silat Hilir)..."
+                placeholder="Tempel link Google Maps, koordinat, atau alamat..."
                 value={gmapsInput}
                 onChange={(e) => setGmapsInput(e.target.value)}
-                className="flex-1 px-3 py-3 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
+                className="flex-1 min-w-0 px-3 py-3 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-brand-primary focus:border-brand-primary font-medium"
               />
               <button
                 type="button"
                 onClick={handleExtractCoordinates}
                 disabled={isExtracting}
-                className="px-4 py-3 bg-brand-primary text-white text-xs font-bold rounded-xl hover:bg-blue-800 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-1 shrink-0"
+                className="px-4 py-3 bg-brand-primary text-white text-xs font-bold rounded-xl hover:bg-blue-800 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-1 shrink-0 min-h-[44px]"
               >
                 {isExtracting ? <Loader2 size={14} className="animate-spin" /> : null}
                 <span>Ekstrak</span>

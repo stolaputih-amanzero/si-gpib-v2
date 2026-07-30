@@ -290,8 +290,8 @@ function EditPosPelkesFormContent({ pos }: { pos: any }) {
               {...register('kategori')}
               className="mt-1 block w-full px-3 py-3 border border-border-strong bg-surface-sunken text-text-high rounded-xl shadow-xs focus:ring-brand-primary focus:border-brand-primary text-sm focus:outline-none"
             >
-              <option value="Pos Pelkes">Pos Pelkes (Pos Pelayanan Kesaksian)</option>
-              <option value="Bajem">Bajem (Bakal Jemaat)</option>
+              <option value="Pos Pelkes">Pos Pelkes</option>
+              <option value="Bajem">Bajem</option>
             </select>
             {errors.kategori && <p className="mt-1 text-xs text-red-500 font-semibold">{errors.kategori.message}</p>}
           </div>
@@ -424,7 +424,7 @@ function EditPosPelkesFormContent({ pos }: { pos: any }) {
           </div>
         </div>
 
-        <div className="bg-surface-elevated p-6 rounded-2xl border border-border-subtle shadow-soft space-y-5">
+        <div className="bg-surface-elevated p-3.5 sm:p-6 rounded-xl sm:rounded-2xl border border-border-subtle shadow-soft space-y-5">
           <div className="flex justify-between items-center border-b border-border-subtle pb-3">
             <h2 className="text-base font-black text-text-high">Lokasi (GPS)</h2>
             <button
@@ -442,19 +442,19 @@ function EditPosPelkesFormContent({ pos }: { pos: any }) {
             <label className="block text-xs font-black text-text-high uppercase tracking-wider">
               Ekstrak dari Link Google Maps / Koordinat / Alamat
             </label>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2 w-full min-w-0">
               <input 
                 type="text"
-                placeholder="Tempel link Google Maps, koordinat, atau alamat (Cth: Miau Merah, Silat Hilir)..."
+                placeholder="Tempel link Google Maps, koordinat, atau alamat..."
                 value={gmapsInput}
                 onChange={(e) => setGmapsInput(e.target.value)}
-                className="flex-1 px-3 py-3 border border-border-strong bg-surface-sunken text-text-high rounded-xl shadow-xs text-sm focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
+                className="flex-1 min-w-0 px-3 py-3 border border-border-strong bg-surface-sunken text-text-high rounded-xl shadow-xs text-sm focus:outline-none focus:ring-brand-primary focus:border-brand-primary font-medium"
               />
               <button
                 type="button"
                 onClick={handleExtractCoordinates}
                 disabled={isExtracting}
-                className="px-4 py-3 bg-brand-primary text-white text-xs font-bold rounded-xl hover:bg-blue-800 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-1 shrink-0"
+                className="px-4 py-3 bg-brand-primary text-white text-xs font-bold rounded-xl hover:bg-blue-800 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-1 shrink-0 min-h-[44px]"
               >
                 {isExtracting ? <Loader2 size={14} className="animate-spin" /> : null}
                 <span>Ekstrak</span>

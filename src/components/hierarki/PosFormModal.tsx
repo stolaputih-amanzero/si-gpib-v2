@@ -157,7 +157,7 @@ export function PosFormModal({ isOpen, onClose, id_induk, editData }: PosFormMod
                 className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-xs font-semibold text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
               >
                 <option value="Pos Pelkes">Pos Pelkes</option>
-                <option value="Bajem">Bajem (Bakal Jemaat)</option>
+                <option value="Bajem">Bajem</option>
               </select>
             </div>
           </div>
