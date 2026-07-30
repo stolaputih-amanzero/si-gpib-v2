@@ -43,35 +43,50 @@ export async function updateOwnProfileAction(payload: {
 
     let finalAvatarUrl = payload.avatar_url || '';
 
-    // Upload base64 avatar image to Supabase Storage bucket 'pos-pelkes-assets' if provided
+    // Upload base64 avatar image to Supabase Storage if provided
     if (finalAvatarUrl && finalAvatarUrl.startsWith('data:image/')) {
       try {
-        const adminClient = createAdminClient();
-        if (adminClient) {
-          const base64Data = finalAvatarUrl.split(',')[1];
-          const mimeType = finalAvatarUrl.split(';')[0].split(':')[1] || 'image/jpeg';
-          const ext = mimeType.split('/')[1] || 'jpg';
-          const buffer = Buffer.from(base64Data, 'base64');
-          const fileName = `avatars/user-${currentUserId}-${Date.now()}.${ext}`;
+        const clientForStorage = createAdminClient() || supabase;
+        const base64Data = finalAvatarUrl.split(',')[1];
+        const mimeType = finalAvatarUrl.split(';')[0].split(':')[1] || 'image/jpeg';
+        const ext = mimeType.split('/')[1] || 'jpg';
+        const buffer = Buffer.from(base64Data, 'base64');
+        const fileName = `avatar-${currentUserId}-${Date.now()}.${ext}`;
 
-          const { error: storageError } = await adminClient.storage
+        // Attempt 1: Upload to root of 'pos-pelkes-assets'
+        let { data: uploadData, error: storageError } = await clientForStorage.storage
+          .from('pos-pelkes-assets')
+          .upload(fileName, buffer, {
+            contentType: mimeType,
+            upsert: true,
+          });
+
+        // Attempt 2: If root upload failed, try subfolder 'avatars/'
+        if (storageError) {
+          const subfolderPath = `avatars/${fileName}`;
+          const res2 = await clientForStorage.storage
             .from('pos-pelkes-assets')
-            .upload(fileName, buffer, {
+            .upload(subfolderPath, buffer, {
               contentType: mimeType,
               upsert: true,
             });
-
-          if (!storageError) {
-            const { data: publicData } = adminClient.storage
-              .from('pos-pelkes-assets')
-              .getPublicUrl(fileName);
-
-            if (publicData?.publicUrl) {
-              finalAvatarUrl = publicData.publicUrl;
-            }
-          } else {
-            console.error('Storage upload error to pos-pelkes-assets:', storageError);
+          if (!res2.error) {
+            storageError = null;
+            uploadData = res2.data;
           }
+        }
+
+        if (!storageError) {
+          const uploadedPath = uploadData?.path || fileName;
+          const { data: publicData } = clientForStorage.storage
+            .from('pos-pelkes-assets')
+            .getPublicUrl(uploadedPath);
+
+          if (publicData?.publicUrl) {
+            finalAvatarUrl = publicData.publicUrl;
+          }
+        } else {
+          console.error('Storage upload error to pos-pelkes-assets:', storageError);
         }
       } catch (uploadErr) {
         console.warn('Supabase storage avatar upload warning:', uploadErr);
