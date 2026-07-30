@@ -104,38 +104,38 @@ export async function updateOwnProfileAction(payload: {
       });
     } catch {}
 
-    // 2. Update public.users row via admin client (bypassing RLS restriction)
-    const adminClient = createAdminClient();
-    if (adminClient) {
-      const { error: dbError } = await adminClient
-        .from('users')
-        .upsert({
-          id: currentUserId,
-          email: currentUserEmail || '',
-          nama_lengkap: payload.nama_lengkap,
-          no_hp: payload.no_hp || null,
-          avatar_url: finalAvatarUrl || null,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'id' });
+    // 2. Update public.users row via dbClient (adminClient fallback to user supabase client)
+    const dbClient = createAdminClient() || supabase;
+    const { error: dbError } = await dbClient
+      .from('users')
+      .upsert({
+        id: currentUserId,
+        email: currentUserEmail || '',
+        nama_lengkap: payload.nama_lengkap,
+        no_hp: payload.no_hp || null,
+        avatar_url: finalAvatarUrl || null,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'id' });
 
-      if (dbError) {
-        console.error('Error updating users table:', dbError);
-      }
+    if (dbError) {
+      console.error('Error updating users table:', dbError);
     }
 
-    // 3. Update session cookie safely (only keep short URL in cookie, omit huge base64 string to avoid HTTP 431 / Header Too Large)
-    const safeCookieAvatarUrl = finalAvatarUrl.startsWith('data:image/') ? '' : finalAvatarUrl;
+    // 3. Update session cookie safely
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('si_gpib_user_session')?.value;
     if (sessionCookie) {
       try {
         const parsed = JSON.parse(sessionCookie);
         parsed.nama_lengkap = payload.nama_lengkap;
+        if (!finalAvatarUrl.startsWith('data:image/')) {
+          parsed.avatar_url = finalAvatarUrl;
+        }
         parsed.user_metadata = {
           ...parsed.user_metadata,
           nama_lengkap: payload.nama_lengkap,
           no_hp: payload.no_hp,
-          avatar_url: safeCookieAvatarUrl,
+          avatar_url: finalAvatarUrl.startsWith('data:image/') ? (parsed.user_metadata?.avatar_url || '') : finalAvatarUrl,
         };
         cookieStore.set('si_gpib_user_session', JSON.stringify(parsed), {
           path: '/',

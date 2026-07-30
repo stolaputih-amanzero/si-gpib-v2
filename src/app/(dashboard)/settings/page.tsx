@@ -86,15 +86,33 @@ export default function SettingsHubPage() {
         throw new Error(res.error);
       }
 
+      const updatedAvatar = res.avatar_url || editAvatar.trim();
+
+      // Update localStorage cache directly with the new avatar URL so reload loads new avatar instantly
+      try {
+        const cachedUser = localStorage.getItem('si_gpib_cached_user');
+        if (cachedUser) {
+          const parsed = JSON.parse(cachedUser);
+          parsed.avatar_url = updatedAvatar;
+          parsed.user_metadata = {
+            ...(parsed.user_metadata || {}),
+            avatar_url: updatedAvatar,
+            nama_lengkap: editNama.trim(),
+          };
+          localStorage.setItem('si_gpib_cached_user', JSON.stringify(parsed));
+        }
+
+        const cachedCurr = localStorage.getItem('si_gpib_cached_current_user');
+        if (cachedCurr) {
+          const parsedCurr = JSON.parse(cachedCurr);
+          parsedCurr.nama_lengkap = editNama.trim();
+          localStorage.setItem('si_gpib_cached_current_user', JSON.stringify(parsedCurr));
+        }
+      } catch {}
+
       toast.success('Profil Diperbarui', 'Data profil Anda berhasil disimpan.');
       setIsEditingProfile(false);
       
-      // Clear stale user cache & reload
-      try {
-        localStorage.removeItem('si_gpib_cached_user');
-        localStorage.removeItem('si_gpib_cached_current_user');
-      } catch {}
-
       queryClient.invalidateQueries({ queryKey: ['current-user-auth'] });
       if (typeof window !== 'undefined') {
         window.location.reload();
