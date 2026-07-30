@@ -20,6 +20,21 @@ function createAdminClient() {
   })
 }
 
+function extractCorePhoneDigits(input: string): { e164: string; coreDigits: string; digitsOnly: string } {
+  const cleaned = input.replace(/[^\d+]/g, '')
+  const digitsOnly = cleaned.replace(/\+/g, '')
+
+  let coreDigits = digitsOnly
+  if (coreDigits.startsWith('62')) {
+    coreDigits = coreDigits.substring(2)
+  } else if (coreDigits.startsWith('0')) {
+    coreDigits = coreDigits.substring(1)
+  }
+
+  const e164 = `+62${coreDigits}`
+  return { e164, coreDigits, digitsOnly }
+}
+
 export async function login(_prevState: any, formData: FormData) {
   const supabase = await createClient()
   const cookieStore = await cookies()
@@ -33,9 +48,9 @@ export async function login(_prevState: any, formData: FormData) {
 
   const isEmail = rawInput.includes('@')
   const searchEmail = isEmail ? rawInput.toLowerCase() : ''
-  const searchPhone = rawInput.replace(/\s+/g, '')
+  const phoneInfo = !isEmail ? extractCorePhoneDigits(rawInput) : null
 
-  // 1. Try standard Supabase Auth sign-in
+  // 1. Supabase Auth standard sign-in attempt
   if (isEmail) {
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email: searchEmail,
@@ -46,37 +61,119 @@ export async function login(_prevState: any, formData: FormData) {
       revalidatePath('/', 'layout')
       redirect('/dashboard')
     }
-  }
+  } else if (phoneInfo && phoneInfo.coreDigits) {
+    // Try phone sign in via E.164 format and digits format
+    const { error: phoneErr1 } = await supabase.auth.signInWithPassword({
+      phone: phoneInfo.e164,
+      password,
+    }).catch((e) => ({ error: e }))
 
-  // 2. Resilient DB Fallback: check public.users table
-  const adminClient = createAdminClient()
-  if (adminClient) {
-    let query = adminClient.from('users').select('*')
-    if (isEmail) {
-      query = query.ilike('email', searchEmail)
-    } else {
-      query = query.or(`no_telepon.eq.${searchPhone},no_telepon.ilike.%${searchPhone}%`)
+    if (!phoneErr1) {
+      revalidatePath('/', 'layout')
+      redirect('/dashboard')
     }
 
-    const { data: dbUser } = await query.maybeSingle()
+    const { error: phoneErr2 } = await supabase.auth.signInWithPassword({
+      phone: phoneInfo.digitsOnly,
+      password,
+    }).catch((e) => ({ error: e }))
+
+    if (!phoneErr2) {
+      revalidatePath('/', 'layout')
+      redirect('/dashboard')
+    }
+  }
+
+  // 2. Resilient DB Fallback: check public.users table with robust phone matching
+  const adminClient = createAdminClient()
+  if (adminClient) {
+    let dbUser: any = null
+
+    if (isEmail) {
+      const { data } = await adminClient
+        .from('users')
+        .select('*')
+        .ilike('email', searchEmail)
+        .maybeSingle()
+      dbUser = data
+    } else if (phoneInfo && phoneInfo.coreDigits) {
+      // Step A: Flexible SQL OR query
+      const { data: matches } = await adminClient
+        .from('users')
+        .select('*')
+        .or(
+          `no_telepon.eq.${rawInput},` +
+          `no_telepon.eq.${phoneInfo.e164},` +
+          `no_telepon.eq.${phoneInfo.digitsOnly},` +
+          `no_telepon.eq.0${phoneInfo.coreDigits},` +
+          `no_telepon.ilike.%${phoneInfo.coreDigits}%`
+        )
+
+      if (matches && matches.length > 0) {
+        // Pick exact core digits match if multiple
+        dbUser = matches.find((u: any) => {
+          if (!u.no_telepon) return false
+          const uCore = extractCorePhoneDigits(u.no_telepon).coreDigits
+          return uCore === phoneInfo.coreDigits
+        }) || matches[0]
+      }
+
+      // Step B: Fallback scan if SQL search missed formatted numbers with spaces/hyphens
+      if (!dbUser) {
+        const { data: allUsers } = await adminClient
+          .from('users')
+          .select('*')
+          .not('no_telepon', 'is', null)
+
+        if (allUsers) {
+          dbUser = allUsers.find((u: any) => {
+            if (!u.no_telepon) return false
+            const uCore = extractCorePhoneDigits(u.no_telepon).coreDigits
+            return uCore === phoneInfo.coreDigits
+          })
+        }
+      }
+    }
 
     if (dbUser) {
-      // Validate password against database password_hash
+      // 3a. If dbUser has associated email, attempt Supabase Auth sign-in with email & password
+      if (dbUser.email) {
+        const { error: authError } = await supabase.auth.signInWithPassword({
+          email: dbUser.email,
+          password,
+        }).catch((e) => ({ error: e }))
+
+        if (!authError) {
+          revalidatePath('/', 'layout')
+          redirect('/dashboard')
+        }
+      }
+
+      // 3b. Validate password against dbUser.password_hash or default acceptable passwords
       const dbPassword = (dbUser.password_hash || '').trim()
-      const isPasswordValid = !dbPassword || dbPassword === password || dbPassword.toLowerCase() === password.toLowerCase()
+      const isPasswordValid = 
+        !dbPassword || 
+        dbPassword === password || 
+        dbPassword.toLowerCase() === password.toLowerCase()
+
       if (!isPasswordValid) {
-        return { error: 'Email atau kata sandi tidak valid. Silakan periksa kembali akun Anda.' }
+        return { error: 'Email/No. HP atau kata sandi tidak valid. Silakan periksa kembali akun Anda.' }
       }
 
       // Set resilient session cookie
       const sessionData = {
         id: dbUser.id,
         email: dbUser.email,
-        role: dbUser.role || 'pendeta',
-        nama_lengkap: dbUser.nama_lengkap || dbUser.email,
+        no_telepon: dbUser.no_telepon,
+        role: dbUser.role || 'user',
+        id_mupel: dbUser.id_mupel,
+        id_pendeta: dbUser.id_pendeta,
+        nama_lengkap: dbUser.nama_lengkap || dbUser.email || dbUser.no_telepon,
         user_metadata: {
-          role: dbUser.role || 'pendeta',
-          nama_lengkap: dbUser.nama_lengkap || dbUser.email,
+          role: dbUser.role || 'user',
+          id_mupel: dbUser.id_mupel,
+          id_pendeta: dbUser.id_pendeta,
+          nama_lengkap: dbUser.nama_lengkap || dbUser.email || dbUser.no_telepon,
         },
       }
 
@@ -101,7 +198,7 @@ export async function login(_prevState: any, formData: FormData) {
     }
   }
 
-  return { error: 'Email atau kata sandi tidak valid. Silakan periksa kembali akun Anda.' }
+  return { error: 'Email/No. HP atau kata sandi tidak valid. Silakan periksa kembali akun Anda.' }
 }
 
 export async function logout() {
