@@ -102,6 +102,8 @@ export default function MyProfilePage() {
         if (cachedCurr) {
           const parsedCurr = JSON.parse(cachedCurr);
           parsedCurr.nama_lengkap = editNama.trim();
+          parsedCurr.avatar_url = updatedAvatar;
+          parsedCurr.foto_url = updatedAvatar;
           localStorage.setItem('si_gpib_cached_current_user', JSON.stringify(parsedCurr));
         }
       } catch {}
