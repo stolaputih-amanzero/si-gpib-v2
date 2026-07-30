@@ -83,29 +83,25 @@ export default function MyProfilePage() {
       // Update local storage cache directly for instant UI update
       try {
         const cachedUser = localStorage.getItem('si_gpib_cached_user');
-        if (cachedUser) {
-          const parsed = JSON.parse(cachedUser);
-          parsed.avatar_url = updatedAvatar;
-          parsed.foto_url = updatedAvatar;
-          parsed.nama_lengkap = editNama.trim();
-          parsed.user_metadata = {
-            ...(parsed.user_metadata || {}),
-            avatar_url: updatedAvatar,
-            foto_url: updatedAvatar,
-            picture: updatedAvatar,
-            nama_lengkap: editNama.trim(),
-          };
-          localStorage.setItem('si_gpib_cached_user', JSON.stringify(parsed));
-        }
+        const parsed = cachedUser ? JSON.parse(cachedUser) : {};
+        parsed.avatar_url = updatedAvatar;
+        parsed.foto_url = updatedAvatar;
+        parsed.nama_lengkap = editNama.trim();
+        parsed.user_metadata = {
+          ...(parsed.user_metadata || {}),
+          avatar_url: updatedAvatar,
+          foto_url: updatedAvatar,
+          picture: updatedAvatar,
+          nama_lengkap: editNama.trim(),
+        };
+        localStorage.setItem('si_gpib_cached_user', JSON.stringify(parsed));
 
         const cachedCurr = localStorage.getItem('si_gpib_cached_current_user');
-        if (cachedCurr) {
-          const parsedCurr = JSON.parse(cachedCurr);
-          parsedCurr.nama_lengkap = editNama.trim();
-          parsedCurr.avatar_url = updatedAvatar;
-          parsedCurr.foto_url = updatedAvatar;
-          localStorage.setItem('si_gpib_cached_current_user', JSON.stringify(parsedCurr));
-        }
+        const parsedCurr = cachedCurr ? JSON.parse(cachedCurr) : {};
+        parsedCurr.nama_lengkap = editNama.trim();
+        parsedCurr.avatar_url = updatedAvatar;
+        parsedCurr.foto_url = updatedAvatar;
+        localStorage.setItem('si_gpib_cached_current_user', JSON.stringify(parsedCurr));
       } catch {}
 
       toast.success('Profil Diperbarui', 'Data profil Anda berhasil disimpan.');

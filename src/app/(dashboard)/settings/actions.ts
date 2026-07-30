@@ -51,9 +51,16 @@ export async function updateOwnProfileAction(payload: {
         const mimeType = finalAvatarUrl.split(';')[0].split(':')[1] || 'image/jpeg';
         const ext = mimeType.split('/')[1] || 'jpg';
         const buffer = Buffer.from(base64Data, 'base64');
-        const fileName = `avatar-${currentUserId}-${Date.now()}.${ext}`;
+        const fileName = `avatars/avatar-${currentUserId}-${Date.now()}.${ext}`;
 
-        // Attempt 1: Upload to root of 'pos-pelkes-assets'
+        // Ensure bucket exists or create it
+        try {
+          await clientForStorage.storage.createBucket('pos-pelkes-assets', {
+            public: true,
+            fileSizeLimit: 10485760, // 10MB
+          });
+        } catch {}
+
         let { data: uploadData, error: storageError } = await clientForStorage.storage
           .from('pos-pelkes-assets')
           .upload(fileName, buffer, {
@@ -61,12 +68,12 @@ export async function updateOwnProfileAction(payload: {
             upsert: true,
           });
 
-        // Attempt 2: If root upload failed, try subfolder 'avatars/'
         if (storageError) {
-          const subfolderPath = `avatars/${fileName}`;
+          // Attempt fallback filename without subfolder
+          const rootFileName = `avatar-${currentUserId}-${Date.now()}.${ext}`;
           const res2 = await clientForStorage.storage
             .from('pos-pelkes-assets')
-            .upload(subfolderPath, buffer, {
+            .upload(rootFileName, buffer, {
               contentType: mimeType,
               upsert: true,
             });
@@ -76,8 +83,8 @@ export async function updateOwnProfileAction(payload: {
           }
         }
 
-        if (!storageError) {
-          const uploadedPath = uploadData?.path || fileName;
+        if (!storageError && uploadData) {
+          const uploadedPath = uploadData.path;
           const { data: publicData } = clientForStorage.storage
             .from('pos-pelkes-assets')
             .getPublicUrl(uploadedPath);
@@ -86,7 +93,7 @@ export async function updateOwnProfileAction(payload: {
             finalAvatarUrl = publicData.publicUrl;
           }
         } else {
-          console.error('Storage upload error to pos-pelkes-assets:', storageError);
+          console.warn('Storage upload error to pos-pelkes-assets, using base64 fallback in DB:', storageError);
         }
       } catch (uploadErr) {
         console.warn('Supabase storage avatar upload warning:', uploadErr);

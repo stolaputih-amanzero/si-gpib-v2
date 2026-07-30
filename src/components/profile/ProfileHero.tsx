@@ -49,7 +49,19 @@ export function ProfileHero({ userId, mode = 'self', onEditProfile, onChangeRole
   };
 
   const initials = getInitials(displayName);
-  const avatarUrl = akun?.avatar_url || akun?.foto_url || pelayanan?.foto_url || (mode === 'self' ? userAvatarUrl : null);
+
+  let localStorageAvatar: string | null = null;
+  if (typeof window !== 'undefined') {
+    try {
+      const cached = localStorage.getItem('si_gpib_cached_user') || localStorage.getItem('si_gpib_cached_current_user');
+      if (cached) {
+        const obj = JSON.parse(cached);
+        localStorageAvatar = obj.avatar_url || obj.foto_url || obj.user_metadata?.avatar_url || obj.user_metadata?.foto_url || null;
+      }
+    } catch {}
+  }
+
+  const avatarUrl = akun?.avatar_url || akun?.foto_url || pelayanan?.foto_url || (mode === 'self' ? userAvatarUrl : null) || localStorageAvatar;
   const email = pelayanan?.email || akun?.email;
   const phone = pelayanan?.no_telepon || akun?.no_hp;
 
