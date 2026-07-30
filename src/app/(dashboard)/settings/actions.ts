@@ -41,13 +41,65 @@ export async function updateOwnProfileAction(payload: {
       return { success: false, error: 'Unauthorized: Sesi pengguna tidak ditemukan' };
     }
 
+    let finalAvatarUrl = payload.avatar_url || '';
+
+    // Upload base64 avatar image to Supabase Storage if provided
+    if (finalAvatarUrl && finalAvatarUrl.startsWith('data:image/')) {
+      try {
+        const adminClient = createAdminClient();
+        if (adminClient) {
+          const base64Data = finalAvatarUrl.split(',')[1];
+          const mimeType = finalAvatarUrl.split(';')[0].split(':')[1] || 'image/jpeg';
+          const ext = mimeType.split('/')[1] || 'jpg';
+          const buffer = Buffer.from(base64Data, 'base64');
+          const fileName = `avatars/avatar-${currentUserId}-${Date.now()}.${ext}`;
+
+          // Try uploading to 'avatars' or 'pos-pelkes-attachments' bucket
+          const { error: storageError } = await adminClient.storage
+            .from('avatars')
+            .upload(fileName, buffer, {
+              contentType: mimeType,
+              upsert: true,
+            });
+
+          if (!storageError) {
+            const { data: publicData } = adminClient.storage
+              .from('avatars')
+              .getPublicUrl(fileName);
+            if (publicData?.publicUrl) {
+              finalAvatarUrl = publicData.publicUrl;
+            }
+          } else {
+            // Fallback to 'pos-pelkes-attachments' bucket if 'avatars' is not created
+            const { error: fallbackError } = await adminClient.storage
+              .from('pos-pelkes-attachments')
+              .upload(fileName, buffer, {
+                contentType: mimeType,
+                upsert: true,
+              });
+
+            if (!fallbackError) {
+              const { data: publicData } = adminClient.storage
+                .from('pos-pelkes-attachments')
+                .getPublicUrl(fileName);
+              if (publicData?.publicUrl) {
+                finalAvatarUrl = publicData.publicUrl;
+              }
+            }
+          }
+        }
+      } catch (uploadErr) {
+        console.warn('Supabase storage avatar upload warning (resilient fallback active):', uploadErr);
+      }
+    }
+
     // 1. Update Auth user metadata
     try {
       await supabase.auth.updateUser({
         data: {
           nama_lengkap: payload.nama_lengkap,
           no_hp: payload.no_hp || '',
-          avatar_url: payload.avatar_url || '',
+          avatar_url: finalAvatarUrl,
         },
       });
     } catch {}
@@ -62,7 +114,7 @@ export async function updateOwnProfileAction(payload: {
           email: currentUserEmail || '',
           nama_lengkap: payload.nama_lengkap,
           no_hp: payload.no_hp || null,
-          avatar_url: payload.avatar_url || null,
+          avatar_url: finalAvatarUrl || null,
           updated_at: new Date().toISOString(),
         }, { onConflict: 'id' });
 
@@ -82,7 +134,7 @@ export async function updateOwnProfileAction(payload: {
           ...parsed.user_metadata,
           nama_lengkap: payload.nama_lengkap,
           no_hp: payload.no_hp,
-          avatar_url: payload.avatar_url,
+          avatar_url: finalAvatarUrl,
         };
         cookieStore.set('si_gpib_user_session', JSON.stringify(parsed), {
           path: '/',
@@ -94,7 +146,7 @@ export async function updateOwnProfileAction(payload: {
       } catch {}
     }
 
-    return { success: true };
+    return { success: true, avatar_url: finalAvatarUrl };
   } catch (err: any) {
     console.error('Update own profile error:', err);
     return { success: false, error: err?.message || 'Gagal memperbarui profil pengguna' };
