@@ -1,4 +1,6 @@
 -- Migration: RPC get_profile_stats Security Hardening & Strict RLS Audit Policies for Profile 360°
+-- RPC ini didokumentasikan di: documentation/master/SI GPIB v2.2 — ERD.md §8
+-- dan Blueprint v2.2 §5. Ubah keduanya jika signature/behavior berubah.
 
 -- 1. SECURITY DEFINER Guard for get_profile_stats
 CREATE OR REPLACE FUNCTION get_profile_stats(p_id_pendeta text)

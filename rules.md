@@ -358,6 +358,11 @@ USING (
 ALTER TABLE m_jemaat_induk DISABLE ROW LEVEL SECURITY;
 ```
 
+### 🔴 KRITIS — Privasi Profile 360° (RLS Asimetri)
+- `t_log_aktivitas` & `m_webauthn_credentials`: HANYA diri sendiri + super_user
+- Data pelayanan (hierarki, mutasi, log pastoral): sesuai scope role
+- JANGAN pernah longgarkan audit/device ke admin_mupel atau kmj
+
 ### 🔐 Biometric Auth Rules
 
 ```typescript

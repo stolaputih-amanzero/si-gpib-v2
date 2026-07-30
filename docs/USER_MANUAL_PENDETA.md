@@ -12,14 +12,14 @@ Aplikasi ini menggunakan teknologi **PWA (Progressive Web App)**, yang artinya B
 
 ### 🤖 Untuk HP Android (Google Chrome):
 1. Buka browser **Google Chrome** di HP Anda.
-2. Ketikkan alamat web resmi SI GPIB (contoh: `https://sigpib.org`).
+2. Ketikkan alamat web resmi SI GPIB (contoh: `https://sigpib.amanzero.space`).
 3. Di bagian bawah layar, akan muncul petunjuk **"Tambahkan SI GPIB ke Layar Utama"** -> Tekan **Install** atau **Tambahkan**.
 4. Jika tidak muncul, tekan titik tiga (`⋮`) di pojok kanan atas Chrome, lalu pilih **"Install aplikasi"** atau **"Tambahkan ke Layar Utama"**.
 5. Logo **SI GPIB** akan muncul di layar utama HP Anda seperti aplikasi biasa!
 
 ### 🍎 Untuk HP iPhone / iPad (Safari):
 1. Buka aplikasi **Safari** di iPhone Anda.
-2. Masukkan alamat web SI GPIB (`https://sigpib.org`).
+2. Masukkan alamat web SI GPIB (`https://sigpib.amanzero.space`).
 3. Tekan tombol **Bagikan / Share** (ikon kotak dengan panah mengarah ke atas `⎋` di bagian bawah layar).
 4. Geser ke bawah dan pilih **"Tambah ke Layar Utama"** (*Add to Home Screen*).
 5. Tekan **Tambah** di pojok kanan atas. Logo aplikasi kini siap digunakan di iPhone Anda.
