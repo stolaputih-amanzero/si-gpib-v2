@@ -189,7 +189,7 @@ export function PosFormModal({ isOpen, onClose, id_induk, editData }: PosFormMod
           <div className="p-3 rounded-xl bg-surface-sunken border border-border-subtle space-y-2">
             <span className="text-[11px] font-bold text-text-muted flex items-center gap-1">
               <MapPin size={14} className="text-brand-primary" />
-              Koordinat GPS & Tanggal Berdiri
+              Koordinat & Tanggal Berdiri
             </span>
             <div className="grid grid-cols-3 gap-2">
               <input

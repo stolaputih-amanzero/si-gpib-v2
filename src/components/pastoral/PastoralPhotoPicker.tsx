@@ -89,7 +89,7 @@ export function PastoralPhotoPicker({
       <div className="flex items-center justify-between">
         <label className="text-xs font-bold text-text-high uppercase tracking-wider flex items-center gap-1.5">
           <Camera size={16} className="text-brand-primary" />
-          <span>Foto Dokumentasi Pastoral (GPS & Hierarki Stamped)</span>
+          <span>Foto Dokumentasi Pastoral</span>
         </label>
       </div>
 
@@ -129,13 +129,13 @@ export function PastoralPhotoPicker({
 
           {/* Watermark Status Tag */}
           <div className="absolute top-2.5 left-2.5 p-1.5 px-2.5 bg-black/75 backdrop-blur-sm rounded-lg text-[10px] text-amber-300 font-bold flex items-center gap-1 border border-amber-500/30">
-            <CheckCircle2 size={12} /> Stempel GPS, Waktu & Hierarki Wilayah Aktif
+            <CheckCircle2 size={12} /> Terverifikasi
           </div>
         </div>
       ) : (
         /* Action Options (Camera vs Upload) */
         <div className="grid grid-cols-2 gap-3">
-          {/* Option 1: Open Camera (Auto GPS & Stamp) */}
+          {/* Option 1: Open Camera */}
           <button
             type="button"
             onClick={handleOpenCamera}
@@ -147,7 +147,7 @@ export function PastoralPhotoPicker({
             ) : (
               <Camera size={18} />
             )}
-            <span>Buka Kamera (GPS & Timestamp)</span>
+            <span>Ambil Foto</span>
           </button>
 
           {/* Option 2: Upload from Gallery */}
@@ -158,7 +158,7 @@ export function PastoralPhotoPicker({
             className="min-h-[52px] px-3 bg-surface-sunken text-text-high border border-border-subtle rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1 hover:bg-surface-elevated active:scale-[0.98] transition-all disabled:opacity-50"
           >
             <ImageIcon size={18} className="text-brand-primary" />
-            <span>Upload dari Galeri</span>
+            <span>Pilih dari Galeri</span>
           </button>
         </div>
       )}

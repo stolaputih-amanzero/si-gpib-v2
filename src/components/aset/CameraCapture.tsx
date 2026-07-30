@@ -148,7 +148,7 @@ export function CameraCapture({
             className="min-h-[44px] px-3.5 bg-brand-primary/10 dark:bg-brand-primary/20 hover:bg-brand-primary/20 border border-brand-primary/30 text-brand-primary rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
           >
             <Camera size={18} />
-            <span>Kamera Foto (Live)</span>
+            <span>Ambil Foto</span>
           </button>
 
           <button
@@ -158,7 +158,7 @@ export function CameraCapture({
             className="min-h-[44px] px-3.5 bg-surface-elevated hover:bg-surface-sunken border border-border-subtle text-text-high rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
           >
             <FileText size={18} className="text-text-muted" />
-            <span>Galeri / Dokumen</span>
+            <span>Pilih Berkas</span>
           </button>
         </div>
 

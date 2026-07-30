@@ -381,7 +381,7 @@ function TambahPosPelkesFormContent() {
 
         <div className="bg-surface-elevated p-3.5 sm:p-6 rounded-xl sm:rounded-2xl border border-gray-100 shadow-sm space-y-5">
           <div className="flex justify-between items-center border-b pb-2">
-            <h2 className="text-lg font-semibold">Lokasi (GPS)</h2>
+            <h2 className="text-lg font-semibold">Lokasi Pos</h2>
             <button
               type="button"
               onClick={getLocation}

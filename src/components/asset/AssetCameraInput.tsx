@@ -107,7 +107,7 @@ export function AssetCameraInput({ onFileSelect, label = 'Foto Aset', error }: A
             ) : (
               <>
                 <ImageIcon className="w-8 h-8" />
-                <span className="text-sm font-medium">Buka Kamera / Galeri</span>
+                <span className="text-sm font-medium">Pilih Foto Aset</span>
               </>
             )}
           </button>
