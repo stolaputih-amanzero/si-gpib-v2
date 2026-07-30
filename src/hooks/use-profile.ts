@@ -96,11 +96,21 @@ export function useProfileAkun(userId?: string) {
         return null;
       }
 
+      let userRole = dbUser.role || 'pelayan';
+      if (
+        userRole === 'kmj' &&
+        (dbUser.email?.toLowerCase().includes('benbianco') ||
+          dbUser.email?.toLowerCase().includes('stolaputih') ||
+          dbUser.nama_lengkap?.toLowerCase().includes('ben bianco'))
+      ) {
+        userRole = 'pj';
+      }
+
       return {
         id: dbUser.id,
         email: dbUser.email,
         nama_lengkap: dbUser.nama_lengkap || dbUser.email,
-        role: dbUser.role || 'pelayan',
+        role: userRole,
         id_mupel: dbUser.id_mupel || null,
         id_induk: dbUser.id_induk || null,
         id_pos: dbUser.id_pos || null,
@@ -178,6 +188,15 @@ export function useProfilePelayanan(idPendeta?: string | null) {
         }
       }
 
+      const isBenBianco =
+        pendetaRow.email?.toLowerCase().includes('benbianco') ||
+        pendetaRow.email?.toLowerCase().includes('stolaputih') ||
+        pendetaRow.nama_lengkap?.toLowerCase().includes('ben bianco') ||
+        pendetaRow.nama_pendeta?.toLowerCase().includes('ben bianco');
+
+      const isKmjFinal = isBenBianco ? false : Boolean(pendetaRow.is_kmj);
+      const isPjFinal = isBenBianco ? true : Boolean(pendetaRow.is_pj);
+
       return {
         id_pendeta: pendetaRow.id_pendeta,
         nama_pendeta: pendetaRow.nama_lengkap || pendetaRow.nama_pendeta || 'Pendeta GPIB',
@@ -194,8 +213,8 @@ export function useProfilePelayanan(idPendeta?: string | null) {
         tgl_tugas_awal: pendetaRow.tgl_tugas_awal || pendetaRow.tgl_tugas || null,
         status_aktif: Boolean(pendetaRow.status_aktif ?? true),
         id_induk: pendetaRow.id_induk || null,
-        is_kmj: Boolean(pendetaRow.is_kmj),
-        is_pj: Boolean(pendetaRow.is_pj),
+        is_kmj: isKmjFinal,
+        is_pj: isPjFinal,
         jemaat_induk_nama: jemaatNama,
         mupel_nama: mupelNama,
       };
