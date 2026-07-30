@@ -1,6 +1,6 @@
 'use client';
 
-import { useTheme } from 'next-themes';
+import { useSmoothTheme } from '@/hooks/useSmoothTheme';
 import { Sun, Moon, Monitor } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
@@ -13,7 +13,7 @@ const THEMES = [
 ] as const;
 
 export function ThemeToggle({ className }: { className?: string }) {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = useSmoothTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);

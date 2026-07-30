@@ -5,31 +5,26 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, Layers, RotateCw, Sun, Moon } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
-import { useTheme } from 'next-themes';
+import { useSmoothTheme } from '@/hooks/useSmoothTheme';
 import { haptic } from '@/lib/haptic/vibrate';
 
-// Pathname mapping to human readable page titles
+// Route path to human-readable title mapping
 const PAGE_TITLES: Record<string, string> = {
-  '/dashboard': 'Beranda',
-  '/hierarki': 'Hierarki GPIB',
-  '/sdm': 'SDM & Pelayanan',
-  '/sdm/pendeta': 'Manajemen Pendeta',
-  '/sdm/pelayan': 'Pelayan Pos',
-  '/sdm/relawan': 'Relawan',
-  '/sdm/jadwal': 'Jadwal Ibadah',
-  '/laporan': 'Data & Laporan',
-  '/laporan/pastoral': 'Log Pastoral',
+  '/dashboard': 'Dashboard Pos Pelkes',
+  '/hierarki': 'Struktur Organisasi',
+  '/dashboard/pos-pelkes': 'Data Pos Pelkes & Bajem',
+  '/dashboard/peta': 'Peta Sebaran Pelayanan',
+  '/bantuan': 'Permohonan Bantuan',
+  '/bantuan/ajukan': 'Form Pengajuan Bantuan',
+  '/settings': 'Pengaturan Sistem',
+  '/laporan/pastoral': 'Log Pastoral & Kunjungan',
   '/laporan/demografi': 'Demografi Pelkat',
-  '/laporan/aset': 'Inventaris Aset',
-  '/laporan/kerawanan': 'Kerawanan Wilayah',
-  '/laporan/potensi': 'Potensi Wilayah',
-  '/bantuan': 'Pengajuan Bantuan',
-  '/bantuan/ajukan': 'Ajukan Bantuan Baru',
-  '/settings': 'Pengaturan',
-  '/settings/users': 'Manajemen User & Role',
-  '/dashboard/profil': 'Profil Saya',
-  '/analitik': 'Analitik & KPI',
-  '/wilayah': 'Kerawanan & Potensi',
+  '/inventaris': 'Aset & Inventaris',
+  '/relawan': 'Data Relawan Pos',
+  '/pelayan': 'Data Pelayan Pos',
+  '/pendeta': 'Pendeta Pos Pelkes',
+  '/wilayah': 'Kondisi & Risiko Wilayah',
+  '/kemitraan': 'Kemitraan Jemaat',
 };
 
 export function MobileHeader() {
@@ -38,7 +33,7 @@ export function MobileHeader() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const { resolvedTheme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useSmoothTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
