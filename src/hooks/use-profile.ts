@@ -400,21 +400,33 @@ export function useAktivitasUser(userId?: string) {
     queryFn: async () => {
       if (!userId) return [];
 
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('t_log_aktivitas')
         .select('*')
-        .eq('user_id', userId)
+        .eq('id_user', userId)
         .order('created_at', { ascending: false })
         .limit(20);
 
-      if (error || !data) return [];
+      if (error || !data || data.length === 0) {
+        const fallback = await supabase
+          .from('t_log_aktivitas')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(20);
+        if (!fallback.error && fallback.data) {
+          data = fallback.data;
+        }
+      }
+
+      if (!data) return [];
 
       return data.map((a: any) => ({
         id: a.id,
-        user_id: a.user_id,
+        user_id: a.id_user || a.user_id,
         aksi: a.aksi || a.action || 'LOG',
         fitur: a.fitur || a.feature || null,
-        detail: a.detail || a.description || null,
+        detail: a.detail || a.description || a.keterangan || null,
         created_at: a.created_at,
         ip_address: a.ip_address || null,
       }));
@@ -435,22 +447,33 @@ export function useDeviceBiometric(userId?: string) {
     queryFn: async () => {
       if (!userId) return [];
 
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('m_webauthn_credentials')
         .select('*')
-        .eq('user_id', userId)
+        .eq('id_user', userId)
         .order('created_at', { ascending: false });
 
-      if (error || !data) return [];
+      if (error || !data || data.length === 0) {
+        const fallback = await supabase
+          .from('m_webauthn_credentials')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+        if (!fallback.error && fallback.data) {
+          data = fallback.data;
+        }
+      }
+
+      if (!data) return [];
 
       return data.map((d: any) => ({
         id: d.id,
-        user_id: d.user_id,
+        user_id: d.id_user || d.user_id,
         credential_id: d.credential_id,
         device_type: d.device_type || 'Platform Credential',
         created_at: d.created_at,
         last_used_at: d.last_used_at || null,
-        friendly_name: d.friendly_name || d.device_name || 'Perangkat Biometrik',
+        friendly_name: d.friendly_name || d.display_name || d.device_name || 'Perangkat Biometrik',
       }));
     },
     staleTime: 1000 * 60 * 5,

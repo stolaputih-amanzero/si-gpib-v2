@@ -97,7 +97,7 @@ DROP POLICY IF EXISTS "aktivitas_privat_read" ON t_log_aktivitas;
 CREATE POLICY "aktivitas_privat_read" ON t_log_aktivitas
 FOR SELECT
 USING (
-  user_id = auth.uid()
+  id_user = auth.uid()
   OR (auth.jwt() ->> 'role') IN ('super_user', 'superadmin', 'sinode')
   OR EXISTS (
     SELECT 1 FROM users
@@ -113,7 +113,7 @@ DROP POLICY IF EXISTS "webauthn_privat_read" ON m_webauthn_credentials;
 CREATE POLICY "webauthn_privat_read" ON m_webauthn_credentials
 FOR SELECT
 USING (
-  user_id = auth.uid()
+  id_user = auth.uid()
   OR (auth.jwt() ->> 'role') IN ('super_user', 'superadmin', 'sinode')
   OR EXISTS (
     SELECT 1 FROM users
