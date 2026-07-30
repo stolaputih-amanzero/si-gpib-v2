@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useUser } from '@/hooks/use-user';
 import { useToast } from '@/components/ui/toast';
-import { Shield, Bell, LogOut, ChevronRight, Check, User as UserIcon, RefreshCw, Crown, Lock, X, Palette, Edit3 } from 'lucide-react';
+import { Shield, Bell, LogOut, ChevronRight, Check, User as UserIcon, RefreshCw, Crown, Lock, X, Palette, Edit3, Camera, Image as ImageIcon } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -11,6 +11,7 @@ import { BiometricSetup } from '@/components/biometric/BiometricSetup';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { updateOwnProfileAction } from './actions';
 import { useQueryClient } from '@tanstack/react-query';
+import { compressImage } from '@/lib/camera/compress';
 
 import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
 
@@ -30,6 +31,34 @@ export default function SettingsHubPage() {
   const [editNoHp, setEditNoHp] = useState('');
   const [editAvatar, setEditAvatar] = useState('');
   const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
+  const [isCompressingAvatar, setIsCompressingAvatar] = useState(false);
+
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const rawFile = files[0];
+
+    setIsCompressingAvatar(true);
+    try {
+      const compressed = await compressImage(rawFile);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        setEditAvatar(base64);
+      };
+      reader.readAsDataURL(compressed);
+    } catch (err) {
+      console.error('Error processing avatar image:', err);
+      toast.error('Gagal Memuat Foto', 'Foto tidak dapat diproses, silakan coba foto lain.');
+    } finally {
+      setIsCompressingAvatar(false);
+      if (cameraInputRef.current) cameraInputRef.current.value = '';
+      if (galleryInputRef.current) galleryInputRef.current.value = '';
+    }
+  };
 
   const handleOpenEditProfile = () => {
     setEditNama(nama || '');
@@ -400,15 +429,71 @@ export default function SettingsHubPage() {
                 />
               </div>
 
-              {/* Foto Profil / Avatar URL */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-high">URL Foto Profil / Avatar</label>
+              {/* Foto Profil / Avatar Picker */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-text-high">Foto Profil / Avatar</label>
+                <div className="flex items-center gap-4 p-3 rounded-2xl bg-surface-sunken border border-border-subtle">
+                  {/* Avatar Preview */}
+                  <div className="w-16 h-16 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold text-xl overflow-hidden shrink-0 border border-brand-primary/20 relative group">
+                    {editAvatar ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={editAvatar} alt="Preview Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <UserIcon className="w-8 h-8 text-brand-primary" />
+                    )}
+                    {editAvatar && (
+                      <button
+                        type="button"
+                        onClick={() => setEditAvatar('')}
+                        className="absolute inset-0 bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Hapus Foto"
+                      >
+                        <X size={18} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Buttons: Kamera & Galeri */}
+                  <div className="flex-1 space-y-1.5 min-w-0">
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => cameraInputRef.current?.click()}
+                        disabled={isCompressingAvatar}
+                        className="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all min-h-[40px] disabled:opacity-50"
+                      >
+                        {isCompressingAvatar ? <RefreshCw size={14} className="animate-spin" /> : <Camera size={14} />}
+                        <span>Kamera</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => galleryInputRef.current?.click()}
+                        disabled={isCompressingAvatar}
+                        className="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl bg-surface-elevated text-text-high border border-border-subtle hover:bg-surface-sunken text-xs font-bold active:scale-95 transition-all min-h-[40px] disabled:opacity-50"
+                      >
+                        <ImageIcon size={14} className="text-brand-primary" />
+                        <span>Galeri</span>
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-text-muted truncate">Kamera HP atau foto galeri (max 5MB)</p>
+                  </div>
+                </div>
+
+                {/* Hidden File Inputs */}
                 <input
-                  type="url"
-                  placeholder="https://..."
-                  value={editAvatar}
-                  onChange={(e) => setEditAvatar(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleAvatarFileSelect}
+                  className="hidden"
+                />
+                <input
+                  ref={galleryInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarFileSelect}
+                  className="hidden"
                 />
               </div>
 
