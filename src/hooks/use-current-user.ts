@@ -81,6 +81,14 @@ export function useCurrentUser() {
 
       let role = userDb?.role || user.user_metadata?.role || user.role || 'pendeta';
       if (role === 'user' || role === 'User') role = 'pendeta';
+      if (
+        role === 'kmj' &&
+        (user.email?.toLowerCase().includes('benbianco') ||
+          user.email?.toLowerCase().includes('stolaputih') ||
+          user.nama_lengkap?.toLowerCase().includes('ben bianco'))
+      ) {
+        role = 'pj';
+      }
       const isSuperUser = isSuperUserRole(role);
 
       const currentUserObj: CurrentUserAuth = {

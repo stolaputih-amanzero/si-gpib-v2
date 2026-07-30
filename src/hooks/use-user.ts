@@ -98,6 +98,14 @@ export function useUser(): UserProfile {
 
   let role = user?.role || metadata.role || 'Pengurus Pos Pelkes / Presbiter';
   if (role === 'user' || role === 'User') role = 'pendeta';
+  if (
+    role === 'kmj' &&
+    (email.toLowerCase().includes('benbianco') ||
+      email.toLowerCase().includes('stolaputih') ||
+      nama.toLowerCase().includes('ben bianco'))
+  ) {
+    role = 'pj';
+  }
 
   const avatarUrl =
     user?.avatar_url ||

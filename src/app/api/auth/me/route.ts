@@ -44,13 +44,25 @@ export async function GET() {
         user.user_metadata?.picture
 
       if (dbUser || resolvedAvatar) {
+        let finalRole = dbUser?.role || user.role || user.user_metadata?.role || 'pendeta';
+        if (
+          finalRole === 'kmj' &&
+          (user.email?.toLowerCase().includes('benbianco') ||
+            user.email?.toLowerCase().includes('stolaputih') ||
+            user.nama_lengkap?.toLowerCase().includes('ben bianco'))
+        ) {
+          finalRole = 'pj';
+        }
+
         user = {
           ...user,
+          role: finalRole,
           nama_lengkap: dbUser?.nama_lengkap || user.nama_lengkap || user.user_metadata?.nama_lengkap,
           avatar_url: resolvedAvatar,
           foto_url: resolvedAvatar,
           user_metadata: {
             ...(user.user_metadata || {}),
+            role: finalRole,
             nama_lengkap: dbUser?.nama_lengkap || user.user_metadata?.nama_lengkap,
             avatar_url: resolvedAvatar,
             foto_url: resolvedAvatar,
