@@ -229,7 +229,7 @@ export default function MyProfilePage() {
                         <span>Galeri</span>
                       </button>
                     </div>
-                    <p className="text-[10px] text-text-muted truncate">Kamera HP atau upload galeri (max 5MB)</p>
+                    <p className="text-[10px] text-text-muted truncate">Kamera HP atau upload galeri (Resolusi HD s/d 1MB)</p>
                   </div>
                 </div>
 

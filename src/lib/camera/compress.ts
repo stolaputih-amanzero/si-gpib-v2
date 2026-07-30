@@ -7,11 +7,11 @@ export async function compressImage(file: File): Promise<File> {
 }
 
 /**
- * Kompres khusus foto profil / avatar.
- * Resize ke max 300px dan output JPG quality 0.7 (ukuran berkas kecil ~15KB).
+ * Kompres khusus foto profil / avatar (High Definition up to 1MB).
+ * Resize ke max 1000px dan output JPG quality 0.85 (tampilan tajam jernih hingga 1MB).
  */
 export async function compressAvatarImage(file: File): Promise<File> {
-  return compressCustom(file, 300, 0.7);
+  return compressCustom(file, 1000, 0.85);
 }
 
 function compressCustom(file: File, maxDimension: number, quality: number): Promise<File> {
