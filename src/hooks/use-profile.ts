@@ -56,16 +56,25 @@ export function useProfileAkun(userId?: string) {
         return null;
       }
 
-      const { data: dbUser, error } = await supabase
+      let { data: dbUser } = await supabase
         .from('users')
         .select('*')
         .eq('id', targetId)
         .maybeSingle();
 
-      if (error || !dbUser) {
-        // Fallback search by auth user
-        const { data: authData } = await supabase.auth.getUser();
-        if (authData?.user && authData.user.id === targetId) {
+      const { data: authData } = await supabase.auth.getUser();
+
+      if (!dbUser && authData?.user?.email) {
+        const { data: dbUserByEmail } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', authData.user.email)
+          .maybeSingle();
+        dbUser = dbUserByEmail;
+      }
+
+      if (!dbUser) {
+        if (authData?.user) {
           const u = authData.user;
           const meta = u.user_metadata || {};
           return {

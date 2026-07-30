@@ -106,12 +106,36 @@ export async function updateOwnProfileAction(payload: {
       });
     } catch {}
 
-    // 2. Update public.users row via dbClient (adminClient fallback to user supabase client)
+    // 2. Update public.users row by ID or Email
     const dbClient = createAdminClient() || supabase;
+
+    let targetRowId = currentUserId;
+    if (currentUserId) {
+      const { data: rowById } = await dbClient
+        .from('users')
+        .select('id')
+        .eq('id', currentUserId)
+        .maybeSingle();
+
+      if (rowById) {
+        targetRowId = rowById.id;
+      } else if (currentUserEmail) {
+        const { data: rowByEmail } = await dbClient
+          .from('users')
+          .select('id')
+          .eq('email', currentUserEmail)
+          .maybeSingle();
+
+        if (rowByEmail) {
+          targetRowId = rowByEmail.id;
+        }
+      }
+    }
+
     const { error: dbError } = await dbClient
       .from('users')
       .upsert({
-        id: currentUserId,
+        id: targetRowId,
         email: currentUserEmail || '',
         nama_lengkap: payload.nama_lengkap,
         no_hp: payload.no_hp || null,
@@ -129,7 +153,7 @@ export async function updateOwnProfileAction(payload: {
       const { data: userData } = await dbClient
         .from('users')
         .select('id_pendeta')
-        .eq('id', currentUserId)
+        .eq('id', targetRowId)
         .maybeSingle();
 
       if (userData?.id_pendeta) {
@@ -141,6 +165,15 @@ export async function updateOwnProfileAction(payload: {
             updated_at: new Date().toISOString(),
           })
           .eq('id_pendeta', userData.id_pendeta);
+      } else if (currentUserEmail) {
+        await dbClient
+          .from('m_pendeta')
+          .update({
+            nama_pendeta: payload.nama_lengkap,
+            foto_url: finalAvatarUrl || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('email', currentUserEmail);
       }
     } catch (mErr) {
       console.warn('m_pendeta foto_url update warning:', mErr);
