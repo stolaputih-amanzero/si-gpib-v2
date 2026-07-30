@@ -348,6 +348,31 @@ html.theme-transitioning *::after {
   }
   .dark .ambient-glow::before { opacity: 0.5; }
 
+  .glow-super { position: relative; isolation: isolate; }
+  .glow-super::before {
+    content: ''; position: absolute; inset: -40% -10% auto -10%; height: 320px; z-index: -1;
+    background: radial-gradient(60% 60% at 50% 0%, color-mix(in srgb, #9333EA 16%, transparent), transparent 70%);
+    filter: blur(8px); pointer-events: none;
+  }
+  .glow-admin { position: relative; isolation: isolate; }
+  .glow-admin::before {
+    content: ''; position: absolute; inset: -40% -10% auto -10%; height: 320px; z-index: -1;
+    background: radial-gradient(60% 60% at 50% 0%, color-mix(in srgb, #D97706 16%, transparent), transparent 70%);
+    filter: blur(8px); pointer-events: none;
+  }
+  .glow-kmj { position: relative; isolation: isolate; }
+  .glow-kmj::before {
+    content: ''; position: absolute; inset: -40% -10% auto -10%; height: 320px; z-index: -1;
+    background: radial-gradient(60% 60% at 50% 0%, color-mix(in srgb, #0E9F6E 16%, transparent), transparent 70%);
+    filter: blur(8px); pointer-events: none;
+  }
+  .glow-user { position: relative; isolation: isolate; }
+  .glow-user::before {
+    content: ''; position: absolute; inset: -40% -10% auto -10%; height: 320px; z-index: -1;
+    background: radial-gradient(60% 60% at 50% 0%, color-mix(in srgb, var(--brand-400) 16%, transparent), transparent 70%);
+    filter: blur(8px); pointer-events: none;
+  }
+
   .surface-grain::after {
     content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: .025; mix-blend-mode: overlay;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");

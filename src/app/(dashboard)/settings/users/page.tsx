@@ -386,14 +386,25 @@ export default function UserManagementPage() {
                       <span>{user.status || 'Active'}</span>
                     </span>
 
-                    <button
-                      type="button"
-                      onClick={() => handleOpenEditModal(user)}
-                      className="px-3 py-1.5 rounded-xl bg-surface-sunken text-xs font-semibold text-text-high hover:bg-brand-primary hover:text-white transition-all flex items-center gap-1.5 min-h-[36px]"
-                    >
-                      <Edit size={14} />
-                      <span>Ubah Role & Otorisasi</span>
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <Link
+                        href={`/settings/users/${user.id}`}
+                        className="px-3 py-1.5 rounded-xl bg-brand-primary/10 text-brand-primary text-xs font-semibold hover:bg-brand-primary hover:text-white transition-all flex items-center gap-1 min-h-[36px]"
+                        title="Buka Profile 360° Pengguna"
+                      >
+                        <UserCheck size={14} />
+                        <span>Profil 360°</span>
+                      </Link>
+
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEditModal(user)}
+                        className="px-3 py-1.5 rounded-xl bg-surface-sunken text-xs font-semibold text-text-high hover:bg-brand-primary hover:text-white transition-all flex items-center gap-1.5 min-h-[36px]"
+                      >
+                        <Edit size={14} />
+                        <span>Ubah Role</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
