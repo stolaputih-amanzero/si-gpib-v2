@@ -124,6 +124,28 @@ export async function updateOwnProfileAction(payload: {
       console.error('Error updating users table:', dbError);
     }
 
+    // 2.b If user is linked to m_pendeta, update m_pendeta foto_url & nama
+    try {
+      const { data: userData } = await dbClient
+        .from('users')
+        .select('id_pendeta')
+        .eq('id', currentUserId)
+        .maybeSingle();
+
+      if (userData?.id_pendeta) {
+        await dbClient
+          .from('m_pendeta')
+          .update({
+            nama_pendeta: payload.nama_lengkap,
+            foto_url: finalAvatarUrl || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id_pendeta', userData.id_pendeta);
+      }
+    } catch (mErr) {
+      console.warn('m_pendeta foto_url update warning:', mErr);
+    }
+
     // 3. Update session cookie safely
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('si_gpib_user_session')?.value;
@@ -131,17 +153,15 @@ export async function updateOwnProfileAction(payload: {
       try {
         const parsed = JSON.parse(sessionCookie);
         parsed.nama_lengkap = payload.nama_lengkap;
-        if (!finalAvatarUrl.startsWith('data:image/')) {
-          parsed.avatar_url = finalAvatarUrl;
-          parsed.foto_url = finalAvatarUrl;
-        }
+        parsed.avatar_url = finalAvatarUrl;
+        parsed.foto_url = finalAvatarUrl;
         parsed.user_metadata = {
           ...parsed.user_metadata,
           nama_lengkap: payload.nama_lengkap,
           no_hp: payload.no_hp,
-          avatar_url: finalAvatarUrl.startsWith('data:image/') ? (parsed.user_metadata?.avatar_url || '') : finalAvatarUrl,
-          foto_url: finalAvatarUrl.startsWith('data:image/') ? (parsed.user_metadata?.foto_url || '') : finalAvatarUrl,
-          picture: finalAvatarUrl.startsWith('data:image/') ? (parsed.user_metadata?.picture || '') : finalAvatarUrl,
+          avatar_url: finalAvatarUrl,
+          foto_url: finalAvatarUrl,
+          picture: finalAvatarUrl,
         };
         cookieStore.set('si_gpib_user_session', JSON.stringify(parsed), {
           path: '/',

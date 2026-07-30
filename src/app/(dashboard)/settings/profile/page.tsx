@@ -78,14 +78,43 @@ export default function MyProfilePage() {
         avatar_url: editAvatar.trim(),
       });
 
-      if (!res.success) {
-        throw new Error(res.error);
-      }
+      const updatedAvatar = res.avatar_url || editAvatar.trim();
+
+      // Update local storage cache directly for instant UI update
+      try {
+        const cachedUser = localStorage.getItem('si_gpib_cached_user');
+        if (cachedUser) {
+          const parsed = JSON.parse(cachedUser);
+          parsed.avatar_url = updatedAvatar;
+          parsed.foto_url = updatedAvatar;
+          parsed.nama_lengkap = editNama.trim();
+          parsed.user_metadata = {
+            ...(parsed.user_metadata || {}),
+            avatar_url: updatedAvatar,
+            foto_url: updatedAvatar,
+            picture: updatedAvatar,
+            nama_lengkap: editNama.trim(),
+          };
+          localStorage.setItem('si_gpib_cached_user', JSON.stringify(parsed));
+        }
+
+        const cachedCurr = localStorage.getItem('si_gpib_cached_current_user');
+        if (cachedCurr) {
+          const parsedCurr = JSON.parse(cachedCurr);
+          parsedCurr.nama_lengkap = editNama.trim();
+          localStorage.setItem('si_gpib_cached_current_user', JSON.stringify(parsedCurr));
+        }
+      } catch {}
 
       toast.success('Profil Diperbarui', 'Data profil Anda berhasil disimpan.');
       setIsEditingProfile(false);
-      queryClient.invalidateQueries({ queryKey: ['profile-akun'] });
-      queryClient.invalidateQueries({ queryKey: ['current-user-auth'] });
+      
+      // Invalidate all related profile & auth queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['profile-akun'] }),
+        queryClient.invalidateQueries({ queryKey: ['profile-pelayanan'] }),
+        queryClient.invalidateQueries({ queryKey: ['current-user-auth'] }),
+      ]);
     } catch (err: any) {
       toast.error('Gagal Simpan Profil', err?.message || 'Terjadi kesalahan saat menyimpan profil.');
     } finally {

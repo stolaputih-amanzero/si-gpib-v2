@@ -104,7 +104,7 @@ export function useProfileAkun(userId?: string) {
         biometric_enabled: Boolean(dbUser.biometric_enabled),
       };
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
   });
 }
 
