@@ -44,6 +44,29 @@ export default function SettingsHubPage() {
     setIsCompressingAvatar(true);
     try {
       const compressed = await compressImage(rawFile);
+
+      // 1. Upload to Supabase Storage bucket 'pos-pelkes-assets'
+      const supabase = createClient();
+      const fileExt = compressed.name.split('.').pop() || 'jpg';
+      const fileName = `avatars/user-${user?.id || Date.now()}-${Date.now()}.${fileExt}`;
+
+      const { error: uploadErr } = await supabase.storage
+        .from('pos-pelkes-assets')
+        .upload(fileName, compressed, { upsert: true });
+
+      if (!uploadErr) {
+        const { data: publicUrlData } = supabase.storage
+          .from('pos-pelkes-assets')
+          .getPublicUrl(fileName);
+
+        if (publicUrlData?.publicUrl) {
+          setEditAvatar(publicUrlData.publicUrl);
+          setIsCompressingAvatar(false);
+          return;
+        }
+      }
+
+      // 2. Fallback: FileReader Base64
       const reader = new FileReader();
       reader.onload = (event) => {
         const base64 = event.target?.result as string;

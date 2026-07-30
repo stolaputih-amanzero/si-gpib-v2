@@ -43,7 +43,7 @@ export async function updateOwnProfileAction(payload: {
 
     let finalAvatarUrl = payload.avatar_url || '';
 
-    // Upload base64 avatar image to Supabase Storage if provided
+    // Upload base64 avatar image to Supabase Storage bucket 'pos-pelkes-assets' if provided
     if (finalAvatarUrl && finalAvatarUrl.startsWith('data:image/')) {
       try {
         const adminClient = createAdminClient();
@@ -52,11 +52,10 @@ export async function updateOwnProfileAction(payload: {
           const mimeType = finalAvatarUrl.split(';')[0].split(':')[1] || 'image/jpeg';
           const ext = mimeType.split('/')[1] || 'jpg';
           const buffer = Buffer.from(base64Data, 'base64');
-          const fileName = `avatars/avatar-${currentUserId}-${Date.now()}.${ext}`;
+          const fileName = `avatars/user-${currentUserId}-${Date.now()}.${ext}`;
 
-          // Try uploading to 'avatars' or 'pos-pelkes-attachments' bucket
           const { error: storageError } = await adminClient.storage
-            .from('avatars')
+            .from('pos-pelkes-assets')
             .upload(fileName, buffer, {
               contentType: mimeType,
               upsert: true,
@@ -64,32 +63,18 @@ export async function updateOwnProfileAction(payload: {
 
           if (!storageError) {
             const { data: publicData } = adminClient.storage
-              .from('avatars')
+              .from('pos-pelkes-assets')
               .getPublicUrl(fileName);
+
             if (publicData?.publicUrl) {
               finalAvatarUrl = publicData.publicUrl;
             }
           } else {
-            // Fallback to 'pos-pelkes-attachments' bucket if 'avatars' is not created
-            const { error: fallbackError } = await adminClient.storage
-              .from('pos-pelkes-attachments')
-              .upload(fileName, buffer, {
-                contentType: mimeType,
-                upsert: true,
-              });
-
-            if (!fallbackError) {
-              const { data: publicData } = adminClient.storage
-                .from('pos-pelkes-attachments')
-                .getPublicUrl(fileName);
-              if (publicData?.publicUrl) {
-                finalAvatarUrl = publicData.publicUrl;
-              }
-            }
+            console.error('Storage upload error to pos-pelkes-assets:', storageError);
           }
         }
       } catch (uploadErr) {
-        console.warn('Supabase storage avatar upload warning (resilient fallback active):', uploadErr);
+        console.warn('Supabase storage avatar upload warning:', uploadErr);
       }
     }
 
@@ -123,7 +108,8 @@ export async function updateOwnProfileAction(payload: {
       }
     }
 
-    // 3. Update session cookie
+    // 3. Update session cookie safely (only keep short URL in cookie, omit huge base64 string to avoid HTTP 431 / Header Too Large)
+    const safeCookieAvatarUrl = finalAvatarUrl.startsWith('data:image/') ? '' : finalAvatarUrl;
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('si_gpib_user_session')?.value;
     if (sessionCookie) {
@@ -134,7 +120,7 @@ export async function updateOwnProfileAction(payload: {
           ...parsed.user_metadata,
           nama_lengkap: payload.nama_lengkap,
           no_hp: payload.no_hp,
-          avatar_url: finalAvatarUrl,
+          avatar_url: safeCookieAvatarUrl,
         };
         cookieStore.set('si_gpib_user_session', JSON.stringify(parsed), {
           path: '/',
