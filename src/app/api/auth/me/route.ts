@@ -24,26 +24,34 @@ export async function GET() {
 
   if (user) {
     try {
-      let query = supabase.from('users').select('nama_lengkap, avatar_url, foto_url, role, no_hp')
-      if (user.id && user.email) {
-        query = query.or(`id.eq.${user.id},email.eq.${user.email}`)
-      } else if (user.id) {
-        query = query.eq('id', user.id)
-      } else if (user.email) {
-        query = query.eq('email', user.email)
+      let dbUser: any = null
+      if (user.id) {
+        const { data } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle()
+        dbUser = data
       }
-      const { data: dbUser } = await query.maybeSingle()
+      if (!dbUser && user.email) {
+        const { data } = await supabase.from('users').select('*').eq('email', user.email).maybeSingle()
+        dbUser = data
+      }
 
-      if (dbUser) {
-        const resolvedAvatar = dbUser.avatar_url || dbUser.foto_url || user.avatar_url || user.foto_url
+      const resolvedAvatar =
+        dbUser?.avatar_url ||
+        dbUser?.foto_url ||
+        user.avatar_url ||
+        user.foto_url ||
+        user.user_metadata?.avatar_url ||
+        user.user_metadata?.foto_url ||
+        user.user_metadata?.picture
+
+      if (dbUser || resolvedAvatar) {
         user = {
           ...user,
-          nama_lengkap: dbUser.nama_lengkap || user.nama_lengkap,
+          nama_lengkap: dbUser?.nama_lengkap || user.nama_lengkap || user.user_metadata?.nama_lengkap,
           avatar_url: resolvedAvatar,
           foto_url: resolvedAvatar,
           user_metadata: {
             ...(user.user_metadata || {}),
-            nama_lengkap: dbUser.nama_lengkap || user.user_metadata?.nama_lengkap,
+            nama_lengkap: dbUser?.nama_lengkap || user.user_metadata?.nama_lengkap,
             avatar_url: resolvedAvatar,
             foto_url: resolvedAvatar,
             picture: resolvedAvatar,
