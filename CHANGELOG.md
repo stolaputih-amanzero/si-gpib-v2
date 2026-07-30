@@ -4,6 +4,24 @@ Seluruh perubahan besar, penyempurnaan fitur, dan perbaikan sistem dicatat di be
 
 ---
 
+## [2.2.2] — 2026-07-31
+
+### 🆕 Added — Arsitektur Identitas Terpadu (Unified Identity Model)
+- **Migration `20260801_unified_identity.sql`**:
+  - Partial unique index `uq_users_pendeta_aktif` (1 pendeta = max 1 akun aktif)
+  - Integrity foreign keys (RESTRICT/SET NULL untuk 5 tabel histori & m_jemaat_induk; CASCADE untuk 3 tabel personal 360°)
+  - Trigger `sync_pendeta_status_to_user` (otomatis update status akun saat status pendeta berubah)
+  - Trigger `on_pendeta_deleted_deactivate_user` (deaktivasi akun dan reset `id_pendeta` ke NULL sebelum row `m_pendeta` dihapus)
+  - RPC `link_user_to_pendeta(p_user_id, p_id_pendeta)` untuk pengaitan akun secara atomic
+  - RPC `get_pendeta_360(p_id_pendeta)` dengan **Asymmetric Privacy Guard** (blok keluarga HANYA untuk Pemilik Data & Super User, Admin Mupel tidak diberi akses)
+  - RLS policies real-time lookup `(SELECT id_pendeta FROM public.users WHERE id = auth.uid())` tanpa ketergantungan klaim JWT basi
+- **Single Gate Frontend**:
+  - `src/lib/identity/get-current-pendeta.ts` (`getCurrentPendetaId`)
+  - `src/hooks/use-current-pendeta.ts` (`useCurrentPendeta` dengan cache query 5 menit)
+  - Single source of truth nama pendeta via `m_pendeta.nama_lengkap` di `useProfileAkun`
+
+---
+
 ## [2.2.1] — 2026-07-31
 
 ### 🆕 Added — Tiga Dimensi Baru Profile 360° (Keluarga, Kompetensi & Karunia, Keterlibatan Sinodal)

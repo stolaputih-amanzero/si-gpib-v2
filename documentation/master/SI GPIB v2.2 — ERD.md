@@ -1131,9 +1131,28 @@ ERD v2.2 ini merupakan evolusi dari skema v1.0 dengan penambahan fokus pada:
 
 ---
 
-📅 *Tanggal: 20 Juli 2026*
-✍️ *Disusun oleh: Tim Development SI GPIB v2.0*
-🔗 *Versi: 2.2 (berdasarkan Blueprint & PRD v2.2)*
-🔗 *Referensi: DB_SCHEMA.html, GPIB.xlsx, Blueprint v2.2, PRD v2.2*
+## 11. Unified Identity Model & Jabatan Struktural 🆕
+
+### 🔗 Model Identitas Terpadu (Satu Orang, Dua Wajah, Satu Jembatan)
+
+```
+[ users.id (UUID auth) ]  <---- JEMBATAN ---->  [ m_pendeta.id_pendeta (PDT-XXXXXXXX) ]
+                                (users.id_pendeta)
+```
+
+**Kontrak Integritas Database & Keamanan:**
+1. **`m_pendeta.id_pendeta` bersifat IMMUTABLE** — tidak pernah berubah setelah dibuat.
+2. **1 Pendeta = Max 1 Akun Aktif** (`uq_users_pendeta_aktif` partial unique index pada `users(id_pendeta) WHERE id_pendeta IS NOT NULL`).
+3. **Single Source of Truth Nama**: Nama pendeta bersumber utama dari `m_pendeta.nama_lengkap`.
+4. **Penghapusan Pendeta ≠ Penghapusan Akun**: Penghapusan row `m_pendeta` di-set `ON DELETE SET NULL` pada `users.id_pendeta` dan memicu trigger `BEFORE DELETE` untuk men-set `users.status = 'Nonaktif'`.
+5. **Integritas History Pelayanan**: Tabel histori (`t_pj_jemaat`, `t_penugasan_pendeta`, `t_riwayat_mutasi_pendeta`, `t_log_pastoral`, `t_jabatan_struktural`) bersifat `ON DELETE RESTRICT` untuk menjamin jejak pelayanan tidak pernah terhapus.
+6. **Data Personal 360°**: Data dimensi (`t_keluarga_pendeta`, `t_kompetensi_pendeta`, `t_keterlibatan_pendeta`) bersifat `ON DELETE CASCADE`.
+7. **RLS Real-Time Lookup**: RLS memeriksa hak akses langsung ke database `(SELECT id_pendeta FROM users WHERE id = auth.uid())` bukan dari claims JWT yang bisa basi.
+8. **Privasi Asimetris RPC `get_pendeta_360`**: Fungsi `SECURITY DEFINER` memproteksi blok `keluarga` hanya untuk Pemilik Data & Super User. Admin Mupel tidak diperkenankan melihat data keluarga.
 
 ---
+
+📅 *Tanggal Update Terbaru:* 30 Juli 2026
+✍️ *Disusun oleh:* Senior Database & Backend Architect SI GPIB v2.2
+🔗 *Versi:* 2.2.1 (Unified Identity Architecture Enabled)
+

@@ -222,6 +222,7 @@ export function useUpdatePendeta() {
       return data;
     },
     onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['current-pendeta'] });
       queryClient.invalidateQueries({ queryKey: ['pendeta-list'] });
       queryClient.invalidateQueries({ queryKey: ['pendeta-detail', variables.id_pendeta] });
       if (typeof window !== 'undefined' && 'vibrate' in navigator) {
@@ -238,10 +239,16 @@ export function useDeletePendeta() {
   return useMutation({
     mutationFn: async (id_pendeta: string) => {
       const { error } = await supabase.from('m_pendeta').delete().eq('id_pendeta', id_pendeta);
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23503' || error.message?.includes('foreign key constraint') || error.message?.includes('violates foreign key constraint')) {
+          throw new Error('Pendeta ini tidak dapat dihapus karena memiliki riwayat pelayanan (mutasi, penugasan, log pastoral, atau jabatan) yang harus dipertahankan.');
+        }
+        throw error;
+      }
       return true;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['current-pendeta'] });
       queryClient.invalidateQueries({ queryKey: ['pendeta-list'] });
     },
   });
@@ -266,6 +273,7 @@ export function useMutasiPendeta() {
       return { success: true };
     },
     onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['current-pendeta'] });
       queryClient.invalidateQueries({ queryKey: ['pendeta-list'] });
       queryClient.invalidateQueries({ queryKey: ['pendeta-detail', variables.id_pendeta] });
       queryClient.invalidateQueries({ queryKey: ['mutation-history', variables.id_pendeta] });
@@ -299,6 +307,7 @@ export function useSetKmj() {
       return { success: true };
     },
     onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['current-pendeta'] });
       queryClient.invalidateQueries({ queryKey: ['pendeta-list'] });
       queryClient.invalidateQueries({ queryKey: ['pendeta-detail', variables.id_pendeta] });
       queryClient.invalidateQueries({ queryKey: ['mutation-history', variables.id_pendeta] });

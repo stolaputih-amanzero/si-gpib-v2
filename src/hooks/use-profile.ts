@@ -58,7 +58,7 @@ export function useProfileAkun(userId?: string) {
 
       let { data: dbUser } = await supabase
         .from('users')
-        .select('*')
+        .select('*, pendeta:m_pendeta!users_id_pendeta_fkey(nama_lengkap, foto_url, no_wa)')
         .eq('id', targetId)
         .maybeSingle();
 
@@ -67,7 +67,7 @@ export function useProfileAkun(userId?: string) {
       if (!dbUser && authData?.user?.email) {
         const { data: dbUserByEmail } = await supabase
           .from('users')
-          .select('*')
+          .select('*, pendeta:m_pendeta!users_id_pendeta_fkey(nama_lengkap, foto_url, no_wa)')
           .eq('email', authData.user.email)
           .maybeSingle();
         dbUser = dbUserByEmail;
@@ -106,10 +106,13 @@ export function useProfileAkun(userId?: string) {
         userRole = 'pj';
       }
 
+      const pendetaObj = (dbUser as any).pendeta;
+      const resolvedNamaLengkap = pendetaObj?.nama_lengkap || dbUser.nama_lengkap || dbUser.email;
+
       return {
         id: dbUser.id,
         email: dbUser.email,
-        nama_lengkap: dbUser.nama_lengkap || dbUser.email,
+        nama_lengkap: resolvedNamaLengkap,
         role: userRole,
         id_mupel: dbUser.id_mupel || null,
         id_induk: dbUser.id_induk || null,
@@ -119,8 +122,8 @@ export function useProfileAkun(userId?: string) {
         last_login_at: dbUser.last_login_at || null,
         created_at: dbUser.created_at || null,
         no_hp: dbUser.no_hp || dbUser.no_telepon || null,
-        avatar_url: dbUser.avatar_url || dbUser.foto_url || null,
-        foto_url: dbUser.foto_url || dbUser.avatar_url || null,
+        avatar_url: dbUser.avatar_url || dbUser.foto_url || pendetaObj?.foto_url || null,
+        foto_url: dbUser.foto_url || dbUser.avatar_url || pendetaObj?.foto_url || null,
         biometric_enabled: Boolean(dbUser.biometric_enabled),
       };
     },

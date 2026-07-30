@@ -1614,12 +1614,24 @@ Blueprint v2.2 ini adalah fondasi untuk membangun **SI GPIB v2.0** — sebuah ek
 
 **Dokumen ini adalah living document** — akan diperbarui seiring perkembangan proyek.
 
-📅 *Terakhir diperbarui: 20 Juli 2026*
-✍️ *Disusun oleh: Tim Development SI GPIB v2.0*
-🔗 *Versi: 2.2 (Mobile First PWA + Biometric)*
-🔗 *Referensi: DB_SCHEMA.html, GPIB_Reach_Out_V2.0.html, GPIB.xlsx*
+---
+
+## 19. 🔗 Arsitektur Identitas Terpadu (Unified Identity Model)
+
+### 📌 Aturan Bisnis Kunci Identitas Pendeta:
+1. **`m_pendeta.id_pendeta` bersifat IMMUTABLE**: Sekali dibuat (format `PDT-XXXXXXXX`), ID Pendeta tidak pernah berubah.
+2. **Single Source of Truth Nama**: Nama pendeta secara resmi dikelola hanya pada `m_pendeta.nama_lengkap`. Tabel `users` hanya menyimpan relasi via `users.id_pendeta`.
+3. **1 Pendeta = Max 1 Akun Aktif**: Satu pendeta hanya boleh terhubung dengan maksimal satu akun pengguna aktif (`uq_users_pendeta_aktif`).
+4. **Keberlanjutan Sejarah Pelayanan**: Penghapusan pendeta men-set `users.id_pendeta = NULL` (`ON DELETE SET NULL`) dan merubah `users.status = 'Nonaktif'`. Catatan pelayanan (log pastoral, mutasi, penugasan, dan jabatan struktural) dikunci dengan `ON DELETE RESTRICT` sehingga tidak pernah terhapus.
+5. **Privasi Pelayan (Asymmetric Privacy Guard)**: Data dimensi keluarga (`t_keluarga_pendeta`) dilindungi secara ketat via RPC `SECURITY DEFINER` `get_pendeta_360`, hanya dapat diakses oleh Pemilik Data dan Super User, sedangkan Admin Mupel tidak diberi akses ke data keluarga.
 
 ---
+
+📅 *Terakhir diperbarui: 30 Juli 2026*
+✍️ *Disusun oleh: Tim Development SI GPIB v2.0*
+🔗 *Versi: 2.2.1 (Mobile First PWA + Biometric + Unified Identity)*
+🔗 *Referensi: DB_SCHEMA.html, GPIB_Reach_Out_V2.0.html, GPIB.xlsx, ERD v2.2*
+
 
 ## 🎯 Ringkasan Perubahan v2.1 → v2.2
 
