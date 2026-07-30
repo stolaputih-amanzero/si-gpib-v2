@@ -4,6 +4,11 @@
 -- Jalankan Canary (Skenario #1 saja): SELECT * FROM test_proof_get_pendeta_360(1);
 -- Jalankan Semua (1–8):                SELECT * FROM test_proof_get_pendeta_360();
 -- =============================================================================
+
+-- Clean up overloaded function signatures if present
+DROP FUNCTION IF EXISTS test_proof_get_pendeta_360();
+DROP FUNCTION IF EXISTS test_proof_get_pendeta_360(INT);
+
 CREATE OR REPLACE FUNCTION test_proof_get_pendeta_360(p_scenario_no INT DEFAULT NULL)
 RETURNS TABLE (no INT, skenario TEXT, harapan TEXT, hasil TEXT, status TEXT)
 LANGUAGE plpgsql SECURITY INVOKER AS $$
