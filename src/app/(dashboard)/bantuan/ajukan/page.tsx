@@ -83,7 +83,7 @@ export default function AjukanBantuanPage() {
         </div>
       </div>
 
-      <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-5xl mx-auto px-2.5 sm:px-4 md:px-6 py-6 space-y-6">
         <div className="bg-surface-elevated p-4 sm:p-6 rounded-2xl border border-border-subtle shadow-soft space-y-4">
 
           {successMsg && (

@@ -291,7 +291,7 @@ export default function LaporanKerawananPage() {
       {/* Modal Add Kerawanan */}
       {showKerawananModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto bg-surface-elevated rounded-3xl p-2 shadow-heavy border border-border-subtle relative animate-slide-up">
+          <div className="w-full sm:max-w-2xl md:max-w-3xl max-h-[90vh] overflow-y-auto bg-surface-elevated rounded-3xl p-2 shadow-heavy border border-border-subtle relative animate-slide-up">
             <button
               onClick={() => setShowKerawananModal(false)}
               className="absolute top-4 right-4 p-2 text-text-muted hover:text-text-high rounded-full bg-surface-sunken transition-colors z-10 min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -310,7 +310,7 @@ export default function LaporanKerawananPage() {
       {/* Modal Edit Kerawanan */}
       {selectedEdit && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto bg-surface-elevated rounded-3xl p-2 shadow-heavy border border-border-subtle relative animate-slide-up">
+          <div className="w-full sm:max-w-2xl md:max-w-3xl max-h-[90vh] overflow-y-auto bg-surface-elevated rounded-3xl p-2 shadow-heavy border border-border-subtle relative animate-slide-up">
             <button
               onClick={() => setSelectedEdit(null)}
               className="absolute top-4 right-4 p-2 text-text-muted hover:text-text-high rounded-full bg-surface-sunken transition-colors z-10 min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -329,7 +329,7 @@ export default function LaporanKerawananPage() {
       {/* Detail Modal Kerawanan Wilayah */}
       {selectedDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-surface-elevated rounded-3xl shadow-heavy border border-border-subtle relative animate-slide-up flex flex-col">
+          <div className="w-full sm:max-w-2xl md:max-w-3xl max-h-[90vh] overflow-y-auto bg-surface-elevated rounded-3xl shadow-heavy border border-border-subtle relative animate-slide-up flex flex-col">
             {/* Modal Header */}
             <div className="p-4 sm:p-5 border-b border-border-subtle flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">

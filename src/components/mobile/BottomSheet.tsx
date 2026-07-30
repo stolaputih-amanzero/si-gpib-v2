@@ -44,7 +44,7 @@ export function BottomSheet({
       {/* Sheet */}
       <div
         className={cn(
-          'relative w-full max-w-lg bg-surface-elevated rounded-t-3xl shadow-heavy border-t border-border-subtle animate-slide-up overflow-hidden max-h-[85vh] flex flex-col pb-safe',
+          'relative w-full max-w-2xl bg-surface-elevated rounded-t-3xl shadow-heavy border-t border-border-subtle animate-slide-up overflow-hidden max-h-[85vh] flex flex-col pb-safe',
           className
         )}
       >

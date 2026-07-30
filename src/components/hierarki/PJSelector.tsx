@@ -53,8 +53,8 @@ export function PJSelector({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-lg max-h-[90vh] bg-surface-elevated rounded-3xl p-5 shadow-float border border-border-subtle flex flex-col relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
+      <div className="w-full sm:max-w-2xl max-h-[90vh] bg-surface-elevated rounded-3xl p-4 sm:p-6 shadow-float border border-border-subtle flex flex-col relative">
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-border-subtle pb-3">
           <div className="flex items-center gap-3">

@@ -638,7 +638,7 @@ export default function LaporanPastoralPage() {
       {/* Modal Detail & Edit Log Pastoral */}
       {selectedLog && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-          <div className="bg-surface-elevated w-full max-w-lg rounded-t-3xl sm:rounded-2xl p-5 border border-border-subtle shadow-heavy max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
+          <div className="bg-surface-elevated w-full sm:max-w-2xl md:max-w-3xl rounded-t-3xl sm:rounded-2xl p-4 sm:p-6 border border-border-subtle shadow-heavy max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-border-subtle pb-3">
               <div>

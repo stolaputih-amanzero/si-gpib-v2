@@ -68,7 +68,7 @@ export function StatusElevationModal({ isOpen, onClose, posItem }: StatusElevati
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="w-full sm:max-w-lg bg-surface-elevated rounded-t-3xl sm:rounded-2xl border border-border-subtle shadow-lg overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="w-full sm:max-w-2xl md:max-w-3xl bg-surface-elevated rounded-t-3xl sm:rounded-2xl border border-border-subtle shadow-lg overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header Modal */}
         <div className="p-4 sm:p-5 border-b border-border-subtle flex items-center justify-between bg-surface-sunken">
           <div className="flex items-center gap-3">

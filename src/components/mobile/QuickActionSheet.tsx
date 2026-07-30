@@ -72,7 +72,7 @@ export function QuickActionSheet({ isOpen, onClose }: QuickActionSheetProps) {
 
       {/* Sheet Container with Solid Theme Surface */}
       <div 
-        className="relative w-full max-w-lg bg-surface-1 text-ink-primary rounded-t-3xl shadow-2xl border-t border-line-subtle animate-slide-up overflow-hidden select-none"
+        className="relative w-full max-w-2xl bg-surface-1 text-ink-primary rounded-t-3xl shadow-2xl border-t border-line-subtle animate-slide-up overflow-hidden select-none"
         style={{ backgroundColor: 'var(--surface-1)', color: 'var(--text-primary)' }}
       >
         {/* Drag Handle */}
