@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { MapPin, Camera, Loader2, ArrowLeft } from 'lucide-react';
 import { savePosPelkes } from './actions';
 import { JemaatCascadingSelector } from '@/components/hierarki/HierarkiSelector/JemaatCascadingSelector';
+import { normalizePosName } from '@/lib/utils/normalize-pos-name';
 import { useToast } from '@/components/ui/toast';
 
 const formSchema = z.object({
@@ -136,6 +137,7 @@ function TambahPosPelkesFormContent() {
     handleSubmit,
     setValue,
     control,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -264,9 +266,10 @@ function TambahPosPelkesFormContent() {
 
   const onSubmit = async (data: FormValues) => {
     setServerError(null);
+    const cleanName = normalizePosName(data.nama_pos);
     const formData = new FormData();
     formData.append('id_induk', data.id_induk);
-    formData.append('nama_pos', data.nama_pos);
+    formData.append('nama_pos', cleanName);
     formData.append('kategori', data.kategori);
     if (data.alamat) formData.append('alamat', data.alamat);
     if (data.latitude) formData.append('latitude', data.latitude.toString());
@@ -355,11 +358,16 @@ function TambahPosPelkesFormContent() {
               placeholder="Cth: Bajem Wonobakti / Pos Pelkes Getsemani"
             />
             {errors.nama_pos && <p className="mt-1 text-xs text-red-500">{errors.nama_pos.message}</p>}
+            {watch('nama_pos') && normalizePosName(watch('nama_pos')) !== watch('nama_pos')?.trim() && (
+              <p className="text-xs text-ink-tertiary mt-1">
+                Akan disimpan sebagai: <span className="font-semibold text-brand-600">{normalizePosName(watch('nama_pos'))}</span>
+              </p>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-text-high">
-              Alamat Lengkap <span className="text-text-muted">(Opsional)</span>
+              Alamat Lengkap
             </label>
             <textarea 
               {...register('alamat')}
@@ -387,7 +395,7 @@ function TambahPosPelkesFormContent() {
 
           <div>
             <label className="block text-sm font-medium text-text-high">
-              Ekstrak dari Link Google Maps / Koordinat / Alamat <span className="text-text-muted">(Opsional)</span>
+              Ekstrak dari Link Google Maps / Koordinat / Alamat
             </label>
             <div className="flex gap-2">
               <input 

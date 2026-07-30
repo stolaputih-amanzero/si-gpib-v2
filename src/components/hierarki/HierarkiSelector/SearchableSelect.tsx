@@ -157,7 +157,13 @@ export function SearchableSelect({
     <div className="space-y-1.5 w-full relative" ref={containerRef} onKeyDown={handleKeyDown}>
       {label && (
         <label className="text-xs font-semibold text-text-high flex items-center justify-between">
-          <span>{label}</span>
+          <span>
+            {label.endsWith('*') ? (
+              <>{label.slice(0, -1).trim()} <span className="text-red-500">*</span></>
+            ) : (
+              label
+            )}
+          </span>
           {isLoading && (
             <span className="text-[11px] text-text-muted flex items-center gap-1">
               <Loader2 className="w-3 h-3 animate-spin" /> {loadingText}

@@ -88,7 +88,7 @@ export function JabatanStrukturalForm({ id_pendeta, initialData, onSuccess, onCa
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-high">Kategori Jabatan *</label>
+          <label className="text-xs font-semibold text-text-high">Kategori Jabatan <span className="text-red-500">*</span></label>
           <select
             {...register('kategori')}
             onChange={(e) => {
@@ -106,7 +106,7 @@ export function JabatanStrukturalForm({ id_pendeta, initialData, onSuccess, onCa
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-high">Tingkat Organisasi *</label>
+          <label className="text-xs font-semibold text-text-high">Tingkat Organisasi <span className="text-red-500">*</span></label>
           <select
             {...register('tingkat')}
             className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary"
@@ -120,7 +120,7 @@ export function JabatanStrukturalForm({ id_pendeta, initialData, onSuccess, onCa
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-xs font-semibold text-text-high">Nama Jabatan *</label>
+        <label className="text-xs font-semibold text-text-high">Nama Jabatan <span className="text-red-500">*</span></label>
         {watchKategori === 'BP Mupel' ? (
           <select
             {...register('nama_jabatan')}
@@ -150,7 +150,7 @@ export function JabatanStrukturalForm({ id_pendeta, initialData, onSuccess, onCa
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-high">Tanggal Mulai *</label>
+          <label className="text-xs font-semibold text-text-high">Tanggal Mulai <span className="text-red-500">*</span></label>
           <input
             type="date"
             {...register('tgl_mulai')}
@@ -193,7 +193,7 @@ export function JabatanStrukturalForm({ id_pendeta, initialData, onSuccess, onCa
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-high">Status *</label>
+          <label className="text-xs font-semibold text-text-high">Status <span className="text-red-500">*</span></label>
           <select
             {...register('status')}
             className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary"
@@ -210,7 +210,7 @@ export function JabatanStrukturalForm({ id_pendeta, initialData, onSuccess, onCa
         <textarea
           rows={2}
           {...register('keterangan')}
-          placeholder="Catatan tambahan (opsional)"
+          placeholder="Catatan tambahan..."
           className="w-full p-3 rounded-xl border border-border-subtle bg-surface-base text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
         />
       </div>

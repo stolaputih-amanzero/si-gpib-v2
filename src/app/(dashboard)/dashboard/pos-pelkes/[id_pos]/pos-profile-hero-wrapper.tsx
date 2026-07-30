@@ -6,6 +6,8 @@ import { MapPin, Edit3, ArrowLeft, Building2, Eye, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ShareButton } from '@/components/mobile/ShareButton';
 import DeletePosButton from './delete-button';
+import { PosName } from '@/components/ui/PosName';
+import { normalizePosName } from '@/lib/utils/normalize-pos-name';
 
 interface PosProfileHeroWrapperProps {
   pos: {
@@ -68,7 +70,7 @@ export default function PosProfileHeroWrapper({
           {(() => {
             const jemaatNama = pos.jemaat_induk?.nama_induk || '-';
             const mupelNama = pos.jemaat_induk?.mupel?.nama_mupel || pos.jemaat_induk?.id_mupel || '-';
-            const posNama = pos.nama_pos || '-';
+            const posNama = normalizePosName(pos.nama_pos) || pos.nama_pos || '-';
             const lat = pos.latitude || null;
             const lng = pos.longitude || null;
 
@@ -175,7 +177,7 @@ export default function PosProfileHeroWrapper({
             {/* Title Overlay at bottom of photo (Tanpa Alamat) */}
             <div className="absolute bottom-3 left-4 right-14 z-10 pointer-events-none">
               <h1 className="text-lg sm:text-2xl font-black text-white drop-shadow-md leading-snug">
-                {pos.nama_pos}
+                <PosName name={pos.nama_pos} className="text-white" />
               </h1>
             </div>
 
@@ -199,7 +201,7 @@ export default function PosProfileHeroWrapper({
             </div>
             <div className="relative z-10">
               <h1 className="text-lg sm:text-2xl font-black text-white drop-shadow-md leading-snug">
-                {pos.nama_pos}
+                <PosName name={pos.nama_pos} className="text-white" />
               </h1>
             </div>
           </div>

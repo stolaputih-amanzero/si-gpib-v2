@@ -271,7 +271,7 @@ export function PotensiForm({ defaultPosId, initialData, onSuccess, onCancel }: 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {/* Target Scope Switcher */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-high">Target Lingkup Potensi *</label>
+          <label className="text-xs font-semibold text-text-high">Target Lingkup Potensi <span className="text-red-500">*</span></label>
           <div className="grid grid-cols-2 gap-2 bg-surface-sunken p-1 rounded-xl">
             <button
               type="button"
@@ -325,7 +325,7 @@ export function PotensiForm({ defaultPosId, initialData, onSuccess, onCancel }: 
         {/* Nama Potensi & Kategori */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-text-high">Nama Potensi *</label>
+            <label className="text-xs font-semibold text-text-high">Nama Potensi <span className="text-red-500">*</span></label>
             <input
               type="text"
               placeholder="Contoh: Lahan Pertanian Kakao, Kelompok Pengrajin Tenun"
@@ -339,7 +339,7 @@ export function PotensiForm({ defaultPosId, initialData, onSuccess, onCancel }: 
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-text-high">Kategori Potensi *</label>
+            <label className="text-xs font-semibold text-text-high">Kategori Potensi <span className="text-red-500">*</span></label>
             <select
               {...form.register('kategori')}
               disabled={isSubmitting}
@@ -359,7 +359,7 @@ export function PotensiForm({ defaultPosId, initialData, onSuccess, onCancel }: 
 
         {/* Deskripsi Potensi */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-high">Deskripsi Detail Potensi *</label>
+          <label className="text-xs font-semibold text-text-high">Deskripsi Detail Potensi <span className="text-red-500">*</span></label>
           <textarea
             rows={3}
             placeholder="Jelaskan jenis potensi, perkiraan kapasitas/volume, keterlibatan warga pos, dll..."
@@ -374,7 +374,7 @@ export function PotensiForm({ defaultPosId, initialData, onSuccess, onCancel }: 
 
         {/* Keterangan Tambahan */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-high">Keterangan / Rencana Pengembangan (Opsional)</label>
+          <label className="text-xs font-semibold text-text-high">Keterangan / Rencana Pengembangan</label>
           <textarea
             rows={2}
             placeholder="Catatan dukungan gereja induk, bantuan kemitraan yang dibutuhkan..."

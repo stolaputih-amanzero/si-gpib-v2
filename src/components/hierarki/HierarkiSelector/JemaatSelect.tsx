@@ -24,7 +24,7 @@ export function JemaatSelect({ id_mupel, value, onChange, disabled, error, requi
 
   return (
     <SearchableSelect
-      label={required ? "Jemaat Induk *" : "Jemaat Induk (Opsional)"}
+      label={required ? "Jemaat Induk *" : "Jemaat Induk"}
       value={value}
       onChange={onChange}
       options={options}

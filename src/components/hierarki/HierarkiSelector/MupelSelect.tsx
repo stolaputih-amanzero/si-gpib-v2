@@ -23,7 +23,7 @@ export function MupelSelect({ value, onChange, disabled, error, required = true 
 
   return (
     <SearchableSelect
-      label={required ? "Mupel *" : "Mupel (Opsional)"}
+      label={required ? "Mupel *" : "Mupel"}
       value={value}
       onChange={onChange}
       options={options}

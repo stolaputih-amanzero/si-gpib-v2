@@ -98,19 +98,25 @@ export default async function Dashboard() {
     .sort((a, b) => b.total - a.total);
 
   return (
-    <div className="w-full min-h-full bg-surface-base pb-24 pt-safe">
-      <div className="sticky top-0 z-40 bg-surface-elevated/90 backdrop-blur-md border-b border-border-subtle px-4 py-3.5 md:px-6">
-        <h1 className="text-xl md:text-2xl font-serif font-bold text-brand-primary">Dashboard Utama</h1>
-        <p className="text-xs md:text-sm text-text-secondary mt-0.5">Sistem Informasi Pelayanan & Kesaksian GPIB</p>
+    <div className="w-full min-h-full bg-surface-base pb-24">
+      <div className="sticky top-0 z-40 bg-surface-1/85 backdrop-blur-md hairline-b px-4 py-3.5 md:px-6 pt-safe">
+        <h1 className="text-xl md:text-2xl font-display font-semibold tracking-tightish text-ink-primary">
+          Dashboard Utama
+        </h1>
+        <p className="text-xs md:text-sm text-ink-secondary mt-0.5">
+          Sistem Informasi Pelayanan &amp; Kesaksian GPIB
+        </p>
       </div>
 
       <main className="max-w-6xl mx-auto px-4 py-5 md:px-6 space-y-6">
-        <StatCards 
-          posCount={posCount || 0}
-          jemaatCount={jemaatCount || 0}
-          totalJiwa={totalJiwa}
-          logCount={logCount || 0}
-        />
+        <section className="ambient-glow">
+          <StatCards 
+            posCount={posCount || 0}
+            jemaatCount={jemaatCount || 0}
+            totalJiwa={totalJiwa}
+            logCount={logCount || 0}
+          />
+        </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
@@ -126,5 +132,3 @@ export default async function Dashboard() {
     </div>
   );
 }
-
-

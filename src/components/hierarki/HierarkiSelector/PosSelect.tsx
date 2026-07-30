@@ -24,11 +24,11 @@ export function PosSelect({ id_induk, value, onChange, disabled, error, required
 
   return (
     <SearchableSelect
-      label={required ? "Pos Pelkes / Bajem *" : "Pos Pelkes / Bajem (Opsional)"}
+      label={required ? "Pos Pelkes / Bajem *" : "Pos Pelkes / Bajem"}
       value={value}
       onChange={onChange}
       options={options}
-      placeholder="-- Pilih Pos Pelkes (Opsional) --"
+      placeholder="-- Pilih Pos Pelkes --"
       searchPlaceholder="Cari Pos Pelkes / Bajem..."
       disabled={disabled || !id_induk}
       disabledMessage={!id_induk ? '-- Pilih Jemaat Dahulu --' : undefined}

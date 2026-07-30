@@ -1,0 +1,107 @@
+import type { Config } from 'tailwindcss';
+
+const config: Config = {
+  darkMode: ['class', '.dark'],
+  content: ['./src/**/*.{ts,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        brand: {
+          50: 'var(--brand-50)',
+          100: 'var(--brand-100)',
+          200: 'var(--brand-200)',
+          300: 'var(--brand-300)',
+          400: 'var(--brand-400)',
+          500: 'var(--brand-500)',
+          600: 'var(--brand-600)',
+          700: 'var(--brand-700)',
+          800: 'var(--brand-800)',
+          900: 'var(--brand-900)',
+          primary: 'var(--brand-600)',
+        },
+        accent: {
+          50: 'var(--accent-50)',
+          100: 'var(--accent-100)',
+          300: 'var(--accent-300)',
+          400: 'var(--accent-400)',
+          500: 'var(--accent-500)',
+          600: 'var(--accent-600)',
+          soft: 'var(--surface-accent)',
+        },
+        surface: {
+          base: 'var(--surface-base)',
+          1: 'var(--surface-1)',
+          2: 'var(--surface-2)',
+          sunken: 'var(--surface-sunken)',
+          brand: 'var(--surface-brand)',
+          overlay: 'var(--surface-overlay)',
+          elevated: 'var(--surface-1)',
+        },
+        ink: {
+          primary: 'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          tertiary: 'var(--text-tertiary)',
+          disabled: 'var(--text-disabled)',
+          inverse: 'var(--text-inverse)',
+        },
+        line: {
+          hairline: 'var(--border-hairline)',
+          subtle: 'var(--border-subtle)',
+          strong: 'var(--border-strong)',
+        },
+        ok: { DEFAULT: 'var(--success)', soft: 'var(--success-soft)' },
+        warn: { DEFAULT: 'var(--warning)', soft: 'var(--warning-soft)' },
+        bad: { DEFAULT: 'var(--error)', soft: 'var(--error-soft)' },
+        /* Legacy backward compatibility aliases */
+        'brand-primary': 'var(--brand-600)',
+        'text-primary': 'var(--text-primary)',
+        'text-secondary': 'var(--text-secondary)',
+        'text-tertiary': 'var(--text-tertiary)',
+        'text-high': 'var(--text-primary)',
+        'text-muted': 'var(--text-secondary)',
+        'border-subtle': 'var(--border-subtle)',
+        'border-strong': 'var(--border-strong)',
+        'surface-base': 'var(--surface-base)',
+        'surface-elevated': 'var(--surface-1)',
+        'surface-sunken': 'var(--surface-sunken)',
+      },
+      fontFamily: {
+        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'serif'],
+      },
+      borderRadius: {
+        xs: 'var(--radius-xs)',
+        sm: 'var(--radius-sm)',
+        md: 'var(--radius-md)',
+        lg: 'var(--radius-lg)',
+        xl: 'var(--radius-xl)',
+        '2xl': 'var(--radius-2xl)',
+      },
+      boxShadow: {
+        xs: 'var(--shadow-xs)',
+        sm: 'var(--shadow-sm)',
+        md: 'var(--shadow-md)',
+        lg: 'var(--shadow-lg)',
+        ring: 'var(--shadow-ring)',
+        soft: 'var(--shadow-sm)',
+      },
+      transitionTimingFunction: {
+        ios: 'var(--ease-ios)',
+        smooth: 'var(--ease-smooth)',
+        spring: 'var(--ease-spring)',
+      },
+      transitionDuration: {
+        instant: 'var(--dur-instant)',
+        fast: 'var(--dur-fast)',
+        normal: 'var(--dur-normal)',
+        slow: 'var(--dur-slow)',
+      },
+      letterSpacing: {
+        tightish: '-0.01em',
+        tighter2: '-0.02em',
+      },
+    },
+  },
+  plugins: [],
+};
+export default config;

@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Map, GitFork, Plus, Database, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { haptic } from '@/lib/haptic/vibrate';
 
 export interface BottomNavigationProps {
   onFabClick: () => void;
@@ -37,7 +38,10 @@ export function BottomNavigation({ onFabClick }: BottomNavigationProps) {
   }, [router]);
 
   return (
-    <nav data-testid="bottom-nav" className="fixed bottom-0 left-0 right-0 z-40 bg-surface-elevated/95 backdrop-blur-md border-t border-border-subtle pb-[env(safe-area-inset-bottom)] md:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.06)] select-none">
+    <nav 
+      data-testid="bottom-nav" 
+      className="fixed bottom-0 left-0 right-0 z-40 bg-surface-1 backdrop-blur-md hairline-t pb-[env(safe-area-inset-bottom)] md:hidden shadow-xs select-none"
+    >
       <div className="flex items-center justify-around h-16 px-2 max-w-md mx-auto relative">
         {NAV_ITEMS.map((item) => {
           if (item.isFAB) {
@@ -46,9 +50,12 @@ export function BottomNavigation({ onFabClick }: BottomNavigationProps) {
                 <button
                   type="button"
                   data-testid="bottom-nav-fab"
-                  onClick={onFabClick}
-                  className="flex items-center justify-center w-14 h-14 bg-brand-primary text-white rounded-full shadow-lg hover:bg-brand-primary-dark active:scale-95 transition-all border-4 border-surface-elevated focus:outline-none focus:ring-4 focus:ring-brand-primary/20"
-                  aria-label="Aksi Cepat"
+                  onClick={() => {
+                    haptic.medium();
+                    onFabClick();
+                  }}
+                  className="flex items-center justify-center w-14 h-14 bg-brand-600 text-white rounded-full shadow-md shadow-brand-600/30 hover:bg-brand-700 active:scale-95 transition-all border-4 border-surface-base focus:outline-none focus:ring-4 focus:ring-brand-600/20"
+                  aria-label="Aksi Cepat Pelayanan"
                   title="Buka Aksi Cepat"
                 >
                   <Plus className="w-7 h-7 stroke-[2.5px]" />
@@ -75,15 +82,18 @@ export function BottomNavigation({ onFabClick }: BottomNavigationProps) {
               data-testid="bottom-nav-item"
               data-nav-id={itemTestId}
               id={itemTestId}
-              onClick={() => router.push(item.href)}
+              onClick={() => {
+                haptic.selection();
+                router.push(item.href);
+              }}
               className={cn(
                 'flex flex-col items-center justify-center gap-1 min-h-[44px] min-w-[64px] active:scale-95 transition-transform py-1',
-                isActive ? 'text-brand-primary font-bold' : 'text-text-muted hover:text-text-high'
+                isActive ? 'text-brand-600 font-bold' : 'text-ink-tertiary hover:text-ink-secondary'
               )}
               aria-label={item.label}
               aria-current={isActive ? 'page' : undefined}
             >
-              <Icon className={cn('w-6 h-6', isActive ? 'stroke-[2.5px]' : 'stroke-[1.8px]')} />
+              <Icon className={cn('w-6 h-6', isActive ? 'text-brand-600 stroke-[2.5px]' : 'text-ink-tertiary stroke-[1.8px]')} />
               <span className="text-[10px] font-medium tracking-tight truncate max-w-[64px] text-center">
                 {item.label}
               </span>

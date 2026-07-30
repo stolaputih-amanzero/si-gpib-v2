@@ -1,4 +1,5 @@
 import { shareToWhatsApp } from './share-to-whatsapp';
+import { normalizePosName } from '@/lib/utils/normalize-pos-name';
 
 function getFullPhotoUrl(path?: string | null): string | null {
   if (!path) return null;
@@ -38,7 +39,8 @@ export function generatePotensiWaText(item: any): string {
   );
   const fullPhotoUrl = getFullPhotoUrl(firstPhoto?.file_path);
 
-  const posName = item.pos?.nama_pos || item.id_pos || '-';
+  const rawPos = item.pos?.nama_pos || item.id_pos || '-';
+  const posName = normalizePosName(rawPos);
   const jemaatName = item.pos?.jemaat_induk || '-';
   const mupelName = item.pos?.mupel || '-';
 

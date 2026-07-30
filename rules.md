@@ -447,12 +447,17 @@ const colors = {
 
 ### 🔤 Typography
 
+| Font Layer | Font Family | Peran |
+|------------|-------------|-------|
+| Typography | **Inter** (UI/body), **Fraunces** (Display/KPI/Headings besar) | Netral bersuhu & Angka KPI |
+
 ```typescript
 // Font families
 const fonts = {
-  sans: ['Inter', 'system-ui', 'sans-serif'],  // UI
-  serif: ['Merriweather', 'serif'],  // Headings
+  sans: ['Inter', 'system-ui', 'sans-serif'],  // UI / Body
+  display: ['Fraunces', 'Merriweather', 'serif'],  // Display / KPI / Headings besar
 };
+```
 
 // Font sizes (mobile-first)
 const fontSizes = {

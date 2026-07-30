@@ -1,10 +1,27 @@
 import type { Metadata } from 'next';
+import { Inter, Fraunces } from 'next/font/google';
 import './globals.css';
 import QueryProvider from '@/components/providers/QueryProvider';
 import { ToastProvider } from '@/components/ui/toast';
 import { NetworkBanner } from '@/components/mobile/NetworkBanner';
 import { MobileSplashScreen } from '@/components/mobile/MobileSplashScreen';
 import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
+import { ThemeProvider } from '@/components/theme/ThemeProvider';
+import { ThemeScript } from '@/components/theme/ThemeScript';
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
+  style: ['normal'],
+});
+
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  variable: '--font-display',
+  display: 'swap',
+  axes: ['opsz', 'SOFT', 'WONK'],
+});
 
 export const metadata: Metadata = {
   title: 'SI GPIB v2.2 - Sistem Informasi GPIB',
@@ -51,19 +68,19 @@ export default function RootLayout({
   return (
     <html lang="id" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <ThemeScript />
       </head>
-      <body className="bg-surface-base text-text-high" suppressHydrationWarning>
-        <QueryProvider>
-          <ToastProvider>
-            <ServiceWorkerRegister />
-            <MobileSplashScreen />
-            <NetworkBanner />
-            {children}
-          </ToastProvider>
-        </QueryProvider>
+      <body className={`${inter.variable} ${fraunces.variable} font-sans bg-surface-base text-ink-primary`} suppressHydrationWarning>
+        <ThemeProvider>
+          <QueryProvider>
+            <ToastProvider>
+              <ServiceWorkerRegister />
+              <MobileSplashScreen />
+              <NetworkBanner />
+              {children}
+            </ToastProvider>
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

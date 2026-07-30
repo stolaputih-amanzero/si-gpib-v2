@@ -188,7 +188,7 @@ export function PelayanForm({ id_pos = 'POS-001', initialData, onSuccess }: Pela
 
       {/* Target Scope Selector */}
       <div className="space-y-1.5">
-        <label className="text-xs font-semibold text-text-high">Target Lingkup Pelayan *</label>
+        <label className="text-xs font-semibold text-text-high">Target Lingkup Pelayan <span className="text-red-500">*</span></label>
         <div className="grid grid-cols-2 gap-2 bg-surface-sunken p-1 rounded-xl">
           <button
             type="button"
@@ -234,7 +234,7 @@ export function PelayanForm({ id_pos = 'POS-001', initialData, onSuccess }: Pela
       {/* Nama & Jabatan */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-high">Nama Lengkap Pelayan *</label>
+          <label className="text-xs font-semibold text-text-high">Nama Lengkap Pelayan <span className="text-red-500">*</span></label>
           <input
             type="text"
             placeholder="Pdt. Otniel / Dkn. Maria"
@@ -245,7 +245,7 @@ export function PelayanForm({ id_pos = 'POS-001', initialData, onSuccess }: Pela
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-high">Jabatan Pelayanan *</label>
+          <label className="text-xs font-semibold text-text-high">Jabatan Pelayanan <span className="text-red-500">*</span></label>
           <input
             type="text"
             placeholder="Misal: Pendeta Pos / Penatua / Diaken"
@@ -261,7 +261,7 @@ export function PelayanForm({ id_pos = 'POS-001', initialData, onSuccess }: Pela
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
             <Phone size={14} className="text-emerald-600" />
-            <span>Nomor WhatsApp (+62...) *</span>
+            <span>Nomor WhatsApp (+62...) <span className="text-red-500">*</span></span>
           </label>
           <input
             type="text"
@@ -273,7 +273,7 @@ export function PelayanForm({ id_pos = 'POS-001', initialData, onSuccess }: Pela
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-high">Jenis Kelamin *</label>
+          <label className="text-xs font-semibold text-text-high">Jenis Kelamin <span className="text-red-500">*</span></label>
           <select
             {...register('gender')}
             className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-base font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
@@ -288,7 +288,7 @@ export function PelayanForm({ id_pos = 'POS-001', initialData, onSuccess }: Pela
       {/* Tanggal Lahir & Status */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-high">Tanggal Lahir (Opsional)</label>
+          <label className="text-xs font-semibold text-text-high">Tanggal Lahir</label>
           <input
             type="date"
             {...register('tgl_lahir')}
@@ -297,7 +297,7 @@ export function PelayanForm({ id_pos = 'POS-001', initialData, onSuccess }: Pela
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-high">Status Pelayanan *</label>
+          <label className="text-xs font-semibold text-text-high">Status Pelayanan <span className="text-red-500">*</span></label>
           <select
             {...register('status')}
             className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-base font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
@@ -322,7 +322,7 @@ export function PelayanForm({ id_pos = 'POS-001', initialData, onSuccess }: Pela
       {/* Foto Profil (Kamera / File Upload) */}
       <div className="space-y-1.5">
         <label className="text-xs font-semibold text-text-high flex items-center justify-between">
-          <span>Foto Profil Pelayan (Opsional)</span>
+          <span>Foto Profil Pelayan</span>
           {photoUploading && <span className="text-[10px] text-brand-primary animate-pulse">Mengunggah foto...</span>}
         </label>
 

@@ -7,6 +7,7 @@ import { elevateStatusSchema, ElevateStatusInput } from '@/lib/validations/hiera
 import { useElevateStatus } from '@/hooks/use-hierarki';
 import { X, TrendingUp, Calendar, FileText, Church, ArrowRight, Loader2, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
+import { PosName } from '@/components/ui/PosName';
 
 interface StatusElevationModalProps {
   isOpen: boolean;
@@ -78,7 +79,7 @@ export function StatusElevationModal({ isOpen, onClose, posItem }: StatusElevati
               <h2 className="text-base font-extrabold text-text-high leading-snug">
                 Tingkatkan Status Pelayanan
               </h2>
-              <p className="text-xs text-text-muted">{posItem.nama_pos} ({posItem.id_pos})</p>
+              <p className="text-xs text-text-muted"><PosName name={posItem.nama_pos} /> ({posItem.id_pos})</p>
             </div>
           </div>
           <button

@@ -431,7 +431,7 @@ export function CameraCapture({
               className="text-xs text-text-muted hover:text-brand-primary inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-surface-elevated transition-colors"
             >
               <MapPin size={13} className="text-brand-primary" />
-              <span>+ Isi Koordinat GPS Lokasi Secara Manual (Opsional)</span>
+              <span>+ Isi Koordinat GPS Lokasi Secara Manual</span>
             </button>
           </div>
         )}

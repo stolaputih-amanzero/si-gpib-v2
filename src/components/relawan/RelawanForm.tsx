@@ -188,7 +188,7 @@ export function RelawanForm({ id_pos = 'POS-001', initialData, onSuccess }: Rela
 
       {/* Target Scope Selector */}
       <div className="space-y-1.5">
-        <label className="text-xs font-semibold text-text-high">Target Lingkup Relawan *</label>
+        <label className="text-xs font-semibold text-text-high">Target Lingkup Relawan <span className="text-red-500">*</span></label>
         <div className="grid grid-cols-2 gap-2 bg-surface-sunken p-1 rounded-xl">
           <button
             type="button"
@@ -234,7 +234,7 @@ export function RelawanForm({ id_pos = 'POS-001', initialData, onSuccess }: Rela
       {/* Nama & No WA */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-high">Nama Lengkap Relawan *</label>
+          <label className="text-xs font-semibold text-text-high">Nama Lengkap Relawan <span className="text-red-500">*</span></label>
           <input
             type="text"
             placeholder="Nama relawan..."
@@ -247,7 +247,7 @@ export function RelawanForm({ id_pos = 'POS-001', initialData, onSuccess }: Rela
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
             <Phone size={14} className="text-emerald-600" />
-            <span>Nomor WhatsApp (+62...) *</span>
+            <span>Nomor WhatsApp (+62...) <span className="text-red-500">*</span></span>
           </label>
           <input
             type="text"
@@ -262,7 +262,7 @@ export function RelawanForm({ id_pos = 'POS-001', initialData, onSuccess }: Rela
       {/* Kategori & Gender */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-high">Kategori Relawan *</label>
+          <label className="text-xs font-semibold text-text-high">Kategori Relawan <span className="text-red-500">*</span></label>
           <select
             {...register('kategori')}
             className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-base font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
@@ -277,7 +277,7 @@ export function RelawanForm({ id_pos = 'POS-001', initialData, onSuccess }: Rela
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-high">Jenis Kelamin *</label>
+          <label className="text-xs font-semibold text-text-high">Jenis Kelamin <span className="text-red-500">*</span></label>
           <select
             {...register('gender')}
             className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-base font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
@@ -294,7 +294,7 @@ export function RelawanForm({ id_pos = 'POS-001', initialData, onSuccess }: Rela
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
             <Calendar size={14} className="text-brand-primary" />
-            <span>Tanggal Lahir (Opsional)</span>
+            <span>Tanggal Lahir</span>
           </label>
           <input
             type="date"
@@ -306,7 +306,7 @@ export function RelawanForm({ id_pos = 'POS-001', initialData, onSuccess }: Rela
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
             <Award size={14} className="text-amber-500" />
-            <span>Pelatihan Diikuti (Opsional)</span>
+            <span>Pelatihan Diikuti</span>
           </label>
           <input
             type="text"
@@ -331,7 +331,7 @@ export function RelawanForm({ id_pos = 'POS-001', initialData, onSuccess }: Rela
       {/* Foto Profil (Kamera / File Upload) */}
       <div className="space-y-1.5">
         <label className="text-xs font-semibold text-text-high flex items-center justify-between">
-          <span>Foto Profil Relawan (Opsional)</span>
+          <span>Foto Profil Relawan</span>
           {photoUploading && <span className="text-[10px] text-brand-primary animate-pulse">Mengunggah foto...</span>}
         </label>
 

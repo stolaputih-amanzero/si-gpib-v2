@@ -667,7 +667,7 @@ export default function LaporanPastoralPage() {
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
                       <Calendar size={14} className="text-brand-primary" />
-                      Tanggal *
+                      <span>Tanggal <span className="text-red-500">*</span></span>
                     </label>
                     <input
                       type="date"
@@ -681,7 +681,7 @@ export default function LaporanPastoralPage() {
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
                       <Clock size={14} className="text-brand-primary" />
-                      Waktu / Jam & Timezone *
+                      <span>Waktu / Jam & Timezone <span className="text-red-500">*</span></span>
                     </label>
                     <div className="flex gap-2">
                       <input
@@ -706,7 +706,7 @@ export default function LaporanPastoralPage() {
 
                 {/* 1. Selector Target Scope (Jemaat Induk vs Pos Pelkes) */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-text-high">Target Lingkup Pelayanan *</label>
+                  <label className="text-xs font-semibold text-text-high">Target Lingkup Pelayanan <span className="text-red-500">*</span></label>
                   <div className="grid grid-cols-2 gap-2 bg-surface-sunken p-1 rounded-xl">
                     <button
                       type="button"
@@ -737,7 +737,7 @@ export default function LaporanPastoralPage() {
                 <div className="space-y-1.5 border border-border-subtle/80 p-3 rounded-2xl bg-surface-base">
                   <label className="text-xs font-bold text-brand-primary flex items-center gap-1.5 mb-1">
                     <Building size={14} />
-                    <span>Wilayah Pelayanan Hierarki (Mupel, Jemaat, Pos) *</span>
+                    <span>Wilayah Pelayanan Hierarki (Mupel, Jemaat, Pos) <span className="text-red-500">*</span></span>
                   </label>
                   <PosCascadingSelector
                     value={editIdPos}
@@ -753,7 +753,7 @@ export default function LaporanPastoralPage() {
 
                 {/* Kegiatan */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-text-high">Kegiatan Pastoral *</label>
+                  <label className="text-xs font-semibold text-text-high">Kegiatan Pastoral <span className="text-red-500">*</span></label>
                   <textarea
                     rows={3}
                     value={editKegiatan}
@@ -791,7 +791,7 @@ export default function LaporanPastoralPage() {
 
                 {/* Catatan */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-text-high">Catatan Pastoral (Opsional)</label>
+                  <label className="text-xs font-semibold text-text-high">Catatan Pastoral</label>
                   <textarea
                     rows={3}
                     value={editCatatan}

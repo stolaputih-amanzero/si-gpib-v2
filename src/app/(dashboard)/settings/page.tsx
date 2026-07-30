@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/hooks/use-user';
 import { useToast } from '@/components/ui/toast';
-import { Shield, Bell, LogOut, ChevronRight, Check, User as UserIcon, RefreshCw, Crown, Lock, X } from 'lucide-react';
+import { Shield, Bell, LogOut, ChevronRight, Check, User as UserIcon, RefreshCw, Crown, Lock, X, Palette } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { BiometricSetup } from '@/components/biometric/BiometricSetup';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 
 import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
 
@@ -182,6 +183,28 @@ export default function SettingsHubPage() {
         {/* Biometric Setup & Security */}
         <BiometricSetup initialEnabled={biometricsEnabled} />
 
+        {/* Theme & Appearance Settings */}
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0 pr-4">
+                <div className="p-2.5 rounded-xl bg-surface-brand text-brand-600 shrink-0">
+                  <Palette className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <CardTitle className="text-base truncate">Tampilan &amp; Tema Aplikasi</CardTitle>
+                  <CardDescription className="line-clamp-1">
+                    Pilih tema terang, gelap, atau ikuti preferensi sistem perangkat Anda
+                  </CardDescription>
+                </div>
+              </div>
+              <div className="w-full md:w-auto">
+                <ThemeToggle />
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
         {/* Notifications */}
         <Card>
           <CardHeader>
@@ -193,7 +216,7 @@ export default function SettingsHubPage() {
                 <div className="min-w-0">
                   <CardTitle className="text-base truncate">Notifikasi Sistem</CardTitle>
                   <CardDescription className="line-clamp-1">
-                    Pemberitahuan bantuan, permohonan pos, & pengingat ibadah
+                    Pemberitahuan bantuan, permohonan pos, &amp; pengingat ibadah
                   </CardDescription>
                 </div>
               </div>

@@ -313,7 +313,7 @@ function LogPastoralBaruContentPage() {
           <div className="space-y-2">
             <label className="text-sm font-medium text-text-high flex items-center gap-2">
               <Calendar className="w-4 h-4 text-brand-primary" />
-              Tanggal Pelayanan *
+              <span>Tanggal Pelayanan <span className="text-red-500">*</span></span>
             </label>
             <input
               type="date"
@@ -328,7 +328,7 @@ function LogPastoralBaruContentPage() {
           <div className="space-y-2">
             <label className="text-sm font-medium text-text-high flex items-center gap-2">
               <Clock className="w-4 h-4 text-brand-primary" />
-              Waktu / Jam & Timezone *
+              <span>Waktu / Jam & Timezone <span className="text-red-500">*</span></span>
             </label>
             <div className="flex gap-2">
               <input
@@ -353,7 +353,7 @@ function LogPastoralBaruContentPage() {
 
         {/* 1. Selector Target Scope (Jemaat Induk vs Pos Pelkes) */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-high">Target Lingkup Pelayanan *</label>
+          <label className="text-xs font-semibold text-text-high">Target Lingkup Pelayanan <span className="text-red-500">*</span></label>
           <div className="grid grid-cols-2 gap-2 bg-surface-sunken p-1 rounded-xl">
             <button
               type="button"
@@ -407,7 +407,7 @@ function LogPastoralBaruContentPage() {
         {/* Kegiatan dengan Voice Input */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-text-high flex items-center justify-between">
-            <span>Kegiatan *</span>
+            <span>Kegiatan <span className="text-red-500">*</span></span>
             {isVoiceSupported && (
               <button
                 type="button"
@@ -478,7 +478,7 @@ function LogPastoralBaruContentPage() {
         {/* Catatan */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-text-high">
-            Catatan Pastoral (Opsional)
+            Catatan Pastoral
           </label>
           <textarea
             {...register('catatan')}

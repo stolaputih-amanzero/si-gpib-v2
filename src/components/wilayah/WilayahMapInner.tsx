@@ -7,6 +7,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapPosPelkesItem, MapJemaatItem } from '@/hooks/use-wilayah';
 import { AlertTriangle, Sparkles, MapPin, ExternalLink, ShieldAlert } from 'lucide-react';
+import { PosName } from '@/components/ui/PosName';
 import Link from 'next/link';
 
 // Custom Marker Icons (Leaflet DivIcon)
@@ -218,7 +219,7 @@ export default function WilayahMapInner({ data, jemaatData = [], selectedPosId, 
                               {item.id_pos} • Pos Pelkes
                             </span>
                             <h3 className="font-extrabold text-base text-slate-900 dark:text-white leading-snug mt-1">
-                              {item.nama_pos}
+                              <PosName name={item.nama_pos} />
                             </h3>
                             {item.mupel && (
                               <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mt-0.5">Mupel: {item.mupel}</p>

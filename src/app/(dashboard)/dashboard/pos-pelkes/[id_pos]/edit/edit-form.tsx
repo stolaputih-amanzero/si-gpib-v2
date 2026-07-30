@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { updatePosPelkes } from '../../baru/actions';
 import { JemaatCascadingSelector } from '@/components/hierarki/HierarkiSelector/JemaatCascadingSelector';
 import { useToast } from '@/components/ui/toast';
+import { normalizePosName } from '@/lib/utils/normalize-pos-name';
 
 const formSchema = z.object({
   id_induk: z.string().min(1, 'Jemaat Induk wajib dipilih'),
@@ -168,6 +169,7 @@ function EditPosPelkesFormContent({ pos }: { pos: any }) {
     handleSubmit,
     setValue,
     control,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -217,9 +219,10 @@ function EditPosPelkesFormContent({ pos }: { pos: any }) {
 
   const onSubmit = async (data: FormValues) => {
     setServerError(null);
+    const cleanName = normalizePosName(data.nama_pos);
     const formData = new FormData();
     formData.append('id_induk', data.id_induk);
-    formData.append('nama_pos', data.nama_pos);
+    formData.append('nama_pos', cleanName);
     formData.append('kategori', data.kategori);
     if (data.alamat) formData.append('alamat', data.alamat);
     if (data.latitude !== null && data.latitude !== undefined) formData.append('latitude', data.latitude.toString());
@@ -304,11 +307,16 @@ function EditPosPelkesFormContent({ pos }: { pos: any }) {
               placeholder="Cth: Bajem Wonobakti / Pos Pelkes Getsemani"
             />
             {errors.nama_pos && <p className="mt-1 text-xs text-red-500 font-semibold">{errors.nama_pos.message}</p>}
+            {watch('nama_pos') && normalizePosName(watch('nama_pos')) !== watch('nama_pos')?.trim() && (
+              <p className="text-xs text-ink-tertiary mt-1">
+                Akan disimpan sebagai: <span className="font-semibold text-brand-600">{normalizePosName(watch('nama_pos'))}</span>
+              </p>
+            )}
           </div>
 
           <div className="space-y-1">
             <label className="block text-xs font-black text-text-high uppercase tracking-wider">
-              Alamat Lengkap <span className="text-text-muted">(Opsional)</span>
+              Alamat Lengkap
             </label>
             <textarea 
               {...register('alamat')}
@@ -321,7 +329,7 @@ function EditPosPelkesFormContent({ pos }: { pos: any }) {
 
           <div className="space-y-1">
             <label className="block text-xs font-black text-text-high uppercase tracking-wider">
-              Keterangan Tambahan <span className="text-text-muted">(Opsional)</span>
+              Keterangan Tambahan
             </label>
             <textarea 
               {...register('keterangan')}
@@ -336,7 +344,7 @@ function EditPosPelkesFormContent({ pos }: { pos: any }) {
           <div className="space-y-2 pt-2 border-t border-border-subtle">
             <div>
               <label className="block text-xs font-black text-text-high uppercase tracking-wider">
-                Foto Profil Gedung / Lokasi <span className="text-text-muted">(Kamera / Unggah File)</span>
+                Foto Profil Gedung / Lokasi
               </label>
               <p className="text-[11px] text-text-muted font-medium mt-0.5">
                 💡 <span className="font-bold text-brand-primary">Catatan:</span> Disarankan mengunggah foto <span className="font-bold underline text-text-high">tampak depan</span> dari gedung Pos Pelkes / Bajem untuk identifikasi lokasi yang presisi.
@@ -432,7 +440,7 @@ function EditPosPelkesFormContent({ pos }: { pos: any }) {
 
           <div className="space-y-1">
             <label className="block text-xs font-black text-text-high uppercase tracking-wider">
-              Ekstrak dari Link Google Maps / Koordinat / Alamat <span className="text-text-muted">(Opsional)</span>
+              Ekstrak dari Link Google Maps / Koordinat / Alamat
             </label>
             <div className="flex gap-2">
               <input 
@@ -457,7 +465,7 @@ function EditPosPelkesFormContent({ pos }: { pos: any }) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="block text-xs font-black text-text-high uppercase tracking-wider">
-                Latitude <span className="text-text-muted">(Opsional)</span>
+                Latitude
               </label>
               <input 
                 {...register('latitude', { valueAsNumber: true })}
@@ -469,7 +477,7 @@ function EditPosPelkesFormContent({ pos }: { pos: any }) {
             </div>
             <div className="space-y-1">
               <label className="block text-xs font-black text-text-high uppercase tracking-wider">
-                Longitude <span className="text-text-muted">(Opsional)</span>
+                Longitude
               </label>
               <input 
                 {...register('longitude', { valueAsNumber: true })}

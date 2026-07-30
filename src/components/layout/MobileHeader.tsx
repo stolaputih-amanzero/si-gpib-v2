@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, Layers, RotateCw } from 'lucide-react';
+import { ChevronLeft, Layers, RotateCw, Sun, Moon } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
+import { useTheme } from 'next-themes';
+import { haptic } from '@/lib/haptic/vibrate';
 
 // Pathname mapping to human readable page titles
 const PAGE_TITLES: Record<string, string> = {
@@ -36,6 +38,10 @@ export function MobileHeader() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   // Find exact title match or fallback to closest matching prefix or generic label
   let title = PAGE_TITLES[pathname];
@@ -58,15 +64,9 @@ export function MobileHeader() {
   const handleRefreshData = async () => {
     setIsRefreshing(true);
     try {
-      // 1. Invalidate all React Query cache to re-fetch fresh data
       await queryClient.invalidateQueries();
-      // 2. Trigger Next.js router revalidation
       router.refresh();
-
-      if (typeof window !== 'undefined' && 'vibrate' in navigator) {
-        navigator.vibrate([10, 30, 10]);
-      }
-
+      haptic.light();
       toast.success('Data Diperbarui', 'Data aplikasi berhasil disegarkan secara real-time.');
     } catch {
       toast.error('Gagal Memperbarui', 'Terjadi kesalahan saat menyegarkan data.');
@@ -78,47 +78,61 @@ export function MobileHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-surface-elevated/95 backdrop-blur-md border-b border-border-subtle md:hidden shadow-soft select-none">
+    <header className="sticky top-0 z-40 w-full bg-surface-1/95 backdrop-blur-md hairline-b md:hidden shadow-xs select-none">
       <div className="flex items-center justify-between h-14 px-3 pt-safe">
         <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
-          {/* Back Button (shown on all sub-pages) */}
           {!isRoot && (
             <button
               type="button"
               onClick={() => router.back()}
-              className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-xl text-text-high hover:bg-surface-sunken active:scale-95 transition-all -ml-1 border border-border-subtle/40"
+              className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-xl text-ink-primary hover:bg-surface-sunken active:scale-95 transition-all -ml-1 border border-line-subtle/40"
               aria-label="Kembali"
               title="Kembali"
             >
-              <ChevronLeft className="w-6 h-6 text-brand-primary" />
+              <ChevronLeft className="w-6 h-6 text-brand-600" />
             </button>
           )}
 
-          {/* Root Brand Tag */}
           {isRoot && (
-            <div className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-brand-primary/10 text-brand-primary shrink-0">
+            <div className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-surface-brand text-brand-600 shrink-0">
               <Layers size={16} className="stroke-[2.5px]" />
               <span className="text-xs font-black tracking-wider uppercase">SI GPIB</span>
             </div>
           )}
 
-          {/* Page Title */}
-          <h1 data-testid="mobile-header-title" className="font-serif font-bold text-base sm:text-lg text-text-high truncate leading-snug min-w-0">
+          <h1 data-testid="mobile-header-title" className="font-display font-semibold text-base sm:text-lg text-ink-primary truncate leading-snug min-w-0">
             {title}
           </h1>
         </div>
 
-        {/* Quick Refresh Button for Mobile / Android PWA */}
-        <div className="flex items-center shrink-0">
+        {/* Quick Header Actions: Theme Toggle + Refresh */}
+        <div className="flex items-center shrink-0 gap-1">
+          <button
+            type="button"
+            onClick={() => {
+              haptic.selection();
+              setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
+            }}
+            className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-xl text-ink-secondary hover:bg-surface-sunken active:scale-95 transition-all border border-line-subtle/40"
+            aria-label="Ganti tema tampilan"
+            title="Ganti Tema (Terang / Gelap)"
+          >
+            {mounted && resolvedTheme === 'dark' ? (
+              <Sun size={18} className="text-accent-600" />
+            ) : (
+              <Moon size={18} className="text-brand-600" />
+            )}
+          </button>
+
           <button
             type="button"
             onClick={handleRefreshData}
             disabled={isRefreshing}
-            className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-xl text-brand-primary hover:bg-brand-primary/10 active:scale-95 transition-all border border-border-subtle/40 disabled:opacity-50"
+            className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-xl text-brand-600 hover:bg-surface-brand active:scale-95 transition-all border border-line-subtle/40 disabled:opacity-50"
             aria-label="Segarkan Data"
             title="Segarkan Data Real-Time"
           >
-            <RotateCw size={18} className={isRefreshing ? 'animate-spin text-brand-primary' : ''} />
+            <RotateCw size={18} className={isRefreshing ? 'animate-spin text-brand-600' : ''} />
           </button>
         </div>
       </div>

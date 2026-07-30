@@ -512,7 +512,7 @@ export default function LaporanDemografiPage() {
                   <span>{formEditIdPos ? 'Edit Data Demografi Pelkat' : 'Input Demografi Pelkat Baru'}</span>
                 </h2>
                 <p className="text-xs text-text-muted mt-0.5">
-                  Pilih Wilayah Jemaat Induk, Pos Pelkes (Opsional) & Pelkat
+                  Pilih Wilayah Jemaat Induk, Pos Pelkes & Pelkat
                 </p>
               </div>
               <button

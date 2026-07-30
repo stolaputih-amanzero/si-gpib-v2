@@ -6,6 +6,8 @@ import { MupelItem, useJemaatByMupel, usePosByJemaat } from '@/hooks/use-hierark
 import { Layers, Church, MapPin, ChevronRight, ChevronDown, ExternalLink } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
+import { PosName } from '@/components/ui/PosName';
+
 interface HierarchyTreeProps {
   mupelList: MupelItem[];
   searchQuery?: string;
@@ -188,7 +190,7 @@ function PosTreeLeaf({ id_induk, id_mupel, searchQuery }: { id_induk: string; id
         >
           <div className="flex items-center gap-2">
             <MapPin size={14} className="text-emerald-600 shrink-0" />
-            <span className="font-semibold text-xs text-text-high">{pos.nama_pos}</span>
+            <span className="font-semibold text-xs text-text-high"><PosName name={pos.nama_pos} /></span>
           </div>
 
           <div className="flex items-center gap-2 text-[10px] text-text-muted">

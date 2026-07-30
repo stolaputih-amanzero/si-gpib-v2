@@ -119,7 +119,7 @@ export default function AjukanBantuanPage() {
 
             {/* Jenis Bantuan */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-text-high">Jenis Permohonan Bantuan *</label>
+              <label className="text-xs font-semibold text-text-high">Jenis Permohonan Bantuan <span className="text-red-500">*</span></label>
               <input
                 type="text"
                 placeholder="Misal: Renovasi Atap Pastori Bocor, Pengadaan Motor Dinas, Genset"
@@ -131,12 +131,12 @@ export default function AjukanBantuanPage() {
               )}
             </div>
 
-            {/* Link to Asset (Optional) */}
+            {/* Link to Asset */}
             {asetList && asetList.length > 0 && (
               <div className="space-y-1.5 p-3 rounded-xl bg-surface-sunken border border-border-subtle">
                 <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
                   <Box size={15} className="text-brand-primary" />
-                  <span>Kaitkan dengan Aset Pos (Opsional)</span>
+                  <span>Kaitkan dengan Aset Pos</span>
                 </label>
                 <select
                   onChange={(e) => {
@@ -153,7 +153,7 @@ export default function AjukanBantuanPage() {
                   }}
                   className="w-full min-h-[44px] px-3 rounded-xl border border-border-subtle bg-surface-elevated text-xs font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
                 >
-                  <option value="">-- Pilih Aset Terkait (Opsional) --</option>
+                  <option value="">-- Pilih Aset Terkait --</option>
                   {asetList.map((a) => (
                     <option key={a.id} value={a.id}>
                       [{a.kategori}] {a.judul}
@@ -168,7 +168,7 @@ export default function AjukanBantuanPage() {
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
                   <DollarSign size={15} className="text-emerald-600" />
-                  <span>Estimasi Biaya Bantuan (IDR) *</span>
+                  <span>Estimasi Biaya Bantuan (IDR) <span className="text-red-500">*</span></span>
                 </label>
                 <input
                   type="number"
@@ -180,7 +180,7 @@ export default function AjukanBantuanPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-high">Tingkat Urgensi *</label>
+                <label className="text-xs font-semibold text-text-high">Tingkat Urgensi <span className="text-red-500">*</span></label>
                 <select
                   {...register('urgensi')}
                   className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-sm font-semibold text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
@@ -197,7 +197,7 @@ export default function AjukanBantuanPage() {
 
             {/* Keterangan */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-text-high">Keterangan / Latar Belakang Permohonan *</label>
+              <label className="text-xs font-semibold text-text-high">Keterangan / Latar Belakang Permohonan <span className="text-red-500">*</span></label>
               <textarea
                 rows={4}
                 placeholder="Jelaskan secara mendetail kondisi lapangan, kebutuhan perbaikan, dan dampak pelayanan..."

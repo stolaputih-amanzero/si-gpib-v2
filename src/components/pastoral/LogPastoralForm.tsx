@@ -163,7 +163,7 @@ export default function LogPastoralForm({ id_pos, id_induk, onSuccess }: LogPast
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
             <Calendar className="w-3.5 h-3.5 text-brand-primary" />
-            <span>Tanggal Pelayanan *</span>
+            <span>Tanggal Pelayanan <span className="text-red-500">*</span></span>
           </label>
           <input
             type="date"
@@ -175,7 +175,7 @@ export default function LogPastoralForm({ id_pos, id_induk, onSuccess }: LogPast
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5 text-brand-primary" />
-            <span>Waktu / Jam & Timezone *</span>
+            <span>Waktu / Jam & Timezone <span className="text-red-500">*</span></span>
           </label>
           <div className="flex gap-2">
             <input
@@ -197,7 +197,7 @@ export default function LogPastoralForm({ id_pos, id_induk, onSuccess }: LogPast
 
       {/* Target Scope Switcher */}
       <div className="space-y-1.5">
-        <label className="text-xs font-semibold text-text-high">Target Lingkup Pelayanan *</label>
+        <label className="text-xs font-semibold text-text-high">Target Lingkup Pelayanan <span className="text-red-500">*</span></label>
         <div className="grid grid-cols-2 gap-2 bg-surface-sunken p-1 rounded-xl">
           <button
             type="button"
@@ -251,7 +251,7 @@ export default function LogPastoralForm({ id_pos, id_induk, onSuccess }: LogPast
       {/* Kegiatan Input */}
       <div className="space-y-1.5">
         <label className="text-xs font-semibold text-text-high flex items-center justify-between">
-          <span>Kegiatan Pastoral *</span>
+          <span>Kegiatan Pastoral <span className="text-red-500">*</span></span>
           {isVoiceSupported && (
             <button
               type="button"
@@ -276,7 +276,7 @@ export default function LogPastoralForm({ id_pos, id_induk, onSuccess }: LogPast
 
       {/* Jumlah Jiwa */}
       <div className="space-y-1.5">
-        <label className="text-xs font-semibold text-text-high">Jumlah Jiwa Terlibat (Opsional)</label>
+        <label className="text-xs font-semibold text-text-high">Jumlah Jiwa Terlibat</label>
         <input
           type="number"
           {...register('jml_jiwa', { valueAsNumber: true })}
@@ -287,7 +287,7 @@ export default function LogPastoralForm({ id_pos, id_induk, onSuccess }: LogPast
 
       {/* Catatan / Detail */}
       <div className="space-y-1.5">
-        <label className="text-xs font-semibold text-text-high">Catatan Keterangan Tambahan (Opsional)</label>
+        <label className="text-xs font-semibold text-text-high">Catatan Keterangan Tambahan</label>
         <textarea
           {...register('catatan')}
           rows={2}

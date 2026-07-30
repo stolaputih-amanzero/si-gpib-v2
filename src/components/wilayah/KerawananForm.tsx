@@ -280,7 +280,7 @@ export function KerawananForm({ defaultPosId, initialData, onSuccess, onCancel }
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {/* Target Scope Switcher */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-high">Target Lingkup Kerawanan *</label>
+          <label className="text-xs font-semibold text-text-high">Target Lingkup Kerawanan <span className="text-red-500">*</span></label>
           <div className="grid grid-cols-2 gap-2 bg-surface-sunken p-1 rounded-xl">
             <button
               type="button"
@@ -334,7 +334,7 @@ export function KerawananForm({ defaultPosId, initialData, onSuccess, onCancel }
         {/* Kategori & Jenis Risiko */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-text-high">Kategori Risiko *</label>
+            <label className="text-xs font-semibold text-text-high">Kategori Risiko <span className="text-red-500">*</span></label>
             <select
               {...form.register('kategori')}
               className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-sm font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
@@ -351,7 +351,7 @@ export function KerawananForm({ defaultPosId, initialData, onSuccess, onCancel }
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-text-high">Jenis Risiko / Ancaman *</label>
+            <label className="text-xs font-semibold text-text-high">Jenis Risiko / Ancaman <span className="text-red-500">*</span></label>
             <input
               type="text"
               placeholder="Contoh: Banjir Bandang, Tanah Longsor, Konflik Lahan"
@@ -366,7 +366,7 @@ export function KerawananForm({ defaultPosId, initialData, onSuccess, onCancel }
 
         {/* Frekuensi Kerawanan (Radio Badges dengan Warna Semantik) */}
         <div className="space-y-2">
-          <label className="text-xs font-semibold text-text-high">Tingkat Frekuensi Kerawanan *</label>
+          <label className="text-xs font-semibold text-text-high">Tingkat Frekuensi Kerawanan <span className="text-red-500">*</span></label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {FREKUENSI_OPTIONS.map((opt) => {
               const isSelected = selectedFrekuensi === opt.value;
@@ -414,7 +414,7 @@ export function KerawananForm({ defaultPosId, initialData, onSuccess, onCancel }
 
         {/* Keterangan Tambahan */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-high">Keterangan & Mitigasi (Opsional)</label>
+          <label className="text-xs font-semibold text-text-high">Keterangan & Mitigasi</label>
           <textarea
             rows={3}
             placeholder="Catatan historis kejadian, langkah mitigasi yang diperlukan..."

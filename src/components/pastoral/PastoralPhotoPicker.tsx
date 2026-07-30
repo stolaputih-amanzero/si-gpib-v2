@@ -91,7 +91,6 @@ export function PastoralPhotoPicker({
           <Camera size={16} className="text-brand-primary" />
           <span>Foto Dokumentasi Pastoral (GPS & Hierarki Stamped)</span>
         </label>
-        <span className="text-[11px] text-text-muted">Opsional</span>
       </div>
 
       {/* Hidden File Inputs */}
