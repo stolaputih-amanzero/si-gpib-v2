@@ -2,32 +2,38 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests/e2e',
-  fullyParallel: true,
+  fullyParallel: false, // UAT tests run sequentially
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  retries: process.env.CI ? 2 : 1,
+  workers: 1, // Sequential execution for UAT
+  reporter: [
+    ['html', { open: 'never' }],
+    ['list'],
+  ],
   use: {
-    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000',
+    baseURL: process.env.UAT_BASE_URL || process.env.PLAYWRIGHT_TEST_BASE_URL || 'https://sigpib.amanzero.space',
     trace: 'on-first-retry',
     video: 'retain-on-failure',
-    actionTimeout: 10000,
-    navigationTimeout: 15000,
+    screenshot: 'only-on-failure',
+    actionTimeout: 15000,
+    navigationTimeout: 20000,
   },
   projects: [
     {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
+      name: 'UAT Mobile Chrome',
+      use: {
+        ...devices['Pixel 5'],
+        permissions: ['geolocation'],
+        geolocation: { longitude: 117.140012, latitude: -0.500729 },
+      },
     },
     {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 14'] },
+      name: 'UAT Mobile Safari',
+      use: {
+        ...devices['iPhone 14'],
+        permissions: ['geolocation'],
+        geolocation: { longitude: 117.140012, latitude: -0.500729 },
+      },
     },
   ],
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-  },
 });
-
