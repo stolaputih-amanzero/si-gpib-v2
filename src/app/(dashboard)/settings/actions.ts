@@ -146,23 +146,34 @@ export async function updateOwnProfileAction(payload: {
       console.warn('m_pendeta foto_url update warning:', mErr);
     }
 
-    // 3. Update session cookie safely
+    // 3. Update session cookie safely (NEVER write raw base64 strings into HTTP cookie headers!)
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('si_gpib_user_session')?.value;
     if (sessionCookie) {
       try {
         const parsed = JSON.parse(sessionCookie);
         parsed.nama_lengkap = payload.nama_lengkap;
-        parsed.avatar_url = finalAvatarUrl;
-        parsed.foto_url = finalAvatarUrl;
-        parsed.user_metadata = {
-          ...parsed.user_metadata,
-          nama_lengkap: payload.nama_lengkap,
-          no_hp: payload.no_hp,
-          avatar_url: finalAvatarUrl,
-          foto_url: finalAvatarUrl,
-          picture: finalAvatarUrl,
-        };
+        
+        // Only set avatar_url in cookie if it's a HTTP/HTTPS URL (prevents ERR_RESPONSE_HEADERS_TOO_BIG)
+        if (finalAvatarUrl && !finalAvatarUrl.startsWith('data:image/')) {
+          parsed.avatar_url = finalAvatarUrl;
+          parsed.foto_url = finalAvatarUrl;
+          parsed.user_metadata = {
+            ...parsed.user_metadata,
+            nama_lengkap: payload.nama_lengkap,
+            no_hp: payload.no_hp,
+            avatar_url: finalAvatarUrl,
+            foto_url: finalAvatarUrl,
+            picture: finalAvatarUrl,
+          };
+        } else {
+          parsed.user_metadata = {
+            ...parsed.user_metadata,
+            nama_lengkap: payload.nama_lengkap,
+            no_hp: payload.no_hp,
+          };
+        }
+
         cookieStore.set('si_gpib_user_session', JSON.stringify(parsed), {
           path: '/',
           httpOnly: true,

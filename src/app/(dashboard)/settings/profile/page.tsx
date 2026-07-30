@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import { updateOwnProfileAction } from '../actions';
 import { useQueryClient } from '@tanstack/react-query';
 import { Lock, X, User as UserIcon, Camera, Image as ImageIcon, RefreshCw } from 'lucide-react';
-import { compressImage } from '@/lib/camera/compress';
+import { compressAvatarImage } from '@/lib/camera/compress';
 
 export default function MyProfilePage() {
   const { user } = useUser();
@@ -39,7 +39,7 @@ export default function MyProfilePage() {
 
     setIsCompressingAvatar(true);
     try {
-      const compressed = await compressImage(rawFile);
+      const compressed = await compressAvatarImage(rawFile);
       const reader = new FileReader();
       reader.onload = (event) => {
         const base64 = event.target?.result as string;

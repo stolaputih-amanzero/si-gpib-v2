@@ -1,8 +1,20 @@
 /**
- * Kompres gambar menggunakan HTML5 Canvas.
- * Resize ke max 900px dan output JPG quality 0.8 (optimal untuk lampiran WhatsApp & pratinjau cepat).
+ * Kompres gambar umum (laporan/aset/WhatsApp preview).
+ * Resize ke max 900px dan output JPG quality 0.8.
  */
 export async function compressImage(file: File): Promise<File> {
+  return compressCustom(file, 900, 0.8);
+}
+
+/**
+ * Kompres khusus foto profil / avatar.
+ * Resize ke max 300px dan output JPG quality 0.7 (ukuran berkas kecil ~15KB).
+ */
+export async function compressAvatarImage(file: File): Promise<File> {
+  return compressCustom(file, 300, 0.7);
+}
+
+function compressCustom(file: File, maxDimension: number, quality: number): Promise<File> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -14,17 +26,15 @@ export async function compressImage(file: File): Promise<File> {
         let width = img.width;
         let height = img.height;
 
-        // Hitung rasio untuk resize jika melebihi 900px (mencegah teks WA menyusut)
-        const MAX_DIMENSION = 900;
         if (width > height) {
-          if (width > MAX_DIMENSION) {
-            height = Math.round(height * (MAX_DIMENSION / width));
-            width = MAX_DIMENSION;
+          if (width > maxDimension) {
+            height = Math.round(height * (maxDimension / width));
+            width = maxDimension;
           }
         } else {
-          if (height > MAX_DIMENSION) {
-            width = Math.round(width * (MAX_DIMENSION / height));
-            height = MAX_DIMENSION;
+          if (height > maxDimension) {
+            width = Math.round(width * (maxDimension / height));
+            height = maxDimension;
           }
         }
 
@@ -37,10 +47,8 @@ export async function compressImage(file: File): Promise<File> {
           return;
         }
 
-        // Gambar ulang di canvas
         ctx.drawImage(img, 0, 0, width, height);
 
-        // Export ke Blob format JPEG quality 0.8
         canvas.toBlob(
           (blob) => {
             if (blob) {
@@ -54,7 +62,7 @@ export async function compressImage(file: File): Promise<File> {
             }
           },
           'image/jpeg',
-          0.8
+          quality
         );
       };
       img.onerror = (error) => reject(error);
