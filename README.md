@@ -37,15 +37,21 @@ Fitur yang menyatukan **seluruh dimensi seorang pengguna** dalam satu medan pand
 | **User Management** | `/settings/users` | Super User & Admin Mupel — kelola semua user |
 | **Supervision** | `/settings/users/[id]` | Super User & Admin Mupel — lihat 360° user lain |
 
-### 8 Section Profil
-1. **Akun & Keamanan** — email, telepon, role, status, perangkat biometrik, push notification
-2. **Identitas Pelayanan** — data pendeta (nama, jabatan, gender, tgl tugas, flag KMJ/PJ)
-3. **Hierarki Pelayanan** — rantai Mupel → Jemaat Induk → Pos Pelkes (deep-link dua arah)
-4. **Peran & Penugasan** — blok KMJ, PJ, penugasan Pos aktif
-5. **Riwayat Mutasi** — timeline: kapan, dari mana → ke mana, jenis, alasan
-6. **Log Pastoral** — 8 log terakhir + link ke laporan lengkap
-7. **Aktivitas & Audit** — jejak login, create, edit, approve (privat: diri sendiri + super_user)
-8. **Data Lokal** — draft PWA tersimpan (lanjutkan/hapus)
+### 11 Section Profil (Reorganisasi 3 Grup Tab)
+- **Grup Pribadi**:
+  1. **Identitas Pelayanan** — data pendeta (nama, jabatan, gender, tgl tugas, flag KMJ/PJ)
+  2. **Keluarga Pendeta** — 🆕 pasangan, anak, tanggungan, status hidup, pendidikan & pekerjaan (RLS Privat)
+  3. **Kompetensi & Karunia** — 🆕 keahlian praktis, passion, karunia rohani, tingkat kemahiran & tahun mulai
+- **Grup Pelayanan**:
+  4. **Hierarki Pelayanan** — rantai Mupel → Jemaat Induk → Pos Pelkes (deep-link dua arah)
+  5. **Peran & Penugasan** — blok KMJ, PJ, penugasan Pos aktif
+  6. **Riwayat Mutasi** — timeline: kapan, dari mana → ke mana, jenis, alasan
+  7. **Log Pastoral** — 8 log terakhir + link ke laporan lengkap
+  8. **Keterlibatan Sinodal** — 🆕 VerticalTimeline Pokja, Komisi, Tim Kerja, Delegasi & Panitia Persidangan
+- **Grup Sistem**:
+  9. **Akun & Keamanan** — email, telepon, role, status, perangkat biometrik, push notification
+  10. **Aktivitas & Audit** — jejak login, create, edit, approve (privat: diri sendiri + super_user)
+  11. **Data Lokal** — draft PWA tersimpan (lanjutkan/hapus)
 
 ### Arsitektur Teknis
 - **RPC:** `get_profile_stats(p_id_pendeta)` — agregat 1 round-trip (total log, jiwa, pos aktif, lama melayani)

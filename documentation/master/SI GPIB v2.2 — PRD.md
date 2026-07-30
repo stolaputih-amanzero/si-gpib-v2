@@ -394,6 +394,32 @@ usage:
 
 ---
 
+### 📱 Modul 24: Dimensi Keluarga Pendeta (Profile 360°)
+
+| ID | User Story | Priority | Acceptance Criteria |
+|---|---|---|---|
+| US-24.1 | Sebagai Pendeta, saya ingin mencatat data anggota keluarga (pasangan, anak, orang tua, mertua) | 🟠 Should | - Form modal bottom sheet (h-12) <br> - Hitung umur otomatis dari tanggal lahir <br> - Flag tanggungan keluarga |
+| US-24.2 | Sebagai Pendeta, saya ingin data keluarga saya bersifat privat (RLS Asimetris) | 🔴 Must | - Hanya pemilik akun & Super User yang bisa membaca/edit <br> - KMJ & Admin Mupel TIDAK bisa melihat |
+
+---
+
+### 📱 Modul 25: Dimensi Kompetensi & Karunia (Profile 360°)
+
+| ID | User Story | Priority | Acceptance Criteria |
+|---|---|---|---|
+| US-25.1 | Sebagai Pendeta, saya ingin mencatat kompetensi praktis, passion, dan karunia rohani | 🟠 Should | - Kategori terkontrol (Pertanian, Manajemen, Teknologi, dll) <br> - Badge jenis (Kompetensi/Passion/Karunia) <br> - Filter chip per kategori |
+| US-25.2 | Sebagai Admin Mupel & Super User, saya ingin melihat kompetensi pendeta untuk pemetaan pelayanan | 🟠 Should | - Terbaca untuk Admin Mupel & Super User <br> - Membantu penugasan berbasis keahlian |
+
+---
+
+### 📱 Modul 26: Dimensi Keterlibatan Sinodal (Profile 360°)
+
+| ID | User Story | Priority | Acceptance Criteria |
+|---|---|---|---|
+| US-26.1 | Sebagai Pendeta, saya ingin mencatat riwayat keterlibatan dalam Pokja, Komisi, Panitia, dan Delegasi | 🟠 Should | - VerticalTimeline kronologis <br> - Badge tingkat (Jemaat/Mupel/Sinodal/Eksternal) <br> - Status Aktif / Selesai |
+
+---
+
 ## 6. Functional Requirements
 
 ### 🔴 Must Have (Fase 1-2)

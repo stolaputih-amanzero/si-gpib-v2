@@ -4,6 +4,23 @@ Seluruh perubahan besar, penyempurnaan fitur, dan perbaikan sistem dicatat di be
 
 ---
 
+## [2.2.1] — 2026-07-31
+
+### 🆕 Added — Tiga Dimensi Baru Profile 360° (Keluarga, Kompetensi & Karunia, Keterlibatan Sinodal)
+- **Tabel Database**: `t_keluarga_pendeta`, `t_kompetensi_pendeta`, `t_keterlibatan_pendeta` (`supabase/migrations/20260731_pendeta_360_dimensions.sql`)
+- **ID Patterns Baru**: `KLG-XXXXXXXX`, `KMP-XXXXXXXX`, `KTL-XXXXXXXX` (8 digit random)
+- **KeluargaSection**: Pencatatan data pasangan, anak, orang tua, status hidup, dan tanggungan keluarga (RLS Privat: pemilik + super_user)
+- **KompetensiSection**: Pencatatan keahlian praktis, passion, dan karunia rohani dengan badge tonal & filter chip kategori
+- **KeterlibatanSection**: VerticalTimeline kronologis keterlibatan di Jemaat, Mupel, Sinodal, dan Eksternal (Pokja, Komisi, Panitia, Delegasi)
+- **Reorganisasi Tab ProfileTabs**: 3 Grup Utama (Pribadi, Pelayanan, Sistem)
+- **Hooks & Validasi Zod**: `use-pendeta-360.ts`, `pendeta-360.schema.ts`, `pendeta-360.constants.ts`
+
+### 🔒 Security
+- Strict RLS Policy untuk `t_keluarga_pendeta`: Diri Sendiri + Super User SAJA (KMJ & Admin Mupel dilarang membaca)
+- RLS Policy untuk `t_kompetensi_pendeta` & `t_keterlibatan_pendeta`: Diri Sendiri + Super User + Admin Mupel
+
+---
+
 ## [2.2.x] — 2026-07-30
 
 ### 🆕 Added — Profile 360° (Manajemen Pengguna Terpadu)

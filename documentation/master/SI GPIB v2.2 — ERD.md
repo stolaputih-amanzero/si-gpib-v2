@@ -209,6 +209,52 @@ erDiagram
         TIMESTAMPTZ created_at
         TIMESTAMPTZ updated_at
     }
+
+    t_keluarga_pendeta {
+        VARCHAR id_keluarga PK "🆕 KLG-XXXXXXXX"
+        VARCHAR id_pendeta FK
+        VARCHAR hubungan
+        VARCHAR nama_lengkap
+        VARCHAR gender
+        DATE tgl_lahir
+        VARCHAR no_wa
+        VARCHAR pendidikan
+        VARCHAR pekerjaan
+        VARCHAR status_hidup
+        BOOLEAN is_tanggungan
+        TEXT keterangan
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    t_kompetensi_pendeta {
+        VARCHAR id_kompetensi PK "🆕 KMP-XXXXXXXX"
+        VARCHAR id_pendeta FK
+        VARCHAR kategori
+        VARCHAR nama_kompetensi
+        VARCHAR jenis "Kompetensi|Passion|Karunia"
+        VARCHAR tingkat
+        INT tahun_mulai
+        TEXT keterangan
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    t_keterlibatan_pendeta {
+        VARCHAR id_keterlibatan PK "🆕 KTL-XXXXXXXX"
+        VARCHAR id_pendeta FK
+        VARCHAR tingkat "Jemaat|Mupel|Sinodal|Eksternal"
+        VARCHAR id_mupel FK "nullable"
+        VARCHAR jenis
+        VARCHAR nama_kegiatan
+        VARCHAR jabatan
+        DATE tgl_mulai
+        DATE tgl_selesai
+        VARCHAR status
+        TEXT keterangan
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
     
     t_riwayat_mutasi_pendeta {
         VARCHAR id_riwayat PK

@@ -184,6 +184,9 @@ MUPEL (25)
 | Jemaat Induk | `XX-XX-XX` | `02-01-BM`, `23-03-ET` |
 | Pos Pelkes | `POS-XXXXX` | `POS-13055`, `POS-81917` |
 | Pendeta | `PDT-XXXXXXXX` | `PDT-19060024` |
+| Keluarga Pendeta | `KLG-XXXXXXXX` | `KLG-83719402` |
+| Kompetensi Pendeta | `KMP-XXXXXXXX` | `KMP-19304857` |
+| Keterlibatan Pendeta | `KTL-XXXXXXXX` | `KTL-92837410` |
 | Log Aktivitas | `LOG-{timestamp}-{random}` | `LOG-1778142941355-374` |
 
 ### 🟠 PENTING — Workflow Pengajuan Bantuan
