@@ -100,6 +100,8 @@ export async function updateOwnProfileAction(payload: {
           nama_lengkap: payload.nama_lengkap,
           no_hp: payload.no_hp || '',
           avatar_url: finalAvatarUrl,
+          foto_url: finalAvatarUrl,
+          picture: finalAvatarUrl,
         },
       });
     } catch {}
@@ -114,6 +116,7 @@ export async function updateOwnProfileAction(payload: {
         nama_lengkap: payload.nama_lengkap,
         no_hp: payload.no_hp || null,
         avatar_url: finalAvatarUrl || null,
+        foto_url: finalAvatarUrl || null,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'id' });
 
@@ -130,12 +133,15 @@ export async function updateOwnProfileAction(payload: {
         parsed.nama_lengkap = payload.nama_lengkap;
         if (!finalAvatarUrl.startsWith('data:image/')) {
           parsed.avatar_url = finalAvatarUrl;
+          parsed.foto_url = finalAvatarUrl;
         }
         parsed.user_metadata = {
           ...parsed.user_metadata,
           nama_lengkap: payload.nama_lengkap,
           no_hp: payload.no_hp,
           avatar_url: finalAvatarUrl.startsWith('data:image/') ? (parsed.user_metadata?.avatar_url || '') : finalAvatarUrl,
+          foto_url: finalAvatarUrl.startsWith('data:image/') ? (parsed.user_metadata?.foto_url || '') : finalAvatarUrl,
+          picture: finalAvatarUrl.startsWith('data:image/') ? (parsed.user_metadata?.picture || '') : finalAvatarUrl,
         };
         cookieStore.set('si_gpib_user_session', JSON.stringify(parsed), {
           path: '/',

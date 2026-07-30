@@ -30,8 +30,11 @@ export default function SettingsHubPage() {
   const [editNama, setEditNama] = useState('');
   const [editNoHp, setEditNoHp] = useState('');
   const [editAvatar, setEditAvatar] = useState('');
+  const [savedAvatar, setSavedAvatar] = useState<string>('');
   const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
   const [isCompressingAvatar, setIsCompressingAvatar] = useState(false);
+
+  const displayAvatar = savedAvatar || avatarUrl;
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -63,7 +66,7 @@ export default function SettingsHubPage() {
   const handleOpenEditProfile = () => {
     setEditNama(nama || '');
     setEditNoHp('');
-    setEditAvatar(avatarUrl || '');
+    setEditAvatar(displayAvatar || '');
     setIsEditingProfile(true);
   };
 
@@ -87,6 +90,7 @@ export default function SettingsHubPage() {
       }
 
       const updatedAvatar = res.avatar_url || editAvatar.trim();
+      setSavedAvatar(updatedAvatar);
 
       // Update localStorage cache directly with the new avatar URL so reload loads new avatar instantly
       try {
@@ -94,9 +98,12 @@ export default function SettingsHubPage() {
         if (cachedUser) {
           const parsed = JSON.parse(cachedUser);
           parsed.avatar_url = updatedAvatar;
+          parsed.foto_url = updatedAvatar;
           parsed.user_metadata = {
             ...(parsed.user_metadata || {}),
             avatar_url: updatedAvatar,
+            foto_url: updatedAvatar,
+            picture: updatedAvatar,
             nama_lengkap: editNama.trim(),
           };
           localStorage.setItem('si_gpib_cached_user', JSON.stringify(parsed));
@@ -114,9 +121,6 @@ export default function SettingsHubPage() {
       setIsEditingProfile(false);
       
       queryClient.invalidateQueries({ queryKey: ['current-user-auth'] });
-      if (typeof window !== 'undefined') {
-        window.location.reload();
-      }
     } catch (err: any) {
       toast.error('Gagal Simpan Profil', err?.message || 'Terjadi kesalahan saat menyimpan profil.');
     } finally {
@@ -220,9 +224,9 @@ export default function SettingsHubPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4 min-w-0">
               <div className="w-16 h-16 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold text-xl overflow-hidden shrink-0 border border-brand-primary/20">
-                {avatarUrl ? (
+                {displayAvatar ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={avatarUrl} alt={nama} className="w-full h-full object-cover" />
+                  <img src={displayAvatar} alt={nama} className="w-full h-full object-cover" />
                 ) : (
                   <UserIcon className="w-8 h-8 text-brand-primary" />
                 )}

@@ -24,7 +24,7 @@ export async function GET() {
 
   if (user) {
     try {
-      let query = supabase.from('users').select('nama_lengkap, avatar_url, role, no_hp')
+      let query = supabase.from('users').select('nama_lengkap, avatar_url, foto_url, role, no_hp')
       if (user.id && user.email) {
         query = query.or(`id.eq.${user.id},email.eq.${user.email}`)
       } else if (user.id) {
@@ -35,14 +35,18 @@ export async function GET() {
       const { data: dbUser } = await query.maybeSingle()
 
       if (dbUser) {
+        const resolvedAvatar = dbUser.avatar_url || dbUser.foto_url || user.avatar_url || user.foto_url
         user = {
           ...user,
           nama_lengkap: dbUser.nama_lengkap || user.nama_lengkap,
-          avatar_url: dbUser.avatar_url || user.avatar_url,
+          avatar_url: resolvedAvatar,
+          foto_url: resolvedAvatar,
           user_metadata: {
             ...(user.user_metadata || {}),
             nama_lengkap: dbUser.nama_lengkap || user.user_metadata?.nama_lengkap,
-            avatar_url: dbUser.avatar_url || user.user_metadata?.avatar_url,
+            avatar_url: resolvedAvatar,
+            foto_url: resolvedAvatar,
+            picture: resolvedAvatar,
           },
         }
       }

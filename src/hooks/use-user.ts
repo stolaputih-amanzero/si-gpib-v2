@@ -99,7 +99,12 @@ export function useUser(): UserProfile {
   let role = user?.role || metadata.role || 'Pengurus Pos Pelkes / Presbiter';
   if (role === 'user' || role === 'User') role = 'pendeta';
 
-  const avatarUrl = user?.avatar_url || metadata.avatar_url || metadata.picture;
+  const avatarUrl =
+    user?.avatar_url ||
+    user?.foto_url ||
+    metadata.avatar_url ||
+    metadata.foto_url ||
+    metadata.picture;
 
   const logout = async () => {
     try {
