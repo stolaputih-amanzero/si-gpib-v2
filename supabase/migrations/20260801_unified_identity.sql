@@ -196,6 +196,11 @@ DECLARE
 BEGIN
   v_caller_id := auth.uid();
   
+  -- 🔴 EXPLICIT ANONYMOUS GUARD
+  IF v_caller_id IS NULL THEN
+    RAISE EXCEPTION 'forbidden: authentication required';
+  END IF;
+  
   -- Real-time lookup pemanggil dari public.users
   SELECT role, id_pendeta, id_mupel 
   INTO v_caller_role, v_caller_pendeta, v_caller_mupel
