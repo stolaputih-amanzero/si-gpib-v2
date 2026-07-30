@@ -7,8 +7,8 @@ test.describe('Persona 2: Admin Mupel (Bpk. Junior)', () => {
 
     // Login sebagai Admin Mupel
     await page.goto(`${BASE_URL}/login`);
-    await page.getByTestId('input-phone').or(page.locator('input[type="tel"]').first())
-      .fill(CREDENTIALS.adminMupel.phone);
+    await page.getByTestId('input-phone').or(page.locator('input[name="email"], input[name="phone"], input[id="email"], input[type="text"], input[type="email"], input[type="tel"]').first())
+      .fill(CREDENTIALS.adminMupel.email || CREDENTIALS.adminMupel.phone);
     await page.getByTestId('input-password').or(page.locator('input[type="password"]').first())
       .fill(CREDENTIALS.adminMupel.password);
     await page.getByTestId('button-login').or(page.locator('button[type="submit"]').first())
@@ -27,7 +27,7 @@ test.describe('Persona 2: Admin Mupel (Bpk. Junior)', () => {
     await page.close();
   });
 
-  test('AM-02: CJ-3 — Approve pengajuan bantuan dengan catatan', async ({ adminMupelPage: page }) => {
+  test('AM-02: CJ-3 — Approve pengajuan bantuan dengan catatan @destructive', async ({ adminMupelPage: page }) => {
     // Navigasi ke halaman Bantuan
     await page.goto(`${BASE_URL}/bantuan`);
     await page.waitForLoadState('networkidle');
@@ -64,7 +64,7 @@ test.describe('Persona 2: Admin Mupel (Bpk. Junior)', () => {
     }
   });
 
-  test('AM-03: Reject pengajuan bantuan dengan catatan', async ({ adminMupelPage: page }) => {
+  test('AM-03: Reject pengajuan bantuan dengan catatan @destructive', async ({ adminMupelPage: page }) => {
     await page.goto(`${BASE_URL}/bantuan`);
     await page.waitForLoadState('networkidle');
 
@@ -102,11 +102,11 @@ test.describe('Persona 2: Admin Mupel (Bpk. Junior)', () => {
     await page.waitForLoadState('networkidle');
 
     // Verifikasi dashboard tampil
-    await expect(page.locator('h1, h2, [data-testid="dashboard-title"]').first())
+    await expect(page.locator('main').getByRole('heading', { level: 1 }).first())
       .toBeVisible({ timeout: 10000 });
 
     // Verifikasi ada KPI/statistik
-    const stats = page.locator('[data-testid="stat-card"], .card-flat, .font-display, div[class*="rounded"]');
-    await expect(stats.first()).toBeVisible();
+    const stats = page.locator('main').getByText(/Pos Pelkes|Jemaat Induk|Total Jiwa/i).first();
+    await expect(stats).toBeVisible({ timeout: 10000 });
   });
 });

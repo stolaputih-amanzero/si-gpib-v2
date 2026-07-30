@@ -27,24 +27,30 @@ export const CREDENTIALS = {
 } as const;
 
 // Helper: Login via UI
-async function loginViaUI(page: Page, phone: string, password: string) {
+async function loginViaUI(page: Page, identity: string, password: string) {
   await page.goto(`${BASE_URL}/login`);
   await page.waitForLoadState('networkidle');
 
-  // Isi form login
-  const phoneInput = page.getByTestId('input-phone').or(page.locator('input[name="phone"], input[type="tel"]').first());
-  await phoneInput.fill(phone);
+  // Isi form login (Email atau No. HP)
+  const identityInput = page
+    .getByTestId('input-phone')
+    .or(page.locator('input[name="email"], input[name="phone"], input[id="email"], input[type="text"], input[type="email"], input[type="tel"]').first());
+  await identityInput.fill(identity);
 
-  const passwordInput = page.getByTestId('input-password').or(page.locator('input[name="password"], input[type="password"]').first());
+  const passwordInput = page
+    .getByTestId('input-password')
+    .or(page.locator('input[name="password"], input[type="password"]').first());
   await passwordInput.fill(password);
 
   // Klik login
-  const loginBtn = page.getByTestId('button-login').or(page.locator('button[type="submit"]').first());
+  const loginBtn = page
+    .getByTestId('button-login')
+    .or(page.locator('button[type="submit"]').first());
   await loginBtn.click();
 
-  // Tunggu redirect ke dashboard
+  // Tunggu redirect ke dashboard & verifikasi header tampil
   await page.waitForURL(/\/dashboard/, { timeout: 15000 });
-  await expect(page.getByTestId('bottom-nav').or(page.locator('nav')).first()).toBeVisible({ timeout: 10000 });
+  await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible({ timeout: 10000 });
 }
 
 // Extended test fixture
@@ -70,7 +76,7 @@ export const test = base.extend<{
   // Super User authenticated page
   superUserPage: async ({ mobileContext }, use) => {
     const page = await mobileContext.newPage();
-    await loginViaUI(page, CREDENTIALS.superUser.phone, CREDENTIALS.superUser.password);
+    await loginViaUI(page, CREDENTIALS.superUser.email || CREDENTIALS.superUser.phone, CREDENTIALS.superUser.password);
     await use(page);
     await page.close();
   },
@@ -78,7 +84,7 @@ export const test = base.extend<{
   // Admin Mupel authenticated page
   adminMupelPage: async ({ mobileContext }, use) => {
     const page = await mobileContext.newPage();
-    await loginViaUI(page, CREDENTIALS.adminMupel.phone, CREDENTIALS.adminMupel.password);
+    await loginViaUI(page, CREDENTIALS.adminMupel.email || CREDENTIALS.adminMupel.phone, CREDENTIALS.adminMupel.password);
     await use(page);
     await page.close();
   },
@@ -86,7 +92,7 @@ export const test = base.extend<{
   // PJ/User authenticated page
   pjUserPage: async ({ mobileContext }, use) => {
     const page = await mobileContext.newPage();
-    await loginViaUI(page, CREDENTIALS.pjUser.phone, CREDENTIALS.pjUser.password);
+    await loginViaUI(page, CREDENTIALS.pjUser.email || CREDENTIALS.pjUser.phone, CREDENTIALS.pjUser.password);
     await use(page);
     await page.close();
   },
