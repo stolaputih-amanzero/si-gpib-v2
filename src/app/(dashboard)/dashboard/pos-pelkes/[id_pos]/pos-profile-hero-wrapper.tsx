@@ -271,7 +271,7 @@ export default function PosProfileHeroWrapper({
       </div>
 
       {/* Banner Notifikasi Peningkatan Status ke Jemaat Induk */}
-      {(pos.kategori === 'Jemaat Induk' || (pos.jemaat_induk && pos.jemaat_induk.id_induk === pos.id_induk)) && (
+      {(pos.kategori === 'Jemaat Induk' || pos.kategori === 'Jemaat Induk Mandiri' || pos.id_pos === pos.id_induk) && (
         <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-purple-900 via-indigo-900 to-brand-primary text-white shadow-soft flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-purple-500/30 animate-in fade-in duration-300">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-2xl bg-white/10 text-amber-300 flex items-center justify-center shrink-0 border border-white/20">

@@ -366,7 +366,7 @@ export default async function PosPelkesDetailPage({
   const distKm = calculateDistanceKm(pos.jemaat_induk?.latitude, pos.jemaat_induk?.longitude, pos.latitude, pos.longitude);
 
   // Category badges configuration
-  const isJemaatInduk = pos.kategori === 'Jemaat Induk' || (pos.jemaat_induk && pos.jemaat_induk.id_induk === pos.id_induk);
+  const isJemaatInduk = pos.kategori === 'Jemaat Induk' || pos.kategori === 'Jemaat Induk Mandiri' || pos.id_pos === pos.id_induk;
   const isBajem = pos.kategori === 'Bajem' || pos.nama_pos.toLowerCase().includes('bajem');
   
   let catLabel = 'Pos Pelkes';
