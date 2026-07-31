@@ -25,6 +25,7 @@ export interface JemaatIndukItem {
   alamat: string | null;
   latitude: number | null;
   longitude: number | null;
+  foto_url?: string | null;
   id_kmj: string | null;
   keterangan: string | null;
   jumlah_sektor?: number | null;

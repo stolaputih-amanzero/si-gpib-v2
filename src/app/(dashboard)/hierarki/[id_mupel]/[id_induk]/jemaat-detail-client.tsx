@@ -12,6 +12,7 @@ import { StatusElevationModal } from '@/components/hierarki/StatusElevationModal
 import { SecureDeleteModal } from '@/components/ui/SecureDeleteModal';
 import { useToast } from '@/components/ui/toast';
 import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
+import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import PosThumbnailMapWrapper from '@/components/maps/PosThumbnailMapWrapper';
@@ -40,6 +41,8 @@ import {
   Compass,
   ExternalLink,
   Map,
+  Eye,
+  X,
 } from 'lucide-react';
 
 interface JemaatDetailClientProps {
@@ -56,6 +59,7 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
   const [showPjModal, setShowPjModal] = useState(false);
   const [showJemaatModal, setShowJemaatModal] = useState(false);
   const [showDeleteJemaatModal, setShowDeleteJemaatModal] = useState(false);
+  const [showJemaatLightbox, setShowJemaatLightbox] = useState(false);
 
   // Pos Elevation Modal State
   const [showElevateModal, setShowElevateModal] = useState(false);
@@ -156,68 +160,133 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
         ]}
       />
 
-      {/* 2. Header Banner Jemaat Induk */}
+      {/* 2. Hero Header Banner Jemaat Induk */}
       {isLoadingJemaat ? (
-        <Skeleton className="h-36 w-full rounded-2xl" />
+        <Skeleton className="h-48 sm:h-64 w-full rounded-3xl" />
       ) : (
-        <div className="bg-surface-elevated p-5 rounded-2xl border border-border-subtle shadow-soft space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
-              <div className="p-3.5 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 shrink-0 flex items-center justify-center">
-                <Church className="w-6 h-6" />
+        <div className="relative rounded-3xl overflow-hidden border border-border-subtle bg-surface-elevated shadow-medium group">
+          {/* Top Visual Showcase / Photo Cover */}
+          {jemaat?.foto_url ? (
+            <div className="relative h-48 sm:h-64 md:h-72 w-full bg-slate-950 overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={jemaat.foto_url}
+                alt={`Foto Gedung ${jemaat.nama_induk}`}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+              />
+              {/* Gradient Overlays */}
+              <div className="absolute inset-0 bg-gradient-to-t from-surface-elevated via-slate-950/40 to-slate-950/20" />
+
+              {/* Floating Top Badges */}
+              <div className="absolute top-4 left-4 z-20 flex items-center gap-2 flex-wrap">
+                <span className="px-3 py-1 rounded-xl bg-black/60 backdrop-blur-md text-white border border-white/20 text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md">
+                  <Church size={13} className="text-purple-400" />
+                  <span>Jemaat Induk</span>
+                </span>
+                <span className="px-3 py-1 rounded-xl bg-black/50 backdrop-blur-md text-white/90 border border-white/10 text-[11px] font-bold">
+                  Mupel: {jemaat?.mupel?.nama_mupel || id_mupel} ({id_mupel})
+                </span>
               </div>
-              <div className="flex flex-col justify-center space-y-0.5">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-semibold text-text-muted">
-                    Mupel: {jemaat?.mupel?.nama_mupel || id_mupel} ({id_mupel})
-                  </span>
-                </div>
-                <h1 className="text-xl sm:text-2xl font-black text-text-high tracking-tight leading-tight">
-                  {jemaat?.nama_induk}
-                </h1>
-                <p className="text-xs text-text-muted font-medium mt-0.5">
-                  <span className="font-bold text-text-high">{id_induk}</span>
-                  {jemaat?.keterangan ? ` • ${jemaat.keterangan}` : ''}
-                </p>
-                {jemaat?.alamat && <p className="text-xs text-text-muted">{jemaat.alamat}</p>}
+
+              {/* Top Right Floating Action: Fullscreen Lightbox Button */}
+              <button
+                type="button"
+                onClick={() => setShowJemaatLightbox(true)}
+                className="absolute top-4 right-4 z-20 min-h-[40px] px-3 py-2 rounded-xl bg-black/60 hover:bg-black/80 text-white border border-white/20 backdrop-blur-md text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                title="Lihat Foto Layar Penuh"
+              >
+                <Eye size={16} />
+                <span className="hidden sm:inline">Layar Penuh</span>
+              </button>
+            </div>
+          ) : (
+            <div className="relative h-32 sm:h-44 w-full bg-gradient-to-br from-brand-primary via-indigo-900 to-purple-950 p-5 overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-8 -bottom-8 opacity-15 pointer-events-none">
+                <Church className="w-64 h-64 text-white" />
+              </div>
+              <div className="relative z-10 flex items-center justify-between">
+                <span className="px-3 py-1 rounded-xl bg-white/10 backdrop-blur-md text-white border border-white/20 text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                  <Church size={13} className="text-purple-300" />
+                  <span>Jemaat Induk Mandiri</span>
+                </span>
               </div>
             </div>
+          )}
 
-            <div className="flex items-center gap-2 shrink-0 flex-wrap">
-              <ShareButton
-                title={`Jemaat Induk GPIB: ${jemaat?.nama_induk}`}
-                text={`Jemaat Induk: ${jemaat?.nama_induk}\nMupel: ${jemaat?.mupel?.nama_mupel}\nKMJ: ${jemaat?.kmj?.nama_lengkap || 'Belum ada'}\nAlamat: ${jemaat?.alamat || '-'}`}
-                variant="ghost"
-                iconOnly
-              />
+          {/* Info Details & Actions Bar (Integrated with Photo) */}
+          <div className="p-5 sm:p-6 space-y-4">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+              {/* Church Avatar & Title Block */}
+              <div className="flex items-start gap-4">
+                <div className={cn(
+                  "relative z-20 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-surface-elevated border-4 border-surface-elevated shadow-lg flex items-center justify-center text-brand-primary shrink-0 ring-1 ring-border-subtle",
+                  jemaat?.foto_url ? "-mt-12 sm:-mt-14" : ""
+                )}>
+                  <Church className="w-8 h-8 sm:w-10 sm:h-10 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-black uppercase tracking-wider text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-md border border-purple-200/60">
+                      {id_induk}
+                    </span>
+                    <span className="text-xs font-semibold text-text-muted">
+                      {jemaat?.mupel?.nama_mupel || id_mupel}
+                    </span>
+                  </div>
+                  <h1 className="text-2xl sm:text-3xl font-black text-text-high tracking-tight leading-tight uppercase">
+                    {jemaat?.nama_induk}
+                  </h1>
+                  {jemaat?.alamat && (
+                    <p className="text-xs font-medium text-text-muted flex items-center gap-1.5">
+                      <MapPin size={14} className="text-emerald-600 shrink-0" />
+                      <span>{jemaat.alamat}</span>
+                    </p>
+                  )}
+                  {jemaat?.keterangan && (
+                    <p className="text-xs italic text-text-muted">
+                      {jemaat.keterangan}
+                    </p>
+                  )}
+                </div>
+              </div>
 
-              <button
-                type="button"
-                onClick={() => setShowJemaatModal(true)}
-                className="min-h-[40px] px-3.5 py-2 rounded-xl border border-brand-primary/20 bg-brand-primary/5 hover:bg-brand-primary/10 text-xs font-extrabold text-brand-primary flex items-center gap-1.5 transition-all active:scale-95 shadow-xs"
-              >
-                <Edit3 size={16} />
-                <span>Edit</span>
-              </button>
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+                <ShareButton
+                  title={`Jemaat Induk GPIB: ${jemaat?.nama_induk}`}
+                  text={`Jemaat Induk: ${jemaat?.nama_induk}\nMupel: ${jemaat?.mupel?.nama_mupel}\nKMJ: ${jemaat?.kmj?.nama_lengkap || 'Belum ada'}\nAlamat: ${jemaat?.alamat || '-'}`}
+                  variant="ghost"
+                  iconOnly
+                />
 
-              <button
-                type="button"
-                onClick={() => setShowDeleteJemaatModal(true)}
-                disabled={deleteJemaatMutation.isPending}
-                className="min-h-[40px] px-3.5 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-xs font-extrabold text-red-600 flex items-center gap-1.5 transition-all active:scale-95 shadow-xs disabled:opacity-50"
-              >
-                <Trash2 size={16} />
-                <span>Hapus</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setShowJemaatModal(true)}
+                  className="min-h-[40px] px-4 py-2 rounded-xl border border-brand-primary/20 bg-brand-primary/5 hover:bg-brand-primary/10 text-xs font-extrabold text-brand-primary flex items-center gap-1.5 transition-all active:scale-95 shadow-xs cursor-pointer"
+                >
+                  <Edit3 size={15} />
+                  <span>Edit</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={handleOpenAddPos}
-                className="min-h-[40px] px-3.5 py-2 rounded-xl bg-brand-primary text-white text-xs font-extrabold flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all shadow-sm"
-              >
-                <Plus size={16} />
-                <span>Pos</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteJemaatModal(true)}
+                  disabled={deleteJemaatMutation.isPending}
+                  className="min-h-[40px] px-4 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-xs font-extrabold text-red-600 flex items-center gap-1.5 transition-all active:scale-95 shadow-xs disabled:opacity-50 cursor-pointer"
+                >
+                  <Trash2 size={15} />
+                  <span>Hapus</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleOpenAddPos}
+                  className="min-h-[40px] px-4 py-2 rounded-xl bg-brand-primary text-white text-xs font-extrabold flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all shadow-sm cursor-pointer"
+                >
+                  <Plus size={15} />
+                  <span>Pos</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -687,6 +756,38 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
         itemType="Jemaat Induk"
         isDeleting={deleteJemaatMutation.isPending}
       />
+
+      {/* FULLSCREEN LIGHTBOX PREVIEW MODAL */}
+      {showJemaatLightbox && jemaat?.foto_url && (
+        <div 
+          onClick={() => setShowJemaatLightbox(false)}
+          className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4 backdrop-blur-md animate-fade-in cursor-zoom-out"
+        >
+          <div className="absolute top-4 right-4 z-50 flex items-center gap-3">
+            <span className="text-white text-xs font-bold bg-white/10 px-3 py-1.5 rounded-xl backdrop-blur-md">
+              Foto Gedung Jemaat Induk {jemaat.nama_induk}
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowJemaatLightbox(false)}
+              className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-colors min-h-[44px] min-w-[44px]"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="relative max-w-5xl max-h-[85vh] w-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              src={jemaat.foto_url} 
+              alt="Foto Layar Penuh Jemaat Induk" 
+              className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-white/10"
+            />
+          </div>
+
+          <p className="text-white/70 text-xs mt-3 font-medium">Klik di mana saja untuk menutup tampilan layar penuh</p>
+        </div>
+      )}
     </div>
   );
 }

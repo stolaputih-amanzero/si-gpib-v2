@@ -55,6 +55,7 @@ export const jemaatIndukSchema = z.object({
   alamat: z.string().optional(),
   latitude: z.number().nullable().optional(),
   longitude: z.number().nullable().optional(),
+  foto_url: z.string().nullable().optional(),
   id_kmj: z.string().nullable().optional(),
   keterangan: z.string().optional(),
   jumlah_sektor: z.coerce.number().int().min(0),
