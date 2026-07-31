@@ -229,7 +229,7 @@ export function PosDetailClient({ id_mupel, id_induk, id_pos }: PosDetailClientP
       </div>
 
       {/* Riwayat Peningkatan Status Timeline */}
-      <StatusHistoryTimeline id_pos={id_pos} />
+      <StatusHistoryTimeline id_pos={id_pos} id_mupel={id_mupel} />
 
       {/* Profil Lengkap Redirect Link */}
       <div className="p-5 rounded-2xl bg-surface-elevated border border-border-subtle shadow-soft flex flex-col sm:flex-row sm:items-center justify-between gap-4">

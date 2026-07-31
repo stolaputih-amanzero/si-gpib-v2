@@ -1,12 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { User, Activity, Users, Database, Calendar, Info, TrendingUp, Clock } from 'lucide-react';
-import { useHistoriStatus } from '@/hooks/use-hierarki';
+import Link from 'next/link';
+import { User, Activity, Users, Database, Calendar, Info, TrendingUp, Clock, Edit3, Trash2, Loader2, X, ExternalLink } from 'lucide-react';
+import { useHistoriStatus, useUpdateHistoriStatus, useDeleteHistoriStatus } from '@/hooks/use-hierarki';
+
+import { useRouter } from 'next/navigation';
 
 export function PosPelkesDetailTabs({ data }: { data: any }) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('profil');
-  const { data: historiList } = useHistoriStatus(data.posPelkes.id_pos);
+  const [editingHistori, setEditingHistori] = useState<any | null>(null);
+  const { data: historiList, refetch } = useHistoriStatus(data.posPelkes.id_pos);
+  const updateHistoriMutation = useUpdateHistoriStatus();
+  const deleteHistoriMutation = useDeleteHistoriStatus();
 
   const storageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pos-pelkes-images/`;
 
@@ -18,6 +25,37 @@ export function PosPelkesDetailTabs({ data }: { data: any }) {
     { id: 'log', label: 'Log Pastoral', icon: Activity },
     { id: 'histori', label: 'Histori Status', icon: TrendingUp },
   ];
+
+  const handleSaveEditHistori = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingHistori) return;
+    try {
+      await updateHistoriMutation.mutateAsync({
+        id_histori: editingHistori.id_histori,
+        tanggal_perubahan: editingHistori.tanggal_perubahan,
+        keterangan_perubahan: editingHistori.keterangan_perubahan,
+        jemaat_ke: editingHistori.jemaat_ke ? Number(editingHistori.jemaat_ke) : null,
+        catatan: editingHistori.catatan || null,
+      });
+      setEditingHistori(null);
+      await refetch();
+      router.refresh();
+    } catch (err: any) {
+      alert(err?.message || 'Gagal memperbarui catatan histori.');
+    }
+  };
+
+  const handleDeleteHistori = async (id_histori: string) => {
+    if (confirm('Apakah Anda yakin ingin menghapus catatan histori perubahan status ini?')) {
+      try {
+        await deleteHistoriMutation.mutateAsync(id_histori);
+        await refetch();
+        router.refresh();
+      } catch (err: any) {
+        alert(err?.message || 'Gagal menghapus catatan histori.');
+      }
+    }
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -217,25 +255,78 @@ export function PosPelkesDetailTabs({ data }: { data: any }) {
                 {historiList.map((h: any) => (
                   <div key={h.id_histori} className="relative pl-6">
                     <span className="absolute -left-[7px] top-1.5 h-3 w-3 rounded-full bg-amber-500 ring-4 ring-white"></span>
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-1 gap-1">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-1 gap-2">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-sm text-gray-900">{h.status_lama || 'Pos Pelkes'}</span>
                         <span className="text-xs font-bold text-amber-600">➔</span>
                         <span className="font-extrabold text-sm text-brand-primary">{h.status_baru}</span>
                       </div>
-                      <time className="text-xs text-gray-500 font-mono flex items-center gap-1">
-                        <Clock size={12} />
-                        {h.tanggal_perubahan}
-                      </time>
+
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <time className="text-xs text-gray-500 font-mono flex items-center gap-1">
+                          <Clock size={12} />
+                          {h.tanggal_perubahan}
+                        </time>
+
+                        <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setEditingHistori(h);
+                            }}
+                            className="min-h-[32px] px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1 transition-all active:scale-95 cursor-pointer z-10 shadow-xs"
+                            title="Edit Catatan Histori Ini"
+                          >
+                            <Edit3 size={13} />
+                            <span>Edit</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDeleteHistori(h.id_histori);
+                            }}
+                            className="min-h-[32px] px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 text-xs font-bold flex items-center gap-1 transition-all active:scale-95 cursor-pointer z-10 shadow-xs"
+                            title="Hapus Catatan Histori Ini"
+                          >
+                            <Trash2 size={13} />
+                            <span>Hapus</span>
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <div className="bg-surface-sunken p-3.5 rounded-xl border border-border-subtle mt-2 space-y-1">
-                      <p className="text-xs text-text-high font-medium leading-relaxed">
-                        {h.keterangan_perubahan || 'Tidak ada catatan SK'}
+
+                    <div className="bg-surface-sunken p-3.5 rounded-xl border border-border-subtle mt-2 space-y-2">
+                      {h.jemaat_ke && (
+                        <div className="inline-block px-2.5 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-extrabold text-[11px] border border-purple-200">
+                          Jemaat GPIB Ke-{h.jemaat_ke}
+                        </div>
+                      )}
+                      <p className="text-xs text-text-high font-semibold leading-relaxed">
+                        SK/Dasar: {h.keterangan_perubahan || 'Tidak ada catatan SK'}
                       </p>
-                      {h.id_induk_baru && (
-                        <p className="text-[11px] font-mono text-purple-600 font-semibold pt-1">
-                          Ditransformasikan menjadi Jemaat Induk ID: {h.id_induk_baru}
+                      {h.catatan && (
+                        <p className="text-xs text-text-muted italic bg-white/60 p-2.5 rounded-lg border border-border-subtle/40">
+                          &quot;{h.catatan}&quot;
                         </p>
+                      )}
+                      {h.id_induk_baru && (
+                        <div className="pt-2 border-t border-border-subtle/60 flex items-center justify-between gap-2 flex-wrap">
+                          <span className="text-[11px] font-mono text-purple-600 font-extrabold">
+                            ID Jemaat Induk Mandiri: {h.id_induk_baru}
+                          </span>
+                          <Link
+                            href={`/hierarki/${encodeURIComponent(data.posPelkes?.jemaat_induk?.id_mupel || 'all')}/${encodeURIComponent(h.id_induk_baru)}`}
+                            className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
+                          >
+                            <span>Detail Jemaat Induk</span>
+                            <ExternalLink size={13} />
+                          </Link>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -246,6 +337,92 @@ export function PosPelkesDetailTabs({ data }: { data: any }) {
                 <Clock size={32} className="mx-auto text-gray-300" />
                 <p className="text-sm text-gray-500 italic">Belum ada riwayat peningkatan status yang tercatat.</p>
                 <p className="text-xs text-gray-400">Tekan tombol &quot;Tingkatkan Status&quot; di header untuk mengubah status Pos Pelkes menjadi Bajem atau Jemaat Induk Mandiri.</p>
+              </div>
+            )}
+
+            {/* Modal Edit Histori Status */}
+            {editingHistori && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
+                <div className="bg-surface-elevated rounded-2xl border border-border-subtle shadow-xl w-full max-w-lg overflow-hidden">
+                  <div className="p-4 border-b border-border-subtle flex items-center justify-between bg-surface-sunken">
+                    <h3 className="font-bold text-sm text-text-high flex items-center gap-2">
+                      <Edit3 size={16} className="text-amber-600" />
+                      <span>Edit Catatan Histori Status</span>
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setEditingHistori(null)}
+                      className="p-1.5 rounded-lg text-text-muted hover:bg-surface-elevated transition-colors"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleSaveEditHistori} className="p-4 space-y-3.5">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-text-high">Tanggal Perubahan Status *</label>
+                      <input
+                        type="date"
+                        required
+                        value={editingHistori.tanggal_perubahan || ''}
+                        onChange={(e) => setEditingHistori({ ...editingHistori, tanggal_perubahan: e.target.value })}
+                        className="w-full min-h-[42px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-xs font-semibold text-text-high focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-text-high">Nomor SK / Dasar Keputusan *</label>
+                      <textarea
+                        rows={2}
+                        required
+                        value={editingHistori.keterangan_perubahan || ''}
+                        onChange={(e) => setEditingHistori({ ...editingHistori, keterangan_perubahan: e.target.value })}
+                        className="w-full p-3 rounded-xl border border-border-subtle bg-surface-base text-xs text-text-high focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-text-high">Jemaat Ke- (Nomor Urut Sinode)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        placeholder="Contoh: 354"
+                        value={editingHistori.jemaat_ke || ''}
+                        onChange={(e) => setEditingHistori({ ...editingHistori, jemaat_ke: e.target.value ? Number(e.target.value) : null })}
+                        className="w-full min-h-[42px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-xs font-semibold text-text-high focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-text-high">Catatan Peningkatan Status</label>
+                      <textarea
+                        rows={2}
+                        placeholder="Catatan latar belakang, sejarah, atau proses..."
+                        value={editingHistori.catatan || ''}
+                        onChange={(e) => setEditingHistori({ ...editingHistori, catatan: e.target.value })}
+                        className="w-full p-3 rounded-xl border border-border-subtle bg-surface-base text-xs text-text-high focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+                      />
+                    </div>
+
+                    <div className="pt-3 border-t border-border-subtle flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditingHistori(null)}
+                        className="min-h-[40px] px-4 rounded-xl border border-border-subtle bg-surface-sunken hover:bg-surface-elevated text-xs font-bold text-text-high transition-colors"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={updateHistoriMutation.isPending}
+                        className="min-h-[40px] px-5 rounded-xl bg-amber-600 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 hover:bg-amber-700 active:scale-95 transition-all shadow-sm disabled:opacity-50"
+                      >
+                        {updateHistoriMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
+                        <span>Simpan Perubahan</span>
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
             )}
           </div>

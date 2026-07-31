@@ -654,6 +654,8 @@ export interface HistoriStatusItem {
   status_baru: string;
   tanggal_perubahan: string;
   keterangan_perubahan: string;
+  jemaat_ke?: number | null;
+  catatan?: string | null;
   created_at: string;
 }
 
@@ -843,6 +845,8 @@ export function useElevateStatus() {
       id_induk_baru?: string;
       nama_induk_baru?: string;
       id_mupel_baru?: string;
+      jemaat_ke?: number | null;
+      catatan?: string | null;
     }) => {
       // 1. Ambil detail Pos Pelkes saat ini untuk fallback
       const { data: posData } = await supabase
@@ -860,6 +864,8 @@ export function useElevateStatus() {
         p_id_induk_baru: data.id_induk_baru || null,
         p_nama_induk_baru: data.nama_induk_baru || null,
         p_id_mupel_baru: data.id_mupel_baru || null,
+        p_jemaat_ke: data.jemaat_ke || null,
+        p_catatan: data.catatan || null,
       });
 
       // 3. Apabila RPC gagal karena skema DB (misal not-null constraint pada latitude/longitude), eksekusi fallback mutasi client
@@ -878,7 +884,7 @@ export function useElevateStatus() {
           const lng = posData?.longitude ?? 0;
           const alamat = posData?.alamat ?? null;
 
-          // Upsert ke m_jemaat_induk dengan sertakan latitude, longitude & alamat
+          // Upsert ke m_jemaat_induk dengan sertakan latitude, longitude, alamat & jemaat_ke
           const { error: insertError } = await supabase
             .from('m_jemaat_induk')
             .upsert({
@@ -888,6 +894,7 @@ export function useElevateStatus() {
               alamat: alamat,
               latitude: lat,
               longitude: lng,
+              jemaat_ke: data.jemaat_ke || null,
               keterangan: `Ditingkatkan dari Pos Pelkes (${posData?.nama_pos || data.id_pos}). SK: ${data.keterangan_perubahan}`,
               updated_at: new Date().toISOString()
             });
@@ -902,7 +909,7 @@ export function useElevateStatus() {
           if (posErr) throw posErr;
         }
 
-        // Catat histori perubahan status
+        // Catat histori perubahan status beserta jemaat_ke & catatan
         await supabase
           .from('t_histori_perubahan_status')
           .insert({
@@ -913,6 +920,8 @@ export function useElevateStatus() {
             status_baru: data.target_status === 'BAJEM' ? 'Bajem' : 'Jemaat Induk',
             tanggal_perubahan: data.tanggal_perubahan,
             keterangan_perubahan: data.keterangan_perubahan,
+            jemaat_ke: data.jemaat_ke || null,
+            catatan: data.catatan || null,
           });
       }
 
@@ -954,6 +963,67 @@ export function useHistoriStatus(id_pos: string) {
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     enabled: !!id_pos,
+  });
+}
+
+/**
+ * Hook Mutation: Update Histori Perubahan Status
+ */
+export function useUpdateHistoriStatus() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: {
+      id_histori: string;
+      tanggal_perubahan: string;
+      keterangan_perubahan: string;
+      jemaat_ke?: number | null;
+      catatan?: string | null;
+    }) => {
+      const { data: updated, error } = await supabase
+        .from('t_histori_perubahan_status')
+        .update({
+          tanggal_perubahan: data.tanggal_perubahan,
+          keterangan_perubahan: data.keterangan_perubahan,
+          jemaat_ke: data.jemaat_ke || null,
+          catatan: data.catatan || null,
+        })
+        .eq('id_histori', data.id_histori)
+        .select();
+
+      if (error) throw error;
+      return updated;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['histori-status'] });
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(10);
+    },
+  });
+}
+
+/**
+ * Hook Mutation: Delete Histori Perubahan Status
+ */
+export function useDeleteHistoriStatus() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id_histori: string) => {
+      const { data: deleted, error } = await supabase
+        .from('t_histori_perubahan_status')
+        .delete()
+        .eq('id_histori', id_histori)
+        .select();
+
+      if (error) throw error;
+      return deleted;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['histori-status'] });
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(10);
+    },
   });
 }
 

@@ -89,6 +89,8 @@ export const elevateStatusSchema = z.object({
   keterangan_perubahan: z.string().min(5, 'Keterangan / Nomor SK minimal 5 karakter').max(500),
   id_induk_baru: z.string().optional(),
   nama_induk_baru: z.string().optional(),
+  jemaat_ke: z.union([z.number(), z.string(), z.null(), z.undefined()]).optional(),
+  catatan: z.string().optional(),
 }).refine((data) => {
   if (data.target_status === 'JEMAAT_INDUK') {
     return !!data.id_induk_baru && data.id_induk_baru.trim().length > 0 && !!data.nama_induk_baru && data.nama_induk_baru.trim().length > 0;

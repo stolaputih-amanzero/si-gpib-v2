@@ -61,6 +61,8 @@ export function StatusElevationModal({ isOpen, onClose, posItem }: StatusElevati
         keterangan_perubahan: data.keterangan_perubahan,
         id_induk_baru: data.id_induk_baru,
         nama_induk_baru: data.nama_induk_baru,
+        jemaat_ke: data.jemaat_ke ? Number(data.jemaat_ke) : null,
+        catatan: data.catatan || null,
       });
       router.refresh();
       onClose();
@@ -162,7 +164,7 @@ export function StatusElevationModal({ isOpen, onClose, posItem }: StatusElevati
                   <label className="text-[11px] font-bold text-text-high">ID Jemaat Baru *</label>
                   <input
                     type="text"
-                    placeholder="Contoh: 25-01-MT"
+                    placeholder="Contoh: 20-25-EK"
                     {...register('id_induk_baru')}
                     className="w-full min-h-[44px] px-3 rounded-xl border border-border-subtle bg-surface-base text-xs font-semibold text-text-high focus:outline-none focus:ring-2 focus:ring-purple-600"
                   />
@@ -175,12 +177,26 @@ export function StatusElevationModal({ isOpen, onClose, posItem }: StatusElevati
                   <label className="text-[11px] font-bold text-text-high">Nama Jemaat Induk Baru *</label>
                   <input
                     type="text"
-                    placeholder="Contoh: GPIB Martin Luther"
+                    placeholder="Contoh: GPIB Ekklesia Nanga Silat"
                     {...register('nama_induk_baru')}
                     className="w-full min-h-[44px] px-3 rounded-xl border border-border-subtle bg-surface-base text-xs font-semibold text-text-high focus:outline-none focus:ring-2 focus:ring-purple-600"
                   />
                   {errors.nama_induk_baru && (
                     <p className="text-[10px] text-red-600 font-medium">{errors.nama_induk_baru.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1 sm:col-span-2">
+                  <label className="text-[11px] font-bold text-text-high">Jemaat Ke- (Nomor Urut Sinode) (Angka)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Contoh: 354 (Jemaat GPIB ke-354)"
+                    {...register('jemaat_ke')}
+                    className="w-full min-h-[44px] px-3 rounded-xl border border-border-subtle bg-surface-base text-xs font-semibold text-text-high focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  />
+                  {errors.jemaat_ke && (
+                    <p className="text-[10px] text-red-600 font-medium">{errors.jemaat_ke.message}</p>
                   )}
                 </div>
               </div>
@@ -207,16 +223,33 @@ export function StatusElevationModal({ isOpen, onClose, posItem }: StatusElevati
           <div className="space-y-1">
             <label className="text-xs font-bold text-text-high flex items-center gap-1.5">
               <FileText size={14} className="text-brand-primary" />
-              Nomor SK / Keterangan Perubahan Status *
+              Nomor SK / Dasar Keputusan *
             </label>
             <textarea
-              rows={3}
-              placeholder="Masukkan nomor SK Sinode, keputusan sidang majelis, atau catatan latar belakang peningkatan status..."
+              rows={2}
+              placeholder="Masukkan nomor SK Sinode, keputusan sidang majelis..."
               {...register('keterangan_perubahan')}
               className="w-full p-3 rounded-xl border border-border-subtle bg-surface-base text-xs text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
             />
             {errors.keterangan_perubahan && (
               <p className="text-[10px] text-red-600 font-medium">{errors.keterangan_perubahan.message}</p>
+            )}
+          </div>
+
+          {/* Catatan Peningkatan Status */}
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-text-high flex items-center gap-1.5">
+              <FileText size={14} className="text-purple-600" />
+              Catatan Peningkatan Status
+            </label>
+            <textarea
+              rows={2}
+              placeholder="Catatan tambahan mengenai sejarah, latar belakang, atau proses peningkatan status..."
+              {...register('catatan')}
+              className="w-full p-3 rounded-xl border border-border-subtle bg-surface-base text-xs text-text-high focus:outline-none focus:ring-2 focus:ring-purple-600 resize-none"
+            />
+            {errors.catatan && (
+              <p className="text-[10px] text-red-600 font-medium">{errors.catatan.message}</p>
             )}
           </div>
 
