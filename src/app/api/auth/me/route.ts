@@ -34,14 +34,9 @@ export async function GET() {
         dbUser = data
       }
 
-      const resolvedAvatar =
-        dbUser?.avatar_url ||
-        dbUser?.foto_url ||
-        user.avatar_url ||
-        user.foto_url ||
-        user.user_metadata?.avatar_url ||
-        user.user_metadata?.foto_url ||
-        user.user_metadata?.picture
+      const resolvedAvatar = dbUser
+        ? (dbUser.avatar_url || dbUser.foto_url || null)
+        : (user.avatar_url || user.foto_url || user.user_metadata?.avatar_url || user.user_metadata?.foto_url || user.user_metadata?.picture || null);
 
       if (dbUser || resolvedAvatar) {
         let finalRole = dbUser?.role || user.role || user.user_metadata?.role || 'pendeta';

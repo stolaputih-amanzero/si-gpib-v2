@@ -45,10 +45,13 @@ export interface ProfilePelayanan {
   jenis_pendeta?: string | null;
   status_aktif: boolean;
   id_induk?: string | null;
+  id_mupel?: string | null;
+  id_pos?: string | null;
   is_kmj: boolean;
   is_pj: boolean;
   jemaat_induk_nama?: string | null;
   mupel_nama?: string | null;
+  pos_pelkes_nama?: string | null;
 }
 
 export interface ProfileStats {

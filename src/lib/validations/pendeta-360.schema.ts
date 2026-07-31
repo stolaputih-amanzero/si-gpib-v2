@@ -13,6 +13,7 @@ export const keluargaSchema = z.object({
   hubungan: z.enum(HUBUNGAN_KELUARGA as unknown as [string, ...string[]]),
   nama_lengkap: z.string().min(2, 'Nama lengkap minimal 2 karakter').max(150),
   gender: z.string().optional().nullable(),
+  foto_url: z.string().optional().nullable(),
   tgl_lahir: z.string().optional().nullable(),
   no_wa: z.string().optional().nullable(),
   pendidikan: z.string().optional().nullable(),
@@ -30,6 +31,7 @@ export const kompetensiSchema = z.object({
   jenis: z.enum(JENIS_KOMPETENSI as unknown as [string, ...string[]]).default('Kompetensi'),
   tingkat: z.enum(TINGKAT_KOMPETENSI as unknown as [string, ...string[]]).optional().nullable(),
   tahun_mulai: z.number().int().min(1950).max(new Date().getFullYear()).optional().nullable(),
+  dokumen_url: z.string().optional().nullable(),
   keterangan: z.string().optional().nullable(),
 });
 

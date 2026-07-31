@@ -38,6 +38,8 @@ export default function MyProfilePage() {
   // Edit Pendeta Pelayanan Biodata State
   const [isEditingPelayanan, setIsEditingPelayanan] = useState(false);
   const [editPelNama, setEditPelNama] = useState('');
+  const [editPelNip, setEditPelNip] = useState('');
+  const [editPelNik, setEditPelNik] = useState('');
   const [editPelGender, setEditPelGender] = useState('Laki-laki');
   const [editPelTglLahir, setEditPelTglLahir] = useState('');
   const [editPelNoWa, setEditPelNoWa] = useState('');
@@ -52,6 +54,14 @@ export default function MyProfilePage() {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     const rawFile = files[0];
+
+    const MAX_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
+    if (rawFile.size > MAX_SIZE_BYTES) {
+      toast.error('Ukuran Foto Terlalu Besar', 'Maksimal ukuran foto profil yang diperbolehkan adalah 2 MB.');
+      if (cameraInputRef.current) cameraInputRef.current.value = '';
+      if (galleryInputRef.current) galleryInputRef.current.value = '';
+      return;
+    }
 
     setIsCompressingAvatar(true);
     try {
@@ -82,10 +92,37 @@ export default function MyProfilePage() {
       user?.user_metadata?.no_hp ||
       '';
 
+    let currentAvatar =
+      akun?.avatar_url ||
+      akun?.foto_url ||
+      pelayanan?.foto_url ||
+      user?.avatar_url ||
+      user?.foto_url ||
+      user?.user_metadata?.avatar_url ||
+      user?.user_metadata?.foto_url ||
+      user?.user_metadata?.picture ||
+      '';
+
+    if (!currentAvatar && typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('si_gpib_cached_user');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          currentAvatar =
+            parsed.avatar_url ||
+            parsed.foto_url ||
+            parsed.user_metadata?.avatar_url ||
+            parsed.user_metadata?.foto_url ||
+            parsed.user_metadata?.picture ||
+            '';
+        }
+      } catch {}
+    }
+
     setEditNama(pelayanan?.nama_pendeta || akun?.nama_lengkap || user?.nama_lengkap || user?.user_metadata?.nama_lengkap || '');
     setEditEmail(user?.email || '');
     setEditNoHp(phoneValue);
-    setEditAvatar(akun?.avatar_url || akun?.foto_url || pelayanan?.foto_url || user?.avatar_url || user?.user_metadata?.avatar_url || '');
+    setEditAvatar(currentAvatar);
     setIsEditingProfile(true);
   };
 
@@ -105,7 +142,7 @@ export default function MyProfilePage() {
         avatar_url: editAvatar.trim(),
       });
 
-      const updatedAvatar = res.avatar_url || editAvatar.trim();
+      const updatedAvatar = res.avatar_url?.trim() || null;
 
       // Update local storage cache directly for instant UI update
       try {
@@ -181,6 +218,8 @@ export default function MyProfilePage() {
     const isPerempuan = rawGender.toLowerCase().startsWith('p');
 
     setEditPelNama(pelayanan?.nama_pendeta || akun?.nama_lengkap || user?.nama_lengkap || '');
+    setEditPelNip(pelayanan?.nip || '');
+    setEditPelNik(pelayanan?.nik || '');
     setEditPelGender(isPerempuan ? 'Perempuan' : 'Laki-laki');
     setEditPelTglLahir(pelayanan?.tgl_lahir ? new Date(pelayanan.tgl_lahir).toISOString().split('T')[0] : '');
     setEditPelNoWa(pelayanan?.no_telepon || akun?.no_hp || '');
@@ -208,6 +247,8 @@ export default function MyProfilePage() {
         no_wa: editPelNoWa.trim() || undefined,
         tgl_tugas: editPelTglTugas || undefined,
         jenis_pendeta: editPelJenisPendeta,
+        nip: editPelNip.trim() || undefined,
+        nik: editPelNik.trim() || undefined,
       });
 
       if (!res.success) {
@@ -310,7 +351,7 @@ export default function MyProfilePage() {
                         <span>Galeri</span>
                       </button>
                     </div>
-                    <p className="text-[10px] text-text-muted truncate">Kamera HP atau upload galeri (Resolusi HD s/d 1MB)</p>
+                    <p className="text-[10px] text-text-muted truncate">Kamera HP atau upload galeri (Maksimal 2 MB, Kompres HD)</p>
                   </div>
                 </div>
 
@@ -518,6 +559,31 @@ export default function MyProfilePage() {
                   className="field"
                   required
                 />
+              </div>
+
+              {/* NIP & NIK */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text-high">NIP (Nomor Induk Pendeta)</label>
+                  <input
+                    type="text"
+                    placeholder="Misal: 198008152005011001"
+                    value={editPelNip}
+                    onChange={(e) => setEditPelNip(e.target.value)}
+                    className="field font-mono"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text-high">NIK (Kependudukan)</label>
+                  <input
+                    type="text"
+                    placeholder="Misal: 3174000000000000"
+                    value={editPelNik}
+                    onChange={(e) => setEditPelNik(e.target.value)}
+                    className="field font-mono"
+                  />
+                </div>
               </div>
 
               {/* Jenis Kelamin & Tanggal Lahir */}

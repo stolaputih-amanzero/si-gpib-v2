@@ -4,6 +4,7 @@ export interface KeluargaPendeta {
   hubungan: 'Suami' | 'Istri' | 'Anak' | 'Orang Tua' | 'Mertua' | 'Lainnya' | string;
   nama_lengkap: string;
   gender?: 'Laki-Laki' | 'Perempuan' | string | null;
+  foto_url?: string | null;
   tgl_lahir?: string | null;
   no_wa?: string | null;
   pendidikan?: string | null;
@@ -23,6 +24,7 @@ export interface KompetensiPendeta {
   jenis: 'Kompetensi' | 'Passion' | 'Karunia' | string;
   tingkat?: 'Pemula' | 'Menengah' | 'Mahir' | 'Ahli' | string | null;
   tahun_mulai?: number | null;
+  dokumen_url?: string | null;
   keterangan?: string | null;
   created_at?: string;
   updated_at?: string;

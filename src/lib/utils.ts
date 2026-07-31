@@ -22,3 +22,14 @@ export function formatNumber(num?: number | null): string {
   if (num === null || num === undefined) return '0';
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
+
+export function formatWhatsAppUrl(phone?: string | null): string | null {
+  if (!phone) return null;
+  const digits = phone.replace(/\D/g, '');
+  if (!digits) return null;
+  
+  if (digits.startsWith('0')) {
+    return `https://wa.me/62${digits.substring(1)}`;
+  }
+  return `https://wa.me/${digits}`;
+}

@@ -210,26 +210,17 @@ export async function updateOwnProfileAction(payload: {
         parsed.nama_lengkap = payload.nama_lengkap;
         parsed.email = finalEmail;
         
-        if (finalAvatarUrl && !finalAvatarUrl.startsWith('data:image/')) {
-          parsed.avatar_url = finalAvatarUrl;
-          parsed.foto_url = finalAvatarUrl;
-          parsed.user_metadata = {
-            ...parsed.user_metadata,
-            email: finalEmail,
-            nama_lengkap: payload.nama_lengkap,
-            no_hp: payload.no_hp,
-            avatar_url: finalAvatarUrl,
-            foto_url: finalAvatarUrl,
-            picture: finalAvatarUrl,
-          };
-        } else {
-          parsed.user_metadata = {
-            ...parsed.user_metadata,
-            email: finalEmail,
-            nama_lengkap: payload.nama_lengkap,
-            no_hp: payload.no_hp,
-          };
-        }
+        parsed.avatar_url = finalAvatarUrl || null;
+        parsed.foto_url = finalAvatarUrl || null;
+        parsed.user_metadata = {
+          ...parsed.user_metadata,
+          email: finalEmail,
+          nama_lengkap: payload.nama_lengkap,
+          no_hp: payload.no_hp,
+          avatar_url: finalAvatarUrl || null,
+          foto_url: finalAvatarUrl || null,
+          picture: finalAvatarUrl || null,
+        };
 
         cookieStore.set('si_gpib_user_session', JSON.stringify(parsed), {
           path: '/',
@@ -263,6 +254,8 @@ export async function updatePendetaPelayananAction(payload: {
   no_wa?: string;
   tgl_tugas?: string;
   jenis_pendeta?: string;
+  nip?: string;
+  nik?: string;
 }) {
   try {
     const supabase = await createClient();
@@ -321,6 +314,8 @@ export async function updatePendetaPelayananAction(payload: {
         no_wa: payload.no_wa?.trim() || null,
         tgl_tugas: payload.tgl_tugas || null,
         jenis_pendeta: payload.jenis_pendeta || 'Organik',
+        nip: payload.nip?.trim() || null,
+        nik: payload.nik?.trim() || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id_pendeta', targetPendetaId);

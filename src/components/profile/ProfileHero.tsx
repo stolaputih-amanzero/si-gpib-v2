@@ -1,12 +1,25 @@
 'use client';
 
+import { useState } from 'react';
+import Link from 'next/link';
 import { useProfileAkun, useProfilePelayanan } from '@/hooks/use-profile';
 import { RoleBadge } from './RoleBadge';
 import { CopyableContact } from './CopyableContact';
-import { Mail, Phone, Edit3, ShieldCheck, CheckCircle2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-
+import {
+  Mail,
+  Phone,
+  Edit3,
+  ShieldCheck,
+  CheckCircle2,
+  ChevronRight,
+  X,
+  User,
+  Award,
+  ExternalLink,
+} from 'lucide-react';
+import { cn, formatWhatsAppUrl } from '@/lib/utils';
 import { useUser } from '@/hooks/use-user';
+import { differenceInYears } from 'date-fns';
 
 interface ProfileHeroProps {
   userId?: string;
@@ -19,6 +32,9 @@ export function ProfileHero({ userId, mode = 'self', onEditProfile, onChangeRole
   const { data: akun, isLoading: isAkunLoading } = useProfileAkun(userId);
   const { data: pelayanan, isLoading: isPelayananLoading } = useProfilePelayanan(akun?.id_pendeta);
   const { avatarUrl: userAvatarUrl } = useUser();
+
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isPhotoPreviewOpen, setIsPhotoPreviewOpen] = useState(false);
 
   if (isAkunLoading || isPelayananLoading) {
     return (
@@ -61,87 +77,379 @@ export function ProfileHero({ userId, mode = 'self', onEditProfile, onChangeRole
     } catch {}
   }
 
-  const avatarUrl = akun?.avatar_url || akun?.foto_url || pelayanan?.foto_url || (mode === 'self' ? userAvatarUrl : null) || localStorageAvatar;
+  const rawAvatar = akun?.avatar_url || akun?.foto_url || (mode === 'self' ? userAvatarUrl : null) || pelayanan?.foto_url || localStorageAvatar;
+  const avatarUrl = rawAvatar && rawAvatar.trim() !== '' ? rawAvatar : null;
   const email = pelayanan?.email || akun?.email;
   const phone = pelayanan?.no_telepon || akun?.no_hp;
 
+  const age = pelayanan?.tgl_lahir ? differenceInYears(new Date(), new Date(pelayanan.tgl_lahir)) : null;
+
+  const handleAvatarClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (avatarUrl) {
+      setIsPhotoPreviewOpen(true);
+    } else {
+      setIsDetailModalOpen(true);
+    }
+  };
+
   return (
-    <div className={cn('relative overflow-hidden rounded-2xl elevate-2 p-5 sm:p-6 transition-all animate-rise', glowClass)}>
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-        {/* Left: Avatar & Identity Details */}
-        <div className="flex items-start gap-4 min-w-0">
-          <div className="w-16 h-16 rounded-2xl bg-surface-brand text-brand-600 flex items-center justify-center font-display text-2xl font-bold overflow-hidden shrink-0 border border-brand-500/20 shadow-soft animate-pop relative">
-            {avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
-            ) : (
-              <span>{initials}</span>
-            )}
-          </div>
-
-          <div className="min-w-0 flex-1 space-y-1.5">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="font-display text-xl sm:text-2xl font-semibold text-ink-primary truncate leading-tight">
-                {displayName}
-              </h1>
-              {pelayanan?.gelar_belakang && (
-                <span className="text-xs text-ink-tertiary font-mono">({pelayanan.gelar_belakang})</span>
+    <>
+      {/* Clickable Profile Hero Header */}
+      <div
+        onClick={() => setIsDetailModalOpen(true)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setIsDetailModalOpen(true);
+          }
+        }}
+        className={cn(
+          'relative overflow-hidden rounded-2xl elevate-2 p-5 sm:p-6 transition-all animate-rise cursor-pointer group hover:border-brand-500/50 hover:shadow-md active:scale-[0.995]',
+          glowClass
+        )}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          {/* Left: Avatar & Identity Details */}
+          <div className="flex items-start gap-4 min-w-0 flex-1">
+            {/* Clickable Photo Avatar */}
+            <div
+              onClick={handleAvatarClick}
+              role="button"
+              tabIndex={0}
+              title={avatarUrl ? 'Klik untuk preview foto profil' : 'Foto Profil'}
+              className="w-16 h-16 rounded-2xl bg-surface-brand text-brand-600 flex items-center justify-center font-display text-2xl font-bold overflow-hidden shrink-0 border border-brand-500/20 shadow-soft animate-pop relative cursor-pointer hover:opacity-90 hover:ring-4 hover:ring-brand-500/30 active:scale-95 transition-all"
+            >
+              {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+              ) : (
+                <span>{initials}</span>
               )}
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap pt-0.5">
-              <RoleBadge role={role} />
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="font-display text-xl sm:text-2xl font-semibold text-ink-primary group-hover:text-brand-600 transition-colors truncate leading-tight">
+                  {displayName}
+                </h1>
+                {pelayanan?.gelar_belakang && (
+                  <span className="text-xs text-ink-tertiary font-mono">({pelayanan.gelar_belakang})</span>
+                )}
+              </div>
 
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-ok-soft text-ok border border-ok/20">
-                <CheckCircle2 size={12} />
-                <span>{akun?.status || 'Active'}</span>
-              </span>
+              <div className="flex items-center gap-2 flex-wrap pt-0.5">
+                <RoleBadge role={role} />
 
-              {pelayanan?.is_kmj && (
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 border border-purple-500/20">
-                  KMJ Active
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-ok-soft text-ok border border-ok/20">
+                  <CheckCircle2 size={12} />
+                  <span>{akun?.status || 'Active'}</span>
                 </span>
-              )}
-              {pelayanan?.is_pj && (
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 border border-blue-500/20">
-                  PJ Active
-                </span>
-              )}
+
+                {pelayanan?.is_kmj && (
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 border border-purple-500/20">
+                    KMJ Active
+                  </span>
+                )}
+                {pelayanan?.is_pj && (
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 border border-blue-500/20">
+                    PJ Active
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Chevron indicator for opening details */}
+          <div className="flex items-center gap-1 text-ink-tertiary group-hover:text-brand-600 transition-colors shrink-0 self-end sm:self-start pt-1">
+            <span className="text-xs font-semibold hidden sm:inline">Rincian Profil</span>
+            <div className="p-2 rounded-xl bg-surface-sunken group-hover:bg-brand-500/10 transition-colors">
+              <ChevronRight size={18} />
             </div>
           </div>
         </div>
 
-        {/* Right: Actions Menu */}
-        <div className="flex items-center gap-2 shrink-0 self-end sm:self-start">
-          {mode === 'supervise' && onChangeRole && (
-            <button
-              type="button"
-              onClick={onChangeRole}
-              className="h-12 px-4 rounded-xl bg-purple-600 text-white text-xs font-bold hover:bg-purple-700 active:scale-95 transition-all shadow-soft inline-flex items-center gap-1.5 min-h-[48px]"
-            >
-              <ShieldCheck size={18} />
-              <span>Ubah Peran</span>
-            </button>
-          )}
-
-          {onEditProfile && (
-            <button
-              type="button"
-              onClick={onEditProfile}
-              className="h-12 w-12 rounded-xl bg-surface-sunken hover:bg-surface-brand text-ink-primary hover:text-brand-600 border border-line-subtle transition-all tap flex items-center justify-center min-h-[48px] min-w-[48px]"
-              title="Edit Profil"
-            >
-              <Edit3 size={18} />
-            </button>
-          )}
+        {/* Bottom Row: Copyable Contacts */}
+        <div
+          className="flex items-center gap-2.5 flex-wrap pt-4 mt-4 border-t border-line-hairline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <CopyableContact icon={Mail} value={email} label="Email" />
+          <CopyableContact icon={Phone} value={phone} label="No. Telepon / WA" />
         </div>
       </div>
 
-      {/* Bottom Row: Copyable Contacts */}
-      <div className="flex items-center gap-2.5 flex-wrap pt-4 mt-4 border-t border-line-hairline">
-        <CopyableContact icon={Mail} value={email} label="Email" />
-        <CopyableContact icon={Phone} value={phone} label="No. Telepon / WA" />
-      </div>
-    </div>
+      {/* Modal Detail Profil */}
+      {isDetailModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-lg bg-surface-elevated rounded-t-3xl sm:rounded-3xl p-6 space-y-5 border border-border-subtle shadow-heavy max-h-[90vh] overflow-y-auto animate-slide-up">
+            {/* Header Detail Modal */}
+            <div className="flex items-start justify-between border-b border-border-subtle pb-4">
+              <div className="flex items-center gap-3">
+                <div
+                  onClick={() => avatarUrl && setIsPhotoPreviewOpen(true)}
+                  className={cn(
+                    'w-14 h-14 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold text-xl overflow-hidden shrink-0 border border-brand-primary/20 shadow-soft',
+                    avatarUrl && 'cursor-pointer hover:opacity-90 hover:ring-4 hover:ring-brand-500/30 transition-all'
+                  )}
+                  title={avatarUrl ? 'Klik untuk preview foto profil' : 'Foto Profil'}
+                >
+                  {avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{initials}</span>
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <RoleBadge role={role} />
+                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-ok-soft text-ok border border-ok/20">
+                      {akun?.status || 'Active'}
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-bold text-ink-primary mt-1">{displayName}</h3>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsDetailModalOpen(false)}
+                className="w-9 h-9 rounded-full bg-surface-sunken flex items-center justify-center text-text-muted hover:text-text-high shrink-0 min-h-[44px] min-w-[44px]"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Rincian Biodata Pengguna & Pelayanan */}
+            <div className="space-y-4 text-xs sm:text-sm">
+              <div className="p-4 bg-surface-sunken rounded-2xl border border-border-subtle space-y-3">
+                <h4 className="font-bold text-text-high text-xs uppercase tracking-wider flex items-center gap-1.5 text-brand-primary">
+                  <User size={14} />
+                  <span>Informasi Akun Pengguna</span>
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-text-muted font-medium block">Nama Lengkap</span>
+                    <span className="font-semibold text-text-high mt-0.5 block">{displayName}</span>
+                  </div>
+                  <div>
+                    <span className="text-text-muted font-medium block">Email Terdaftar</span>
+                    <span className="font-mono text-text-high mt-0.5 block truncate">{email || '-'}</span>
+                  </div>
+                  <div>
+                    <span className="text-text-muted font-medium block">No. Telepon / WA</span>
+                    {phone ? (
+                      <a
+                        href={formatWhatsAppUrl(phone) || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-mono font-bold text-emerald-600 dark:text-emerald-400 hover:underline mt-0.5 inline-flex items-center gap-1.5"
+                        title="Hubungi via WhatsApp"
+                      >
+                        <Phone size={13} />
+                        <span>{phone}</span>
+                        <ExternalLink size={11} className="opacity-75" />
+                      </a>
+                    ) : (
+                      <span className="font-mono text-text-high mt-0.5 block">-</span>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-text-muted font-medium block">Akses Role</span>
+                    <span className="font-semibold text-brand-primary mt-0.5 block uppercase">{role}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Rincian Identitas Pelayanan (jika Pendeta) */}
+              {pelayanan && (
+                <div className="p-4 bg-surface-sunken rounded-2xl border border-border-subtle space-y-3">
+                  <h4 className="font-bold text-text-high text-xs uppercase tracking-wider flex items-center gap-1.5 text-purple-600">
+                    <Award size={14} />
+                    <span>Identitas Pelayanan Pendeta</span>
+                  </h4>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <span className="text-text-muted font-medium block">NIP / NIK</span>
+                      <span className="font-mono font-medium text-text-high mt-0.5 block">
+                        NIP: {pelayanan.nip || '-'} | NIK: {pelayanan.nik || '-'}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-text-muted font-medium block">Tempat / Tanggal Lahir</span>
+                      <span className="font-mono text-text-high mt-0.5 block">
+                        {pelayanan.tempat_lahir ? `${pelayanan.tempat_lahir}, ` : ''}
+                        {pelayanan.tgl_lahir
+                          ? new Date(pelayanan.tgl_lahir).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+                          : '-'}
+                        {age !== null && <strong className="text-brand-600 font-sans ml-1">({age} thn)</strong>}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-text-muted font-medium block">Jenis Kelamin</span>
+                      <span className="font-semibold text-text-high mt-0.5 block">
+                        {pelayanan.jenis_kelamin || '-'}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-text-muted font-medium block">Mulai Tugas GPIB</span>
+                      <span className="font-mono text-text-high mt-0.5 block">
+                        {pelayanan.tgl_tugas_awal
+                          ? new Date(pelayanan.tgl_tugas_awal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+                          : '-'}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-text-muted font-medium block">Mupel</span>
+                      {pelayanan.mupel_nama ? (
+                        <Link
+                          href={
+                            pelayanan.id_mupel
+                              ? `/hierarki/${encodeURIComponent(pelayanan.id_mupel)}`
+                              : `/hierarki?search=${encodeURIComponent(pelayanan.mupel_nama.replace(/^Mupel\s+/i, ''))}`
+                          }
+                          onClick={() => setIsDetailModalOpen(false)}
+                          className="font-semibold text-brand-600 dark:text-brand-400 hover:underline mt-0.5 inline-flex items-center gap-1 group"
+                          title={`Lihat Detail Mupel ${pelayanan.mupel_nama}`}
+                        >
+                          <span>{pelayanan.mupel_nama.replace(/^Mupel\s+/i, '')}</span>
+                          <ExternalLink size={12} className="opacity-60 group-hover:opacity-100 transition-opacity" />
+                        </Link>
+                      ) : (
+                        <span className="font-semibold text-text-muted mt-0.5 block">-</span>
+                      )}
+                    </div>
+
+                    <div>
+                      <span className="text-text-muted font-medium block">Jemaat Induk</span>
+                      {pelayanan.jemaat_induk_nama ? (
+                        <Link
+                          href={
+                            pelayanan.id_induk
+                              ? `/hierarki/${encodeURIComponent(pelayanan.id_mupel || 'all')}/${encodeURIComponent(pelayanan.id_induk)}`
+                              : `/hierarki?search=${encodeURIComponent(pelayanan.jemaat_induk_nama)}`
+                          }
+                          onClick={() => setIsDetailModalOpen(false)}
+                          className="font-semibold text-brand-600 dark:text-brand-400 hover:underline mt-0.5 inline-flex items-center gap-1 group"
+                          title={`Lihat Detail Jemaat Induk ${pelayanan.jemaat_induk_nama}`}
+                        >
+                          <span>{pelayanan.jemaat_induk_nama}</span>
+                          <ExternalLink size={12} className="opacity-60 group-hover:opacity-100 transition-opacity" />
+                        </Link>
+                      ) : (
+                        <span className="font-semibold text-text-muted mt-0.5 block">-</span>
+                      )}
+                    </div>
+
+                    {pelayanan.pos_pelkes_nama && (
+                      <div className="sm:col-span-2">
+                        <span className="text-text-muted font-medium block">Pos Pelkes / Bajem Penugasan</span>
+                        <Link
+                          href={
+                            pelayanan.id_pos
+                              ? `/dashboard/pos-pelkes/${encodeURIComponent(pelayanan.id_pos)}`
+                              : '/dashboard/pos-pelkes'
+                          }
+                          onClick={() => setIsDetailModalOpen(false)}
+                          className="font-semibold text-emerald-600 dark:text-emerald-400 hover:underline mt-0.5 inline-flex items-center gap-1 group"
+                          title={`Lihat Detail Pos Pelkes ${pelayanan.pos_pelkes_nama}`}
+                        >
+                          <span>{pelayanan.pos_pelkes_nama}</span>
+                          <ExternalLink size={12} className="opacity-60 group-hover:opacity-100 transition-opacity" />
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer Action Buttons: Edit Profil Moved Here */}
+            <div className="flex items-center gap-2 pt-3 border-t border-border-subtle">
+              {onEditProfile && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsDetailModalOpen(false);
+                    onEditProfile();
+                  }}
+                  className="flex-1 min-h-[44px] px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 shadow-2xs"
+                >
+                  <Edit3 size={16} />
+                  <span>Edit Profil</span>
+                </button>
+              )}
+
+              {mode === 'supervise' && onChangeRole && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsDetailModalOpen(false);
+                    onChangeRole();
+                  }}
+                  className="min-h-[44px] px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-2xs"
+                >
+                  <ShieldCheck size={16} />
+                  <span>Ubah Peran</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setIsDetailModalOpen(false)}
+                className="min-h-[44px] px-4 rounded-xl border border-border-subtle bg-surface-sunken text-text-high font-semibold text-xs hover:bg-surface-elevated transition-all"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox Modal Preview Foto Profil */}
+      {isPhotoPreviewOpen && avatarUrl && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setIsPhotoPreviewOpen(false)}
+        >
+          <div
+            className="relative max-w-2xl w-full flex flex-col items-center gap-3 animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-full flex items-center justify-between text-white pb-1">
+              <span className="text-sm font-bold truncate">Foto Profil - {displayName}</span>
+              <button
+                type="button"
+                onClick={() => setIsPhotoPreviewOpen(false)}
+                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors min-h-[44px] min-w-[44px]"
+                title="Tutup Preview"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="relative max-h-[80vh] w-full flex items-center justify-center overflow-hidden rounded-3xl border border-white/10 shadow-2xl bg-black/40 p-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={avatarUrl}
+                alt={displayName}
+                className="max-h-[75vh] w-auto max-w-full object-contain rounded-2xl shadow-lg"
+              />
+            </div>
+
+            <p className="text-xs text-white/70 italic text-center">Klik di luar gambar atau tombol X untuk menutup</p>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

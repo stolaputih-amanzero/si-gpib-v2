@@ -179,17 +179,58 @@ export function useProfilePelayanan(idPendeta?: string | null) {
 
       let jemaatNama = jemaatObj?.nama_induk || null;
       let mupelNama = mupelObj?.nama_mupel || null;
+      let idMupel = jemaatObj?.id_mupel || mupelObj?.id_mupel || pendetaRow.id_mupel || null;
 
       // Fallback query for jemaat and mupel if missing
-      if (!jemaatNama && pendetaRow.id_induk) {
+      if ((!jemaatNama || !idMupel) && pendetaRow.id_induk) {
         const { data: jData } = await supabase
           .from('m_jemaat_induk')
-          .select('nama_induk, id_mupel, mupel:m_mupel(nama_mupel)')
+          .select('nama_induk, id_mupel, mupel:m_mupel(id_mupel, nama_mupel)')
           .eq('id_induk', pendetaRow.id_induk)
           .maybeSingle();
         if (jData) {
           jemaatNama = jData.nama_induk;
+          idMupel = idMupel || jData.id_mupel || (jData.mupel as any)?.id_mupel || null;
           mupelNama = (jData.mupel as any)?.nama_mupel || null;
+        }
+      }
+
+      if (!idMupel && mupelNama) {
+        const cleanedMupel = mupelNama.replace(/^Mupel\s+/i, '').trim();
+        const { data: mData } = await supabase
+          .from('m_mupel')
+          .select('id_mupel')
+          .ilike('nama_mupel', `%${cleanedMupel}%`)
+          .maybeSingle();
+        if (mData) {
+          idMupel = mData.id_mupel;
+        }
+      }
+
+      let posNama: string | null = pendetaRow.pos_pelkes_nama || pendetaRow.nama_pos || null;
+      let idPos: string | null = pendetaRow.id_pos || null;
+
+      if (!posNama && idPendeta) {
+        const { data: tugasRow } = await supabase
+          .from('t_penugasan_pendeta')
+          .select('id_pos, pos:m_pos_pelkes(nama_pos, kategori)')
+          .eq('id_pendeta', idPendeta)
+          .maybeSingle();
+
+        if (tugasRow?.pos) {
+          posNama = (tugasRow.pos as any)?.nama_pos || null;
+          idPos = tugasRow.id_pos || null;
+        } else {
+          const { data: pjRow } = await supabase
+            .from('t_pj_jemaat')
+            .select('id_pos, pos:m_pos_pelkes(nama_pos, kategori)')
+            .eq('id_pendeta', idPendeta)
+            .maybeSingle();
+
+          if (pjRow?.pos) {
+            posNama = (pjRow.pos as any)?.nama_pos || null;
+            idPos = pjRow.id_pos || null;
+          }
         }
       }
 
@@ -219,10 +260,13 @@ export function useProfilePelayanan(idPendeta?: string | null) {
         jenis_pendeta: pendetaRow.jenis_pendeta || 'Organik',
         status_aktif: Boolean(pendetaRow.status_aktif ?? true),
         id_induk: pendetaRow.id_induk || null,
+        id_mupel: idMupel,
+        id_pos: idPos,
         is_kmj: isKmjFinal,
         is_pj: isPjFinal,
         jemaat_induk_nama: jemaatNama,
         mupel_nama: mupelNama,
+        pos_pelkes_nama: posNama,
       };
     },
     staleTime: 0,
