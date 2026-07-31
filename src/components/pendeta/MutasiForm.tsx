@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { mutasiSchema, MutasiInput } from '@/lib/validations/pendeta.schema';
@@ -48,7 +48,7 @@ export function MutasiForm({
   const [pendingData, setPendingData] = useState<MutasiInput | null>(null);
 
   // Cascading Selection State
-  const [selectedMupelId, setSelectedMupelId] = useState<string>('all');
+  const [selectedMupelId, setSelectedMupelId] = useState<string>('');
   const [selectedIndukId, setSelectedIndukId] = useState<string>('');
   const [selectedPosId, setSelectedPosId] = useState<string>('');
 
@@ -91,7 +91,7 @@ export function MutasiForm({
     if (!file) return;
 
     if (file.size > 8 * 1024 * 1024) {
-      setErrorMsg('Ukuran file SK terlalu besar. Maksimal 8MB.');
+      setErrorMsg('Ukuran file SK mutasi terlalu besar. Maksimal 8MB.');
       return;
     }
 
@@ -121,44 +121,29 @@ export function MutasiForm({
     setValue('file_sk', '', { shouldValidate: true });
   };
 
-  // Auto select first Jemaat Induk if list changes and none selected
-  useEffect(() => {
-    if (jemaatList.length > 0 && !selectedIndukId) {
-      const firstId = jemaatList[0].id;
-      setSelectedIndukId(firstId);
-      setValue('id_induk_baru', firstId);
-    }
-  }, [jemaatList, selectedIndukId, setValue]);
-
   const handleMupelChange = (mupelId: string) => {
     setSelectedMupelId(mupelId);
     setSelectedIndukId('');
-    setSelectedPosId('');
     setValue('id_induk_baru', '');
+    setSelectedPosId('');
+    setValue('id_pos_baru', '');
   };
 
   const handleJemaatChange = (indukId: string) => {
     setSelectedIndukId(indukId);
-    setSelectedPosId('');
     setValue('id_induk_baru', indukId);
+    setSelectedPosId('');
+    setValue('id_pos_baru', '');
   };
 
   const handlePreSubmit = (data: MutasiInput) => {
     if (!data.id_induk_baru) {
-      setErrorMsg('Silakan pilih Jemaat Induk Tujuan Mutasi.');
+      setErrorMsg('Silakan pilih Jemaat Tujuan mutasi.');
       return;
     }
 
-    let finalAlasan = data.alasan;
-    if (selectedPosId && selectedPosObj) {
-      finalAlasan = `${data.alasan} [📍 POS:${selectedPosId}|${selectedPosObj.nama}]`;
-    }
-
     setErrorMsg(null);
-    setPendingData({
-      ...data,
-      alasan: finalAlasan,
-    });
+    setPendingData(data);
     setShowConfirm(true);
   };
 
@@ -171,7 +156,7 @@ export function MutasiForm({
       onSuccess();
     } catch (err: any) {
       setShowConfirm(false);
-      setErrorMsg(err.message || 'Gagal mengeksekusi mutasi pendeta via Database RPC.');
+      setErrorMsg(err.message || 'Gagal mengeksekusi mutasi pendeta.');
     }
   };
 
@@ -199,11 +184,11 @@ export function MutasiForm({
       </div>
 
       <form onSubmit={handleSubmit(handlePreSubmit)} className="space-y-4">
-        {/* Cascade 1: Select Mupel */}
+        {/* Cascade 1: Select Mupel Tujuan */}
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
             <Layers size={14} className="text-purple-600" />
-            <span>1. Pilih Mupel Tujuan</span>
+            <span>1. Mupel Tujuan *</span>
           </label>
           <select
             value={selectedMupelId}
@@ -211,7 +196,7 @@ export function MutasiForm({
             disabled={isMupelLoading}
             className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-sm font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
           >
-            <option value="all">🌐 Semua Mupel (Tampilkan Seluruh Jemaat Induk)</option>
+            <option value="" disabled>-- Pilih Mupel Tujuan --</option>
             {mupels.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.nama} ({m.id})
@@ -220,16 +205,20 @@ export function MutasiForm({
           </select>
         </div>
 
-        {/* Cascade 2: Select Jemaat Induk */}
+        {/* Cascade 2: Select Jemaat Tujuan */}
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
             <Building2 size={14} className="text-blue-600" />
-            <span>2. Pilih Jemaat Induk Tujuan Mutasi *</span>
+            <span>2. Jemaat Tujuan *</span>
           </label>
-          {isJemaatLoading ? (
+          {!selectedMupelId ? (
+            <div className="p-3 rounded-xl bg-surface-sunken border border-border-subtle text-text-muted text-xs font-medium">
+              Pilih Mupel Tujuan terlebih dahulu di atas.
+            </div>
+          ) : isJemaatLoading ? (
             <div className="min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-sunken text-xs text-text-muted flex items-center gap-2 animate-pulse">
               <Loader2 size={14} className="animate-spin" />
-              <span>Memuat daftar Jemaat Induk...</span>
+              <span>Memuat daftar Jemaat Tujuan...</span>
             </div>
           ) : jemaatList.length > 0 ? (
             <select
@@ -237,7 +226,7 @@ export function MutasiForm({
               onChange={(e) => handleJemaatChange(e.target.value)}
               className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-sm font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
             >
-              <option value="" disabled>-- Pilih Jemaat Induk Tujuan --</option>
+              <option value="" disabled>-- Pilih Jemaat Tujuan --</option>
               {jemaatList.map((j) => (
                 <option key={j.id} value={j.id}>
                   {j.nama} ({j.id})
@@ -357,17 +346,12 @@ export function MutasiForm({
           />
         </div>
 
-        {/* Lampiran SK Mutasi (Compulsory) */}
+        {/* Lampiran SK Mutasi */}
         <div className="space-y-1.5 bg-surface-sunken p-3.5 rounded-2xl border border-border-subtle">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
-              <FileText size={14} className="text-red-500" />
-              <span>Lampiran Dokumen SK Mutasi (PDF / Gambar) *</span>
-            </label>
-            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-red-500/10 text-red-600 border border-red-500/20">
-              Wajib / Compulsory
-            </span>
-          </div>
+          <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
+            <FileText size={14} className="text-red-500" />
+            <span>Lampiran Dokumen SK Mutasi (PDF / Gambar) *</span>
+          </label>
 
           {!skFileName ? (
             <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-border-subtle rounded-xl bg-surface-base hover:border-brand-primary cursor-pointer transition-colors group/upload">
