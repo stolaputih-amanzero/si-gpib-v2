@@ -92,25 +92,17 @@ export function useMupelList(search?: string) {
     queryKey: ['mupel-list', search || 'all'],
     queryFn: async () => {
       // Query Mupel
-      const { data: mupelData, error: mupelErr } = await supabase
-        .from('m_mupel')
-        .select('*')
-        .order('id_mupel', { ascending: true });
+      const [mupelRes, jemaatRes, posRes] = await Promise.all([
+        supabase.from('m_mupel').select('*').order('nama_mupel', { ascending: true }),
+        supabase.from('m_jemaat_induk').select('id_mupel, id_induk, nama_induk'),
+        supabase.from('m_pos_pelkes').select('id_pos, id_induk, nama_pos, kategori'),
+      ]);
 
-      if (mupelErr) throw mupelErr;
+      if (mupelRes.error) throw mupelRes.error;
 
-      // Query Counts Jemaat Induk
-      const { data: jemaatData } = await supabase
-        .from('m_jemaat_induk')
-        .select('id_mupel, id_induk, nama_induk');
-
-      // Query Counts Pos Pelkes & Bajem
-      const { data: posData } = await supabase
-        .from('m_pos_pelkes')
-        .select('id_pos, id_induk, nama_pos, kategori');
-
-      const jemaatList = jemaatData || [];
-      const posList = posData || [];
+      const mupelData = mupelRes.data || [];
+      const jemaatList = jemaatRes.data || [];
+      const posList = posRes.data || [];
 
       // Map id_induk -> id_mupel for 100% reliable relation resolution
       const jemaatToMupelMap = new Map<string, string>();
@@ -213,13 +205,12 @@ export function useJemaatByMupel(id_mupel?: string, search?: string) {
       const { data: jemaatData, error } = await query;
       if (error) throw error;
 
-      // Fetch all Pendeta to perform multi-source resolution
-      const { data: pendetaData } = await supabase
-        .from('m_pendeta')
-        .select('id_pendeta, id_induk, nama_lengkap, no_wa, is_kmj, is_pj, jabatan');
-
-      const { data: posData } = await supabase.from('m_pos_pelkes').select('id_pos, id_induk, kategori, nama_pos');
-      const { data: pjData } = await supabase.from('t_pj_jemaat').select('id_induk, id_pendeta').is('tanggal_selesai', null);
+      // Fetch all Pendeta, Pos, and PJ assignments concurrently
+      const [{ data: pendetaData }, { data: posData }, { data: pjData }] = await Promise.all([
+        supabase.from('m_pendeta').select('id_pendeta, id_induk, nama_lengkap, no_wa, is_kmj, is_pj, jabatan'),
+        supabase.from('m_pos_pelkes').select('id_pos, id_induk, kategori, nama_pos'),
+        supabase.from('t_pj_jemaat').select('id_induk, id_pendeta').is('tanggal_selesai', null)
+      ]);
 
       const allPendeta = pendetaData || [];
       const allPos = posData || [];
@@ -303,17 +294,18 @@ export function useJemaatDetail(id_induk?: string) {
 
       if (error) throw error;
 
-      const { data: pendetaData } = await supabase
-        .from('m_pendeta')
-        .select('id_pendeta, id_induk, nama_lengkap, no_wa, is_kmj, is_pj, jabatan')
-        .eq('id_induk', id_induk);
-
-      const { data: posData } = await supabase.from('m_pos_pelkes').select('id_pos').eq('id_induk', id_induk);
-      const { data: pjData } = await supabase
-        .from('t_pj_jemaat')
-        .select('id_pendeta, pendeta:m_pendeta(id_pendeta, nama_lengkap, no_wa)')
-        .eq('id_induk', id_induk)
-        .is('tanggal_selesai', null);
+      const [{ data: pendetaData }, { data: posData }, { data: pjData }] = await Promise.all([
+        supabase
+          .from('m_pendeta')
+          .select('id_pendeta, id_induk, nama_lengkap, no_wa, is_kmj, is_pj, jabatan')
+          .eq('id_induk', id_induk),
+        supabase.from('m_pos_pelkes').select('id_pos').eq('id_induk', id_induk),
+        supabase
+          .from('t_pj_jemaat')
+          .select('id_pendeta, pendeta:m_pendeta(id_pendeta, nama_lengkap, no_wa)')
+          .eq('id_induk', id_induk)
+          .is('tanggal_selesai', null),
+      ]);
 
       const allPendeta = pendetaData || [];
 
