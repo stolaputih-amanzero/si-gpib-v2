@@ -176,8 +176,8 @@ export default function PosProfileHeroWrapper({
 
             {/* Title Overlay at bottom of photo (Tanpa Alamat) */}
             <div className="absolute bottom-3 left-4 right-14 z-10 pointer-events-none">
-              <h1 className="text-lg sm:text-2xl font-black text-white drop-shadow-md leading-snug">
-                <PosName name={pos.nama_pos} className="text-white" />
+              <h1 className="text-lg sm:text-2xl font-black text-white drop-shadow-md leading-snug uppercase tracking-wide">
+                <PosName name={pos.nama_pos} className="text-white uppercase" uppercase />
               </h1>
             </div>
 
@@ -200,8 +200,8 @@ export default function PosProfileHeroWrapper({
               <Building2 className="w-64 h-64 text-white" />
             </div>
             <div className="relative z-10">
-              <h1 className="text-lg sm:text-2xl font-black text-white drop-shadow-md leading-snug">
-                <PosName name={pos.nama_pos} className="text-white" />
+              <h1 className="text-lg sm:text-2xl font-black text-white drop-shadow-md leading-snug uppercase tracking-wide">
+                <PosName name={pos.nama_pos} className="text-white uppercase" uppercase />
               </h1>
             </div>
           </div>
@@ -244,8 +244,8 @@ export default function PosProfileHeroWrapper({
           className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4 backdrop-blur-md animate-fade-in cursor-zoom-out"
         >
           <div className="absolute top-4 right-4 z-50 flex items-center gap-3">
-            <span className="text-white text-xs font-bold bg-white/10 px-3 py-1.5 rounded-xl backdrop-blur-md">
-              {pos.nama_pos}
+            <span className="text-white text-xs font-bold bg-white/10 px-3 py-1.5 rounded-xl backdrop-blur-md uppercase tracking-wider">
+              <PosName name={pos.nama_pos} className="text-white uppercase" uppercase />
             </span>
             <button
               type="button"

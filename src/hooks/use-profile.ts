@@ -13,7 +13,12 @@ import {
 } from '@/types/profile.types';
 import { getLogPastoralListAction } from '@/app/(dashboard)/dashboard/pastoral/actions';
 import { getRiwayatMutasiAction } from '@/app/(dashboard)/sdm/pendeta/actions-360';
-import { fetchUserAuditLogsAction, fetchProfileStatsAction } from '@/app/(dashboard)/settings/actions';
+import {
+  fetchUserAuditLogsAction,
+  fetchProfileStatsAction,
+  fetchUserBiometricDevicesAction,
+  revokeUserBiometricDeviceAction,
+} from '@/app/(dashboard)/settings/actions';
 /**
  * 1. Fetch Profile Akun for specified userId (or current session)
  */
@@ -540,44 +545,14 @@ export function useAktivitasUser(userId?: string) {
  * 8. Fetch Device Biometric (Passkey credentials)
  */
 export function useDeviceBiometric(userId?: string) {
-  const supabase = createClient();
-
   return useQuery<DeviceBiometricItem[]>({
     queryKey: ['profile-biometric-devices', userId || 'me'],
-    enabled: Boolean(userId),
+    enabled: true,
     queryFn: async () => {
-      if (!userId) return [];
-
-      let { data, error } = await supabase
-        .from('m_webauthn_credentials')
-        .select('*')
-        .eq('id_user', userId)
-        .order('created_at', { ascending: false });
-
-      if (error || !data || data.length === 0) {
-        const fallback = await supabase
-          .from('m_webauthn_credentials')
-          .select('*')
-          .eq('user_id', userId)
-          .order('created_at', { ascending: false });
-        if (!fallback.error && fallback.data) {
-          data = fallback.data;
-        }
-      }
-
-      if (!data) return [];
-
-      return data.map((d: any) => ({
-        id: d.id,
-        user_id: d.id_user || d.user_id,
-        credential_id: d.credential_id,
-        device_type: d.device_type || 'Platform Credential',
-        created_at: d.created_at,
-        last_used_at: d.last_used_at || null,
-        friendly_name: d.friendly_name || d.display_name || d.device_name || 'Perangkat Biometrik',
-      }));
+      const data = await fetchUserBiometricDevicesAction(userId);
+      return data;
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 30,
   });
 }
 
@@ -623,17 +598,12 @@ export function useDraftUser(userId?: string) {
  */
 export function useRevokeDeviceBiometric() {
   const queryClient = useQueryClient();
-  const supabase = createClient();
 
   return useMutation({
     mutationFn: async (credentialId: string) => {
-      const { error } = await supabase
-        .from('m_webauthn_credentials')
-        .delete()
-        .eq('id', credentialId);
-
-      if (error) {
-        throw new Error(error.message || 'Gagal menghapus perangkat biometrik');
+      const res = await revokeUserBiometricDeviceAction(credentialId);
+      if (!res.success) {
+        throw new Error(res.error || 'Gagal menghapus perangkat biometrik');
       }
     },
     onSuccess: () => {

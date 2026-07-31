@@ -24,9 +24,12 @@ describe('normalizePosName', () => {
     expect(normalizePosName('Bajem "Maranatha" Batu Keling')).toBe('Maranatha Batu Keling');
   });
 
-  it('menghapus prefix "GPIB Pos Pelkes"', () => {
+  it('menghapus prefix "GPIB Pos Pelkes", "Pos Pelkes GPIB", dan "Pos Pelkes / Bajem"', () => {
     expect(normalizePosName('GPIB Pos Pelkes Gideon Sebuduh')).toBe('Gideon Sebuduh');
-    expect(normalizePosName('GPIB Pos Pelkes Penabur Ngoyok')).toBe('Penabur Ngoyok');
+    expect(normalizePosName('Pos Pelkes GPIB Anugerah Serangkang')).toBe('Anugerah Serangkang');
+    expect(normalizePosName('Pospelkes Anugerah Serangkang')).toBe('Anugerah Serangkang');
+    expect(normalizePosName('Pos Pelkes / Bajem Anugerah Serangkang')).toBe('Anugerah Serangkang');
+    expect(normalizePosName('Pos Pelayanan Kesaksian Kasih')).toBe('Kasih');
   });
 
   it('menghapus tanda kutip', () => {

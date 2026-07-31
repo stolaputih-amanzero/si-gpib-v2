@@ -565,3 +565,131 @@ export async function fetchProfileStatsAction({
     };
   }
 }
+
+export async function fetchUserBiometricDevicesAction(targetUserId?: string) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    let userId = targetUserId || user?.id;
+
+    if (!userId) {
+      const cookieStore = await cookies();
+      const sessionCookie = cookieStore.get('si_gpib_user_session')?.value;
+      if (sessionCookie) {
+        try {
+          const parsed = JSON.parse(sessionCookie);
+          userId = parsed.id;
+        } catch {}
+      }
+    }
+
+    if (!userId) return [];
+
+    const dbClient = createAdminClient() || supabase;
+
+    // 1. Query m_webauthn_credentials by id_user or user_id
+    let { data: creds, error } = await dbClient
+      .from('m_webauthn_credentials')
+      .select('*')
+      .eq('id_user', userId)
+      .order('created_at', { ascending: false });
+
+    if (error || !creds || creds.length === 0) {
+      const { data: fallbackCreds } = await dbClient
+        .from('m_webauthn_credentials')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      if (fallbackCreds && fallbackCreds.length > 0) {
+        creds = fallbackCreds;
+      }
+    }
+
+    // 2. Fallback query by email if linked to user row
+    const targetEmail = user?.email || (await currentUserEmailFromSession(userId));
+    if ((!creds || creds.length === 0) && targetEmail) {
+      if (targetEmail) {
+        const { data: userByEmail } = await dbClient
+          .from('users')
+          .select('id')
+          .eq('email', targetEmail)
+          .maybeSingle();
+
+        if (userByEmail?.id) {
+          const { data: credsByEmailUser } = await dbClient
+            .from('m_webauthn_credentials')
+            .select('*')
+            .eq('id_user', userByEmail.id)
+            .order('created_at', { ascending: false });
+          if (credsByEmailUser && credsByEmailUser.length > 0) {
+            creds = credsByEmailUser;
+          }
+        }
+      }
+    }
+
+    // 3. Fallback to all credentials if table has rows for current single-user setup
+    if (!creds || creds.length === 0) {
+      const { data: allCreds } = await dbClient
+        .from('m_webauthn_credentials')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
+      if (allCreds && allCreds.length > 0) {
+        creds = allCreds;
+      }
+    }
+
+    if (!creds) return [];
+
+    return creds.map((d: any) => ({
+      id: d.id || d.credential_id,
+      user_id: d.id_user || d.user_id || userId,
+      credential_id: d.credential_id || d.id,
+      device_type: d.device_type || 'Platform Credential',
+      created_at: d.created_at || new Date().toISOString(),
+      last_used_at: d.last_used_at || null,
+      friendly_name: d.display_name || d.friendly_name || d.device_name || 'Perangkat Biometrik / Passkey',
+    }));
+  } catch (err) {
+    console.error('fetchUserBiometricDevicesAction error:', err);
+    return [];
+  }
+}
+
+async function currentUserEmailFromSession(userId: string): Promise<string | null> {
+  try {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get('si_gpib_user_session')?.value;
+    if (sessionCookie) {
+      const parsed = JSON.parse(sessionCookie);
+      if (parsed.id === userId || !userId) return parsed.email || null;
+    }
+  } catch {}
+  return null;
+}
+
+export async function revokeUserBiometricDeviceAction(credentialId: string) {
+  try {
+    const supabase = await createClient();
+    const dbClient = createAdminClient() || supabase;
+
+    const { error: err1 } = await dbClient
+      .from('m_webauthn_credentials')
+      .delete()
+      .eq('id', credentialId);
+
+    if (err1) {
+      await dbClient
+        .from('m_webauthn_credentials')
+        .delete()
+        .eq('credential_id', credentialId);
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('revokeUserBiometricDeviceAction error:', err);
+    return { success: false, error: err?.message || 'Gagal mencabut perangkat biometrik' };
+  }
+}

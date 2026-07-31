@@ -16,13 +16,16 @@
 
 // Urutan PENTING: pola yang lebih spesifik/panjang harus di-match lebih dulu
 const REDUNDANT_PREFIXES: RegExp[] = [
-  /^gpiib?\s+pos\s*pelkese?\s+/i,   // "GPIB Pos Pelkese" (typo ganda)
-  /^gpib\s+pos\s*pelkes\s+/i,      // "GPIB Pos Pelkes"
-  /^pos\s*pelkese?\s+/i,           // "Pos Pelkes" / "Pos Pelkese" (typo)
-  /^pospelkes\s+/i,                // "Pospelkes"
-  /^pos\s*pel\s+/i,                // "Pos Pel" (abbreviated)
-  /^bakal\s*jemaat\s+/i,           // "Bakal Jemaat"
-  /^bajem\s+/i,                    // "Bajem"
+  /^gpiib?\s+pos\s*pelkese?\s*(gpib)?\s*/i,        // "GPIB Pos Pelkes" / "GPIB Pos Pelkese"
+  /^pos\s*pelkese?\s*gpib\s*/i,                   // "Pos Pelkes GPIB" / "Pos Pelkes GPIB "
+  /^pos\s*pelkese?\s*\/\s*bajem\s*(gpib)?\s*/i,   // "Pos Pelkes / Bajem" / "Pos Pelkes/Bajem"
+  /^pos\s*pelkese?\s*/i,                          // "Pos Pelkes" / "Pos Pelkese"
+  /^pospelkes\s*(gpib)?\s*/i,                     // "Pospelkes" / "Pospelkes GPIB"
+  /^pos\s*pelayanan\s*kesaksian\s*(gpib)?\s*/i,   // "Pos Pelayanan Kesaksian"
+  /^pos\s*pel\s*(gpib)?\s*/i,                     // "Pos Pel"
+  /^bakal\s*jemaat\s*(gpib)?\s*/i,                // "Bakal Jemaat"
+  /^bajem\s*(gpib)?\s*/i,                         // "Bajem" / "Bajem GPIB"
+  /^gpib\s+/i,                                    // "GPIB " (prefix saja)
 ];
 
 // Kata-kata kecil yang tetap lowercase di tengah nama (kecuali kata pertama)
