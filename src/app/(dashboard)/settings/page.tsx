@@ -284,7 +284,7 @@ export default function SettingsHubPage() {
                 className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white transition-all text-xs font-bold shrink-0 min-h-[44px] border border-brand-primary/20 active:scale-95 shadow-2xs"
               >
                 <Edit3 size={15} />
-                <span>Edit Foto & Nama</span>
+                <span>Edit Profil</span>
               </button>
             </div>
           </div>
