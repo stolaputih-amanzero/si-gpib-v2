@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { calculateDistanceKm } from '@/lib/utils/distance';
 import { 
   MapPin, 
   Users, 
@@ -11,7 +12,8 @@ import {
   AlertCircle, 
   Compass, 
   Activity,
-  ExternalLink
+  ExternalLink,
+  Navigation
 } from 'lucide-react';
 import PosProfileHeroWrapper from './pos-profile-hero-wrapper';
 import Link from 'next/link';
@@ -33,7 +35,7 @@ interface PosDetail {
   id_induk: string;
   nama_pos: string;
   kategori: string | null;
-  alamat: string;
+  alamat: string | null;
   latitude: number | null;
   longitude: number | null;
   tgl_berdiri: string | null;
@@ -47,6 +49,8 @@ interface PosDetail {
     nama_induk: string;
     id_induk: string;
     id_mupel: string;
+    latitude?: number | null;
+    longitude?: number | null;
     mupel?: {
       id_mupel: string;
       nama_mupel: string;
@@ -157,7 +161,7 @@ async function getPosDetail(id_pos: string): Promise<PosDetail | null> {
     .from('m_pos_pelkes')
     .select(`
       id_pos, id_induk, nama_pos, kategori, alamat, latitude, longitude, tgl_berdiri, keterangan, foto_url, updated_at, updated_by, jumlah_kk, jumlah_jiwa,
-      jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, mupel:m_mupel(id_mupel, nama_mupel))
+      jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, latitude, longitude, mupel:m_mupel(id_mupel, nama_mupel))
     `)
     .eq('id_pos', id_pos)
     .single();
@@ -359,6 +363,7 @@ export default async function PosPelkesDetailPage({
   const totalJiwa = demoJiwa || pos.jumlah_jiwa || 0;
   const totalLaki = demoLaki;
   const totalPerempuan = demoPerempuan;
+  const distKm = calculateDistanceKm(pos.jemaat_induk?.latitude, pos.jemaat_induk?.longitude, pos.latitude, pos.longitude);
 
   // Category badges configuration
   const isJemaatInduk = pos.kategori === 'Jemaat Induk' || (pos.jemaat_induk && pos.jemaat_induk.id_induk === pos.id_induk);
@@ -564,12 +569,20 @@ export default async function PosPelkesDetailPage({
                   <div className="space-y-1">
                     <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider block">Jemaat Induk Pengampu</span>
                     {pos.jemaat_induk ? (
-                      <Link 
-                        href={`/hierarki/${encodeURIComponent(pos.jemaat_induk.id_mupel)}/${encodeURIComponent(pos.jemaat_induk.id_induk)}`}
-                        className="text-sm font-bold text-brand-primary hover:underline block"
-                      >
-                        {pos.jemaat_induk.nama_induk}
-                      </Link>
+                      <div>
+                        <Link 
+                          href={`/hierarki/${encodeURIComponent(pos.jemaat_induk.id_mupel)}/${encodeURIComponent(pos.jemaat_induk.id_induk)}`}
+                          className="text-sm font-bold text-brand-primary hover:underline block"
+                        >
+                          {pos.jemaat_induk.nama_induk}
+                        </Link>
+                        {distKm !== null && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-md border border-blue-200/60 mt-1">
+                            <Navigation size={12} className="text-blue-600 dark:text-blue-400" />
+                            <span>Jarak: {distKm} km</span>
+                          </span>
+                        )}
+                      </div>
                     ) : (
                       <p className="text-sm font-bold text-brand-primary">-</p>
                     )}

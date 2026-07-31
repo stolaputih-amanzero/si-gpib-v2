@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { jemaatIndukSchema, JemaatIndukInput } from '@/lib/validations/hierarki.schema';
 import { useCreateJemaat, useUpdateJemaat, JemaatIndukItem } from '@/hooks/use-hierarki';
 import { X, Church, Loader2, Save, MapPin } from 'lucide-react';
+import { useToast } from '@/components/ui/toast';
 
 interface JemaatFormModalProps {
   isOpen: boolean;
@@ -14,15 +15,102 @@ interface JemaatFormModalProps {
   editData?: JemaatIndukItem | null;
 }
 
+const parseCoordinates = (text: string): { latitude: number; longitude: number } | null => {
+  if (!text) return null;
+
+  // 1. Cek pola URL Google Maps biasa (contoh: .../@-6.123456,106.123456,17z...)
+  const urlPattern = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
+  const urlMatch = text.match(urlPattern);
+  if (urlMatch) {
+    const lat = parseFloat(urlMatch[1]);
+    const lng = parseFloat(urlMatch[2]);
+    if (!isNaN(lat) && !isNaN(lng)) {
+      return { latitude: lat, longitude: lng };
+    }
+  }
+
+  // 2. Cek pola parameter query (contoh: ?q=-6.123456,106.123456 atau &query=-6.123456,106.123456)
+  const queryPattern = /[?&](query|q)=(-?\d+\.\d+),(-?\d+\.\d+)/;
+  const queryMatch = text.match(queryPattern);
+  if (queryMatch) {
+    const lat = parseFloat(queryMatch[2]);
+    const lng = parseFloat(queryMatch[3]);
+    if (!isNaN(lat) && !isNaN(lng)) {
+      return { latitude: lat, longitude: lng };
+    }
+  }
+
+  // 3. Cek pola koordinat mentah (contoh: -6.123456, 106.123456)
+  const rawPattern = /(-?\d+\.\d+),\s*(-?\d+\.\d+)/;
+  const rawMatch = text.match(rawPattern);
+  if (rawMatch) {
+    const lat = parseFloat(rawMatch[1]);
+    const lng = parseFloat(rawMatch[2]);
+    if (!isNaN(lat) && !isNaN(lng)) {
+      return { latitude: lat, longitude: lng };
+    }
+  }
+
+  return null;
+};
+
+const geocodeAddress = async (rawText: string): Promise<{ lat: string; lon: string; display_name: string } | null> => {
+  if (!rawText) return null;
+
+  const text = rawText.replace(/^[A-Z0-9]{4}\+[A-Z0-9]{2,3},\s*/i, '');
+
+  const fetchNominatim = async (query: string) => {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`, {
+        headers: { 'User-Agent': 'SI-GPIB-PWA' }
+      });
+      return await res.json();
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  };
+
+  let data = await fetchNominatim(text);
+  if (data && data.length > 0) return data[0];
+
+  const simplified = text
+    .replace(/\b\d{5}\b/g, '')
+    .replace(/Kec(amatan|\.)?/gi, '')
+    .replace(/Kab(upaten|\.)?/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (simplified !== text) {
+    data = await fetchNominatim(simplified);
+    if (data && data.length > 0) return data[0];
+  }
+
+  const parts = text.split(',').map(p => p.trim()).filter(Boolean);
+  if (parts.length >= 2) {
+    const fallbackQuery = `${parts[0]}, ${parts[1]}`;
+    data = await fetchNominatim(fallbackQuery);
+    if (data && data.length > 0) return data[0];
+  }
+
+  return null;
+};
+
 export function JemaatFormModal({ isOpen, onClose, id_mupel, editData }: JemaatFormModalProps) {
   const isEdit = Boolean(editData);
+  const { toast } = useToast();
   const createMutation = useCreateJemaat();
   const updateMutation = useUpdateJemaat();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [gmapsInput, setGmapsInput] = useState('');
+  const [isExtracting, setIsExtracting] = useState(false);
+
   const {
     register,
     handleSubmit,
+    setValue,
     reset,
     formState: { errors, isSubmitting },
   } = useForm({
@@ -58,8 +146,70 @@ export function JemaatFormModal({ isOpen, onClose, id_mupel, editData }: JemaatF
         jumlah_jiwa: editData?.jumlah_jiwa ?? 0,
       });
       setErrorMsg(null);
+      setGmapsInput('');
     }
   }, [isOpen, editData, id_mupel, reset]);
+
+  const getLocation = () => {
+    setIsGettingLocation(true);
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setValue('latitude', position.coords.latitude);
+          setValue('longitude', position.coords.longitude);
+          setIsGettingLocation(false);
+          toast.success('Lokasi Ditemukan', `Latitude: ${position.coords.latitude}, Longitude: ${position.coords.longitude}`);
+        },
+        () => {
+          toast.error('Gagal Lokasi', 'Pastikan GPS aktif dan izin lokasi diberikan.');
+          setIsGettingLocation(false);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    } else {
+      toast.error('Tidak Didukung', 'Browser Anda tidak mendukung geolokasi.');
+      setIsGettingLocation(false);
+    }
+  };
+
+  const handleExtractCoordinates = async () => {
+    if (!gmapsInput.trim()) {
+      toast.error('Input Kosong', 'Silakan tempel link Google Maps atau alamat terlebih dahulu.');
+      return;
+    }
+
+    setIsExtracting(true);
+
+    if (gmapsInput.includes('maps.app.goo.gl')) {
+      toast.info('Tautan Dipersingkat', 'Untuk link maps.app.goo.gl, silakan gunakan koordinat angka langsung atau salin link panjang dari browser desktop.');
+    }
+
+    const regexCoords = parseCoordinates(gmapsInput);
+    if (regexCoords) {
+      setValue('latitude', regexCoords.latitude);
+      setValue('longitude', regexCoords.longitude);
+      toast.success('Koordinat Diekstrak', `Berhasil mendeteksi Latitude: ${regexCoords.latitude}, Longitude: ${regexCoords.longitude}`);
+      setIsExtracting(false);
+      return;
+    }
+
+    try {
+      const result = await geocodeAddress(gmapsInput);
+      if (result) {
+        const lat = parseFloat(result.lat);
+        const lon = parseFloat(result.lon);
+        setValue('latitude', lat);
+        setValue('longitude', lon);
+        toast.success('Geocoding Berhasil', `Berhasil memetakan lokasi pada Latitude: ${lat}, Longitude: ${lon}`);
+      } else {
+        toast.error('Lokasi Tidak Ditemukan', 'Gagal mengenali alamat/koordinat tersebut. Silakan salin koordinat angka langsung dari Google Maps.');
+      }
+    } catch (error) {
+      toast.error('Gagal Menghubungkan', 'Terjadi kesalahan saat memproses geocoding alamat.');
+    } finally {
+      setIsExtracting(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -81,6 +231,7 @@ export function JemaatFormModal({ isOpen, onClose, id_mupel, editData }: JemaatF
             jumlah_jiwa: data.jumlah_jiwa,
           },
         });
+        toast.success('Berhasil Diperbarui', `Jemaat Induk "${data.nama_induk}" telah diperbarui.`);
       } else {
         await createMutation.mutateAsync({
           id_induk: data.id_induk,
@@ -95,6 +246,7 @@ export function JemaatFormModal({ isOpen, onClose, id_mupel, editData }: JemaatF
           jumlah_kk: data.jumlah_kk,
           jumlah_jiwa: data.jumlah_jiwa,
         });
+        toast.success('Berhasil Dibuat', `Jemaat Induk "${data.nama_induk}" telah ditambahkan.`);
       }
       onClose();
     } catch (err: any) {
@@ -173,28 +325,75 @@ export function JemaatFormModal({ isOpen, onClose, id_mupel, editData }: JemaatF
             />
           </div>
 
-          {/* GPS Coordinates */}
-          <div className="p-3 rounded-xl bg-surface-sunken border border-border-subtle space-y-2">
-            <span className="text-[11px] font-bold text-text-muted flex items-center gap-1">
-              <MapPin size={14} className="text-brand-primary" />
-              Koordinat GPS (Optional)
-            </span>
-            <div className="grid grid-cols-2 gap-2">
-              <input
-                type="number"
-                step="any"
-                placeholder="Latitude (mis: -6.200)"
-                {...register('latitude', { valueAsNumber: true })}
-                className="w-full min-h-[40px] px-3 rounded-lg border border-border-subtle bg-surface-base text-xs font-medium text-text-high"
-              />
-              <input
-                type="number"
-                step="any"
-                placeholder="Longitude (mis: 106.816)"
-                {...register('longitude', { valueAsNumber: true })}
-                className="w-full min-h-[40px] px-3 rounded-lg border border-border-subtle bg-surface-base text-xs font-medium text-text-high"
-              />
+          {/* Lokasi (GPS) */}
+          <div className="bg-surface-sunken p-4 rounded-xl border border-border-subtle space-y-4">
+            <div className="flex justify-between items-center border-b border-border-subtle pb-2.5">
+              <h3 className="text-xs font-black text-text-high uppercase tracking-wider flex items-center gap-1.5">
+                <MapPin size={16} className="text-emerald-600" />
+                Lokasi (GPS)
+              </h3>
+              <button
+                type="button"
+                onClick={getLocation}
+                disabled={isGettingLocation}
+                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-bold rounded-xl shadow-xs text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 transition-colors cursor-pointer"
+              >
+                {isGettingLocation ? <Loader2 size={14} className="animate-spin mr-1" /> : <MapPin size={14} className="mr-1" />}
+                Ambil Lokasi
+              </button>
             </div>
+
+            <div className="space-y-1">
+              <label className="block text-[11px] font-black text-text-high uppercase tracking-wider">
+                Ekstrak dari Link Google Maps / Koordinat / Alamat
+              </label>
+              <div className="flex items-center gap-2 w-full min-w-0">
+                <input
+                  type="text"
+                  placeholder="Tempel link Google Maps, koordinat, atau alamat..."
+                  value={gmapsInput}
+                  onChange={(e) => setGmapsInput(e.target.value)}
+                  className="flex-1 min-w-0 px-3 py-2.5 border border-border-subtle bg-surface-base text-text-high rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                />
+                <button
+                  type="button"
+                  onClick={handleExtractCoordinates}
+                  disabled={isExtracting}
+                  className="px-3.5 py-2.5 bg-brand-primary text-white text-xs font-bold rounded-xl hover:opacity-90 transition-colors shadow-xs disabled:opacity-50 flex items-center gap-1 shrink-0 cursor-pointer min-h-[40px]"
+                >
+                  {isExtracting ? <Loader2 size={14} className="animate-spin" /> : null}
+                  <span>Ekstrak</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="block text-[11px] font-black text-text-high uppercase tracking-wider">
+                  Latitude
+                </label>
+                <input
+                  {...register('latitude', { valueAsNumber: true })}
+                  type="number"
+                  step="any"
+                  className="block w-full px-3 py-2.5 border border-border-subtle bg-surface-base text-text-high rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                  placeholder="-6.123456"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="block text-[11px] font-black text-text-high uppercase tracking-wider">
+                  Longitude
+                </label>
+                <input
+                  {...register('longitude', { valueAsNumber: true })}
+                  type="number"
+                  step="any"
+                  className="block w-full px-3 py-2.5 border border-border-subtle bg-surface-base text-text-high rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                  placeholder="106.123456"
+                />
+              </div>
+            </div>
+            <p className="text-[11px] text-text-muted">Gunakan tombol &quot;Ambil Lokasi&quot; untuk presisi terbaik, atau isi manual jika gagal.</p>
           </div>
 
           {/* Statistik Master Data */}

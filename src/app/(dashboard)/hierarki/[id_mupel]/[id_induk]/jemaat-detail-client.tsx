@@ -17,12 +17,14 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import PosThumbnailMapWrapper from '@/components/maps/PosThumbnailMapWrapper';
 import { ShareButton } from '@/components/mobile/ShareButton';
 import { Skeleton } from '@/components/ui/skeleton';
+import { calculateDistanceKm } from '@/lib/utils/distance';
 import {
   Church,
   UserCheck,
   HeartHandshake,
   MapPin,
   ChevronRight,
+  Navigation,
   AlertCircle,
   Plus,
   Search,
@@ -385,72 +387,82 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {bajemList.map((bajem) => (
-                  <div
-                    key={bajem.id_pos}
-                    className="bg-surface-elevated p-4 rounded-2xl border border-purple-200 dark:border-purple-900/40 shadow-soft hover:border-purple-400 transition-all space-y-3"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300">
-                            {bajem.id_pos} • Bajem
-                          </span>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                            {bajem.jumlah_kk || 0} KK • {bajem.jumlah_jiwa || 0} Jiwa
-                          </span>
+                {bajemList.map((bajem) => {
+                  const distKm = calculateDistanceKm(jemaat?.latitude, jemaat?.longitude, bajem.latitude, bajem.longitude);
+
+                  return (
+                    <div
+                      key={bajem.id_pos}
+                      className="bg-surface-elevated p-4 rounded-2xl border border-purple-200 dark:border-purple-900/40 shadow-soft hover:border-purple-400 transition-all space-y-3"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300">
+                              {bajem.id_pos} • Bajem
+                            </span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                              {bajem.jumlah_kk || 0} KK • {bajem.jumlah_jiwa || 0} Jiwa
+                            </span>
+                            {distKm !== null && (
+                              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/60 flex items-center gap-1" title="Jarak dari Jemaat Induk">
+                                <Navigation size={10} className="text-blue-600 dark:text-blue-400" />
+                                <span>{distKm} km dari Induk</span>
+                              </span>
+                            )}
+                          </div>
+
+                          <h3 className="font-extrabold text-base text-text-high">{bajem.nama_pos}</h3>
+                          {bajem.alamat && <p className="text-xs text-text-muted line-clamp-1">{bajem.alamat}</p>}
                         </div>
 
-                        <h3 className="font-extrabold text-base text-text-high">{bajem.nama_pos}</h3>
-                        {bajem.alamat && <p className="text-xs text-text-muted line-clamp-1">{bajem.alamat}</p>}
-                      </div>
+                        {/* Actions */}
+                        <div className="flex items-center gap-1 shrink-0">
+                          {isSuperUser && (
+                            <button
+                              type="button"
+                              onClick={(e) => handleOpenElevate(e, bajem)}
+                              className="px-2.5 py-1.5 rounded-xl bg-purple-600 text-white text-xs font-bold flex items-center gap-1 hover:bg-purple-700 transition-colors shadow-xs min-h-[36px]"
+                              title="Tingkatkan Status ke Jemaat Induk"
+                            >
+                              <TrendingUp size={14} />
+                              <span className="hidden sm:inline">Elevasi</span>
+                            </button>
+                          )}
 
-                      {/* Actions */}
-                      <div className="flex items-center gap-1 shrink-0">
-                        {isSuperUser && (
                           <button
                             type="button"
-                            onClick={(e) => handleOpenElevate(e, bajem)}
-                            className="px-2.5 py-1.5 rounded-xl bg-purple-600 text-white text-xs font-bold flex items-center gap-1 hover:bg-purple-700 transition-colors shadow-xs min-h-[36px]"
-                            title="Tingkatkan Status ke Jemaat Induk"
+                            onClick={(e) => handleOpenEditPos(e, bajem)}
+                            className="p-2 rounded-xl text-text-muted hover:text-brand-primary hover:bg-surface-sunken transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                            title="Edit Bajem"
                           >
-                            <TrendingUp size={14} />
-                            <span className="hidden sm:inline">Elevasi</span>
+                            <Edit3 size={15} />
                           </button>
-                        )}
 
-                        <button
-                          type="button"
-                          onClick={(e) => handleOpenEditPos(e, bajem)}
-                          className="p-2 rounded-xl text-text-muted hover:text-brand-primary hover:bg-surface-sunken transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
-                          title="Edit Bajem"
-                        >
-                          <Edit3 size={15} />
-                        </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeletePos(e, bajem)}
+                            className="p-2 rounded-xl text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                            title="Hapus Bajem"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      </div>
 
-                        <button
-                          type="button"
-                          onClick={(e) => handleDeletePos(e, bajem)}
-                          className="p-2 rounded-xl text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
-                          title="Hapus Bajem"
+                      <div className="pt-2 border-t border-border-subtle flex items-center justify-between text-xs text-text-muted">
+                        <span>PJ: {bajem.pj?.nama_lengkap || 'Belum ada'}</span>
+                        <Link
+                          href={`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(id_induk)}/${encodeURIComponent(bajem.id_pos)}`}
+                          className="font-bold text-purple-600 hover:underline flex items-center gap-1"
                         >
-                          <Trash2 size={15} />
-                        </button>
+                          <span>Detail</span>
+                          <ChevronRight size={14} />
+                        </Link>
                       </div>
                     </div>
-
-                    <div className="pt-2 border-t border-border-subtle flex items-center justify-between text-xs text-text-muted">
-                      <span>PJ: {bajem.pj?.nama_lengkap || 'Belum ada'}</span>
-                      <Link
-                        href={`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(id_induk)}/${encodeURIComponent(bajem.id_pos)}`}
-                        className="font-bold text-purple-600 hover:underline flex items-center gap-1"
-                      >
-                        <span>Detail</span>
-                        <ChevronRight size={14} />
-                      </Link>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -480,6 +492,7 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {posPelkesOnly.map((pos) => {
                   const hasPosGps = Boolean(pos.latitude && pos.longitude);
+                  const distKm = calculateDistanceKm(jemaat?.latitude, jemaat?.longitude, pos.latitude, pos.longitude);
 
                   return (
                     <div
@@ -495,6 +508,12 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
                               {pos.jumlah_kk || 0} KK • {pos.jumlah_jiwa || 0} Jiwa
                             </span>
+                            {distKm !== null && (
+                              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/60 flex items-center gap-1" title="Jarak dari Jemaat Induk">
+                                <Navigation size={10} className="text-blue-600 dark:text-blue-400" />
+                                <span>{distKm} km dari Induk</span>
+                              </span>
+                            )}
                           </div>
 
                           <h3 className="font-extrabold text-base text-text-high">{pos.nama_pos}</h3>

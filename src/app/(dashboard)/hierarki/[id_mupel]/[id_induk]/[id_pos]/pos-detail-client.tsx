@@ -2,9 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { BreadcrumbNav } from '@/components/hierarki/BreadcrumbNav';
-import { usePosByJemaat, useJemaatDetail, usePosDetail } from '@/hooks/use-hierarki';
-import { MapPin, Church, HeartHandshake, ArrowLeft, FileText, AlertTriangle, Home, Users, Compass, ExternalLink, Phone } from 'lucide-react';
+import { usePosByJemaat, useJemaatDetail, usePosDetail, useDeletePos } from '@/hooks/use-hierarki';
+import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
+import { StatusElevationModal } from '@/components/hierarki/StatusElevationModal';
+import { SecureDeleteModal } from '@/components/ui/SecureDeleteModal';
+import { useToast } from '@/components/ui/toast';
+import { calculateDistanceKm } from '@/lib/utils/distance';
+import { MapPin, Church, HeartHandshake, ArrowLeft, FileText, AlertTriangle, Home, Users, Compass, ExternalLink, Phone, Edit3, Trash2, TrendingUp, Navigation } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ShareButton } from '@/components/mobile/ShareButton';
 import { StatusHistoryTimeline } from '@/components/hierarki/StatusHistoryTimeline';
@@ -17,7 +23,15 @@ interface PosDetailClientProps {
 }
 
 export function PosDetailClient({ id_mupel, id_induk, id_pos }: PosDetailClientProps) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const { data: currentUser } = useCurrentUser();
+  const isSuperUser = isSuperUserRole(currentUser?.role) || currentUser?.email === 'stolaputih@gmail.com';
+  const deletePosMutation = useDeletePos();
+
   const [mounted, setMounted] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showElevateModal, setShowElevateModal] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -30,6 +44,21 @@ export function PosDetailClient({ id_mupel, id_induk, id_pos }: PosDetailClientP
   const pos = posDetail || posList?.find((p) => p.id_pos === id_pos);
   const isLoading = isLoadingPosDetail && isLoadingPosList;
   const hasGps = Boolean(pos?.latitude && pos?.longitude);
+
+  const jemaatLat = jemaat?.latitude ?? pos?.jemaat_induk?.latitude;
+  const jemaatLng = jemaat?.longitude ?? pos?.jemaat_induk?.longitude;
+  const distKm = calculateDistanceKm(jemaatLat, jemaatLng, pos?.latitude, pos?.longitude);
+
+  const handleConfirmDeletePos = async () => {
+    try {
+      await deletePosMutation.mutateAsync(id_pos);
+      toast.success('Berhasil Dihapus', `Pos Pelkes/Bajem "${pos?.nama_pos || id_pos}" telah dihapus.`);
+      setShowDeleteModal(false);
+      router.push(`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(id_induk)}`);
+    } catch (err: any) {
+      toast.error('Gagal Menghapus', err?.message || 'Gagal menghapus Pos Pelkes.');
+    }
+  };
 
   const isBajem = pos?.kategori === 'Bajem' || pos?.nama_pos?.toLowerCase().includes('bajem');
   const catLabel = isBajem ? 'Bakal Jemaat' : 'Pos Pelkes';
@@ -100,6 +129,12 @@ export function PosDetailClient({ id_mupel, id_induk, id_pos }: PosDetailClientP
                       <Compass size={12} className="text-brand-primary" />
                       <span>GPS: {pos?.latitude}, {pos?.longitude}</span>
                     </span>
+                    {distKm !== null && (
+                      <span className="text-[11px] font-extrabold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-md border border-blue-200/60 flex items-center gap-1">
+                        <Navigation size={10} className="text-blue-600 dark:text-blue-400" />
+                        <span>Jarak dari Induk: {distKm} km</span>
+                      </span>
+                    )}
                     <a 
                       href={`https://www.google.com/maps/dir/?api=1&destination=${pos?.latitude},${pos?.longitude}`}
                       target="_blank"
@@ -114,7 +149,39 @@ export function PosDetailClient({ id_mupel, id_induk, id_pos }: PosDetailClientP
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0 self-end sm:self-start">
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-start flex-wrap">
+              {isSuperUser && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setShowElevateModal(true)}
+                    className="min-h-[40px] px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-xs cursor-pointer"
+                    title="Tingkatkan Status Posisi Pelayanan Ini"
+                  >
+                    <TrendingUp size={16} />
+                    <span className="hidden sm:inline">Tingkatkan Status</span>
+                  </button>
+
+                  <Link
+                    href={`/dashboard/pos-pelkes/${encodeURIComponent(id_pos)}/edit?from=${encodeURIComponent(`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(id_induk)}/${encodeURIComponent(id_pos)}`)}`}
+                    className="min-h-[40px] px-3.5 py-2 rounded-xl border border-brand-primary/20 bg-brand-primary/5 hover:bg-brand-primary/10 text-xs font-extrabold text-brand-primary flex items-center gap-1.5 transition-all active:scale-95 shadow-xs"
+                  >
+                    <Edit3 size={16} />
+                    <span>Edit</span>
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowDeleteModal(true)}
+                    disabled={deletePosMutation.isPending}
+                    className="min-h-[40px] px-3.5 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-xs font-extrabold text-red-600 flex items-center gap-1.5 transition-all active:scale-95 shadow-xs disabled:opacity-50 cursor-pointer"
+                  >
+                    <Trash2 size={16} />
+                    <span>Hapus</span>
+                  </button>
+                </>
+              )}
+
               <ShareButton
                 title={`Pos Pelkes GPIB: ${pos?.nama_pos || id_pos}`}
                 text={`Jemaat Induk: ${jemaat?.nama_induk || id_induk}\nAlamat: ${pos?.alamat || '-'}\nJumlah KK: ${pos?.jumlah_kk || 0}\nTotal Jiwa: ${pos?.jumlah_jiwa || 0}`}
@@ -226,6 +293,12 @@ export function PosDetailClient({ id_mupel, id_induk, id_pos }: PosDetailClientP
                 </span>
               </div>
             </div>
+            {distKm !== null && (
+              <div className="pt-2 border-t border-border-subtle/50 flex items-center gap-1.5 text-xs text-blue-700 dark:text-blue-300 font-bold">
+                <Navigation size={13} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                <span>Jarak ke Jemaat Induk Pengampu: {distKm} km</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -248,6 +321,32 @@ export function PosDetailClient({ id_mupel, id_induk, id_pos }: PosDetailClientP
           <FileText size={16} />
         </Link>
       </div>
+
+      {/* Secure Delete Modal for Pos Pelkes */}
+      <SecureDeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleConfirmDeletePos}
+        title="Konfirmasi Hapus Pos Pelkes"
+        targetName={pos?.nama_pos || id_pos}
+        targetId={id_pos}
+        itemType="Pos Pelkes"
+        isDeleting={deletePosMutation.isPending}
+      />
+
+      {/* Status Elevation Modal */}
+      {showElevateModal && (
+        <StatusElevationModal
+          isOpen={showElevateModal}
+          onClose={() => setShowElevateModal(false)}
+          posItem={{
+            id_pos,
+            nama_pos: pos?.nama_pos || id_pos,
+            kategori: pos?.kategori,
+            id_induk,
+          }}
+        />
+      )}
     </div>
   );
 }

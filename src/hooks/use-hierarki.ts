@@ -59,6 +59,8 @@ export interface PosPelkesItem {
     id_induk: string;
     nama_induk: string;
     id_mupel: string;
+    latitude?: number | null;
+    longitude?: number | null;
     mupel?: {
       nama_mupel: string;
     } | null;
@@ -364,7 +366,7 @@ export function usePosByJemaat(id_induk?: string, search?: string) {
     queryFn: async () => {
       let query = supabase
         .from('m_pos_pelkes')
-        .select('*, jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, mupel:m_mupel(nama_mupel))')
+        .select('*, jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, latitude, longitude, mupel:m_mupel(nama_mupel))')
         .order('nama_pos', { ascending: true });
 
       if (id_induk && id_induk !== 'all') {
@@ -469,7 +471,7 @@ export function usePosDetail(id_pos?: string) {
 
       const { data: p, error } = await supabase
         .from('m_pos_pelkes')
-        .select('*, jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, mupel:m_mupel(nama_mupel))')
+        .select('*, jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, latitude, longitude, mupel:m_mupel(nama_mupel))')
         .eq('id_pos', id_pos)
         .maybeSingle();
 
