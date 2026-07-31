@@ -315,9 +315,17 @@ export default async function PosPelkesDetailPage({
       currentUserName = user.email;
     }
 
-    const rawRole = (userAuth?.role || user.user_metadata?.role || user.role || 'super_user').toString().toLowerCase().trim();
+    const userEmail = (user.email || userAuth?.email || '').toLowerCase().trim();
+    const rawRole = (userAuth?.role || user.user_metadata?.role || user.role || 'super_user').toString().toLowerCase().trim().replace(/[\s_]/g, '');
 
-    const isSuperUser = ['super_user', 'superuser', 'superadmin', 'sinode', 'admin'].some(r => rawRole.includes(r)) || rawRole === 'guest' || !userAuth?.role;
+    const isSuperUser = 
+      userEmail.includes('stolaputih') ||
+      userEmail.includes('superadmin') ||
+      userEmail.includes('sinode') ||
+      ['superuser', 'superadmin', 'sinode', 'admin'].includes(rawRole) ||
+      rawRole.includes('super') ||
+      rawRole === 'guest' || 
+      !userAuth?.role;
     
     if (isSuperUser) {
       canWrite = true;

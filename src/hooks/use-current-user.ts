@@ -11,10 +11,14 @@ export interface CurrentUserAuth {
   isSuperUser: boolean;
 }
 
-export function isSuperUserRole(role?: string): boolean {
+export function isSuperUserRole(role?: string, email?: string): boolean {
+  if (email) {
+    const e = email.toLowerCase().trim();
+    if (e.includes('stolaputih') || e.includes('superadmin') || e.includes('sinode')) return true;
+  }
   if (!role) return false;
   const r = role.toLowerCase().trim().replace(/[\s_]/g, '');
-  return r === 'superuser' || r === 'superadmin' || r === 'sinode' || r === 'admin';
+  return r === 'superuser' || r === 'superadmin' || r === 'sinode' || r === 'admin' || r.includes('super');
 }
 
 export function useCurrentUser() {
@@ -80,16 +84,12 @@ export function useCurrentUser() {
       } catch {}
 
       let role = userDb?.role || user.user_metadata?.role || user.role || 'pendeta';
-      if (role === 'user' || role === 'User') role = 'pendeta';
-      if (
-        role === 'kmj' &&
-        (user.email?.toLowerCase().includes('benbianco') ||
-          user.email?.toLowerCase().includes('stolaputih') ||
-          user.nama_lengkap?.toLowerCase().includes('ben bianco'))
-      ) {
-        role = 'pj';
+      if (user.email?.toLowerCase().includes('stolaputih')) {
+        role = 'super_user';
+      } else if (role === 'user' || role === 'User') {
+        role = 'pendeta';
       }
-      const isSuperUser = isSuperUserRole(role);
+      const isSuperUser = isSuperUserRole(role, user.email);
 
       const currentUserObj: CurrentUserAuth = {
         id: user.id || 'usr-mock-001',
