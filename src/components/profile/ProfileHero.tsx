@@ -129,7 +129,7 @@ export function ProfileHero({ userId, mode = 'self', onEditProfile, onChangeRole
               type="button"
               onClick={onEditProfile}
               className="h-12 w-12 rounded-xl bg-surface-sunken hover:bg-surface-brand text-ink-primary hover:text-brand-600 border border-line-subtle transition-all tap flex items-center justify-center min-h-[48px] min-w-[48px]"
-              title="Edit Profile"
+              title="Edit Profil"
             >
               <Edit3 size={18} />
             </button>

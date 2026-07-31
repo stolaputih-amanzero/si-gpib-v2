@@ -275,7 +275,7 @@ export default function SettingsHubPage() {
                 className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-brand-600 text-white hover:bg-brand-700 transition-all text-xs font-bold shrink-0 min-h-[44px] shadow-sm active:scale-95"
               >
                 <UserIcon size={16} />
-                <span>Buka Profile 360°</span>
+                <span>Buka Profil 360°</span>
               </Link>
 
               <button
@@ -307,7 +307,7 @@ export default function SettingsHubPage() {
                 <div className="min-w-0 text-left">
                   <div>
                     <CardTitle className="text-base truncate group-hover:text-brand-600 transition-colors font-bold">
-                      Profile 360° Saya
+                      Profil 360° Saya
                     </CardTitle>
                   </div>
                   <CardDescription className="line-clamp-1 mt-0.5">

@@ -420,7 +420,7 @@ export default function UserManagementPage() {
                       <Link
                         href={`/settings/users/${user.id}`}
                         className="px-3 py-1.5 rounded-xl bg-brand-primary/10 text-brand-primary text-xs font-semibold hover:bg-brand-primary hover:text-white transition-all flex items-center gap-1 min-h-[36px]"
-                        title="Buka Profile 360° Pengguna"
+                        title="Buka Profil 360° Pengguna"
                       >
                         <UserCheck size={14} />
                         <span>Profil 360°</span>

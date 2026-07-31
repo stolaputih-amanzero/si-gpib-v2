@@ -19,7 +19,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/bantuan': 'Permohonan Bantuan',
   '/bantuan/ajukan': 'Form Pengajuan Bantuan',
   '/settings': 'Pengaturan Sistem',
-  '/settings/profile': 'Profile 360° Saya',
+  '/settings/profile': 'Profil 360° Saya',
   '/laporan/pastoral': 'Log Pastoral & Kunjungan',
   '/laporan/demografi': 'Demografi Pelkat',
   '/inventaris': 'Aset & Inventaris',
