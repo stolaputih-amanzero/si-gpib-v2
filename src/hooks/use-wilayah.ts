@@ -2,6 +2,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { KerawananInput, PotensiInput } from '@/lib/validations/wilayah.schema';
 
+function toError(error: any): Error {
+  if (error instanceof Error) return error;
+  if (typeof error === 'string') return new Error(error);
+  if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
+    return new Error(error.message);
+  }
+  return new Error(JSON.stringify(error));
+}
+
 /**
  * Interface Data Pos Pelkes
  */
@@ -64,7 +73,7 @@ async function uploadKerawananAttachment(
       upsert: true,
     });
 
-  if (uploadError) throw uploadError;
+  if (uploadError) throw toError(uploadError);
 
   const { data: publicUrlData } = supabase.storage
     .from('assets-images')
@@ -84,7 +93,7 @@ async function uploadKerawananAttachment(
     keterangan: photoKeterangan,
   });
 
-  if (insertError) throw insertError;
+  if (insertError) throw toError(insertError);
 }
 
 /**
@@ -106,7 +115,7 @@ async function uploadPotensiAttachment(
       upsert: true,
     });
 
-  if (uploadError) throw uploadError;
+  if (uploadError) throw toError(uploadError);
 
   const { data: publicUrlData } = supabase.storage
     .from('assets-images')
@@ -126,7 +135,7 @@ async function uploadPotensiAttachment(
     keterangan: photoKeterangan,
   });
 
-  if (insertError) throw insertError;
+  if (insertError) throw toError(insertError);
 }
 
 /**
@@ -164,7 +173,7 @@ export function useKerawananList(id_pos?: string) {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) throw toError(error);
       return (data || []).map((k: any) => ({
         ...k,
         pos: k.pos ? {
@@ -260,7 +269,7 @@ export function usePosPelkesList() {
         `)
         .order('nama_pos', { ascending: true });
 
-      if (error) throw error;
+      if (error) throw toError(error);
       return (data || []).map((p: any) => ({
         id_pos: p.id_pos,
         nama_pos: p.nama_pos,
@@ -308,7 +317,7 @@ export function usePotensiList(id_pos?: string) {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) throw toError(error);
       return (data || []).map((p: any) => ({
         ...p,
         pos: p.pos ? {
@@ -348,7 +357,7 @@ export function useWilayahMapData() {
         .not('latitude', 'is', null)
         .not('longitude', 'is', null);
 
-      if (posErr) throw posErr;
+      if (posErr) throw toError(posErr);
       if (!posData || posData.length === 0) return [];
 
       // 2. Fetch Kerawanan & Potensi sekaligus
@@ -357,8 +366,8 @@ export function useWilayahMapData() {
         supabase.from('t_potensi_wilayah').select('*'),
       ]);
 
-      if (kErr) throw kErr;
-      if (pErr) throw pErr;
+      if (kErr) throw toError(kErr);
+      if (pErr) throw toError(pErr);
 
       const kerawananList = (kerawananData || []) as KerawananItem[];
       const potensiList = (potensiData || []) as PotensiItem[];
@@ -461,7 +470,7 @@ export function useUpdateKerawanan() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw toError(error);
 
       if (files && files.length > 0) {
         for (const file of files) {
@@ -488,7 +497,7 @@ export function useDeleteLampiranKerawanan() {
   return useMutation({
     mutationFn: async (id_lampiran: string) => {
       const { error } = await supabase.from('t_lampiran_kerawanan').delete().eq('id_lampiran', id_lampiran);
-      if (error) throw error;
+      if (error) throw toError(error);
       return true;
     },
     onSuccess: () => {
@@ -510,7 +519,7 @@ export function useUpdateLampiranKerawananKeterangan() {
         .from('t_lampiran_kerawanan')
         .update({ keterangan })
         .eq('id_lampiran', id_lampiran);
-      if (error) throw error;
+      if (error) throw toError(error);
       return true;
     },
     onSuccess: () => {
@@ -547,7 +556,7 @@ export function useCreatePotensi() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw toError(error);
 
       if (files && files.length > 0) {
         for (const file of files) {
@@ -592,7 +601,7 @@ export function useUpdatePotensi() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw toError(error);
 
       if (files && files.length > 0) {
         for (const file of files) {
@@ -619,7 +628,7 @@ export function useDeleteLampiranPotensi() {
   return useMutation({
     mutationFn: async (id_lampiran: string) => {
       const { error } = await supabase.from('t_lampiran_potensi').delete().eq('id_lampiran', id_lampiran);
-      if (error) throw error;
+      if (error) throw toError(error);
       return true;
     },
     onSuccess: () => {
@@ -641,7 +650,7 @@ export function useUpdateLampiranPotensiKeterangan() {
         .from('t_lampiran_potensi')
         .update({ keterangan })
         .eq('id_lampiran', id_lampiran);
-      if (error) throw error;
+      if (error) throw toError(error);
       return true;
     },
     onSuccess: () => {
@@ -664,7 +673,7 @@ export function useDeleteKerawanan() {
         .delete()
         .eq('id_risiko', id_risiko);
 
-      if (error) throw error;
+      if (error) throw toError(error);
       return true;
     },
     onSuccess: () => {
@@ -688,7 +697,7 @@ export function useDeletePotensi() {
         .delete()
         .eq('id_potensi', id_potensi);
 
-      if (error) throw error;
+      if (error) throw toError(error);
       return true;
     },
     onSuccess: () => {
@@ -740,7 +749,7 @@ export function useJemaatMapData() {
         .not('latitude', 'is', null)
         .not('longitude', 'is', null);
 
-      if (error) throw error;
+      if (error) throw toError(error);
       return (data || []).map((j: any) => ({
         id_induk: j.id_induk,
         id_mupel: j.id_mupel,

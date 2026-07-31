@@ -233,7 +233,7 @@ function EditPosPelkesFormContent({ pos }: { pos: any }) {
     const result = await updatePosPelkes(pos.id_pos, formData);
     
     if (result?.error) {
-      setServerError(result.error);
+      setServerError(typeof result.error === 'string' ? result.error : (result.error as any)?.message || JSON.stringify(result.error));
     } else {
       toast.success('Pembaruan Berhasil', 'Data unit pelayanan berhasil diperbarui.');
       router.push(backUrl);
@@ -259,7 +259,7 @@ function EditPosPelkesFormContent({ pos }: { pos: any }) {
 
         {serverError && (
           <div className="p-3.5 text-xs font-bold text-red-600 bg-red-50 border border-red-200 rounded-xl">
-            {serverError}
+            {typeof serverError === 'string' ? serverError : JSON.stringify(serverError)}
           </div>
         )}
 

@@ -8,9 +8,11 @@ import { useVoiceInput } from '@/hooks/use-voice-input';
 import { logPastoralSchema, LogPastoralInput } from '@/lib/validations/log-pastoral.schema';
 import { createClient } from '@/lib/supabase/client';
 import { PosCascadingSelector, HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
+import { useUserMupelAuth } from '@/hooks/use-hierarki-selector';
 import { PastoralPhotoPicker } from '@/components/pastoral/PastoralPhotoPicker';
 import { useToast } from '@/components/ui/toast';
 import { formatPastoralKegiatanText } from '@/lib/formatters/pastoral-text';
+import { createLogPastoralAction } from '@/app/(dashboard)/dashboard/pastoral/actions';
 
 interface LogPastoralFormProps {
   id_pos?: string;
@@ -20,6 +22,7 @@ interface LogPastoralFormProps {
 
 export default function LogPastoralForm({ id_pos, id_induk, onSuccess }: LogPastoralFormProps) {
   const { toast } = useToast();
+  const { data: userAuth } = useUserMupelAuth();
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
   const [hierarchyMeta, setHierarchyMeta] = useState<HierarchyMetaInfo | null>(null);
   const [targetScope, setTargetScope] = useState<'pos' | 'jemaat'>(id_pos ? 'pos' : 'jemaat');
@@ -76,18 +79,33 @@ export default function LogPastoralForm({ id_pos, id_induk, onSuccess }: LogPast
       if (id_pos) setValue('id_pos', id_pos);
       if (id_induk) setValue('id_induk', id_induk);
 
-      const { data: pendetaData } = await supabase
-        .from('m_pendeta')
-        .select('id_pendeta')
-        .limit(1);
+      if (userAuth) {
+        if (userAuth.id_induk && !id_induk) {
+          setValue('id_induk', userAuth.id_induk);
+        }
+        if (userAuth.id_pos && !id_pos) {
+          setValue('id_pos', userAuth.id_pos);
+          setTargetScope('pos');
+        }
+        if (userAuth.id_pendeta) {
+          setValue('id_pendeta', userAuth.id_pendeta);
+        }
+      }
 
-      if (pendetaData && pendetaData[0]) {
-        setValue('id_pendeta', pendetaData[0].id_pendeta);
+      if (!userAuth?.id_pendeta) {
+        const { data: pendetaData } = await supabase
+          .from('m_pendeta')
+          .select('id_pendeta')
+          .limit(1);
+
+        if (pendetaData && pendetaData[0]) {
+          setValue('id_pendeta', pendetaData[0].id_pendeta);
+        }
       }
     };
 
     initFormDefaults();
-  }, [id_pos, id_induk, setValue]);
+  }, [id_pos, id_induk, userAuth, setValue]);
 
   useEffect(() => {
     if (transcript) {
@@ -132,7 +150,7 @@ export default function LogPastoralForm({ id_pos, id_induk, onSuccess }: LogPast
 
       const formattedKegiatan = formatPastoralKegiatanText(data.kegiatan);
 
-      const payload = {
+      await createLogPastoralAction({
         id_log: idLog,
         id_pos: finalPosId,
         id_pendeta: pendetaId,
@@ -140,14 +158,7 @@ export default function LogPastoralForm({ id_pos, id_induk, onSuccess }: LogPast
         kegiatan: formattedKegiatan,
         jml_jiwa: data.jml_jiwa ? Number(data.jml_jiwa) : null,
         catatan: finalCatatan,
-      };
-
-      const { error } = await supabase.from('t_log_pastoral').insert(payload);
-
-      if (error) {
-        toast.error('Gagal Menyimpan Log', error.message);
-        return;
-      }
+      });
 
       toast.success('Berhasil Disimpan', 'Log pastoral baru berhasil dicatat.');
       onSuccess();

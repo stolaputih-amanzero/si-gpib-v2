@@ -35,9 +35,43 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { formatPastoralKegiatanText } from '@/lib/formatters/pastoral-text';
 import { SecureDeleteModal } from '@/components/ui/SecureDeleteModal';
+import { useUserMupelAuth } from '@/hooks/use-hierarki-selector';
+
+function isLogInUserHierarchy(log: LogPastoralItem, userAuth: any): boolean {
+  if (!userAuth) return true;
+
+  const role = (userAuth.role || '').toLowerCase();
+  if (role === 'superadmin' || role === 'sinode') return true;
+
+  if (userAuth.id_pendeta && log.id_pendeta && userAuth.id_pendeta === log.id_pendeta) {
+    return true;
+  }
+
+  if (userAuth.id_pos && log.id_pos && userAuth.id_pos === log.id_pos) {
+    return true;
+  }
+
+  const logJemaatId = log.pos?.jemaat_induk?.id_induk;
+  if (userAuth.id_induk && logJemaatId && userAuth.id_induk === logJemaatId) {
+    return true;
+  }
+
+  const logMupelId = (log.pos?.jemaat_induk as any)?.id_mupel || log.pos?.jemaat_induk?.mupel?.id_mupel;
+  if (userAuth.id_mupel && logMupelId && userAuth.id_mupel === logMupelId) {
+    return true;
+  }
+
+  if (!userAuth.id_mupel && !userAuth.id_induk && !userAuth.id_pos && !userAuth.id_pendeta) {
+    return true;
+  }
+
+  return false;
+}
 
 export default function LaporanPastoralPage() {
   const { toast } = useToast();
+  const { data: userAuth } = useUserMupelAuth();
+  const [viewScope, setViewScope] = useState<'hierarchy' | 'all'>('hierarchy');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPos] = useState('');
 
@@ -61,6 +95,10 @@ export default function LaporanPastoralPage() {
   const { data: pastoralLogs, isLoading } = useLogPastoralList(searchQuery, selectedPos);
   const deleteMutation = useDeleteLogPastoral();
   const updateMutation = useUpdateLogPastoral();
+
+  const allLogs = pastoralLogs || [];
+  const hierarchyLogs = allLogs.filter((log) => isLogInUserHierarchy(log, userAuth));
+  const displayedLogs = viewScope === 'hierarchy' ? hierarchyLogs : allLogs;
 
   // Helper to extract time tag, photo, and hierarchy info from catatan string
   const extractMetaFromCatatan = (catatan?: string | null) => {
@@ -371,15 +409,15 @@ export default function LaporanPastoralPage() {
     }
   };
 
-  const totalLogs = pastoralLogs?.length || 0;
+  const totalLogs = displayedLogs.length;
   
-  const currentMonthLogs = pastoralLogs?.filter((l) => {
+  const currentMonthLogs = displayedLogs.filter((l) => {
     const d = new Date(l.tgl);
     const now = new Date();
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  }).length || 0;
+  }).length;
 
-  const totalJiwaServed = pastoralLogs?.reduce((sum, l) => sum + (l.jml_jiwa || 0), 0) || 0;
+  const totalJiwaServed = displayedLogs.reduce((sum, l) => sum + (l.jml_jiwa || 0), 0);
 
   return (
     <div className="w-full space-y-6 pb-12">
@@ -403,6 +441,54 @@ export default function LaporanPastoralPage() {
         <p className="text-xs md:text-sm text-text-muted leading-relaxed">
           Catatan Pelayanan Pastoral, Konseling & Waktu Kunjungan Jemaat
         </p>
+      </div>
+
+      {/* Scope Selector Bar: Wilayah Saya (Hierarki) vs Lihat Semua Wilayah */}
+      <div className="bg-surface-elevated p-3 rounded-2xl border border-border-subtle shadow-soft space-y-2">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 bg-surface-sunken p-1 rounded-xl w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => setViewScope('hierarchy')}
+              className={`flex-1 sm:flex-none px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                viewScope === 'hierarchy'
+                  ? 'bg-surface-elevated text-brand-primary shadow-soft border border-border-subtle/50'
+                  : 'text-text-muted hover:text-text-high'
+              }`}
+            >
+              <span>📍 Wilayah Saya (Hierarki)</span>
+              <span className="px-1.5 py-0.5 rounded-full bg-brand-primary/10 text-[10px] font-bold text-brand-primary">
+                {hierarchyLogs.length}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewScope('all')}
+              className={`flex-1 sm:flex-none px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                viewScope === 'all'
+                  ? 'bg-surface-elevated text-brand-primary shadow-soft border border-border-subtle/50'
+                  : 'text-text-muted hover:text-text-high'
+              }`}
+            >
+              <span>🌐 Lihat Semua Wilayah</span>
+              <span className="px-1.5 py-0.5 rounded-full bg-surface-sunken text-[10px] font-bold text-text-high">
+                {allLogs.length}
+              </span>
+            </button>
+          </div>
+
+          <div className="text-[11px] font-medium text-text-muted px-1">
+            {viewScope === 'hierarchy' ? (
+              <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                🔒 Data wilayah Anda (dapat Edit & Hapus)
+              </span>
+            ) : (
+              <span className="text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
+                👁️ Semua wilayah (luar wilayah hanya dapat dilihat)
+              </span>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Overview Cards */}
@@ -442,7 +528,7 @@ export default function LaporanPastoralPage() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-text-high">
-            Riwayat Kegiatan Pastoral ({pastoralLogs?.length || 0})
+            Riwayat Kegiatan Pastoral ({displayedLogs.length})
           </h2>
           <span className="text-xs text-text-muted">
             {isLoading ? 'Memuat...' : 'Klik kartu untuk melihat detail hierarki & foto'}
@@ -458,15 +544,16 @@ export default function LaporanPastoralPage() {
               </div>
             ))}
           </div>
-        ) : pastoralLogs && pastoralLogs.length > 0 ? (
+        ) : displayedLogs && displayedLogs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {pastoralLogs.map((log) => {
+            {displayedLogs.map((log) => {
               const { jamStr, zonaWaktu, photoBase64, hierarchyInfo, cleanNotes } = extractMetaFromCatatan(log.catatan);
 
               const posNama = log.pos?.nama_pos || hierarchyInfo?.posName;
               const posKategori = log.pos?.kategori || 'Pos Pelkes';
               const jemaatNama = log.pos?.jemaat_induk?.nama_induk || hierarchyInfo?.jemaatName;
               const mupelNama = log.pos?.jemaat_induk?.mupel?.nama_mupel || hierarchyInfo?.mupelName;
+              const canManage = isLogInUserHierarchy(log, userAuth);
 
               return (
                 <div
@@ -509,22 +596,31 @@ export default function LaporanPastoralPage() {
                       >
                         <Share2 size={16} />
                       </button>
-                      <button
-                        type="button"
-                        onClick={(e) => handleOpenEditDirect(e, log)}
-                        className="p-2 rounded-xl text-text-muted hover:text-brand-primary hover:bg-brand-primary/10 transition-colors"
-                        title="Edit Log Pastoral"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => handleDelete(e, log.id_log, log.kegiatan)}
-                        className="p-2 rounded-xl text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
-                        title="Hapus Log"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      {canManage ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={(e) => handleOpenEditDirect(e, log)}
+                            className="p-2 rounded-xl text-text-muted hover:text-brand-primary hover:bg-brand-primary/10 transition-colors"
+                            title="Edit Log Pastoral"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleDelete(e, log.id_log, log.kegiatan)}
+                            className="p-2 rounded-xl text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+                            title="Hapus Log"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </>
+                      ) : (
+                        <span className="px-2 py-1 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1" title="Luar wilayah Anda (Hanya Lihat)">
+                          <Eye size={11} />
+                          <span>Hanya Lihat</span>
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -860,7 +956,7 @@ export default function LaporanPastoralPage() {
                     />
                     <div className="absolute top-2 left-2 px-2.5 py-1 rounded-lg bg-black/75 text-white text-xs font-bold flex items-center gap-1.5 backdrop-blur-sm border border-white/10">
                       <Camera size={13} className="text-amber-400" />
-                      <span>Dokumentasi Foto Stamped (Klik untuk Layar Penuh)</span>
+                      <span>Foto Dokumentasi (Klik untuk Layar Penuh)</span>
                     </div>
                   </div>
                 )}
@@ -943,24 +1039,33 @@ export default function LaporanPastoralPage() {
                     <span>WA</span>
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={(e) => handleDelete(e, selectedLog.id_log, selectedLog.kegiatan)}
-                    className="py-2.5 px-3.5 rounded-xl border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-50 dark:hover:bg-red-950/40 transition-all min-h-[44px] flex items-center gap-1.5 shrink-0"
-                    title="Hapus Log Pastoral"
-                  >
-                    <Trash2 size={16} />
-                    <span>Hapus</span>
-                  </button>
+                  {isLogInUserHierarchy(selectedLog, userAuth) ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={(e) => handleDelete(e, selectedLog.id_log, selectedLog.kegiatan)}
+                        className="py-2.5 px-3.5 rounded-xl border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-50 dark:hover:bg-red-950/40 transition-all min-h-[44px] flex items-center gap-1.5 shrink-0"
+                        title="Hapus Log Pastoral"
+                      >
+                        <Trash2 size={16} />
+                        <span>Hapus</span>
+                      </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setIsEditing(true)}
-                    className="flex-1 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] flex items-center justify-center gap-2"
-                  >
-                    <Edit size={16} />
-                    <span>Edit</span>
-                  </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(true)}
+                        className="flex-1 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] flex items-center justify-center gap-2"
+                      >
+                        <Edit size={16} />
+                        <span>Edit</span>
+                      </button>
+                    </>
+                  ) : (
+                    <div className="flex-1 py-2.5 px-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold flex items-center justify-center gap-1.5">
+                      <Eye size={15} />
+                      <span>Hanya Lihat (Luar Wilayah Anda)</span>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

@@ -11,8 +11,9 @@ export interface TimelineItemProps {
   title: string;
   subtitle?: string | null;
   badge?: React.ReactNode;
-  body?: string | null;
+  body?: React.ReactNode;
   href?: string | null;
+  onClick?: () => void;
   dotClass?: string;
 }
 
@@ -56,9 +57,13 @@ export function VerticalTimeline({ items, emptyMessage = 'Belum ada riwayat.', f
             )}
 
             {item.body && (
-              <p className="text-xs text-ink-secondary leading-relaxed bg-surface-sunken p-2.5 rounded-xl border border-line-subtle mt-1 font-mono">
-                {item.body}
-              </p>
+              typeof item.body === 'string' ? (
+                <p className="text-xs text-ink-secondary leading-relaxed bg-surface-sunken p-2.5 rounded-xl border border-line-subtle mt-1 font-mono">
+                  {item.body}
+                </p>
+              ) : (
+                <div className="mt-1">{item.body}</div>
+              )
             )}
           </div>
         );
@@ -76,12 +81,19 @@ export function VerticalTimeline({ items, emptyMessage = 'Belum ada riwayat.', f
             {item.href ? (
               <Link
                 href={item.href}
-                className="block p-3 rounded-2xl bg-surface-1 hover:bg-surface-sunken border border-line-subtle transition-all tap"
+                className="block p-3.5 rounded-2xl bg-surface-1 hover:bg-surface-sunken border border-line-subtle transition-all tap cursor-pointer"
               >
                 {contentNode}
               </Link>
+            ) : item.onClick ? (
+              <div
+                onClick={item.onClick}
+                className="p-3.5 rounded-2xl bg-surface-1 hover:bg-surface-sunken hover:border-brand-500/60 border border-line-subtle transition-all cursor-pointer group/item"
+              >
+                {contentNode}
+              </div>
             ) : (
-              <div className="p-3 rounded-2xl bg-surface-1 border border-line-subtle">
+              <div className="p-3.5 rounded-2xl bg-surface-1 border border-line-subtle">
                 {contentNode}
               </div>
             )}

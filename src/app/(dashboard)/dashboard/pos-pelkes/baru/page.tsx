@@ -282,7 +282,7 @@ function TambahPosPelkesFormContent() {
     const result = await savePosPelkes(formData);
     
     if (result?.error) {
-      setServerError(result.error);
+      setServerError(typeof result.error === 'string' ? result.error : (result.error as any)?.message || JSON.stringify(result.error));
     } else {
       toast.success('Penyimpanan Berhasil', 'Unit pelayanan baru berhasil ditambahkan.');
       router.push(backUrl);
@@ -311,7 +311,7 @@ function TambahPosPelkesFormContent() {
 
         {serverError && (
           <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-            {serverError}
+            {typeof serverError === 'string' ? serverError : JSON.stringify(serverError)}
           </div>
         )}
 

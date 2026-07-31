@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Award, Plus, Sparkles, Trash2, Edit3, Compass, CheckCircle2 } from 'lucide-react';
+import { useToast } from '@/components/ui/toast';
 import {
   useKompetensiPendeta,
   useCreateKompetensi,
@@ -21,6 +22,7 @@ interface KompetensiSectionProps {
 }
 
 export function KompetensiSection({ idPendeta, canEdit }: KompetensiSectionProps) {
+  const { toast } = useToast();
   const { data: kompetensiList = [], isLoading } = useKompetensiPendeta(idPendeta || undefined);
   const createMutation = useCreateKompetensi();
   const updateMutation = useUpdateKompetensi();
@@ -83,22 +85,32 @@ export function KompetensiSection({ idPendeta, canEdit }: KompetensiSectionProps
       keterangan: keterangan || null,
     };
 
-    if (editingItem) {
-      await updateMutation.mutateAsync({
-        id_kompetensi: editingItem.id_kompetensi,
-        ...payload,
-      });
-    } else {
-      await createMutation.mutateAsync(payload);
+    try {
+      if (editingItem) {
+        await updateMutation.mutateAsync({
+          id_kompetensi: editingItem.id_kompetensi,
+          ...payload,
+        });
+        toast.success('Berhasil Diperbarui', 'Data kompetensi berhasil diperbarui.');
+      } else {
+        await createMutation.mutateAsync(payload);
+        toast.success('Berhasil Ditambahkan', 'Data kompetensi berhasil ditambahkan.');
+      }
+      setIsModalOpen(false);
+    } catch (err: any) {
+      toast.error('Gagal Menyimpan', err.message || 'Terjadi kesalahan saat menyimpan kompetensi.');
     }
-
-    setIsModalOpen(false);
   };
 
   const handleDelete = async (id_kompetensi: string) => {
     if (!idPendeta || !confirm('Apakah Anda yakin ingin menghapus kompetensi ini?')) return;
     if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
-    await deleteMutation.mutateAsync({ id_kompetensi, id_pendeta: idPendeta });
+    try {
+      await deleteMutation.mutateAsync({ id_kompetensi, id_pendeta: idPendeta });
+      toast.success('Berhasil Dihapus', 'Data kompetensi telah dihapus.');
+    } catch (err: any) {
+      toast.error('Gagal Menghapus', err.message || 'Terjadi kesalahan saat menghapus kompetensi.');
+    }
   };
 
   const getJenisBadge = (j: string) => {

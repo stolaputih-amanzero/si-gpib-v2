@@ -11,7 +11,7 @@ import {
   DeviceBiometricItem,
   DraftUserItem,
 } from '@/types/profile.types';
-
+import { getLogPastoralListAction } from '@/app/(dashboard)/dashboard/pastoral/actions';
 /**
  * 1. Fetch Profile Akun for specified userId (or current session)
  */
@@ -507,44 +507,59 @@ export function useHierarkiInfo(idMupel?: string | null, idInduk?: string | null
  * 6. Fetch 8 Log Pastoral Ringkas
  */
 export function useLogPastoralRingkas(idPendeta?: string | null) {
-  const supabase = createClient();
-
   return useQuery<LogPastoralRingkasItem[]>({
-    queryKey: ['profile-log-pastoral-ringkas', idPendeta],
-    enabled: Boolean(idPendeta),
+    queryKey: ['profile-log-pastoral-ringkas', idPendeta || 'me'],
+    enabled: true,
     queryFn: async () => {
-      if (!idPendeta) return [];
+      const allLogs = await getLogPastoralListAction();
 
-      const { data, error } = await supabase
-        .from('t_log_pastoral')
-        .select(`
-          id_log,
-          id_pendeta,
-          id_pos,
-          kegiatan,
-          tgl_kegiatan,
-          jumlah_jiwa,
-          catatan,
-          pos:m_pos_pelkes(nama_pos)
-        `)
-        .eq('id_pendeta', idPendeta)
-        .order('tgl_kegiatan', { ascending: false })
-        .limit(8);
+      let userAuth: any = null;
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const body = await res.json();
+          userAuth = body?.user;
+        }
+      } catch {}
 
-      if (error || !data) return [];
+      const targetPendetaId = idPendeta || userAuth?.id_pendeta;
 
-      return data.map((l: any) => ({
+      let filtered = allLogs;
+      if (targetPendetaId) {
+        filtered = allLogs.filter((l: any) => l.id_pendeta === targetPendetaId);
+      }
+
+      if (filtered.length === 0 && userAuth) {
+        filtered = allLogs.filter((l: any) => {
+          if (userAuth.id_pos && l.id_pos === userAuth.id_pos) return true;
+          if (userAuth.id_induk && l.pos?.jemaat_induk?.id_induk === userAuth.id_induk) return true;
+          if (
+            userAuth.id_mupel &&
+            (l.pos?.jemaat_induk?.id_mupel === userAuth.id_mupel ||
+              l.pos?.jemaat_induk?.mupel?.id_mupel === userAuth.id_mupel)
+          ) {
+            return true;
+          }
+          return false;
+        });
+      }
+
+      if (filtered.length === 0 && !targetPendetaId && !userAuth?.id_induk && !userAuth?.id_pos) {
+        filtered = allLogs;
+      }
+
+      return filtered.slice(0, 8).map((l: any) => ({
         id_log: l.id_log,
         id_pendeta: l.id_pendeta,
         id_pos: l.id_pos || null,
-        nama_pos: (l.pos as any)?.nama_pos || null,
+        nama_pos: l.pos?.nama_pos || (l.pos?.jemaat_induk?.nama_induk ? `Jemaat ${l.pos.jemaat_induk.nama_induk}` : null),
         kegiatan: l.kegiatan || 'Pelayanan Pastoral',
-        tgl_kegiatan: l.tgl_kegiatan,
-        jumlah_jiwa: Number(l.jumlah_jiwa || 0),
+        tgl_kegiatan: l.tgl || new Date().toISOString().split('T')[0],
+        jumlah_jiwa: Number(l.jml_jiwa || 0),
         catatan: l.catatan || null,
       }));
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 2,
   });
 }
 

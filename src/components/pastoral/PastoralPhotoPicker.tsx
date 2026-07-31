@@ -15,6 +15,7 @@ export interface HierarchyWatermarkMeta {
 interface PastoralPhotoPickerProps {
   photo?: File | null;
   photoUrl?: string | null;
+  label?: string;
   hierarchyMeta?: HierarchyWatermarkMeta | null;
   onPhotoChange: (file: File | null, base64Url?: string | null) => void;
   disabled?: boolean;
@@ -22,6 +23,7 @@ interface PastoralPhotoPickerProps {
 
 export function PastoralPhotoPicker({
   photoUrl,
+  label = 'Foto Dokumentasi',
   hierarchyMeta,
   onPhotoChange,
   disabled,
@@ -89,7 +91,7 @@ export function PastoralPhotoPicker({
       <div className="flex items-center justify-between">
         <label className="text-xs font-bold text-text-high uppercase tracking-wider flex items-center gap-1.5">
           <Camera size={16} className="text-brand-primary" />
-          <span>Foto Dokumentasi Pastoral</span>
+          <span>{label}</span>
         </label>
       </div>
 

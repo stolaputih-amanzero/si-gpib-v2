@@ -10,15 +10,18 @@ import { logPastoralSchema, LogPastoralInput } from '@/lib/validations/log-pasto
 import { createClient } from '@/lib/supabase/client';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { PosCascadingSelector, HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
+import { useUserMupelAuth } from '@/hooks/use-hierarki-selector';
 import { PastoralPhotoPicker } from '@/components/pastoral/PastoralPhotoPicker';
 import { useToast } from '@/components/ui/toast';
 
 import { formatPastoralKegiatanText } from '@/lib/formatters/pastoral-text';
+import { createLogPastoralAction } from '@/app/(dashboard)/dashboard/pastoral/actions';
 
 function LogPastoralBaruContentPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { isOnline } = useNetworkStatus();
+  const { data: userAuth } = useUserMupelAuth();
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
   const [hierarchyMeta, setHierarchyMeta] = useState<HierarchyMetaInfo | null>(null);
   const [targetScope, setTargetScope] = useState<'pos' | 'jemaat'>('jemaat');
@@ -58,7 +61,7 @@ function LogPastoralBaruContentPage() {
   } = useForm<LogPastoralInput>({
     resolver: zodResolver(logPastoralSchema),
     defaultValues: {
-      id_induk: 'JMT-MOCK-001',
+      id_induk: '',
       id_pos: undefined,
       tgl: getTodayDateString(),
       jam: getNowTimeString(),
@@ -66,7 +69,7 @@ function LogPastoralBaruContentPage() {
       kegiatan: '',
       jml_jiwa: undefined,
       catatan: '',
-      id_pendeta: 'PDT-MOCK-001',
+      id_pendeta: '',
     },
   });
 
@@ -78,19 +81,44 @@ function LogPastoralBaruContentPage() {
       setValue('tgl', getTodayDateString());
       setValue('jam', getNowTimeString());
 
-      // 2. Resolve valid id_pendeta from m_pendeta table to pass Foreign Key constraint
-      const { data: pendetaData } = await supabase
-        .from('m_pendeta')
-        .select('id_pendeta')
-        .limit(1);
+      // 2. Auto fill user auth hierarchy & pendeta ID
+      if (userAuth) {
+        if (userAuth.id_induk) {
+          setValue('id_induk', userAuth.id_induk, { shouldValidate: true });
+        }
+        if (userAuth.id_pos) {
+          setValue('id_pos', userAuth.id_pos);
+          setTargetScope('pos');
+        } else if (queryPosId) {
+          setValue('id_pos', queryPosId);
+          setTargetScope('pos');
+        }
+        if (userAuth.id_pendeta) {
+          setValue('id_pendeta', userAuth.id_pendeta);
+        } else {
+          const { data: pendetaData } = await supabase
+            .from('m_pendeta')
+            .select('id_pendeta')
+            .limit(1);
 
-      if (pendetaData && pendetaData[0]) {
-        setValue('id_pendeta', pendetaData[0].id_pendeta);
+          if (pendetaData && pendetaData[0]) {
+            setValue('id_pendeta', pendetaData[0].id_pendeta);
+          }
+        }
+      } else {
+        const { data: pendetaData } = await supabase
+          .from('m_pendeta')
+          .select('id_pendeta')
+          .limit(1);
+
+        if (pendetaData && pendetaData[0]) {
+          setValue('id_pendeta', pendetaData[0].id_pendeta);
+        }
       }
     };
 
     initFormDefaults();
-  }, [setValue]);
+  }, [userAuth, queryPosId, setValue]);
 
   useEffect(() => {
     if (queryPosId) {
@@ -243,7 +271,7 @@ function LogPastoralBaruContentPage() {
 
       const formattedKegiatan = formatPastoralKegiatanText(data.kegiatan);
 
-      const payload = {
+      await createLogPastoralAction({
         id_log: idLog,
         id_pos: finalPosId,
         id_pendeta: pendetaId,
@@ -251,15 +279,7 @@ function LogPastoralBaruContentPage() {
         kegiatan: formattedKegiatan,
         jml_jiwa: data.jml_jiwa ? Number(data.jml_jiwa) : null,
         catatan: finalCatatan,
-      };
-
-      const { error } = await supabase.from('t_log_pastoral').insert(payload);
-
-      if (error) {
-        console.error('Supabase Error Insert Log Pastoral:', error);
-        toast.error('Gagal Menyimpan Log', error.message || 'Terjadi kesalahan saat menyimpan ke database.');
-        return;
-      }
+      });
 
       // Clear draft
       localStorage.removeItem('draft:log-pastoral');

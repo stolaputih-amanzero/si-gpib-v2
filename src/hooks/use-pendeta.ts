@@ -2,6 +2,20 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { PendetaInput, MutasiInput, SetKmjInput } from '@/lib/validations/pendeta.schema';
 
+function toError(error: any): Error {
+  if (error instanceof Error) return error;
+  if (typeof error === 'string') return new Error(error);
+  if (error && typeof error === 'object') {
+    if (error.code === '42501') {
+      return new Error('Gagal menyimpan: Akses ditolak oleh kebijakan keamanan database (RLS). Pastikan Anda memiliki izin akses.');
+    }
+    if (typeof error.message === 'string' && error.message.trim()) {
+      return new Error(error.message);
+    }
+  }
+  return new Error(JSON.stringify(error));
+}
+
 export interface PendetaItem {
   id_pendeta: string;
   id_induk: string;
@@ -73,7 +87,7 @@ export function usePendetaList(filter?: { id_induk?: string, search?: string, je
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) throw toError(error);
 
       let result = (data || []) as PendetaItem[];
 
@@ -110,7 +124,7 @@ export function usePendetaKontrakSegeraBerakhir() {
         .gte('tgl_akhir_kontrak', new Date().toISOString().split('T')[0])
         .order('tgl_akhir_kontrak');
 
-      if (error) throw error;
+      if (error) throw toError(error);
       return (data || []) as PendetaItem[];
     },
   });
@@ -130,7 +144,7 @@ export function usePendetaDetail(id_pendeta?: string) {
         .eq('id_pendeta', id_pendeta)
         .single();
 
-      if (error) throw error;
+      if (error) throw toError(error);
       return data as PendetaItem;
     },
     enabled: Boolean(id_pendeta),
@@ -151,7 +165,7 @@ export function useMutationHistory(id_pendeta?: string) {
         .eq('id_pendeta', id_pendeta)
         .order('tgl_mutasi', { ascending: false });
 
-      if (error) throw error;
+      if (error) throw toError(error);
       return (data || []) as MutasiHistoryItem[];
     },
     enabled: Boolean(id_pendeta),
@@ -185,7 +199,7 @@ export function useCreatePendeta() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw toError(error);
       return data;
     },
     onSuccess: () => {
@@ -218,7 +232,7 @@ export function useUpdatePendeta() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw toError(error);
       return data;
     },
     onSuccess: (_, variables) => {
@@ -243,7 +257,7 @@ export function useDeletePendeta() {
         if (error.code === '23503' || error.message?.includes('foreign key constraint') || error.message?.includes('violates foreign key constraint')) {
           throw new Error('Pendeta ini tidak dapat dihapus karena memiliki riwayat pelayanan (mutasi, penugasan, log pastoral, atau jabatan) yang harus dipertahankan.');
         }
-        throw error;
+        throw toError(error);
       }
       return true;
     },
@@ -269,7 +283,7 @@ export function useMutasiPendeta() {
         p_alasan: data.alasan,
       });
 
-      if (error) throw error;
+      if (error) throw toError(error);
       return { success: true };
     },
     onSuccess: (_, variables) => {
@@ -303,7 +317,7 @@ export function useSetKmj() {
         p_id_pendeta: data.id_pendeta,
       });
 
-      if (error) throw error;
+      if (error) throw toError(error);
       return { success: true };
     },
     onSuccess: (_, variables) => {

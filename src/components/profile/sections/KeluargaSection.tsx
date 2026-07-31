@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Users, Plus, Heart, Trash2, Edit3, UserCheck, Phone, ShieldAlert } from 'lucide-react';
 import { format, differenceInYears } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
+import { useToast } from '@/components/ui/toast';
 import {
   useKeluargaPendeta,
   useCreateKeluarga,
@@ -19,6 +20,7 @@ interface KeluargaSectionProps {
 }
 
 export function KeluargaSection({ idPendeta, isOwnerOrSuperUser }: KeluargaSectionProps) {
+  const { toast } = useToast();
   const { data: keluargaList = [], isLoading } = useKeluargaPendeta(idPendeta || undefined);
   const createMutation = useCreateKeluarga();
   const updateMutation = useUpdateKeluarga();
@@ -103,22 +105,32 @@ export function KeluargaSection({ idPendeta, isOwnerOrSuperUser }: KeluargaSecti
       keterangan: keterangan || null,
     };
 
-    if (editingItem) {
-      await updateMutation.mutateAsync({
-        id_keluarga: editingItem.id_keluarga,
-        ...payload,
-      });
-    } else {
-      await createMutation.mutateAsync(payload);
+    try {
+      if (editingItem) {
+        await updateMutation.mutateAsync({
+          id_keluarga: editingItem.id_keluarga,
+          ...payload,
+        });
+        toast.success('Berhasil Diperbarui', 'Data anggota keluarga berhasil diperbarui.');
+      } else {
+        await createMutation.mutateAsync(payload);
+        toast.success('Berhasil Ditambahkan', 'Data anggota keluarga berhasil ditambahkan.');
+      }
+      setIsModalOpen(false);
+    } catch (err: any) {
+      toast.error('Gagal Menyimpan', err.message || 'Terjadi kesalahan saat menyimpan data keluarga.');
     }
-
-    setIsModalOpen(false);
   };
 
   const handleDelete = async (id_keluarga: string) => {
     if (!idPendeta || !confirm('Apakah Anda yakin ingin menghapus data anggota keluarga ini?')) return;
     if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
-    await deleteMutation.mutateAsync({ id_keluarga, id_pendeta: idPendeta });
+    try {
+      await deleteMutation.mutateAsync({ id_keluarga, id_pendeta: idPendeta });
+      toast.success('Berhasil Dihapus', 'Data anggota keluarga telah dihapus.');
+    } catch (err: any) {
+      toast.error('Gagal Menghapus', err.message || 'Terjadi kesalahan saat menghapus anggota keluarga.');
+    }
   };
 
   return (

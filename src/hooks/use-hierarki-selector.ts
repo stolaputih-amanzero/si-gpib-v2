@@ -38,6 +38,7 @@ export interface UserHierarchyAuth {
   id_mupel?: string | null;
   id_induk?: string | null;
   id_pos?: string | null;
+  id_pendeta?: string | null;
 }
 
 /**
@@ -227,31 +228,68 @@ export function useUserMupelAuth() {
   return useQuery<UserHierarchyAuth | null>({
     queryKey: ['user-mupel-auth'],
     queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return null;
+      let user: any = null;
+      try {
+        const { data } = await supabase.auth.getUser();
+        user = data?.user;
+      } catch {}
 
-      const { data, error } = await supabase
-        .from('users')
-        .select('role, id_mupel, id_induk, id_pos')
-        .eq('id', user.id)
-        .single();
-
-      if (error) {
-        // Fallback metadata check if users table row is incomplete
-        const userMeta = user.user_metadata || {};
-        return {
-          role: userMeta.role || 'guest',
-          id_mupel: userMeta.id_mupel || null,
-          id_induk: userMeta.id_induk || null,
-          id_pos: userMeta.id_pos || null,
-        };
+      if (!user) {
+        try {
+          const res = await fetch('/api/auth/me');
+          if (res.ok) {
+            const body = await res.json();
+            user = body?.user;
+          }
+        } catch {}
       }
 
-      return data as UserHierarchyAuth;
+      if (!user) return null;
+
+      let dbUser: any = null;
+      if (user.id) {
+        const { data } = await supabase
+          .from('users')
+          .select('role, id_mupel, id_induk, id_pos, id_pendeta')
+          .eq('id', user.id)
+          .maybeSingle();
+        dbUser = data;
+      }
+      if (!dbUser && user.email) {
+        const { data } = await supabase
+          .from('users')
+          .select('role, id_mupel, id_induk, id_pos, id_pendeta')
+          .eq('email', user.email)
+          .maybeSingle();
+        dbUser = data;
+      }
+
+      const role = dbUser?.role || user.role || user.user_metadata?.role || 'guest';
+      const id_mupel = dbUser?.id_mupel || user.id_mupel || user.user_metadata?.id_mupel || null;
+      const id_induk = dbUser?.id_induk || user.id_induk || user.user_metadata?.id_induk || null;
+      const id_pos = dbUser?.id_pos || user.id_pos || user.user_metadata?.id_pos || null;
+      let id_pendeta = dbUser?.id_pendeta || user.id_pendeta || user.user_metadata?.id_pendeta || null;
+
+      if (!id_pendeta && user.email) {
+        const { data: pData } = await supabase
+          .from('m_pendeta')
+          .select('id_pendeta')
+          .eq('email', user.email)
+          .maybeSingle();
+        if (pData) {
+          id_pendeta = pData.id_pendeta;
+        }
+      }
+
+      return {
+        role,
+        id_mupel,
+        id_induk,
+        id_pos,
+        id_pendeta,
+      };
     },
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+    staleTime: 1000 * 60 * 15,
   });
 }
 
