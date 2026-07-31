@@ -247,3 +247,95 @@ export async function updateOwnProfileAction(payload: {
     return { success: false, error: err?.message || 'Gagal memperbarui profil pengguna' };
   }
 }
+
+export async function updatePendetaPelayananAction(payload: {
+  id_pendeta?: string;
+  nama_lengkap: string;
+  gender: string;
+  tgl_lahir?: string;
+  no_wa?: string;
+  tgl_tugas?: string;
+  jenis_pendeta?: string;
+}) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    let currentUserId = user?.id;
+    let currentUserEmail = user?.email;
+
+    if (!currentUserId) {
+      const cookieStore = await cookies();
+      const sessionCookie = cookieStore.get('si_gpib_user_session')?.value;
+      if (sessionCookie) {
+        try {
+          const parsed = JSON.parse(sessionCookie);
+          currentUserId = parsed.id;
+          currentUserEmail = parsed.email;
+        } catch {}
+      }
+    }
+
+    const dbClient = createAdminClient() || supabase;
+    let targetPendetaId = payload.id_pendeta;
+
+    if (!targetPendetaId && currentUserId) {
+      const { data: userRow } = await dbClient
+        .from('users')
+        .select('id_pendeta')
+        .eq('id', currentUserId)
+        .maybeSingle();
+      if (userRow?.id_pendeta) {
+        targetPendetaId = userRow.id_pendeta;
+      }
+    }
+
+    if (!targetPendetaId && currentUserEmail) {
+      const { data: pendetaByEmail } = await dbClient
+        .from('m_pendeta')
+        .select('id_pendeta')
+        .eq('email', currentUserEmail)
+        .maybeSingle();
+      if (pendetaByEmail?.id_pendeta) {
+        targetPendetaId = pendetaByEmail.id_pendeta;
+      }
+    }
+
+    if (!targetPendetaId) {
+      return { success: false, error: 'Tidak dapat menemukan ID Pendeta terhubung' };
+    }
+
+    const { error: updateError } = await dbClient
+      .from('m_pendeta')
+      .update({
+        nama_lengkap: payload.nama_lengkap.trim(),
+        gender: payload.gender,
+        tgl_lahir: payload.tgl_lahir || null,
+        no_wa: payload.no_wa?.trim() || null,
+        tgl_tugas: payload.tgl_tugas || null,
+        jenis_pendeta: payload.jenis_pendeta || 'Organik',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id_pendeta', targetPendetaId);
+
+    if (updateError) {
+      console.error('Error updating m_pendeta:', updateError);
+      return { success: false, error: updateError.message };
+    }
+
+    if (currentUserId) {
+      await dbClient
+        .from('users')
+        .update({
+          nama_lengkap: payload.nama_lengkap.trim(),
+          no_hp: payload.no_wa?.trim() || null,
+        })
+        .eq('id', currentUserId);
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('updatePendetaPelayananAction error:', err);
+    return { success: false, error: err?.message || 'Gagal memperbarui biodata pendeta' };
+  }
+}

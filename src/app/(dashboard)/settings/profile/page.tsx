@@ -5,7 +5,7 @@ import { ProfileView } from '@/components/profile/ProfileView';
 import { useUser } from '@/hooks/use-user';
 import { useToast } from '@/components/ui/toast';
 import { createClient } from '@/lib/supabase/client';
-import { updateOwnProfileAction } from '../actions';
+import { updateOwnProfileAction, updatePendetaPelayananAction } from '../actions';
 import { useQueryClient } from '@tanstack/react-query';
 import { Lock, X, User as UserIcon, Camera, Image as ImageIcon, RefreshCw } from 'lucide-react';
 import { compressAvatarImage } from '@/lib/camera/compress';
@@ -177,8 +177,11 @@ export default function MyProfilePage() {
   };
 
   const handleOpenEditPelayanan = () => {
+    const rawGender = pelayanan?.jenis_kelamin || '';
+    const isPerempuan = rawGender.toLowerCase().startsWith('p');
+
     setEditPelNama(pelayanan?.nama_pendeta || akun?.nama_lengkap || user?.nama_lengkap || '');
-    setEditPelGender(pelayanan?.jenis_kelamin === 'P' ? 'Perempuan' : 'Laki-laki');
+    setEditPelGender(isPerempuan ? 'Perempuan' : 'Laki-laki');
     setEditPelTglLahir(pelayanan?.tgl_lahir ? new Date(pelayanan.tgl_lahir).toISOString().split('T')[0] : '');
     setEditPelNoWa(pelayanan?.no_telepon || akun?.no_hp || '');
     setEditPelTglTugas(pelayanan?.tgl_tugas_awal ? new Date(pelayanan.tgl_tugas_awal).toISOString().split('T')[0] : '');
@@ -195,35 +198,20 @@ export default function MyProfilePage() {
 
     setIsSubmittingPelayanan(true);
     try {
-      const supabase = createClient();
-
       const targetPendetaId = akun?.id_pendeta || pelayanan?.id_pendeta || (user as any)?.id_pendeta;
 
-      if (targetPendetaId) {
-        const { error } = await supabase
-          .from('m_pendeta')
-          .update({
-            nama_lengkap: editPelNama.trim(),
-            gender: editPelGender,
-            tgl_lahir: editPelTglLahir || null,
-            no_wa: editPelNoWa.trim() || null,
-            tgl_tugas: editPelTglTugas || null,
-            jenis_pendeta: editPelJenisPendeta,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id_pendeta', targetPendetaId);
+      const res = await updatePendetaPelayananAction({
+        id_pendeta: targetPendetaId || undefined,
+        nama_lengkap: editPelNama.trim(),
+        gender: editPelGender,
+        tgl_lahir: editPelTglLahir || undefined,
+        no_wa: editPelNoWa.trim() || undefined,
+        tgl_tugas: editPelTglTugas || undefined,
+        jenis_pendeta: editPelJenisPendeta,
+      });
 
-        if (error) throw error;
-      }
-
-      if (user?.id) {
-        await supabase
-          .from('users')
-          .update({
-            nama_lengkap: editPelNama.trim(),
-            no_hp: editPelNoWa.trim() || null,
-          })
-          .eq('id', user.id);
+      if (!res.success) {
+        throw new Error(res.error || 'Gagal menyimpan data.');
       }
 
       toast.success('Identitas Diperbarui', 'Data biodata terpusat pendeta berhasil disimpan.');
