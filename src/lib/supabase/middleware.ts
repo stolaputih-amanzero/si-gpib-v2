@@ -52,7 +52,10 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith('/api/auth') &&
     !request.nextUrl.pathname.startsWith('/offline') && 
     !request.nextUrl.pathname.startsWith('/icons') && 
-    !request.nextUrl.pathname.startsWith('/manifest.json')
+    !request.nextUrl.pathname.startsWith('/manifest.json') &&
+    !request.nextUrl.pathname.startsWith('/sw.js') &&
+    !request.nextUrl.pathname.startsWith('/workbox-') &&
+    !request.nextUrl.pathname.startsWith('/fallback-')
   ) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
