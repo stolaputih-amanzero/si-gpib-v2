@@ -60,9 +60,19 @@ export function PosDetailClient({ id_mupel, id_induk, id_pos }: PosDetailClientP
     }
   };
 
-  const isBajem = pos?.kategori === 'Bajem' || pos?.nama_pos?.toLowerCase().includes('bajem');
-  const catLabel = isBajem ? 'Bakal Jemaat' : 'Pos Pelkes';
-  const catColor = isBajem 
+  const isJemaatInduk = Boolean(
+    pos?.kategori === 'Jemaat Induk' || 
+    pos?.kategori === 'Jemaat Induk Mandiri' || 
+    pos?.id_pos === pos?.id_induk ||
+    (pos?.jemaat_induk as any)?.keterangan?.includes('Ditingkatkan dari') ||
+    jemaat?.keterangan?.includes('Ditingkatkan dari')
+  );
+  const isBajem = !isJemaatInduk && (pos?.kategori === 'Bajem' || pos?.nama_pos?.toLowerCase().includes('bajem'));
+  
+  let catLabel = isJemaatInduk ? 'Jemaat Induk Mandiri' : isBajem ? 'Bakal Jemaat' : 'Pos Pelkes';
+  let catColor = isJemaatInduk
+    ? 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/60 dark:text-purple-200 dark:border-purple-800'
+    : isBajem 
     ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-900/50' 
     : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/50';
 

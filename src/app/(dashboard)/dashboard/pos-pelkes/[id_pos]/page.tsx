@@ -51,6 +51,7 @@ interface PosDetail {
     id_mupel: string;
     latitude?: number | null;
     longitude?: number | null;
+    keterangan?: string | null;
     mupel?: {
       id_mupel: string;
       nama_mupel: string;
@@ -161,7 +162,7 @@ async function getPosDetail(id_pos: string): Promise<PosDetail | null> {
     .from('m_pos_pelkes')
     .select(`
       id_pos, id_induk, nama_pos, kategori, alamat, latitude, longitude, tgl_berdiri, keterangan, foto_url, updated_at, updated_by, jumlah_kk, jumlah_jiwa,
-      jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, latitude, longitude, mupel:m_mupel(id_mupel, nama_mupel))
+      jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, latitude, longitude, keterangan, mupel:m_mupel(id_mupel, nama_mupel))
     `)
     .eq('id_pos', id_pos)
     .single();
@@ -248,6 +249,15 @@ async function getPelayan(id_pos: string): Promise<Pelayan[]> {
   return (data as Pelayan[]) || [];
 }
 
+async function getHistoriStatus(id_pos: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('t_histori_perubahan_status')
+    .select('*')
+    .eq('id_pos', id_pos);
+  return data || [];
+}
+
 // --- Main Page Component ---
 export default async function PosPelkesDetailPage({
   params,
@@ -261,7 +271,7 @@ export default async function PosPelkesDetailPage({
   const activeTab = resolvedSearchParams?.tab || 'profil';
 
   // Parallel data fetching for optimal performance
-  const [pos, demografi, logs, pj, pelayan, relawan, kerawanan, potensi, jadwalList] = await Promise.all([
+  const [pos, demografi, logs, pj, pelayan, relawan, kerawanan, potensi, jadwalList, historiList] = await Promise.all([
     getPosDetail(id_pos),
     getDemografi(id_pos),
     getLogPastoral(id_pos),
@@ -271,6 +281,7 @@ export default async function PosPelkesDetailPage({
     getKerawanan(id_pos),
     getPotensi(id_pos),
     getJadwalIbadah(id_pos),
+    getHistoriStatus(id_pos),
   ]);
 
   if (!pos) {
@@ -366,7 +377,18 @@ export default async function PosPelkesDetailPage({
   const distKm = calculateDistanceKm(pos.jemaat_induk?.latitude, pos.jemaat_induk?.longitude, pos.latitude, pos.longitude);
 
   // Category badges configuration
-  const isJemaatInduk = pos.kategori === 'Jemaat Induk' || pos.kategori === 'Jemaat Induk Mandiri' || pos.id_pos === pos.id_induk;
+  const isJemaatInduk = Boolean(
+    pos.kategori === 'Jemaat Induk' ||
+    pos.kategori === 'Jemaat Induk Mandiri' ||
+    pos.id_pos === pos.id_induk ||
+    pos.jemaat_induk?.keterangan?.includes('Ditingkatkan dari') ||
+    (historiList && historiList.some((h: any) => 
+      h.status_baru === 'Jemaat Induk' || 
+      h.status_baru === 'JEMAAT_INDUK' ||
+      (h.id_induk_baru && pos.id_induk && h.id_induk_baru === pos.id_induk)
+    ))
+  );
+
   const isBajem = pos.kategori === 'Bajem' || pos.nama_pos.toLowerCase().includes('bajem');
   
   let catLabel = 'Pos Pelkes';
@@ -393,6 +415,7 @@ export default async function PosPelkesDetailPage({
         canDelete={canDelete}
         pjName={pj?.nama_lengkap}
         jadwalList={jadwalList}
+        historiList={historiList}
         currentUserName={currentUserName}
       />
 

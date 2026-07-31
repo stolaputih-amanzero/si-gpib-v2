@@ -28,6 +28,7 @@ interface PosProfileHeroWrapperProps {
       nama_induk: string;
       id_induk: string;
       id_mupel: string;
+      keterangan?: string | null;
       mupel?: { id_mupel: string; nama_mupel: string } | null;
     } | null;
   };
@@ -39,6 +40,7 @@ interface PosProfileHeroWrapperProps {
   canDelete?: boolean;
   pjName?: string | null;
   jadwalList?: Array<{ jenis: string; hari: string; jam: string; zona_waktu?: string | null; keterangan?: string | null }>;
+  historiList?: any[];
   currentUserName?: string;
 }
 
@@ -52,12 +54,25 @@ export default function PosProfileHeroWrapper({
   canDelete = false,
   pjName,
   jadwalList,
+  historiList,
   currentUserName,
 }: PosProfileHeroWrapperProps) {
   const [showLightbox, setShowLightbox] = useState(false);
   const [isElevateModalOpen, setIsElevateModalOpen] = useState(false);
   const { data: currentUser } = useCurrentUser();
   const canElevate = canWrite && isSuperUserRole(currentUser?.role);
+
+  const isElevated = Boolean(
+    pos.kategori === 'Jemaat Induk' ||
+    pos.kategori === 'Jemaat Induk Mandiri' ||
+    pos.id_pos === pos.id_induk ||
+    pos.jemaat_induk?.keterangan?.includes('Ditingkatkan dari') ||
+    (historiList && historiList.some((h: any) => 
+      h.status_baru === 'Jemaat Induk' || 
+      h.status_baru === 'JEMAAT_INDUK' ||
+      (h.id_induk_baru && pos.id_induk && h.id_induk_baru === pos.id_induk)
+    ))
+  );
 
   return (
     <>
@@ -271,7 +286,7 @@ export default function PosProfileHeroWrapper({
       </div>
 
       {/* Banner Notifikasi Peningkatan Status ke Jemaat Induk */}
-      {(pos.kategori === 'Jemaat Induk' || pos.kategori === 'Jemaat Induk Mandiri' || pos.id_pos === pos.id_induk) && (
+      {isElevated && (
         <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-purple-900 via-indigo-900 to-brand-primary text-white shadow-soft flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-purple-500/30 animate-in fade-in duration-300">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-2xl bg-white/10 text-amber-300 flex items-center justify-center shrink-0 border border-white/20">
