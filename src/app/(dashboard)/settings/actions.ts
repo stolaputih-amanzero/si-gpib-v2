@@ -404,3 +404,52 @@ export async function createAuditLog({
     console.warn('createAuditLog warning:', err);
   }
 }
+
+export async function fetchUserAuditLogsAction(targetUserId?: string) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    let userId = targetUserId || user?.id;
+
+    if (!userId) {
+      const cookieStore = await cookies();
+      const sessionCookie = cookieStore.get('si_gpib_user_session')?.value;
+      if (sessionCookie) {
+        try {
+          const parsed = JSON.parse(sessionCookie);
+          userId = parsed.id;
+        } catch {}
+      }
+    }
+
+    if (!userId) return [];
+
+    const dbClient = createAdminClient() || supabase;
+
+    const { data, error } = await dbClient
+      .from('t_log_aktivitas')
+      .select('*')
+      .eq('id_user', userId)
+      .order('waktu', { ascending: false })
+      .limit(30);
+
+    if (error) {
+      console.error('fetchUserAuditLogsAction error:', error);
+      return [];
+    }
+
+    return (data || []).map((a: any) => ({
+      id: a.id_log || a.id || `log-${Math.random()}`,
+      user_id: a.id_user || a.user_id,
+      aksi: a.aksi || a.action || 'LOG',
+      fitur: a.objek_type || a.fitur || a.feature || null,
+      detail: a.keterangan || a.detail || a.description || null,
+      created_at: a.waktu || new Date().toISOString(),
+      ip_address: a.ip_address || null,
+    }));
+  } catch (err) {
+    console.error('fetchUserAuditLogsAction error:', err);
+    return [];
+  }
+}

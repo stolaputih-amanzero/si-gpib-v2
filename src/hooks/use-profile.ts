@@ -13,6 +13,7 @@ import {
 } from '@/types/profile.types';
 import { getLogPastoralListAction } from '@/app/(dashboard)/dashboard/pastoral/actions';
 import { getRiwayatMutasiAction } from '@/app/(dashboard)/sdm/pendeta/actions-360';
+import { fetchUserAuditLogsAction } from '@/app/(dashboard)/settings/actions';
 /**
  * 1. Fetch Profile Akun for specified userId (or current session)
  */
@@ -539,37 +540,11 @@ export function useLogPastoralRingkas(idPendeta?: string | null) {
  * 7. Fetch Aktivitas User (Audit Log)
  */
 export function useAktivitasUser(userId?: string) {
-  const supabase = createClient();
-
   return useQuery<AktivitasUserItem[]>({
     queryKey: ['profile-aktivitas', userId || 'me'],
-    enabled: Boolean(userId),
     queryFn: async () => {
-      if (!userId) return [];
-
-      const { data, error } = await supabase
-        .from('t_log_aktivitas')
-        .select('*')
-        .eq('id_user', userId)
-        .order('waktu', { ascending: false })
-        .limit(30);
-
-      if (error) {
-        console.warn('Error fetching t_log_aktivitas:', error);
-        return [];
-      }
-
-      if (!data) return [];
-
-      return data.map((a: any) => ({
-        id: a.id_log || a.id || `log-${Math.random()}`,
-        user_id: a.id_user || a.user_id,
-        aksi: a.aksi || a.action || 'LOG',
-        fitur: a.objek_type || a.fitur || a.feature || null,
-        detail: a.keterangan || a.detail || a.description || null,
-        created_at: a.waktu || new Date().toISOString(),
-        ip_address: a.ip_address || null,
-      }));
+      const data = await fetchUserAuditLogsAction(userId);
+      return data;
     },
     staleTime: 1000 * 60 * 2,
   });
