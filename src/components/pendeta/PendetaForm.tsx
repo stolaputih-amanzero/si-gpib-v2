@@ -147,8 +147,17 @@ export function PendetaForm({ id_induk = 'IND-13055', initialData, onSuccess }: 
         </div>
       </div>
 
-      {/* Tanggal Tugas & Status */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Tanggal Lahir, Tanggal Tugas & Status */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-text-high">Tanggal Lahir</label>
+          <input
+            type="date"
+            {...register('tgl_lahir')}
+            className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-base font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
+          />
+        </div>
+
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-text-high">Tanggal Mulai Tugas</label>
           <input
