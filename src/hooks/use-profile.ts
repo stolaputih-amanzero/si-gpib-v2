@@ -13,7 +13,7 @@ import {
 } from '@/types/profile.types';
 import { getLogPastoralListAction } from '@/app/(dashboard)/dashboard/pastoral/actions';
 import { getRiwayatMutasiAction } from '@/app/(dashboard)/sdm/pendeta/actions-360';
-import { fetchUserAuditLogsAction } from '@/app/(dashboard)/settings/actions';
+import { fetchUserAuditLogsAction, fetchProfileStatsAction } from '@/app/(dashboard)/settings/actions';
 /**
  * 1. Fetch Profile Akun for specified userId (or current session)
  */
@@ -232,72 +232,14 @@ export function useProfilePelayanan(idPendeta?: string | null) {
 /**
  * 3. Fetch Profile Stats via RPC get_profile_stats
  */
-export function useProfileStats(idPendeta?: string | null) {
-  const supabase = createClient();
-
+export function useProfileStats(idPendeta?: string | null, userId?: string) {
   return useQuery<ProfileStats>({
-    queryKey: ['profile-stats', idPendeta || 'none'],
+    queryKey: ['profile-stats', idPendeta || userId || 'me'],
     queryFn: async () => {
-      if (!idPendeta) {
-        return {
-          total_log: 0,
-          total_jiwa: 0,
-          pos_aktif: 0,
-          log_bulan_ini: 0,
-          lama_melayani_bulan: 0,
-        };
-      }
-
-      // Try RPC call get_profile_stats
-      const { data: rpcData, error: rpcError } = await supabase.rpc('get_profile_stats', {
-        p_id_pendeta: idPendeta,
-      });
-
-      if (!rpcError && rpcData) {
-        return {
-          total_log: Number(rpcData.total_log || 0),
-          total_jiwa: Number(rpcData.total_jiwa || 0),
-          pos_aktif: Number(rpcData.pos_aktif || 0),
-          log_bulan_ini: Number(rpcData.log_bulan_ini || 0),
-          lama_melayani_bulan: Number(rpcData.lama_melayani_bulan || 0),
-        };
-      }
-
-      // Manual query fallback if RPC is missing
-      let totalLog = 0;
-      let totalJiwa = 0;
-      let logBulanIni = 0;
-
-      const { data: logs } = await supabase
-        .from('t_log_pastoral')
-        .select('jumlah_jiwa, tgl_kegiatan')
-        .eq('id_pendeta', idPendeta);
-
-      if (logs) {
-        totalLog = logs.length;
-        const currentMonth = new Date().toISOString().slice(0, 7);
-        logs.forEach((l) => {
-          totalJiwa += Number(l.jumlah_jiwa || 0);
-          if (l.tgl_kegiatan && l.tgl_kegiatan.startsWith(currentMonth)) {
-            logBulanIni += 1;
-          }
-        });
-      }
-
-      const { count: posCount } = await supabase
-        .from('t_penugasan_pj')
-        .select('*', { count: 'exact', head: true })
-        .eq('id_pendeta', idPendeta);
-
-      return {
-        total_log: totalLog,
-        total_jiwa: totalJiwa,
-        pos_aktif: posCount || 0,
-        log_bulan_ini: logBulanIni,
-        lama_melayani_bulan: 0,
-      };
+      const data = await fetchProfileStatsAction({ userId, idPendeta });
+      return data;
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 2,
   });
 }
 

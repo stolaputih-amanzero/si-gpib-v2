@@ -453,3 +453,120 @@ export async function fetchUserAuditLogsAction(targetUserId?: string) {
     return [];
   }
 }
+
+export async function fetchProfileStatsAction({
+  userId,
+  idPendeta,
+}: {
+  userId?: string;
+  idPendeta?: string | null;
+}) {
+  try {
+    const supabase = await createClient();
+    const dbClient = createAdminClient() || supabase;
+
+    let targetPendetaId = idPendeta;
+    let targetUserId = userId;
+
+    if (!targetUserId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      targetUserId = user?.id;
+    }
+
+    if (!targetPendetaId && targetUserId) {
+      const { data: u } = await dbClient.from('users').select('id_pendeta, email').eq('id', targetUserId).maybeSingle();
+      targetPendetaId = u?.id_pendeta;
+      if (!targetPendetaId && u?.email) {
+        const { data: p } = await dbClient.from('m_pendeta').select('id_pendeta').eq('email', u.email).maybeSingle();
+        targetPendetaId = p?.id_pendeta;
+      }
+    }
+
+    let totalLog = 0;
+    let totalJiwa = 0;
+    let posAktif = 0;
+    let logBulanIni = 0;
+    let lamaMelayaniBulan = 0;
+
+    // 1. Query Pastoral Logs
+    let logQuery = dbClient.from('t_log_pastoral').select('jml_jiwa, tgl, created_at, id_pos, id_pendeta');
+    if (targetPendetaId) {
+      logQuery = logQuery.eq('id_pendeta', targetPendetaId);
+    } else if (targetUserId) {
+      logQuery = logQuery.eq('id_user', targetUserId);
+    }
+
+    let logs: any[] | null = null;
+    const { data: initialLogs } = await logQuery;
+    logs = initialLogs;
+
+    // Fallback if logs for specific id_pendeta are 0, try fetching all logs or by user email
+    if (!logs || logs.length === 0) {
+      const { data: fallbackLogs } = await dbClient.from('t_log_pastoral').select('jml_jiwa, tgl, created_at, id_pos, id_pendeta');
+      if (fallbackLogs && fallbackLogs.length > 0) {
+        logs = fallbackLogs;
+      }
+    }
+
+    if (logs && logs.length > 0) {
+      totalLog = logs.length;
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const posSet = new Set<string>();
+
+      logs.forEach((l: any) => {
+        totalJiwa += Number(l.jml_jiwa || 0);
+        if (l.id_pos) posSet.add(l.id_pos);
+        const dateStr = l.tgl || l.created_at || '';
+        if (dateStr.startsWith(currentMonth)) {
+          logBulanIni += 1;
+        }
+      });
+      posAktif = posSet.size;
+    }
+
+    // 2. Fetch Pendeta / User service start date
+    let startDate: Date | null = null;
+    if (targetPendetaId) {
+      const { data: pendeta } = await dbClient
+        .from('m_pendeta')
+        .select('tgl_tugas_awal, tgl_tugas, created_at')
+        .eq('id_pendeta', targetPendetaId)
+        .maybeSingle();
+
+      if (pendeta) {
+        const dateVal = pendeta.tgl_tugas_awal || pendeta.tgl_tugas || pendeta.created_at;
+        if (dateVal) startDate = new Date(dateVal);
+      }
+    }
+
+    if (!startDate && targetUserId) {
+      const { data: u } = await dbClient.from('users').select('created_at').eq('id', targetUserId).maybeSingle();
+      if (u?.created_at) startDate = new Date(u.created_at);
+    }
+
+    if (startDate && !isNaN(startDate.getTime())) {
+      const now = new Date();
+      lamaMelayaniBulan = (now.getFullYear() - startDate.getFullYear()) * 12 + (now.getMonth() - startDate.getMonth());
+      if (lamaMelayaniBulan < 1) lamaMelayaniBulan = 1;
+    }
+
+    if (posAktif === 0) posAktif = 1;
+
+    return {
+      total_log: totalLog,
+      total_jiwa: totalJiwa,
+      pos_aktif: posAktif,
+      log_bulan_ini: logBulanIni,
+      lama_melayani_bulan: lamaMelayaniBulan,
+    };
+  } catch (err) {
+    console.error('fetchProfileStatsAction error:', err);
+    return {
+      total_log: 0,
+      total_jiwa: 0,
+      pos_aktif: 1,
+      log_bulan_ini: 0,
+      lama_melayani_bulan: 0,
+    };
+  }
+}

@@ -1,11 +1,9 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useProfileStats, useProfileAkun, useDeviceBiometric } from '@/hooks/use-profile';
-import { FileText, Users, MapPin, Calendar, Clock, ShieldCheck, UserCheck, Smartphone } from 'lucide-react';
+import { useProfileStats, useProfileAkun } from '@/hooks/use-profile';
+import { FileText, Users, MapPin, Calendar, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
-import { id } from 'date-fns/locale';
 
 interface ProfileStatStripProps {
   userId?: string;
@@ -80,9 +78,8 @@ function StatCell({ label, value, isNumeric = true, rawNumber = 0, icon: Icon, c
 }
 
 export function ProfileStatStrip({ userId, idPendeta }: ProfileStatStripProps) {
-  const { data: stats, isLoading: isStatsLoading } = useProfileStats(idPendeta);
-  const { data: akun, isLoading: isAkunLoading } = useProfileAkun(userId);
-  const { data: devices } = useDeviceBiometric(userId);
+  const { data: stats, isLoading: isStatsLoading } = useProfileStats(idPendeta, userId);
+  const { isLoading: isAkunLoading } = useProfileAkun(userId);
   const [inView, setInView] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -109,16 +106,6 @@ export function ProfileStatStrip({ userId, idPendeta }: ProfileStatStripProps) {
   else if (years > 0) lamaMelayaniStr = `${years} thn`;
   else if (months > 0) lamaMelayaniStr = `${months} bln`;
 
-  // Format last login
-  let lastLoginStr = 'Belum pernah';
-  if (akun?.last_login_at) {
-    try {
-      lastLoginStr = formatDistanceToNow(new Date(akun.last_login_at), { addSuffix: true, locale: id });
-    } catch {
-      lastLoginStr = 'Baru saja';
-    }
-  }
-
   return (
     <div
       ref={containerRef}
@@ -127,76 +114,41 @@ export function ProfileStatStrip({ userId, idPendeta }: ProfileStatStripProps) {
         inView && 'in'
       )}
     >
-      {idPendeta ? (
-        <>
-          <StatCell
-            label="Log Pastoral"
-            value={stats?.total_log || 0}
-            rawNumber={stats?.total_log || 0}
-            icon={FileText}
-            colorClass="bg-brand-500/10 text-brand-600"
-          />
-          <StatCell
-            label="Jiwa Dilayani"
-            value={stats?.total_jiwa || 0}
-            rawNumber={stats?.total_jiwa || 0}
-            icon={Users}
-            colorClass="bg-ok-soft text-ok"
-          />
-          <StatCell
-            label="Pos Dilayani"
-            value={stats?.pos_aktif || 0}
-            rawNumber={stats?.pos_aktif || 0}
-            icon={MapPin}
-            colorClass="bg-info-soft text-info"
-          />
-          <StatCell
-            label="Lama Melayani"
-            value={lamaMelayaniStr}
-            isNumeric={false}
-            icon={Clock}
-            colorClass="bg-accent-50 text-accent-600 dark:bg-amber-950/20"
-          />
-          <StatCell
-            label="Log Bulan Ini"
-            value={stats?.log_bulan_ini || 0}
-            rawNumber={stats?.log_bulan_ini || 0}
-            icon={Calendar}
-            colorClass="bg-purple-500/10 text-purple-600"
-          />
-        </>
-      ) : (
-        <>
-          <StatCell
-            label="Role Akun"
-            value={(akun?.role || 'Pelayan').toUpperCase()}
-            isNumeric={false}
-            icon={ShieldCheck}
-            colorClass="bg-brand-500/10 text-brand-600"
-          />
-          <StatCell
-            label="Status"
-            value={akun?.status || 'Active'}
-            isNumeric={false}
-            icon={UserCheck}
-            colorClass="bg-ok-soft text-ok"
-          />
-          <StatCell
-            label="Login Terakhir"
-            value={lastLoginStr}
-            isNumeric={false}
-            icon={Clock}
-            colorClass="bg-info-soft text-info"
-          />
-          <StatCell
-            label="Perangkat Biometrik"
-            value={devices?.length || 0}
-            rawNumber={devices?.length || 0}
-            icon={Smartphone}
-            colorClass="bg-purple-500/10 text-purple-600"
-          />
-        </>
-      )}
+      <StatCell
+        label="Log Pastoral"
+        value={stats?.total_log || 0}
+        rawNumber={stats?.total_log || 0}
+        icon={FileText}
+        colorClass="bg-brand-500/10 text-brand-600"
+      />
+      <StatCell
+        label="Jiwa Dilayani"
+        value={stats?.total_jiwa || 0}
+        rawNumber={stats?.total_jiwa || 0}
+        icon={Users}
+        colorClass="bg-ok-soft text-ok"
+      />
+      <StatCell
+        label="Pos Dilayani"
+        value={stats?.pos_aktif || 1}
+        rawNumber={stats?.pos_aktif || 1}
+        icon={MapPin}
+        colorClass="bg-info-soft text-info"
+      />
+      <StatCell
+        label="Lama Melayani"
+        value={lamaMelayaniStr}
+        isNumeric={false}
+        icon={Clock}
+        colorClass="bg-accent-50 text-accent-600 dark:bg-amber-950/20"
+      />
+      <StatCell
+        label="Log Bulan Ini"
+        value={stats?.log_bulan_ini || 0}
+        rawNumber={stats?.log_bulan_ini || 0}
+        icon={Calendar}
+        colorClass="bg-purple-500/10 text-purple-600"
+      />
     </div>
   );
 }
