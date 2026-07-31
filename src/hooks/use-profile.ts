@@ -547,23 +547,16 @@ export function useAktivitasUser(userId?: string) {
     queryFn: async () => {
       if (!userId) return [];
 
-      let { data, error } = await supabase
+      const { data, error } = await supabase
         .from('t_log_aktivitas')
         .select('*')
         .eq('id_user', userId)
         .order('waktu', { ascending: false })
-        .limit(25);
+        .limit(30);
 
-      if (error || !data || data.length === 0) {
-        const fallback = await supabase
-          .from('t_log_aktivitas')
-          .select('*')
-          .eq('id_user', userId)
-          .order('created_at', { ascending: false })
-          .limit(25);
-        if (!fallback.error && fallback.data && fallback.data.length > 0) {
-          data = fallback.data;
-        }
+      if (error) {
+        console.warn('Error fetching t_log_aktivitas:', error);
+        return [];
       }
 
       if (!data) return [];
@@ -574,7 +567,7 @@ export function useAktivitasUser(userId?: string) {
         aksi: a.aksi || a.action || 'LOG',
         fitur: a.objek_type || a.fitur || a.feature || null,
         detail: a.keterangan || a.detail || a.description || null,
-        created_at: a.waktu || a.created_at || new Date().toISOString(),
+        created_at: a.waktu || new Date().toISOString(),
         ip_address: a.ip_address || null,
       }));
     },
