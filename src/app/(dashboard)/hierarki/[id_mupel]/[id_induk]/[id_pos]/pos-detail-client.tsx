@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { BreadcrumbNav } from '@/components/hierarki/BreadcrumbNav';
-import { usePosByJemaat, useJemaatDetail } from '@/hooks/use-hierarki';
+import { usePosByJemaat, useJemaatDetail, usePosDetail } from '@/hooks/use-hierarki';
 import { MapPin, Church, HeartHandshake, ArrowLeft, FileText, AlertTriangle, Home, Users, Compass, ExternalLink, Phone } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ShareButton } from '@/components/mobile/ShareButton';
@@ -24,9 +24,11 @@ export function PosDetailClient({ id_mupel, id_induk, id_pos }: PosDetailClientP
   }, []);
 
   const { data: jemaat } = useJemaatDetail(id_induk);
-  const { data: posList, isLoading } = usePosByJemaat(id_induk);
+  const { data: posDetail, isLoading: isLoadingPosDetail } = usePosDetail(id_pos);
+  const { data: posList, isLoading: isLoadingPosList } = usePosByJemaat(id_induk);
 
-  const pos = posList?.find((p) => p.id_pos === id_pos);
+  const pos = posDetail || posList?.find((p) => p.id_pos === id_pos);
+  const isLoading = isLoadingPosDetail && isLoadingPosList;
   const hasGps = Boolean(pos?.latitude && pos?.longitude);
 
   const isBajem = pos?.kategori === 'Bajem' || pos?.nama_pos?.toLowerCase().includes('bajem');

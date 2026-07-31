@@ -457,6 +457,91 @@ export function usePosByJemaat(id_induk?: string, search?: string) {
 }
 
 /**
+ * Fetch detail 1 Pos Pelkes / Bajem langsung berdasarkan id_pos (Universal Resolver)
+ */
+export function usePosDetail(id_pos?: string) {
+  const supabase = createClient();
+
+  return useQuery<PosPelkesItem | null>({
+    queryKey: ['pos-detail', id_pos],
+    queryFn: async () => {
+      if (!id_pos) return null;
+
+      const { data: p, error } = await supabase
+        .from('m_pos_pelkes')
+        .select('*, jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, mupel:m_mupel(nama_mupel))')
+        .eq('id_pos', id_pos)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!p) return null;
+
+      // Fetch PJ assignments & demografi totals
+      const [{ data: pjData }, { data: penugasanData }, { data: pendetaData }, { data: demografiData }] = await Promise.all([
+        supabase
+          .from('t_pj_jemaat')
+          .select('id_induk, id_pendeta, pendeta:m_pendeta(id_pendeta, nama_lengkap, no_wa)')
+          .eq('id_induk', p.id_induk)
+          .is('tanggal_selesai', null),
+        supabase
+          .from('t_penugasan_pendeta')
+          .select('id_pos, id_pendeta, pendeta:m_pendeta(id_pendeta, nama_lengkap, no_wa)')
+          .eq('id_pos', p.id_pos)
+          .eq('status_tugas', 'Aktif'),
+        supabase
+          .from('m_pendeta')
+          .select('id_pendeta, id_induk, nama_lengkap, no_wa, is_pj')
+          .eq('id_induk', p.id_induk),
+        supabase
+          .from('t_demografi_pelkat')
+          .select('id_pos, jml_kk, laki, perempuan')
+          .eq('id_pos', p.id_pos),
+      ]);
+
+      let posPj: any = (penugasanData || []).find((t: any) => t.id_pos === p.id_pos)?.pendeta;
+      if (!posPj) {
+        posPj = (pjData || []).find((pj: any) => pj.id_induk === p.id_induk)?.pendeta;
+      }
+      if (!posPj) {
+        const pPj = (pendetaData || []).find((pend: any) => pend.id_induk === p.id_induk);
+        if (pPj) {
+          posPj = {
+            id_pendeta: pPj.id_pendeta,
+            nama_lengkap: cleanQuotes(pPj.nama_lengkap),
+            no_wa: pPj.no_wa,
+          };
+        }
+      }
+
+      if (Array.isArray(posPj)) {
+        posPj = posPj[0] || null;
+      }
+      if (posPj && posPj.nama_lengkap) {
+        posPj.nama_lengkap = cleanQuotes(posPj.nama_lengkap);
+      }
+
+      const cleanedName = cleanQuotes(p.nama_pos);
+      const derivedKategori = p.kategori || (cleanedName.toLowerCase().startsWith('bajem') ? 'Bajem' : 'Pos Pelkes');
+
+      const jmlKK = (demografiData || []).reduce((sum: number, d: any) => sum + (d.jml_kk || 0), 0);
+      const jmlJiwa = (demografiData || []).reduce((sum: number, d: any) => sum + (d.laki || 0) + (d.perempuan || 0), 0);
+
+      return {
+        ...p,
+        nama_pos: cleanedName,
+        kategori: derivedKategori,
+        jumlah_kk: jmlKK,
+        jumlah_jiwa: jmlJiwa,
+        pj: posPj ? (posPj as any) : null,
+      } as PosPelkesItem;
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    enabled: !!id_pos,
+  });
+}
+
+/**
  * Hook Agregat Statistik Hierarki Nasional
  */
 export function useHierarchyStats() {
