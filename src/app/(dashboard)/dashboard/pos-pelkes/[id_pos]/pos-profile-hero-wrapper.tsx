@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { MapPin, Edit3, ArrowLeft, Building2, Eye, X } from 'lucide-react';
+import { MapPin, Edit3, ArrowLeft, Building2, Eye, X, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ShareButton } from '@/components/mobile/ShareButton';
 import DeletePosButton from './delete-button';
 import { PosName } from '@/components/ui/PosName';
 import { normalizePosName } from '@/lib/utils/normalize-pos-name';
+import { StatusElevationModal } from '@/components/hierarki/StatusElevationModal';
+import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
 
 interface PosProfileHeroWrapperProps {
   pos: {
@@ -51,6 +53,9 @@ export default function PosProfileHeroWrapper({
   currentUserName,
 }: PosProfileHeroWrapperProps) {
   const [showLightbox, setShowLightbox] = useState(false);
+  const [isElevateModalOpen, setIsElevateModalOpen] = useState(false);
+  const { data: currentUser } = useCurrentUser();
+  const canElevate = canWrite && isSuperUserRole(currentUser?.role);
 
   return (
     <>
@@ -140,6 +145,18 @@ export default function PosProfileHeroWrapper({
             );
           })()}
 
+          {canElevate && (
+            <button
+              type="button"
+              onClick={() => setIsElevateModalOpen(true)}
+              title={`Tingkatkan Status ${pos.nama_pos}`}
+              className="min-h-[40px] px-3 py-2 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-xs"
+            >
+              <TrendingUp size={16} />
+              <span className="hidden sm:inline">Tingkatkan Status</span>
+            </button>
+          )}
+
           {canWrite && (
             <Link
               href={`/dashboard/pos-pelkes/${pos.id_pos}/edit`}
@@ -155,6 +172,20 @@ export default function PosProfileHeroWrapper({
           )}
         </div>
       </div>
+
+      {/* Modal Peningkatan Status (Elevasi) */}
+      {isElevateModalOpen && (
+        <StatusElevationModal
+          isOpen={isElevateModalOpen}
+          onClose={() => setIsElevateModalOpen(false)}
+          posItem={{
+            id_pos: pos.id_pos,
+            nama_pos: pos.nama_pos,
+            kategori: (pos as any).kategori || catLabel,
+            id_induk: pos.jemaat_induk?.id_induk || '',
+          }}
+        />
+      )}
 
       {/* Premium Hero Banner Showcase */}
       <div className="rounded-3xl overflow-hidden border border-border-subtle shadow-soft bg-surface-elevated">

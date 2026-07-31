@@ -9,6 +9,7 @@ import { KMJSelector } from '@/components/hierarki/KMJSelector';
 import { JemaatFormModal } from '@/components/hierarki/JemaatFormModal';
 import { PJSelector } from '@/components/hierarki/PJSelector';
 import { StatusElevationModal } from '@/components/hierarki/StatusElevationModal';
+import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import PosThumbnailMapWrapper from '@/components/maps/PosThumbnailMapWrapper';
@@ -43,6 +44,8 @@ interface JemaatDetailClientProps {
 }
 
 export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientProps) {
+  const { data: currentUser } = useCurrentUser();
+  const isSuperUser = isSuperUserRole(currentUser?.role);
   const [searchPos, setSearchPos] = useState('');
   const [showKmjModal, setShowKmjModal] = useState(false);
   const [showPjModal, setShowPjModal] = useState(false);
@@ -400,15 +403,17 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
 
                       {/* Actions */}
                       <div className="flex items-center gap-1 shrink-0">
-                        <button
-                          type="button"
-                          onClick={(e) => handleOpenElevate(e, bajem)}
-                          className="px-2.5 py-1.5 rounded-xl bg-purple-600 text-white text-xs font-bold flex items-center gap-1 hover:bg-purple-700 transition-colors shadow-xs min-h-[36px]"
-                          title="Tingkatkan Status ke Jemaat Induk"
-                        >
-                          <TrendingUp size={14} />
-                          <span className="hidden sm:inline">Elevasi</span>
-                        </button>
+                        {isSuperUser && (
+                          <button
+                            type="button"
+                            onClick={(e) => handleOpenElevate(e, bajem)}
+                            className="px-2.5 py-1.5 rounded-xl bg-purple-600 text-white text-xs font-bold flex items-center gap-1 hover:bg-purple-700 transition-colors shadow-xs min-h-[36px]"
+                            title="Tingkatkan Status ke Jemaat Induk"
+                          >
+                            <TrendingUp size={14} />
+                            <span className="hidden sm:inline">Elevasi</span>
+                          </button>
+                        )}
 
                         <button
                           type="button"
@@ -494,15 +499,17 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
 
                         {/* Actions */}
                         <div className="flex items-center gap-1 shrink-0">
-                          <button
-                            type="button"
-                            onClick={(e) => handleOpenElevate(e, pos)}
-                            className="px-2.5 py-1.5 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/40 text-xs font-bold flex items-center gap-1 hover:bg-amber-500/20 transition-colors min-h-[36px]"
-                            title="Tingkatkan Status ke Bajem"
-                          >
-                            <TrendingUp size={14} />
-                            <span className="hidden sm:inline">Elevasi</span>
-                          </button>
+                          {isSuperUser && (
+                            <button
+                              type="button"
+                              onClick={(e) => handleOpenElevate(e, pos)}
+                              className="px-2.5 py-1.5 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/40 text-xs font-bold flex items-center gap-1 hover:bg-amber-500/20 transition-colors min-h-[36px]"
+                              title="Tingkatkan Status ke Bajem"
+                            >
+                              <TrendingUp size={14} />
+                              <span className="hidden sm:inline">Elevasi</span>
+                            </button>
+                          )}
 
                           <button
                             type="button"

@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { User, Activity, Users, Database, Calendar, Info } from 'lucide-react';
-
+import { User, Activity, Users, Database, Calendar, Info, TrendingUp, Clock } from 'lucide-react';
+import { useHistoriStatus } from '@/hooks/use-hierarki';
 
 export function PosPelkesDetailTabs({ data }: { data: any }) {
   const [activeTab, setActiveTab] = useState('profil');
+  const { data: historiList } = useHistoriStatus(data.posPelkes.id_pos);
 
   const storageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pos-pelkes-images/`;
 
@@ -15,6 +16,7 @@ export function PosPelkesDetailTabs({ data }: { data: any }) {
     { id: 'demografi', label: 'Demografi', icon: Users },
     { id: 'aset', label: 'Aset', icon: Database },
     { id: 'log', label: 'Log Pastoral', icon: Activity },
+    { id: 'histori', label: 'Histori Status', icon: TrendingUp },
   ];
 
   const renderContent = () => {
@@ -198,6 +200,53 @@ export function PosPelkesDetailTabs({ data }: { data: any }) {
               </div>
             ) : (
               <p className="text-sm text-gray-500 italic text-center py-6">Belum ada catatan log pastoral.</p>
+            )}
+          </div>
+        );
+
+      case 'histori':
+        return (
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm animate-in fade-in duration-300">
+            <h3 className="text-lg font-bold text-brand-primary mb-4 border-b pb-2 flex items-center gap-2">
+              <TrendingUp size={20} className="text-amber-600" />
+              <span>Histori Peningkatan Status Pelayanan</span>
+            </h3>
+
+            {historiList && historiList.length > 0 ? (
+              <div className="relative border-l-2 border-amber-400 ml-3 space-y-6 mt-4">
+                {historiList.map((h: any) => (
+                  <div key={h.id_histori} className="relative pl-6">
+                    <span className="absolute -left-[7px] top-1.5 h-3 w-3 rounded-full bg-amber-500 ring-4 ring-white"></span>
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-1 gap-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-gray-900">{h.status_lama || 'Pos Pelkes'}</span>
+                        <span className="text-xs font-bold text-amber-600">➔</span>
+                        <span className="font-extrabold text-sm text-brand-primary">{h.status_baru}</span>
+                      </div>
+                      <time className="text-xs text-gray-500 font-mono flex items-center gap-1">
+                        <Clock size={12} />
+                        {h.tanggal_perubahan}
+                      </time>
+                    </div>
+                    <div className="bg-surface-sunken p-3.5 rounded-xl border border-border-subtle mt-2 space-y-1">
+                      <p className="text-xs text-text-high font-medium leading-relaxed">
+                        {h.keterangan_perubahan || 'Tidak ada catatan SK'}
+                      </p>
+                      {h.id_induk_baru && (
+                        <p className="text-[11px] font-mono text-purple-600 font-semibold pt-1">
+                          Ditransformasikan menjadi Jemaat Induk ID: {h.id_induk_baru}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 space-y-2">
+                <Clock size={32} className="mx-auto text-gray-300" />
+                <p className="text-sm text-gray-500 italic">Belum ada riwayat peningkatan status yang tercatat.</p>
+                <p className="text-xs text-gray-400">Tekan tombol &quot;Tingkatkan Status&quot; di header untuk mengubah status Pos Pelkes menjadi Bajem atau Jemaat Induk Mandiri.</p>
+              </div>
             )}
           </div>
         );

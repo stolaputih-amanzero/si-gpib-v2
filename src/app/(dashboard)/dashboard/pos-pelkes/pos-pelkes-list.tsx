@@ -14,6 +14,7 @@ import { haptic } from '@/lib/haptic/vibrate';
 import { useReveal } from '@/hooks/useReveal';
 import { normalizePosName } from '@/lib/utils/normalize-pos-name';
 import { PosName } from '@/components/ui/PosName';
+import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
 
 interface PosPelkes {
   id_pos: string;
@@ -35,6 +36,8 @@ interface PosPelkes {
 
 export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
   const router = useRouter();
+  const { data: currentUser } = useCurrentUser();
+  const canElevate = isSuperUserRole(currentUser?.role);
   const [dataList, setDataList] = useState<PosPelkes[]>(initialData || []);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMupel, setSelectedMupel] = useState('');
@@ -320,16 +323,18 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => handleOpenElevate(e, pos)}
-                          className="min-h-[40px] px-2 text-accent-600 hover:bg-surface-accent"
-                          title="Elevasi Status"
-                        >
-                          <TrendingUp size={16} />
-                        </Button>
+                        {canElevate && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => handleOpenElevate(e, pos)}
+                            className="min-h-[40px] px-2 text-accent-600 hover:bg-surface-accent"
+                            title="Elevasi Status"
+                          >
+                            <TrendingUp size={16} />
+                          </Button>
+                        )}
                         <ChevronRight className="h-5 w-5 text-ink-tertiary" />
                       </div>
                     </div>
@@ -407,16 +412,18 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
                               {pos.tgl_berdiri || '-'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                              <Button
-                                type="button"
-                                variant="secondary"
-                                size="sm"
-                                onClick={(e) => handleOpenElevate(e, pos)}
-                                className="min-h-[44px] text-accent-600 bg-surface-accent border-accent-100"
-                              >
-                                <TrendingUp size={14} className="mr-1" />
-                                Elevasi Status
-                              </Button>
+                              {canElevate && (
+                                <Button
+                                  type="button"
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={(e) => handleOpenElevate(e, pos)}
+                                  className="min-h-[44px] text-accent-600 bg-surface-accent border-accent-100"
+                                >
+                                  <TrendingUp size={14} className="mr-1" />
+                                  Elevasi Status
+                                </Button>
+                              )}
 
                               <Button asChild variant="outline" size="sm" className="min-h-[44px]">
                                 <Link href={`/dashboard/pos-pelkes/${pos.id_pos}`}>
