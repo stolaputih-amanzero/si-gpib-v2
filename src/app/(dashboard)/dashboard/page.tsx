@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { StatCards } from "@/components/dashboard/StatCards";
 import { DemografiChart } from "@/components/dashboard/DemografiChart";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
@@ -11,7 +11,10 @@ interface DemografiRow {
 }
 
 export default async function Dashboard() {
-  const supabase = await createClient();
+  const supabaseAdmin = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
@@ -25,28 +28,36 @@ export default async function Dashboard() {
   let recentLogs: any[] | null = [];
 
   try {
-    const [resPos, resJemaat, resLog, resDemo, resSum, resRecent] = await Promise.all([
-      supabase.from('m_pos_pelkes').select('*', { count: 'exact', head: true }),
-      supabase.from('m_jemaat_induk').select('*', { count: 'exact', head: true }),
-      supabase
+    const [resPos, resJemaat, resLog, resDemo, resSum, resPastoral, resHistori] = await Promise.all([
+      supabaseAdmin.from('m_pos_pelkes').select('*', { count: 'exact', head: true }),
+      supabaseAdmin.from('m_jemaat_induk').select('*', { count: 'exact', head: true }),
+      supabaseAdmin
         .from('t_log_pastoral')
         .select('*', { count: 'exact', head: true })
         .gte('tgl', startOfMonth)
         .lte('tgl', endOfMonth),
-      supabase
+      supabaseAdmin
         .from('t_demografi_pelkat')
         .select('kategori_pelkat, laki, perempuan'),
-      supabase
+      supabaseAdmin
         .from('m_pos_pelkes')
         .select('jumlah_jiwa'),
-      supabase
+      supabaseAdmin
         .from('t_log_pastoral')
         .select(`
-          id_log, tgl, kegiatan,
+          id_log, tgl, kegiatan, created_at,
           pos_pelkes:m_pos_pelkes(nama_pos),
           pendeta:m_pendeta(nama_lengkap)
         `)
         .order('tgl', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(5),
+      supabaseAdmin
+        .from('t_histori_perubahan_status')
+        .select(`
+          id_histori, status_lama, status_baru, tanggal_perubahan, keterangan_perubahan, catatan, created_at,
+          pos_pelkes:m_pos_pelkes(nama_pos)
+        `)
         .order('created_at', { ascending: false })
         .limit(5)
     ]);
@@ -56,7 +67,32 @@ export default async function Dashboard() {
     logCount = resLog.count;
     demografiData = resDemo.data;
     posPelkesSumData = resSum.data;
-    recentLogs = resRecent.data;
+
+    // Combine Pastoral Activity Logs + Histori Status Elevasi Logs
+    const pastoralLogs = (resPastoral.data || []).map((p: any) => ({
+      id_log: p.id_log,
+      tgl: p.tgl || p.created_at,
+      kegiatan: p.kegiatan,
+      pos_pelkes: p.pos_pelkes,
+      pendeta: p.pendeta,
+      tipe: 'pastoral',
+    }));
+
+    const historiLogs = (resHistori.data || []).map((h: any) => ({
+      id_log: h.id_histori,
+      tgl: h.tanggal_perubahan || h.created_at,
+      kegiatan: h.status_baru === 'JEMAAT_INDUK' || h.status_baru === 'Jemaat Induk'
+        ? `Elevasi Status: ${h.pos_pelkes?.nama_pos || 'Pos'} ditingkatkan menjadi Jemaat Induk Mandiri`
+        : `Elevasi Status: ${h.pos_pelkes?.nama_pos || 'Pos'} ditingkatkan menjadi ${h.status_baru}`,
+      pos_pelkes: h.pos_pelkes,
+      pendeta: { nama_lengkap: 'Super User / Admin' },
+      tipe: 'elevasi',
+    }));
+
+    recentLogs = [...pastoralLogs, ...historiLogs]
+      .sort((a, b) => new Date(b.tgl).getTime() - new Date(a.tgl).getTime())
+      .slice(0, 5);
+
   } catch (err) {
     console.error('Offline / network error loading dashboard stats:', err);
   }
