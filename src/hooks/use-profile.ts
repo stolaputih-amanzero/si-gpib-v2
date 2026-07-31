@@ -215,6 +215,7 @@ export function useProfilePelayanan(idPendeta?: string | null) {
         no_telepon: pendetaRow.no_telepon || pendetaRow.no_wa || null,
         email: pendetaRow.email || null,
         tgl_tugas_awal: pendetaRow.tgl_tugas_awal || pendetaRow.tgl_tugas || null,
+        jenis_pendeta: pendetaRow.jenis_pendeta || 'Organik',
         status_aktif: Boolean(pendetaRow.status_aktif ?? true),
         id_induk: pendetaRow.id_induk || null,
         is_kmj: isKmjFinal,

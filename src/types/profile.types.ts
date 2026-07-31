@@ -42,6 +42,7 @@ export interface ProfilePelayanan {
   no_telepon?: string | null;
   email?: string | null;
   tgl_tugas_awal?: string | null;
+  jenis_pendeta?: string | null;
   status_aktif: boolean;
   id_induk?: string | null;
   is_kmj: boolean;
