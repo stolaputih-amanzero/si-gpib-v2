@@ -21,7 +21,8 @@ import {
   Phone, 
   Calendar, 
   Loader2, 
-  AlertCircle 
+  AlertCircle,
+  Edit,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -123,6 +124,15 @@ export default function PendetaDetailPage({ params }: { params: Promise<{ id_pen
 
             {/* Action Bar Buttons */}
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+              <Link
+                href={`/sdm/pendeta`}
+                className="flex-1 sm:flex-none min-h-[44px] px-3.5 py-2 rounded-xl bg-surface-sunken border border-border-subtle text-text-high font-semibold text-xs hover:bg-surface-elevated transition-all flex items-center justify-center gap-1.5 active:scale-[0.98]"
+                title="Kelola Biodata Terpusat SDM Pendeta"
+              >
+                <Edit size={15} className="text-brand-primary" />
+                <span>Edit Biodata SDM</span>
+              </Link>
+
               <button
                 type="button"
                 onClick={() => setShowMutasiModal(true)}
@@ -135,14 +145,20 @@ export default function PendetaDetailPage({ params }: { params: Promise<{ id_pen
           </div>
 
           {/* Quick Info Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-border-subtle text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-4 border-t border-border-subtle text-xs">
             <div>
               <p className="text-text-muted">Status</p>
               <p className="font-semibold text-text-high mt-0.5">{pendeta.status}</p>
             </div>
             <div>
               <p className="text-text-muted">Jenis Kelamin</p>
-              <p className="font-semibold text-text-high mt-0.5">{pendeta.gender}</p>
+              <p className="font-semibold text-text-high mt-0.5">{pendeta.gender || '-'}</p>
+            </div>
+            <div>
+              <p className="text-text-muted">Tanggal Lahir</p>
+              <p className="font-semibold text-text-high mt-0.5 font-mono">
+                {pendeta.tgl_lahir ? new Date(pendeta.tgl_lahir).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
+              </p>
             </div>
             <div>
               <p className="text-text-muted">WhatsApp</p>
@@ -151,7 +167,7 @@ export default function PendetaDetailPage({ params }: { params: Promise<{ id_pen
                   href={waUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-medium text-emerald-600 hover:underline flex items-center gap-1 mt-0.5"
+                  className="font-medium text-emerald-600 hover:underline flex items-center gap-1 mt-0.5 font-mono"
                 >
                   <Phone size={12} />
                   <span>{pendeta.no_wa}</span>
@@ -162,7 +178,9 @@ export default function PendetaDetailPage({ params }: { params: Promise<{ id_pen
             </div>
             <div>
               <p className="text-text-muted">Mulai Tugas</p>
-              <p className="font-semibold text-text-high mt-0.5">{pendeta.tgl_tugas || '-'}</p>
+              <p className="font-semibold text-text-high mt-0.5 font-mono">
+                {pendeta.tgl_tugas ? new Date(pendeta.tgl_tugas).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
+              </p>
             </div>
           </div>
         </div>
