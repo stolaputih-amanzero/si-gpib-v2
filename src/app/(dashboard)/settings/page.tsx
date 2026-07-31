@@ -305,16 +305,13 @@ export default function SettingsHubPage() {
                   <UserIcon className="w-5 h-5" />
                 </div>
                 <div className="min-w-0 text-left">
-                  <div className="flex items-center gap-2">
+                  <div>
                     <CardTitle className="text-base truncate group-hover:text-brand-600 transition-colors font-bold">
-                      Profile 360° Saya (Pelayan Seutuhnya)
+                      Profile 360° Saya
                     </CardTitle>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-brand-600 text-white">
-                      11 Section
-                    </span>
                   </div>
                   <CardDescription className="line-clamp-1 mt-0.5">
-                    Medan pandang terpadu: Akun, Identitas, Keluarga, Kompetensi, Hierarki, Mutasi, Log, Keterlibatan &amp; Draft
+                    Kelola data pribadi, identitas pelayanan, keluarga, hierarki, dan aktivitas akun
                   </CardDescription>
                 </div>
               </div>
