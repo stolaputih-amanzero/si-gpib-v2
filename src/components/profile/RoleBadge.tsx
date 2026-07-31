@@ -24,7 +24,7 @@ export function RoleBadge({ role, className }: RoleBadgeProps) {
     label = 'Ketua Majelis Jemaat (KMJ)';
     badgeStyle = 'bg-ok-soft text-ok border-ok/20';
   } else if (r === 'pj' || r === 'pj_pos') {
-    label = 'Pendeta Jemaat / PJ Pos';
+    label = 'Pendeta Jemaat (PJ)';
     badgeStyle = 'bg-info-soft text-info border-info/20';
   } else if (r === 'pendeta') {
     label = 'Pendeta GPIB';

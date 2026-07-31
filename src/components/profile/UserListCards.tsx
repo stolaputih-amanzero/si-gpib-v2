@@ -37,7 +37,7 @@ export function UserListCards() {
               <option value="superadmin">Superadmin (Sinode)</option>
               <option value="admin_mupel">Admin Mupel</option>
               <option value="admin_jemaat">Admin Jemaat (KMJ)</option>
-              <option value="pj_pos">PJ Pos Pelkes</option>
+              <option value="pj_pos">Pendeta Jemaat (PJ)</option>
               <option value="pendeta">Pendeta GPIB</option>
               <option value="pelayan">Pelayan Field</option>
               <option value="relawan">Relawan</option>

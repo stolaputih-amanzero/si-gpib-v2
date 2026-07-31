@@ -62,7 +62,7 @@ export function PJSelector({
               <HeartHandshake size={20} />
             </div>
             <div>
-              <h3 className="font-extrabold text-text-high text-base">Tambah Penugasan PJ</h3>
+              <h3 className="font-extrabold text-text-high text-base">Tambah Penugasan Pendeta Jemaat (PJ)</h3>
               <p className="text-xs text-text-muted">{nama_induk} ({id_induk})</p>
             </div>
           </div>
@@ -213,7 +213,7 @@ export function PJSelector({
             ) : (
               <>
                 <HeartHandshake size={16} />
-                <span>Tugaskan Sebagai PJ</span>
+                <span>Tugaskan Sebagai Pendeta Jemaat (PJ)</span>
               </>
             )}
           </button>

@@ -118,8 +118,8 @@ export function IdentitasPelayananSection({ idPendeta, canEdit = false, onEditPe
 
         <div className="p-3.5 rounded-2xl bg-surface-sunken border border-line-subtle flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-ink-primary">Pendeta Jemaat / PJ Pos Pelkes</p>
-            <p className="text-[11px] text-ink-tertiary">Pendeta Penanggung Jawab Pos Pelkes</p>
+            <p className="text-xs font-semibold text-ink-primary">Pendeta Jemaat (PJ)</p>
+            <p className="text-[11px] text-ink-tertiary">Pendeta Jemaat Organik GPIB</p>
           </div>
           <span
             className={cn(
