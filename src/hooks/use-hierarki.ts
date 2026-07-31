@@ -845,6 +845,31 @@ export function useDeleteJemaat() {
 
   return useMutation({
     mutationFn: async (id_induk: string) => {
+      // 1. Unlink dependent records in t_histori_perubahan_status (set id_induk_baru = null)
+      await supabase
+        .from('t_histori_perubahan_status')
+        .update({ id_induk_baru: null })
+        .eq('id_induk_baru', id_induk);
+
+      // 2. Unlink dependent records in t_pj_jemaat
+      await supabase
+        .from('t_pj_jemaat')
+        .delete()
+        .eq('id_induk', id_induk);
+
+      // 3. Unlink dependent records in m_pendeta (set id_induk = null)
+      await supabase
+        .from('m_pendeta')
+        .update({ id_induk: null })
+        .eq('id_induk', id_induk);
+
+      // 4. Unlink dependent records in users
+      await supabase
+        .from('users')
+        .update({ id_induk: null })
+        .eq('id_induk', id_induk);
+
+      // 5. Delete Jemaat Induk record
       const { error } = await supabase.from('m_jemaat_induk').delete().eq('id_induk', id_induk);
       if (error) throw error;
       return true;

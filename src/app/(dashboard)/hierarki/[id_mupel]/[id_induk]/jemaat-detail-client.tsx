@@ -9,6 +9,8 @@ import { KMJSelector } from '@/components/hierarki/KMJSelector';
 import { JemaatFormModal } from '@/components/hierarki/JemaatFormModal';
 import { PJSelector } from '@/components/hierarki/PJSelector';
 import { StatusElevationModal } from '@/components/hierarki/StatusElevationModal';
+import { SecureDeleteModal } from '@/components/ui/SecureDeleteModal';
+import { useToast } from '@/components/ui/toast';
 import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -44,12 +46,14 @@ interface JemaatDetailClientProps {
 }
 
 export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientProps) {
+  const { toast } = useToast();
   const { data: currentUser } = useCurrentUser();
   const isSuperUser = isSuperUserRole(currentUser?.role);
   const [searchPos, setSearchPos] = useState('');
   const [showKmjModal, setShowKmjModal] = useState(false);
   const [showPjModal, setShowPjModal] = useState(false);
   const [showJemaatModal, setShowJemaatModal] = useState(false);
+  const [showDeleteJemaatModal, setShowDeleteJemaatModal] = useState(false);
 
   // Pos Elevation Modal State
   const [showElevateModal, setShowElevateModal] = useState(false);
@@ -59,14 +63,14 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
   const router = useRouter();
   const deleteJemaatMutation = useDeleteJemaat();
 
-  const handleDeleteJemaat = async () => {
-    if (confirm(`Apakah Anda yakin ingin menghapus Jemaat Induk "${jemaat?.nama_induk}" beserta semua data di dalamnya?`)) {
-      try {
-        await deleteJemaatMutation.mutateAsync(id_induk);
-        router.push(`/hierarki/${encodeURIComponent(id_mupel)}`);
-      } catch (err: any) {
-        alert(err?.message || 'Gagal menghapus Jemaat Induk.');
-      }
+  const handleConfirmDeleteJemaat = async () => {
+    try {
+      await deleteJemaatMutation.mutateAsync(id_induk);
+      toast.success('Berhasil Dihapus', `Jemaat Induk "${jemaat?.nama_induk}" telah dihapus.`);
+      setShowDeleteJemaatModal(false);
+      router.push(`/hierarki/${encodeURIComponent(id_mupel)}`);
+    } catch (err: any) {
+      toast.error('Gagal Menghapus', err?.message || 'Gagal menghapus Jemaat Induk.');
     }
   };
 
@@ -196,7 +200,7 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
 
               <button
                 type="button"
-                onClick={handleDeleteJemaat}
+                onClick={() => setShowDeleteJemaatModal(true)}
                 disabled={deleteJemaatMutation.isPending}
                 className="min-h-[40px] px-3.5 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-xs font-extrabold text-red-600 flex items-center gap-1.5 transition-all active:scale-95 shadow-xs disabled:opacity-50"
               >
@@ -652,6 +656,18 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
           editData={jemaat}
         />
       )}
+
+      {/* Secure Delete Modal for Jemaat Induk */}
+      <SecureDeleteModal
+        isOpen={showDeleteJemaatModal}
+        onClose={() => setShowDeleteJemaatModal(false)}
+        onConfirm={handleConfirmDeleteJemaat}
+        title="Konfirmasi Hapus Jemaat Induk"
+        targetName={jemaat?.nama_induk || id_induk}
+        targetId={id_induk}
+        itemType="Jemaat Induk"
+        isDeleting={deleteJemaatMutation.isPending}
+      />
     </div>
   );
 }
