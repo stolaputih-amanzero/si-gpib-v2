@@ -35,8 +35,9 @@ export function ProfileView({
   onOpenPasswordModal,
   onEditPelayanan,
 }: ProfileViewProps) {
-  const { data: akun } = useProfileAkun(userId);
   const { data: currentUser } = useCurrentUser();
+  const targetUserId = userId || currentUser?.id;
+  const { data: akun } = useProfileAkun(targetUserId);
   const [activeTab, setActiveTab] = useState<ProfileTabKey>('identitas');
 
   const idPendeta = akun?.id_pendeta || null;
@@ -52,14 +53,14 @@ export function ProfileView({
     <div className="space-y-6 max-w-4xl mx-auto pb-24 px-2.5 sm:px-4 md:px-6">
       {/* Hero Header */}
       <ProfileHero
-        userId={userId}
+        userId={targetUserId}
         mode={mode}
         onEditProfile={onEditProfile}
         onChangeRole={onChangeRole}
       />
 
       {/* Dynamic Stat Strip */}
-      <ProfileStatStrip userId={userId} idPendeta={idPendeta} />
+      <ProfileStatStrip userId={targetUserId} idPendeta={idPendeta} />
 
       {/* Reorganized Section Tabs (Grouped into Pribadi, Pelayanan, Sistem) */}
       <ProfileTabs
@@ -95,7 +96,7 @@ export function ProfileView({
 
         {/* GRUP PELAYANAN */}
         {activeTab === 'hierarki' && (
-          <HierarkiPelayananSection userId={userId} idPendeta={idPendeta} />
+          <HierarkiPelayananSection userId={targetUserId} idPendeta={idPendeta} />
         )}
 
         {activeTab === 'penugasan' && (
@@ -120,18 +121,18 @@ export function ProfileView({
         {/* GRUP SISTEM */}
         {activeTab === 'akun' && (
           <AkunKeamananSection
-            userId={userId}
+            userId={targetUserId}
             isSelf={isSelf}
             onOpenPasswordModal={onOpenPasswordModal}
           />
         )}
 
         {activeTab === 'aktivitas' && (
-          <AktivitasSection userId={userId} isAuthorized={isSelf || isSuperUser} />
+          <AktivitasSection userId={targetUserId} isAuthorized={isSelf || isSuperUser} />
         )}
 
         {activeTab === 'draft' && (
-          <DataLokalSection userId={userId} isSelf={isSelf} />
+          <DataLokalSection userId={targetUserId} isSelf={isSelf} />
         )}
       </div>
     </div>

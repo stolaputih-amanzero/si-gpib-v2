@@ -233,6 +233,7 @@ export default function MyProfilePage() {
   return (
     <div className="pt-4">
       <ProfileView
+        userId={user?.id || akun?.id}
         mode="self"
         onEditProfile={handleOpenEditProfile}
         onOpenPasswordModal={() => setIsChangingPassword(true)}
