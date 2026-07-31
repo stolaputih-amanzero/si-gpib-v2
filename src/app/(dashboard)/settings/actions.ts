@@ -241,6 +241,13 @@ export async function updateOwnProfileAction(payload: {
       } catch {}
     }
 
+    await createAuditLog({
+      userId: currentUserId,
+      aksi: 'UPDATE',
+      objekType: 'PROFIL',
+      keterangan: `Memperbarui profil pengguna & foto avatar (${payload.nama_lengkap})`,
+    });
+
     return { success: true, avatar_url: finalAvatarUrl, email: finalEmail };
   } catch (err: any) {
     console.error('Update own profile error:', err);
@@ -333,9 +340,67 @@ export async function updatePendetaPelayananAction(payload: {
         .eq('id', currentUserId);
     }
 
+    // Record Audit Log
+    await createAuditLog({
+      userId: currentUserId || undefined,
+      aksi: 'UPDATE',
+      objekType: 'IDENTITAS_PENDETA',
+      keterangan: `Memperbarui biodata terpusat Pendeta (${payload.nama_lengkap}, Gender: ${payload.gender})`,
+    });
+
     return { success: true };
   } catch (err: any) {
     console.error('updatePendetaPelayananAction error:', err);
     return { success: false, error: err?.message || 'Gagal memperbarui biodata pendeta' };
+  }
+}
+
+export async function createAuditLog({
+  userId,
+  aktor,
+  aksi,
+  objekType,
+  objekId,
+  keterangan,
+}: {
+  userId?: string;
+  aktor?: string;
+  aksi: string;
+  objekType?: string;
+  objekId?: string;
+  keterangan?: string;
+}) {
+  try {
+    const supabase = await createClient();
+    const dbClient = createAdminClient() || supabase;
+
+    let targetUserId = userId;
+    let targetAktor = aktor;
+
+    if (!targetUserId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      targetUserId = user?.id;
+      if (!targetAktor) targetAktor = user?.user_metadata?.nama_lengkap || user?.email || 'Pengguna';
+    }
+
+    if (!targetUserId) return;
+
+    if (!targetAktor) {
+      const { data: u } = await dbClient.from('users').select('nama_lengkap, email').eq('id', targetUserId).maybeSingle();
+      targetAktor = u?.nama_lengkap || u?.email || 'Pengguna';
+    }
+
+    await dbClient.from('t_log_aktivitas').insert({
+      id_log: 'LOG-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+      id_user: targetUserId,
+      waktu: new Date().toISOString(),
+      aktor: targetAktor || 'Pengguna',
+      aksi,
+      objek_type: objekType || null,
+      objek_id: objekId || null,
+      keterangan: keterangan || null,
+    });
+  } catch (err) {
+    console.warn('createAuditLog warning:', err);
   }
 }

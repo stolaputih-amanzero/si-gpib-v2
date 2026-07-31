@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
+import { createAuditLog } from '@/app/(dashboard)/settings/actions'
 
 function createAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -185,12 +186,20 @@ export async function login(_prevState: any, formData: FormData) {
         sameSite: 'lax',
       })
 
-      // Update last_login_at in public.users
+      // Update last_login_at in public.users & record Audit Log
       try {
         await adminClient
           .from('users')
           .update({ last_login_at: new Date().toISOString() })
           .eq('id', dbUser.id)
+
+        await createAuditLog({
+          userId: dbUser.id,
+          aktor: dbUser.nama_lengkap || dbUser.email || 'Pengguna',
+          aksi: 'LOGIN',
+          objekType: 'AUTENTIKASI',
+          keterangan: 'Berhasil login ke sistem SI GPIB',
+        })
       } catch {}
 
       revalidatePath('/', 'layout')
