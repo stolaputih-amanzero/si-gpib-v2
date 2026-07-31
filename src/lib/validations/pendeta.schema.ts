@@ -44,12 +44,21 @@ export const pendetaSchema = z.object({
 export const mutasiSchema = z.object({
   id_pendeta: z.string().min(1, 'Pendeta wajib dipilih'),
   id_induk_baru: z.string().min(1, 'Jemaat Induk tujuan wajib dipilih'),
+  peran_tugas: z.enum(['KMJ', 'PJ', 'PENDETA_JEMAAT'], {
+    message: 'Peran penugasan baru wajib dipilih',
+  }),
+  id_pos_baru: z.string().optional().nullable(),
+  tgl_mutasi: z.string().optional().nullable(),
+  file_sk: z.string().min(1, 'Lampiran SK Mutasi & Penugasan (PDF atau Gambar) wajib diunggah'),
   alasan: z.string().min(10, 'Alasan mutasi minimal 10 karakter').max(500, 'Maksimal 500 karakter'),
 });
 
 export const setKmjSchema = z.object({
-  id_induk: z.string().min(1, 'Jemaat Induk wajib dipilih'),
   id_pendeta: z.string().min(1, 'Pendeta wajib dipilih'),
+  id_induk: z.string().min(1, 'Jemaat Induk wajib dipilih'),
+  tgl_mutasi: z.string().optional().nullable(),
+  file_sk: z.string().min(1, 'Lampiran SK Pengangkatan KMJ (PDF atau Gambar) wajib diunggah'),
+  alasan: z.string().min(10, 'Alasan / Dasar Keputusan SK KMJ minimal 10 karakter').max(500, 'Maksimal 500 karakter'),
 });
 
 export type PendetaInput = z.infer<typeof pendetaSchema>;

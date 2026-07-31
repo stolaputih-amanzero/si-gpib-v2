@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { PendetaInput, MutasiInput, SetKmjInput } from '@/lib/validations/pendeta.schema';
+import { getRiwayatMutasiAction } from '@/app/(dashboard)/sdm/pendeta/actions-360';
 
 function toError(error: any): Error {
   if (error instanceof Error) return error;
@@ -152,20 +153,11 @@ export function usePendetaDetail(id_pendeta?: string) {
 }
 
 export function useMutationHistory(id_pendeta?: string) {
-  const supabase = createClient();
-
   return useQuery({
     queryKey: ['mutation-history', id_pendeta],
     queryFn: async () => {
       if (!id_pendeta) return [];
-
-      const { data, error } = await supabase
-        .from('t_riwayat_mutasi_pendeta')
-        .select('*, jemaat_lama:m_jemaat_induk!t_riwayat_mutasi_pendeta_id_induk_lama_fkey(nama_induk), jemaat_baru:m_jemaat_induk!t_riwayat_mutasi_pendeta_id_induk_baru_fkey(nama_induk)')
-        .eq('id_pendeta', id_pendeta)
-        .order('tgl_mutasi', { ascending: false });
-
-      if (error) throw toError(error);
+      const data = await getRiwayatMutasiAction(id_pendeta);
       return (data || []) as MutasiHistoryItem[];
     },
     enabled: Boolean(id_pendeta),
@@ -277,6 +269,9 @@ export function useMutasiPendeta() {
 
   return useMutation({
     mutationFn: async (data: MutasiInput) => {
+      const tglMutasiVal = data.tgl_mutasi || new Date().toISOString().split('T')[0];
+
+      // 1. Call RPC mutasi_pendeta or fallback
       const { error } = await supabase.rpc('mutasi_pendeta', {
         p_id_pendeta: data.id_pendeta,
         p_id_induk_baru: data.id_induk_baru,
@@ -284,6 +279,86 @@ export function useMutasiPendeta() {
       });
 
       if (error) throw toError(error);
+
+      // Determine structural role flags & titles
+      let isKmj = false;
+      let isPj = false;
+      let targetPosId: string | null = null;
+      let userRole = 'pendeta';
+      let jabatanTitle = 'Pendeta Jemaat';
+      let jenisMutasiTitle = 'MUTASI';
+
+      if (data.peran_tugas === 'KMJ') {
+        isKmj = true;
+        isPj = false;
+        userRole = 'kmj';
+        jabatanTitle = 'Ketua Majelis Jemaat (KMJ)';
+        jenisMutasiTitle = 'PENGANGKATAN_KMJ';
+
+        // Call RPC set_kmj to update KMJ assignment in database
+        try {
+          await supabase.rpc('set_kmj', {
+            p_id_induk: data.id_induk_baru,
+            p_id_pendeta: data.id_pendeta,
+          });
+        } catch {}
+      } else if (data.peran_tugas === 'PJ') {
+        isKmj = false;
+        isPj = true;
+        targetPosId = data.id_pos_baru || null;
+        userRole = 'pj_pos';
+        jabatanTitle = 'Pendeta Jemaat (PJ Pos)';
+        jenisMutasiTitle = 'PENETAPAN_PJ_POS';
+      } else {
+        // Pendeta Jemaat
+        isKmj = false;
+        isPj = false;
+        userRole = 'pendeta';
+        jabatanTitle = 'Pendeta Jemaat';
+        jenisMutasiTitle = 'MUTASI_PENDETA';
+      }
+
+      // 2. Update m_pendeta record with new hierarchy & structural role
+      try {
+        await supabase
+          .from('m_pendeta')
+          .update({
+            id_induk: data.id_induk_baru,
+            id_pos: targetPosId,
+            is_kmj: isKmj,
+            is_pj: isPj,
+            jabatan: jabatanTitle,
+          })
+          .eq('id_pendeta', data.id_pendeta);
+      } catch {}
+
+      // 3. Update users table if linked
+      try {
+        await supabase
+          .from('users')
+          .update({
+            id_induk: data.id_induk_baru,
+            id_pos: targetPosId,
+            role: userRole,
+          })
+          .eq('id_pendeta', data.id_pendeta);
+      } catch {}
+
+      // 4. Ensure tgl_mutasi and SK attachment (file_sk) in database are updated
+      try {
+        const skTag = data.file_sk ? `[📄 SK_MUTASI:${data.file_sk}]` : '';
+        await supabase
+          .from('t_riwayat_mutasi_pendeta')
+          .update({
+            tgl_mutasi: tglMutasiVal,
+            jenis_mutasi: jenisMutasiTitle,
+            catatan: skTag,
+          })
+          .eq('id_pendeta', data.id_pendeta)
+          .order('created_at', { ascending: false })
+          .limit(1);
+      } catch {}
+
       return { success: true };
     },
     onSuccess: (_, variables) => {
@@ -291,6 +366,11 @@ export function useMutasiPendeta() {
       queryClient.invalidateQueries({ queryKey: ['pendeta-list'] });
       queryClient.invalidateQueries({ queryKey: ['pendeta-detail', variables.id_pendeta] });
       queryClient.invalidateQueries({ queryKey: ['mutation-history', variables.id_pendeta] });
+      queryClient.invalidateQueries({ queryKey: ['profile-akun'] });
+      queryClient.invalidateQueries({ queryKey: ['profile-pelayanan'] });
+      queryClient.invalidateQueries({ queryKey: ['profile-penugasan-pj'] });
+      queryClient.invalidateQueries({ queryKey: ['hierarki-info'] });
+      queryClient.invalidateQueries({ queryKey: ['user-mupel-auth'] });
       if (typeof window !== 'undefined' && 'vibrate' in navigator) {
         navigator.vibrate([10, 50, 10]);
       }
@@ -312,12 +392,58 @@ export function useSetKmj() {
 
   return useMutation({
     mutationFn: async (data: SetKmjInput) => {
+      const tglMutasiVal = data.tgl_mutasi || new Date().toISOString().split('T')[0];
+
+      // 1. Call RPC set_kmj
       const { error } = await supabase.rpc('set_kmj', {
         p_id_induk: data.id_induk,
         p_id_pendeta: data.id_pendeta,
       });
 
       if (error) throw toError(error);
+
+      // 2. Update m_pendeta: is_kmj = true, is_pj = false, id_pos = null, jabatan = 'Ketua Majelis Jemaat (KMJ)'
+      try {
+        await supabase
+          .from('m_pendeta')
+          .update({
+            id_induk: data.id_induk,
+            is_kmj: true,
+            is_pj: false,
+            id_pos: null,
+            jabatan: 'Ketua Majelis Jemaat (KMJ)',
+          })
+          .eq('id_pendeta', data.id_pendeta);
+      } catch {}
+
+      // 3. Update users table if linked: id_induk = data.id_induk, id_pos = null, role = 'kmj'
+      try {
+        await supabase
+          .from('users')
+          .update({
+            id_induk: data.id_induk,
+            id_pos: null,
+            role: 'kmj',
+          })
+          .eq('id_pendeta', data.id_pendeta);
+      } catch {}
+
+      // 4. Insert or update t_riwayat_mutasi_pendeta for KMJ appointment history
+      try {
+        const skTag = data.file_sk ? `[📄 SK_MUTASI:${data.file_sk}]` : '';
+        await supabase
+          .from('t_riwayat_mutasi_pendeta')
+          .insert({
+            id_riwayat: 'MUT-' + Math.floor(1000000000 + Math.random() * 9000000000),
+            id_pendeta: data.id_pendeta,
+            id_induk_baru: data.id_induk,
+            tgl_mutasi: tglMutasiVal,
+            jenis_mutasi: 'PENGANGKATAN_KMJ',
+            alasan: data.alasan,
+            catatan: skTag,
+          });
+      } catch {}
+
       return { success: true };
     },
     onSuccess: (_, variables) => {
@@ -325,6 +451,11 @@ export function useSetKmj() {
       queryClient.invalidateQueries({ queryKey: ['pendeta-list'] });
       queryClient.invalidateQueries({ queryKey: ['pendeta-detail', variables.id_pendeta] });
       queryClient.invalidateQueries({ queryKey: ['mutation-history', variables.id_pendeta] });
+      queryClient.invalidateQueries({ queryKey: ['profile-akun'] });
+      queryClient.invalidateQueries({ queryKey: ['profile-pelayanan'] });
+      queryClient.invalidateQueries({ queryKey: ['profile-penugasan-pj'] });
+      queryClient.invalidateQueries({ queryKey: ['hierarki-info'] });
+      queryClient.invalidateQueries({ queryKey: ['user-mupel-auth'] });
       if (typeof window !== 'undefined' && 'vibrate' in navigator) {
         navigator.vibrate([10, 50, 10]);
       }

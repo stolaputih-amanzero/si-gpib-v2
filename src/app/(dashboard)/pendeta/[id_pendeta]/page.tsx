@@ -3,8 +3,7 @@
 import { use, useState } from 'react';
 import { 
   usePendetaDetail, 
-  useMutationHistory, 
-  useSetKmj 
+  useMutationHistory 
 } from '@/hooks/use-pendeta';
 import { useJabatanByPendeta } from '@/hooks/use-jabatan-struktural';
 import { MutationTimeline } from '@/components/pendeta/MutationTimeline';
@@ -22,7 +21,6 @@ import {
   Phone, 
   Calendar, 
   Loader2, 
-  CheckCircle2, 
   AlertCircle 
 } from 'lucide-react';
 import Link from 'next/link';
@@ -32,13 +30,10 @@ export default function PendetaDetailPage({ params }: { params: Promise<{ id_pen
   const id_pendeta = resolvedParams.id_pendeta;
 
   const [showMutasiModal, setShowMutasiModal] = useState<boolean>(false);
-  const [showSetKmjConfirm, setShowSetKmjConfirm] = useState<boolean>(false);
-  const [kmjSuccessMsg, setKmjSuccessMsg] = useState<string | null>(null);
 
   const { data: pendeta, isLoading } = usePendetaDetail(id_pendeta);
   const { data: historyList, isLoading: historyLoading } = useMutationHistory(id_pendeta);
   const { data: jabatans } = useJabatanByPendeta(id_pendeta);
-  const setKmjMutation = useSetKmj();
 
   if (isLoading) {
     return (
@@ -68,20 +63,7 @@ export default function PendetaDetailPage({ params }: { params: Promise<{ id_pen
   const cleanPhone = pendeta.no_wa ? pendeta.no_wa.replace(/[^0-9]/g, '') : null;
   const waUrl = cleanPhone ? `https://wa.me/${cleanPhone}` : null;
 
-  const handleExecuteSetKmj = async () => {
-    try {
-      await setKmjMutation.mutateAsync({
-        id_induk: pendeta.id_induk,
-        id_pendeta: pendeta.id_pendeta,
-      });
-      setShowSetKmjConfirm(false);
-      setKmjSuccessMsg('Berhasil diangkat menjadi Ketua Majelis Jemaat (KMJ)!');
-      setTimeout(() => setKmjSuccessMsg(null), 5000);
-    } catch (err: any) {
-      setShowSetKmjConfirm(false);
-      alert(err.message || 'Gagal mengangkat KMJ via RPC.');
-    }
-  };
+
 
   return (
     <div className="w-full min-h-full bg-surface-base pb-32 md:pb-12">
@@ -101,12 +83,6 @@ export default function PendetaDetailPage({ params }: { params: Promise<{ id_pen
       </div>
 
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {kmjSuccessMsg && (
-          <div className="p-3.5 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-semibold border border-emerald-200 flex items-center gap-2 animate-in fade-in">
-            <CheckCircle2 size={18} className="shrink-0 text-emerald-600" />
-            <span>{kmjSuccessMsg}</span>
-          </div>
-        )}
 
         {/* Profile Card Header */}
         <div className="bg-surface-elevated rounded-2xl p-6 border border-border-subtle shadow-soft space-y-4">
@@ -147,24 +123,13 @@ export default function PendetaDetailPage({ params }: { params: Promise<{ id_pen
 
             {/* Action Bar Buttons */}
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-              {!pendeta.is_kmj && (
-                <button
-                  type="button"
-                  onClick={() => setShowSetKmjConfirm(true)}
-                  className="flex-1 sm:flex-none min-h-[44px] px-3.5 py-2 rounded-xl bg-amber-500 text-white font-semibold text-xs hover:bg-amber-600 transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98]"
-                >
-                  <Crown size={16} />
-                  <span>Angkat KMJ</span>
-                </button>
-              )}
-
               <button
                 type="button"
                 onClick={() => setShowMutasiModal(true)}
                 className="flex-1 sm:flex-none min-h-[44px] px-4 py-2 rounded-xl bg-brand-primary text-white font-semibold text-xs hover:bg-blue-800 transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98]"
               >
                 <ArrowRightLeft size={16} />
-                <span>Mutasi Pendeta</span>
+                <span>Mutasi & Penugasan Pendeta</span>
               </button>
             </div>
           </div>
@@ -264,46 +229,6 @@ export default function PendetaDetailPage({ params }: { params: Promise<{ id_pen
               onSuccess={() => setShowMutasiModal(false)}
               onCancel={() => setShowMutasiModal(false)}
             />
-          </div>
-        </div>
-      )}
-
-      {/* Confirm Set KMJ Modal */}
-      {showSetKmjConfirm && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-surface-elevated w-full max-w-md rounded-2xl p-5 border border-border-subtle shadow-float space-y-4 animate-in zoom-in-95 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto border border-amber-200">
-              <Crown size={24} />
-            </div>
-
-            <h3 className="font-serif font-bold text-lg text-brand-primary">
-              Angkat Sebagai Ketua Majelis Jemaat (KMJ)?
-            </h3>
-            <p className="text-xs text-text-muted">
-              {pendeta.nama_lengkap} akan diangkat sebagai KMJ di <strong className="text-text-high">{pendeta.jemaat_induk?.nama_induk || pendeta.id_induk}</strong>. Status KMJ sebelumnya pada jemaat ini akan di-reset secara otomatis.
-            </p>
-
-            <div className="flex items-center gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowSetKmjConfirm(false)}
-                className="flex-1 min-h-[44px] py-2 rounded-xl border border-border-subtle text-text-muted font-semibold text-xs hover:bg-surface-sunken"
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                onClick={handleExecuteSetKmj}
-                disabled={setKmjMutation.isPending}
-                className="flex-1 min-h-[44px] py-2 rounded-xl bg-amber-500 text-white font-semibold text-xs hover:bg-amber-600 flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98]"
-              >
-                {setKmjMutation.isPending ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : (
-                  <span>Ya, Angkat KMJ</span>
-                )}
-              </button>
-            </div>
           </div>
         </div>
       )}

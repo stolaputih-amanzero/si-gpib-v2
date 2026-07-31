@@ -43,24 +43,30 @@ function isLogInUserHierarchy(log: LogPastoralItem, userAuth: any): boolean {
   const role = (userAuth.role || '').toLowerCase();
   if (role === 'superadmin' || role === 'sinode') return true;
 
-  if (userAuth.id_pendeta && log.id_pendeta && userAuth.id_pendeta === log.id_pendeta) {
+  // 1. Author match: Created by logged in Pendeta
+  const pendetaId = log.id_pendeta || log.pendeta?.id_pendeta;
+  if (userAuth.id_pendeta && pendetaId && userAuth.id_pendeta === pendetaId) {
     return true;
   }
 
+  // 2. Pos Pelkes match
   if (userAuth.id_pos && log.id_pos && userAuth.id_pos === log.id_pos) {
     return true;
   }
 
-  const logJemaatId = log.pos?.jemaat_induk?.id_induk;
+  // 3. Jemaat Induk match
+  const logJemaatId = (log.pos as any)?.id_induk || log.pos?.jemaat_induk?.id_induk;
   if (userAuth.id_induk && logJemaatId && userAuth.id_induk === logJemaatId) {
     return true;
   }
 
+  // 4. Mupel match
   const logMupelId = (log.pos?.jemaat_induk as any)?.id_mupel || log.pos?.jemaat_induk?.mupel?.id_mupel;
   if (userAuth.id_mupel && logMupelId && userAuth.id_mupel === logMupelId) {
     return true;
   }
 
+  // 5. Unbound users fallback
   if (!userAuth.id_mupel && !userAuth.id_induk && !userAuth.id_pos && !userAuth.id_pendeta) {
     return true;
   }

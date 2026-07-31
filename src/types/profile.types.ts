@@ -67,6 +67,10 @@ export interface RiwayatMutasiItem {
   id_induk_baru?: string | null;
   nama_induk_lama?: string | null;
   nama_induk_baru?: string | null;
+  id_mupel_lama?: string | null;
+  nama_mupel_lama?: string | null;
+  id_mupel_baru?: string | null;
+  nama_mupel_baru?: string | null;
   alasan?: string | null;
   catatan?: string | null;
 }

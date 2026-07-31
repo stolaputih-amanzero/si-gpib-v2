@@ -1,7 +1,7 @@
 import { MutasiHistoryItem } from '@/hooks/use-pendeta';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Calendar, ArrowRight, Crown, History } from 'lucide-react';
+import { Calendar, ArrowRight, Crown, History, FileText } from 'lucide-react';
 
 interface MutationTimelineProps {
   historyList: MutasiHistoryItem[];
@@ -37,9 +37,13 @@ export function MutationTimeline({ historyList, isLoading }: MutationTimelinePro
     );
   }
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr?: string | null) => {
+    if (!dateStr) return 'Tanggal tidak tercatat';
     try {
-      return format(new Date(dateStr), 'dd MMMM yyyy', { locale: id });
+      const cleanStr = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
+      const parsedDate = new Date(cleanStr);
+      if (isNaN(parsedDate.getTime())) return dateStr;
+      return format(parsedDate, 'dd MMMM yyyy', { locale: id });
     } catch {
       return dateStr;
     }
@@ -48,7 +52,8 @@ export function MutationTimeline({ historyList, isLoading }: MutationTimelinePro
   return (
     <div className="relative border-l-2 border-brand-primary/20 ml-4 pl-6 space-y-6 py-2">
       {historyList.map((item) => {
-        const isKmjEvent = item.jenis_mutasi === 'PENGANGKATAN_KMJ';
+        const isKmjEvent = item.jenis_mutasi === 'PENGANGKATAN_KMJ' || item.jenis_mutasi?.toUpperCase().includes('KMJ');
+        const rawDate = item.tgl_mutasi || (item as any).created_at || (item as any).tanggal || (item as any).tgl;
 
         return (
           <div key={item.id_riwayat} className="relative group">
@@ -67,16 +72,17 @@ export function MutationTimeline({ historyList, isLoading }: MutationTimelinePro
             <div className="bg-surface-elevated rounded-xl p-4 border border-border-subtle shadow-soft space-y-2 hover:border-brand-primary/40 transition-all">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                  className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
                     isKmjEvent
                       ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950 dark:text-amber-300'
                       : 'bg-blue-50 text-brand-primary border-blue-200 dark:bg-blue-950 dark:text-blue-300'
                   }`}
                 >
-                  {isKmjEvent ? 'Pengangkatan KMJ' : 'Mutasi Jemaat'}
+                  {isKmjEvent ? 'Pengangkatan KMJ' : item.jenis_mutasi || 'Mutasi Jemaat'}
                 </span>
-                <span className="text-xs text-text-muted font-medium">
-                  {formatDate(item.tgl_mutasi)}
+                <span className="text-xs text-brand-primary font-bold flex items-center gap-1 bg-brand-primary/10 px-2 py-0.5 rounded-md">
+                  <Calendar size={12} />
+                  {formatDate(rawDate)}
                 </span>
               </div>
 
@@ -99,6 +105,50 @@ export function MutationTimeline({ historyList, isLoading }: MutationTimelinePro
                   "{item.alasan}"
                 </p>
               )}
+
+              {/* SK Attachment Document Viewer */}
+              {(() => {
+                const catatanStr = (item as any).catatan || item.alasan;
+                if (!catatanStr || !catatanStr.includes('[📄 SK_MUTASI:')) return null;
+
+                const match = catatanStr.match(/\[📄 SK_MUTASI:(.*?)\]/);
+                if (!match) return null;
+                const rawVal = match[1];
+
+                const nameMatch = rawVal.match(/NAME:(.*?)\|/);
+                const typeMatch = rawVal.match(/TYPE:(.*?)\|/);
+                const dataMatch = rawVal.match(/DATA:(.*)/);
+
+                const fileName = nameMatch ? nameMatch[1] : 'Dokumen_SK_Mutasi';
+                const fileType = typeMatch ? typeMatch[1] : 'pdf';
+                const dataUrl = dataMatch ? dataMatch[1] : rawVal;
+
+                return (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const win = window.open();
+                      if (win) {
+                        win.document.write(`
+                          <html>
+                            <head><title>${fileName}</title></head>
+                            <body style="margin:0;background:#0f172a;display:flex;justify-content:center;align-items:center;height:100vh;">
+                              ${fileType === 'image'
+                                ? `<img src="${dataUrl}" style="max-width:90%;max-height:90vh;object-fit:contain;border-radius:12px;" />`
+                                : `<iframe src="${dataUrl}" style="width:100%;height:100vh;border:none;"></iframe>`
+                              }
+                            </body>
+                          </html>
+                        `);
+                      }
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs border border-emerald-500/20 hover:bg-emerald-500/20 transition-all mt-1"
+                  >
+                    <FileText size={13} />
+                    <span>Lihat Lampiran SK Mutasi ({fileName})</span>
+                  </button>
+                );
+              })()}
             </div>
           </div>
         );

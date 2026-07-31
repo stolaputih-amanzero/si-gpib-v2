@@ -12,6 +12,7 @@ import {
   DraftUserItem,
 } from '@/types/profile.types';
 import { getLogPastoralListAction } from '@/app/(dashboard)/dashboard/pastoral/actions';
+import { getRiwayatMutasiAction } from '@/app/(dashboard)/sdm/pendeta/actions-360';
 /**
  * 1. Fetch Profile Akun for specified userId (or current session)
  */
@@ -302,67 +303,37 @@ export function useProfileStats(idPendeta?: string | null) {
  * 4. Fetch Riwayat Mutasi Pendeta
  */
 export function useRiwayatMutasi(idPendeta?: string | null) {
-  const supabase = createClient();
-
   return useQuery<RiwayatMutasiItem[]>({
-    queryKey: ['profile-mutasi', idPendeta],
-    enabled: Boolean(idPendeta),
+    queryKey: ['profile-mutasi', idPendeta || 'me'],
+    enabled: true,
     queryFn: async () => {
-      if (!idPendeta) return [];
-
-      const { data, error } = await supabase
-        .from('t_riwayat_mutasi_pendeta')
-        .select(`
-          id_mutasi,
-          id_pendeta,
-          tgl_mutasi,
-          jenis_mutasi,
-          id_induk_lama,
-          id_induk_baru,
-          alasan,
-          catatan,
-          jemaat_lama:m_jemaat_induk!t_riwayat_mutasi_pendeta_id_induk_lama_fkey(nama_induk),
-          jemaat_baru:m_jemaat_induk!t_riwayat_mutasi_pendeta_id_induk_baru_fkey(nama_induk)
-        `)
-        .eq('id_pendeta', idPendeta)
-        .order('tgl_mutasi', { ascending: false });
-
-      if (error || !data) {
-        // Fallback without strict foreign key aliases
-        const { data: rawData } = await supabase
-          .from('t_riwayat_mutasi_pendeta')
-          .select('*')
-          .eq('id_pendeta', idPendeta)
-          .order('tgl_mutasi', { ascending: false });
-
-        return (rawData || []).map((m: any) => ({
-          id_mutasi: m.id_mutasi || m.id,
-          id_pendeta: m.id_pendeta,
-          tgl_mutasi: m.tgl_mutasi || m.created_at,
-          jenis_mutasi: m.jenis_mutasi || 'Mutasi Penugasan',
-          id_induk_lama: m.id_induk_lama || null,
-          id_induk_baru: m.id_induk_baru || null,
-          nama_induk_lama: m.nama_induk_lama || null,
-          nama_induk_baru: m.nama_induk_baru || null,
-          alasan: m.alasan || null,
-          catatan: m.catatan || null,
-        }));
+      let targetPendetaId = idPendeta || null;
+      if (!targetPendetaId) {
+        try {
+          const res = await fetch('/api/auth/me');
+          if (res.ok) {
+            const body = await res.json();
+            targetPendetaId = body?.user?.id_pendeta || null;
+          }
+        } catch {}
       }
 
-      return data.map((m: any) => ({
-        id_mutasi: m.id_mutasi,
+      const data = await getRiwayatMutasiAction(targetPendetaId || undefined);
+
+      return (data || []).map((m: any) => ({
+        id_mutasi: m.id_mutasi || m.id_riwayat || String(m.id || ''),
         id_pendeta: m.id_pendeta,
-        tgl_mutasi: m.tgl_mutasi,
+        tgl_mutasi: m.tgl_mutasi || m.created_at || new Date().toISOString().split('T')[0],
         jenis_mutasi: m.jenis_mutasi || 'Mutasi Penugasan',
         id_induk_lama: m.id_induk_lama || null,
         id_induk_baru: m.id_induk_baru || null,
-        nama_induk_lama: (m.jemaat_lama as any)?.nama_induk || null,
-        nama_induk_baru: (m.jemaat_baru as any)?.nama_induk || null,
+        nama_induk_lama: (m.jemaat_lama as any)?.nama_induk || m.nama_induk_lama || m.id_induk_lama || null,
+        nama_induk_baru: (m.jemaat_baru as any)?.nama_induk || m.nama_induk_baru || m.id_induk_baru || null,
         alasan: m.alasan || null,
         catatan: m.catatan || null,
       }));
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 2,
   });
 }
 

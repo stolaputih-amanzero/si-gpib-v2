@@ -66,6 +66,72 @@ export async function getKompetensiAction(idPendeta?: string) {
   return data || [];
 }
 
+export async function getRiwayatMutasiAction(idPendeta?: string) {
+  const supabase = await createClient();
+  const db = getDbClient(supabase);
+
+  let query = db
+    .from('t_riwayat_mutasi_pendeta')
+    .select(`
+      *,
+      jemaat_lama:m_jemaat_induk!t_riwayat_mutasi_pendeta_id_induk_lama_fkey(
+        id_induk,
+        nama_induk,
+        id_mupel,
+        mupel:m_mupel(id_mupel, nama_mupel)
+      ),
+      jemaat_baru:m_jemaat_induk!t_riwayat_mutasi_pendeta_id_induk_baru_fkey(
+        id_induk,
+        nama_induk,
+        id_mupel,
+        mupel:m_mupel(id_mupel, nama_mupel)
+      )
+    `)
+    .order('tgl_mutasi', { ascending: false });
+
+  if (idPendeta) {
+    query = query.eq('id_pendeta', idPendeta);
+  } else {
+    query = query.limit(20);
+  }
+
+  const { data, error } = await query;
+  let rawData = data;
+
+  if (error || !data) {
+    let fallbackQuery = db
+      .from('t_riwayat_mutasi_pendeta')
+      .select('*')
+      .order('tgl_mutasi', { ascending: false });
+
+    if (idPendeta) fallbackQuery = fallbackQuery.eq('id_pendeta', idPendeta);
+    else fallbackQuery = fallbackQuery.limit(20);
+
+    const { data: altData } = await fallbackQuery;
+    rawData = altData;
+  }
+
+  return (rawData || []).map((m: any) => ({
+    id_riwayat: m.id_riwayat || m.id_mutasi || String(m.id || ''),
+    id_mutasi: m.id_mutasi || m.id_riwayat || String(m.id || ''),
+    id_pendeta: m.id_pendeta,
+    tgl_mutasi: m.tgl_mutasi || m.created_at || m.tanggal || m.tgl || null,
+    jenis_mutasi: m.jenis_mutasi || 'Mutasi Penugasan',
+    id_induk_lama: m.id_induk_lama || null,
+    id_induk_baru: m.id_induk_baru || null,
+    nama_induk_lama: (m.jemaat_lama as any)?.nama_induk || m.nama_induk_lama || m.id_induk_lama || null,
+    nama_induk_baru: (m.jemaat_baru as any)?.nama_induk || m.nama_induk_baru || m.id_induk_baru || null,
+    id_mupel_lama: (m.jemaat_lama as any)?.id_mupel || (m.jemaat_lama as any)?.mupel?.id_mupel || null,
+    nama_mupel_lama: (m.jemaat_lama as any)?.mupel?.nama_mupel || null,
+    id_mupel_baru: (m.jemaat_baru as any)?.id_mupel || (m.jemaat_baru as any)?.mupel?.id_mupel || null,
+    nama_mupel_baru: (m.jemaat_baru as any)?.mupel?.nama_mupel || null,
+    jemaat_lama: m.jemaat_lama || (m.nama_induk_lama ? { nama_induk: m.nama_induk_lama } : null),
+    jemaat_baru: m.jemaat_baru || (m.nama_induk_baru ? { nama_induk: m.nama_induk_baru } : null),
+    alasan: m.alasan || null,
+    catatan: m.catatan || null,
+  }));
+}
+
 // --- KETERLIBATAN ---
 export async function createKeterlibatanAction(payload: any) {
   const supabase = await createClient();

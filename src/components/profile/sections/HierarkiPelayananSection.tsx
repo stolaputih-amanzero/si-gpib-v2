@@ -34,18 +34,26 @@ export function HierarkiPelayananSection({ userId, idPendeta }: HierarkiPelayana
   let displayPosList: { id_pos: string; nama_pos: string; tgl_mulai?: string | null }[] = [];
 
   if (penugasanPos && penugasanPos.length > 0) {
-    displayPosList = penugasanPos.map((p) => ({
-      id_pos: p.id_pos,
-      nama_pos: p.nama_pos || `Pos Pelkes ${p.id_pos}`,
-      tgl_mulai: p.tgl_mulai || 'Aktif',
-    }));
-  } else if (hierarkiInfo?.posList && hierarkiInfo.posList.length > 0) {
+    // Filter penugasan to only include Pos Pelkes under the active Jemaat Induk
+    const activeJemaatPos = penugasanPos.filter(
+      (p) => !effJemaatId || !p.id_induk || p.id_induk === effJemaatId
+    );
+    if (activeJemaatPos.length > 0) {
+      displayPosList = activeJemaatPos.map((p) => ({
+        id_pos: p.id_pos,
+        nama_pos: p.nama_pos || `Pos Pelkes ${p.id_pos}`,
+        tgl_mulai: p.tgl_mulai || 'Aktif',
+      }));
+    }
+  }
+
+  if (displayPosList.length === 0 && hierarkiInfo?.posList && hierarkiInfo.posList.length > 0) {
     displayPosList = hierarkiInfo.posList.map((p) => ({
       id_pos: p.id_pos,
       nama_pos: p.nama_pos,
-      tgl_mulai: 'Aktif di Jemaat Induk',
+      tgl_mulai: 'Pos Pelkes Jemaat Induk',
     }));
-  } else if (rawPosId && hierarkiInfo?.posNama) {
+  } else if (displayPosList.length === 0 && rawPosId && hierarkiInfo?.posNama) {
     displayPosList = [{
       id_pos: rawPosId,
       nama_pos: hierarkiInfo.posNama,

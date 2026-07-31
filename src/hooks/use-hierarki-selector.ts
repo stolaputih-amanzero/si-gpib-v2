@@ -265,19 +265,31 @@ export function useUserMupelAuth() {
       }
 
       const role = dbUser?.role || user.role || user.user_metadata?.role || 'guest';
-      const id_mupel = dbUser?.id_mupel || user.id_mupel || user.user_metadata?.id_mupel || null;
-      const id_induk = dbUser?.id_induk || user.id_induk || user.user_metadata?.id_induk || null;
+      let id_mupel = dbUser?.id_mupel || user.id_mupel || user.user_metadata?.id_mupel || null;
+      let id_induk = dbUser?.id_induk || user.id_induk || user.user_metadata?.id_induk || null;
       const id_pos = dbUser?.id_pos || user.id_pos || user.user_metadata?.id_pos || null;
       let id_pendeta = dbUser?.id_pendeta || user.id_pendeta || user.user_metadata?.id_pendeta || null;
 
       if (!id_pendeta && user.email) {
         const { data: pData } = await supabase
           .from('m_pendeta')
-          .select('id_pendeta')
+          .select('id_pendeta, id_induk')
           .eq('email', user.email)
           .maybeSingle();
         if (pData) {
           id_pendeta = pData.id_pendeta;
+          if (!id_induk) id_induk = pData.id_induk;
+        }
+      }
+
+      if (id_pendeta && !id_induk) {
+        const { data: pData } = await supabase
+          .from('m_pendeta')
+          .select('id_induk')
+          .eq('id_pendeta', id_pendeta)
+          .maybeSingle();
+        if (pData?.id_induk) {
+          id_induk = pData.id_induk;
         }
       }
 
@@ -289,7 +301,7 @@ export function useUserMupelAuth() {
         id_pendeta,
       };
     },
-    staleTime: 1000 * 60 * 15,
+    staleTime: 0,
   });
 }
 
