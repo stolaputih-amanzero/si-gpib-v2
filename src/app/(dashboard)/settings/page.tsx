@@ -363,7 +363,7 @@ export default function SettingsHubPage() {
                   <Palette className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <CardTitle className="text-base truncate">Tampilan &amp; Tema Aplikasi</CardTitle>
+                  <CardTitle className="text-base truncate">Tema Tampilan</CardTitle>
                   <CardDescription className="line-clamp-1">
                     Pilih tema terang, gelap, atau ikuti preferensi sistem perangkat Anda
                   </CardDescription>
