@@ -430,7 +430,7 @@ export default function SettingsHubPage() {
             >
               <div className="flex items-center gap-3">
                 <LogOut className="w-5 h-5" />
-                <span className="text-sm">Keluar Sesi (Logout)</span>
+                <span className="text-sm">Keluar Sesi</span>
               </div>
               <ChevronRight className="w-4 h-4" />
             </button>
