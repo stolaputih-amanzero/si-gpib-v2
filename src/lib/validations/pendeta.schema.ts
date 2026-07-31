@@ -1,22 +1,27 @@
 import { z } from 'zod';
 
+const optionalDate = z.preprocess(
+  (val) => (val === '' || val === null || val === undefined ? null : val),
+  z.coerce.date().optional().nullable()
+);
+
 export const pendetaSchema = z.object({
   id_induk: z.string().min(1, 'Jemaat Induk wajib dipilih'),
   nama_lengkap: z.string().min(3, 'Nama minimal 3 karakter').max(150, 'Maksimal 150 karakter'),
   no_wa: z.string().regex(/^\+62\d{8,13}$/, 'Format No. WA harus diawali +62 (contoh: +6281234567890)'),
   jabatan: z.string().min(2, 'Jabatan pelayanan wajib diisi').max(100),
-  tgl_lahir: z.coerce.date().optional().nullable(),
+  tgl_lahir: optionalDate,
   gender: z.enum(['Laki-laki', 'Perempuan'], {
     message: 'Pilih jenis kelamin',
   }),
   status: z.enum(['Aktif', 'Emeritus', 'Cuti', 'Mutasi', 'Nonaktif']).default('Aktif'),
-  tgl_tugas: z.coerce.date().optional().nullable(),
+  tgl_tugas: optionalDate,
   keterangan: z.string().max(500, 'Maksimal 500 karakter').optional().nullable(),
   
   // Field baru untuk Organik/Non-Organik
   jenis_pendeta: z.enum(['Organik', 'Non-Organik']).default('Organik'),
-  tgl_mulai_kontrak: z.coerce.date().optional().nullable(),
-  tgl_akhir_kontrak: z.coerce.date().optional().nullable(),
+  tgl_mulai_kontrak: optionalDate,
+  tgl_akhir_kontrak: optionalDate,
   sumber_pembiayaan: z.string().max(100).optional().nullable(),
   eligible_rotasi: z.boolean().default(true),
   gereja_asal: z.string().max(150).optional().nullable(),
