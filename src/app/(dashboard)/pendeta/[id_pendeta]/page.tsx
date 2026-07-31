@@ -24,6 +24,7 @@ import {
   AlertCircle,
   Edit,
 } from 'lucide-react';
+import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
 import Link from 'next/link';
 
 export default function PendetaDetailPage({ params }: { params: Promise<{ id_pendeta: string }> }) {
@@ -31,6 +32,9 @@ export default function PendetaDetailPage({ params }: { params: Promise<{ id_pen
   const id_pendeta = resolvedParams.id_pendeta;
 
   const [showMutasiModal, setShowMutasiModal] = useState<boolean>(false);
+
+  const { data: currentUser } = useCurrentUser();
+  const isSuperUser = isSuperUserRole(currentUser?.role);
 
   const { data: pendeta, isLoading } = usePendetaDetail(id_pendeta);
   const { data: historyList, isLoading: historyLoading } = useMutationHistory(id_pendeta);
@@ -125,12 +129,12 @@ export default function PendetaDetailPage({ params }: { params: Promise<{ id_pen
             {/* Action Bar Buttons */}
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               <Link
-                href={`/sdm/pendeta`}
+                href={isSuperUser ? `/sdm/pendeta` : `/settings/profile`}
                 className="flex-1 sm:flex-none min-h-[44px] px-3.5 py-2 rounded-xl bg-surface-sunken border border-border-subtle text-text-high font-semibold text-xs hover:bg-surface-elevated transition-all flex items-center justify-center gap-1.5 active:scale-[0.98]"
-                title="Kelola Biodata Terpusat SDM Pendeta"
+                title={isSuperUser ? "Kelola Biodata Terpusat SDM Pendeta" : "Perbarui Profil 360° Saya"}
               >
                 <Edit size={15} className="text-brand-primary" />
-                <span>Edit Biodata SDM</span>
+                <span>{isSuperUser ? 'Edit Biodata SDM' : 'Update Profil 360°'}</span>
               </Link>
 
               <button
