@@ -5,11 +5,15 @@ import { usePendetaList, useDeletePendeta, PendetaItem, usePendetaKontrakSegeraB
 import { PendetaCard } from '@/components/pendeta/PendetaCard';
 import { PendetaForm } from '@/components/pendeta/PendetaForm';
 import { useToast } from '@/components/ui/toast';
-import { Plus, Search, UserCheck, Crown, ShieldCheck, AlertTriangle, ChevronRight } from 'lucide-react';
+import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
+import { Plus, Search, UserCheck, Crown, ShieldCheck, AlertTriangle, ChevronRight, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 
 export default function PendetaPage() {
   const { toast, confirm: confirmModal } = useToast();
+  const { data: currentUser, isLoading: isAuthLoading } = useCurrentUser();
+  const isSuperUser = isSuperUserRole(currentUser?.role);
+
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedInduk, setSelectedInduk] = useState<string>('');
   const [jenisFilter, setJenisFilter] = useState<'all' | 'Organik' | 'Non-Organik'>('all');
@@ -24,6 +28,33 @@ export default function PendetaPage() {
   
   const { data: kontrakSegeraBerakhir } = usePendetaKontrakSegeraBerakhir();
   const deleteMutation = useDeletePendeta();
+
+  if (isAuthLoading) {
+    return (
+      <div className="card-flat p-8 text-center text-xs text-text-muted animate-pulse">
+        Memeriksa hak akses pengguna...
+      </div>
+    );
+  }
+
+  if (!isSuperUser) {
+    return (
+      <div className="card-flat p-8 text-center space-y-4 bg-surface-1 max-w-md mx-auto my-12 border border-line-subtle rounded-3xl shadow-float animate-rise">
+        <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 mx-auto flex items-center justify-center border border-amber-500/20 shadow-inner">
+          <ShieldAlert size={28} />
+        </div>
+        <div className="space-y-1.5">
+          <h2 className="font-serif font-bold text-lg text-ink-primary">Akses Khusus Super User</h2>
+          <p className="text-xs text-ink-secondary leading-relaxed">
+            Halaman pengelolaan data terpusat SDM Pendeta GPIB terbatas dan hanya dapat diakses oleh role <strong>Super User / Admin Sinode</strong>.
+          </p>
+        </div>
+        <Link href="/dashboard" className="btn btn-primary text-xs min-h-[44px] w-full inline-flex items-center justify-center gap-2">
+          Kembali ke Dashboard
+        </Link>
+      </div>
+    );
+  }
 
   const handleEdit = (item: PendetaItem) => {
     setEditingItem(item);

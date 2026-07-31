@@ -238,7 +238,7 @@ export function Sidebar() {
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-3 scrollbar-thin">
         {NAV_GROUPS.map((group) => {
           const validItems = group.items.filter((item) => {
-            if (item.href === '/settings/users') {
+            if (item.href === '/settings/users' || item.href === '/sdm/pendeta') {
               return isSuperUser;
             }
             return true;
