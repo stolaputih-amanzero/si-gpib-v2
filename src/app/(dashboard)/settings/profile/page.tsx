@@ -197,7 +197,9 @@ export default function MyProfilePage() {
     try {
       const supabase = createClient();
 
-      if (akun?.id_pendeta) {
+      const targetPendetaId = akun?.id_pendeta || pelayanan?.id_pendeta || (user as any)?.id_pendeta;
+
+      if (targetPendetaId) {
         const { error } = await supabase
           .from('m_pendeta')
           .update({
@@ -209,7 +211,7 @@ export default function MyProfilePage() {
             jenis_pendeta: editPelJenisPendeta,
             updated_at: new Date().toISOString(),
           })
-          .eq('id_pendeta', akun.id_pendeta);
+          .eq('id_pendeta', targetPendetaId);
 
         if (error) throw error;
       }
@@ -231,7 +233,7 @@ export default function MyProfilePage() {
         queryClient.invalidateQueries({ queryKey: ['profile-akun'] }),
         queryClient.invalidateQueries({ queryKey: ['profile-pelayanan'] }),
         queryClient.invalidateQueries({ queryKey: ['current-pendeta'] }),
-        queryClient.invalidateQueries({ queryKey: ['pendeta-detail', akun?.id_pendeta] }),
+        queryClient.invalidateQueries({ queryKey: ['pendeta-detail'] }),
       ]);
     } catch (err: any) {
       toast.error('Gagal Simpan Biodata', err?.message || 'Terjadi kesalahan saat menyimpan biodata pendeta.');

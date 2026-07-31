@@ -72,22 +72,33 @@ export function IdentitasPelayananSection({ idPendeta, canEdit = false, onEditPe
 
         <div>
           <span className="text-ink-tertiary font-medium block">Tempat / Tanggal Lahir</span>
-          <span className="font-medium text-ink-primary mt-0.5 block tnum">
-            {pelayanan?.tempat_lahir || '-'}, {pelayanan?.tgl_lahir || '-'}
+          <span className="font-medium text-ink-primary mt-0.5 block tnum font-mono">
+            {pelayanan?.tempat_lahir ? `${pelayanan.tempat_lahir}, ` : ''}
+            {pelayanan?.tgl_lahir
+              ? new Date(pelayanan.tgl_lahir).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+              : '-'}
           </span>
         </div>
 
         <div>
           <span className="text-ink-tertiary font-medium block">Jenis Kelamin</span>
           <span className="font-medium text-ink-primary mt-0.5 block">
-            {pelayanan?.jenis_kelamin === 'L' ? 'Laki-Laki' : pelayanan?.jenis_kelamin === 'P' ? 'Perempuan' : '-'}
+            {pelayanan?.jenis_kelamin
+              ? pelayanan.jenis_kelamin.toLowerCase().startsWith('l')
+                ? 'Laki-Laki'
+                : pelayanan.jenis_kelamin.toLowerCase().startsWith('p')
+                ? 'Perempuan'
+                : pelayanan.jenis_kelamin
+              : '-'}
           </span>
         </div>
 
         <div>
           <span className="text-ink-tertiary font-medium block">Mulai Penugasan GPIB</span>
           <span className="font-mono font-medium text-ink-primary mt-0.5 block tnum">
-            {pelayanan?.tgl_tugas_awal || '-'}
+            {pelayanan?.tgl_tugas_awal
+              ? new Date(pelayanan.tgl_tugas_awal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+              : '-'}
           </span>
         </div>
 
