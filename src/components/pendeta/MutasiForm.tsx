@@ -24,7 +24,6 @@ import {
   X,
   FileCheck,
   Crown,
-  ShieldCheck,
 } from 'lucide-react';
 
 interface MutasiFormProps {
@@ -77,7 +76,7 @@ export function MutasiForm({
     defaultValues: {
       id_pendeta: id_pendeta,
       id_induk_baru: '',
-      peran_tugas: 'PENDETA_JEMAAT',
+      peran_tugas: 'PJ',
       id_pos_baru: '',
       tgl_mutasi: new Date().toISOString().split('T')[0],
       file_sk: '',
@@ -255,17 +254,17 @@ export function MutasiForm({
           )}
         </div>
 
-        {/* Peran / Jabatan Penugasan Struktural Baru */}
+        {/* Peran / Jabatan Penugasan Organik Baru */}
         <div className="space-y-2 bg-surface-sunken p-3.5 rounded-2xl border border-border-subtle">
           <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
             <Crown size={14} className="text-amber-500" />
-            <span>3. Peran / Jabatan Penugasan Struktural Baru *</span>
+            <span>3. Peran Penugasan Organik Baru *</span>
           </label>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Option 1: KMJ */}
             <label
-              className={`p-3 rounded-xl border flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
+              className={`p-3.5 rounded-xl border flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
                 watchPeran === 'KMJ'
                   ? 'bg-amber-500/10 border-amber-500 text-amber-700 dark:text-amber-300 font-bold shadow-xs'
                   : 'bg-surface-base border-border-subtle text-text-muted hover:border-brand-primary'
@@ -282,16 +281,16 @@ export function MutasiForm({
                 }}
                 className="sr-only"
               />
-              <Crown size={18} className="mb-1 text-amber-500" />
-              <span className="text-xs">KMJ</span>
-              <span className="text-[10px] text-text-muted font-normal mt-0.5">Ketua Majelis Jemaat</span>
+              <Crown size={22} className="mb-1.5 text-amber-500" />
+              <span className="text-sm font-extrabold">KMJ</span>
+              <span className="text-[11px] text-text-muted font-normal mt-0.5">Ketua Majelis Jemaat</span>
             </label>
 
-            {/* Option 2: PJ Pos Pelkes */}
+            {/* Option 2: PJ (Pendeta Jemaat) */}
             <label
-              className={`p-3 rounded-xl border flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
+              className={`p-3.5 rounded-xl border flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
                 watchPeran === 'PJ'
-                  ? 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-300 font-bold shadow-xs'
+                  ? 'bg-blue-500/10 border-blue-500 text-blue-700 dark:text-blue-300 font-bold shadow-xs'
                   : 'bg-surface-base border-border-subtle text-text-muted hover:border-brand-primary'
               }`}
             >
@@ -304,33 +303,9 @@ export function MutasiForm({
                 }}
                 className="sr-only"
               />
-              <ShieldCheck size={18} className="mb-1 text-emerald-600" />
-              <span className="text-xs">PJ Pos Pelkes</span>
-              <span className="text-[10px] text-text-muted font-normal mt-0.5">Penanggung Jawab Pos</span>
-            </label>
-
-            {/* Option 3: Pendeta Jemaat */}
-            <label
-              className={`p-3 rounded-xl border flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
-                watchPeran === 'PENDETA_JEMAAT'
-                  ? 'bg-blue-500/10 border-blue-500 text-blue-700 dark:text-blue-300 font-bold shadow-xs'
-                  : 'bg-surface-base border-border-subtle text-text-muted hover:border-brand-primary'
-              }`}
-            >
-              <input
-                type="radio"
-                value="PENDETA_JEMAAT"
-                {...register('peran_tugas')}
-                onChange={() => {
-                  setValue('peran_tugas', 'PENDETA_JEMAAT', { shouldValidate: true });
-                  setSelectedPosId('');
-                  setValue('id_pos_baru', '');
-                }}
-                className="sr-only"
-              />
-              <Building2 size={18} className="mb-1 text-blue-600" />
-              <span className="text-xs">Pendeta Jemaat</span>
-              <span className="text-[10px] text-text-muted font-normal mt-0.5">Pelayanan Jemaat Induk</span>
+              <Building2 size={22} className="mb-1.5 text-blue-600" />
+              <span className="text-sm font-extrabold">PJ</span>
+              <span className="text-[11px] text-text-muted font-normal mt-0.5">Pendeta Jemaat</span>
             </label>
           </div>
 
@@ -339,12 +314,12 @@ export function MutasiForm({
           )}
         </div>
 
-        {/* Cascade 4: Pos Pelkes / Bajem Selection (Only shown when PJ is selected or available) */}
+        {/* Cascade 4: Pos Pelkes / Bajem Selection (Only shown for PJ when Pos Pelkes are available) */}
         {selectedIndukId && watchPeran === 'PJ' && posList.length > 0 && (
           <div className="space-y-1.5 bg-surface-sunken p-3.5 rounded-2xl border border-border-subtle animate-in fade-in">
             <label className="text-xs font-semibold text-text-high flex items-center gap-1.5">
               <MapPin size={14} className="text-emerald-600" />
-              <span>4. Pos Pelkes / Bajem Penugasan *</span>
+              <span>4. Penugasan Spesifik di Pos Pelkes / Bajem (Pendeta Pos - Opsional)</span>
             </label>
             <select
               value={selectedPosId}
@@ -355,13 +330,16 @@ export function MutasiForm({
               disabled={isPosLoading}
               className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-base text-sm font-medium text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary"
             >
-              <option value="">-- Pilih Pos Pelkes / Bajem --</option>
+              <option value="">-- Penugasan Umum di Jemaat Induk --</option>
               {posList.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.nama} ({p.kategori || 'Pos Pelkes'})
                 </option>
               ))}
             </select>
+            <p className="text-[11px] text-text-muted">
+              Pilih jika Pendeta Jemaat ditugaskan melayani di Pos Pelkes/Bajem tertentu. (Koordinator Pos dijabat oleh Pelayan/Penatua/Diaken).
+            </p>
           </div>
         )}
 

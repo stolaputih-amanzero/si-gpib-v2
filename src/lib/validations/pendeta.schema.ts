@@ -44,7 +44,7 @@ export const pendetaSchema = z.object({
 export const mutasiSchema = z.object({
   id_pendeta: z.string().min(1, 'Pendeta wajib dipilih'),
   id_induk_baru: z.string().min(1, 'Jemaat Induk tujuan wajib dipilih'),
-  peran_tugas: z.enum(['KMJ', 'PJ', 'PENDETA_JEMAAT'], {
+  peran_tugas: z.enum(['KMJ', 'PJ'], {
     message: 'Peran penugasan baru wajib dipilih',
   }),
   id_pos_baru: z.string().optional().nullable(),

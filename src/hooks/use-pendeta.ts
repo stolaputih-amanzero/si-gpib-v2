@@ -302,20 +302,14 @@ export function useMutasiPendeta() {
             p_id_pendeta: data.id_pendeta,
           });
         } catch {}
-      } else if (data.peran_tugas === 'PJ') {
+      } else {
+        // Pendeta Jemaat (PJ)
         isKmj = false;
         isPj = true;
         targetPosId = data.id_pos_baru || null;
-        userRole = 'pj_pos';
-        jabatanTitle = 'Pendeta Jemaat (PJ Pos)';
-        jenisMutasiTitle = 'PENETAPAN_PJ_POS';
-      } else {
-        // Pendeta Jemaat
-        isKmj = false;
-        isPj = false;
-        userRole = 'pendeta';
-        jabatanTitle = 'Pendeta Jemaat';
-        jenisMutasiTitle = 'MUTASI_PENDETA';
+        userRole = targetPosId ? 'pj_pos' : 'pendeta';
+        jabatanTitle = targetPosId ? 'Pendeta Jemaat (Pos Pelkes/Bajem)' : 'Pendeta Jemaat (PJ)';
+        jenisMutasiTitle = targetPosId ? 'PENUGASAN_POS_PELKES' : 'MUTASI_PENDETA';
       }
 
       // 2. Update m_pendeta record with new hierarchy & structural role
