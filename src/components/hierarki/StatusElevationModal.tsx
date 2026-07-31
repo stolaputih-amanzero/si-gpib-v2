@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { elevateStatusSchema, ElevateStatusInput } from '@/lib/validations/hierarki.schema';
@@ -21,6 +22,7 @@ interface StatusElevationModalProps {
 }
 
 export function StatusElevationModal({ isOpen, onClose, posItem }: StatusElevationModalProps) {
+  const router = useRouter();
   const currentKategori = posItem.kategori || 'Pos Pelkes';
   const defaultTarget = currentKategori === 'Bajem' ? 'JEMAAT_INDUK' : 'BAJEM';
 
@@ -60,6 +62,7 @@ export function StatusElevationModal({ isOpen, onClose, posItem }: StatusElevati
         id_induk_baru: data.id_induk_baru,
         nama_induk_baru: data.nama_induk_baru,
       });
+      router.refresh();
       onClose();
     } catch (err: any) {
       setErrorMsg(err?.message || 'Gagal memproses peningkatan status.');

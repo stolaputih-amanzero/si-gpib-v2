@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { MapPin, Edit3, ArrowLeft, Building2, Eye, X, TrendingUp } from 'lucide-react';
+import { MapPin, Edit3, ArrowLeft, Building2, Eye, X, TrendingUp, Church, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ShareButton } from '@/components/mobile/ShareButton';
 import DeletePosButton from './delete-button';
@@ -14,7 +14,9 @@ import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
 interface PosProfileHeroWrapperProps {
   pos: {
     id_pos: string;
+    id_induk?: string | null;
     nama_pos: string;
+    kategori?: string | null;
     alamat: string | null;
     foto_url?: string | null;
     latitude?: number | null;
@@ -267,6 +269,41 @@ export default function PosProfileHeroWrapper({
           )}
         </div>
       </div>
+
+      {/* Banner Notifikasi Peningkatan Status ke Jemaat Induk */}
+      {(pos.kategori === 'Jemaat Induk' || (pos.jemaat_induk && pos.jemaat_induk.id_induk === pos.id_induk)) && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-purple-900 via-indigo-900 to-brand-primary text-white shadow-soft flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-purple-500/30 animate-in fade-in duration-300">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-white/10 text-amber-300 flex items-center justify-center shrink-0 border border-white/20">
+              <Church size={22} />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest bg-amber-400 text-purple-950 px-2 py-0.5 rounded">
+                  Status Terkini: Mandiri
+                </span>
+                <span className="text-xs font-bold text-purple-200">Telah Ditingkatkan Statusnya</span>
+              </div>
+              <h3 className="text-base font-extrabold text-white leading-snug">
+                {pos.jemaat_induk?.nama_induk || pos.nama_pos}
+              </h3>
+              <p className="text-xs text-purple-200 leading-relaxed">
+                Unit pelayanan ini telah secara resmi bertransformasi menjadi Jemaat Induk Mandiri dalam hierarki GPIB.
+              </p>
+            </div>
+          </div>
+
+          {pos.jemaat_induk && (
+            <Link
+              href={`/hierarki/${encodeURIComponent(pos.jemaat_induk.id_mupel)}/${encodeURIComponent(pos.jemaat_induk.id_induk)}`}
+              className="min-h-[44px] px-4 py-2.5 rounded-xl bg-white text-purple-900 hover:bg-purple-50 font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 shrink-0 w-full sm:w-auto"
+            >
+              <span>Halaman Jemaat Induk</span>
+              <ArrowRight size={16} />
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* FULLSCREEN LIGHTBOX PREVIEW MODAL */}
       {showLightbox && pos.foto_url && (

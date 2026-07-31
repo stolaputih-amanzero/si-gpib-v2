@@ -361,11 +361,19 @@ export default async function PosPelkesDetailPage({
   const totalPerempuan = demoPerempuan;
 
   // Category badges configuration
+  const isJemaatInduk = pos.kategori === 'Jemaat Induk' || (pos.jemaat_induk && pos.jemaat_induk.id_induk === pos.id_induk);
   const isBajem = pos.kategori === 'Bajem' || pos.nama_pos.toLowerCase().includes('bajem');
-  const catLabel = isBajem ? 'Bakal Jemaat' : 'Pos Pelkes';
-  const catColor = isBajem 
-    ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-900/50' 
-    : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/50';
+  
+  let catLabel = 'Pos Pelkes';
+  let catColor = 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/50';
+
+  if (isJemaatInduk) {
+    catLabel = 'Jemaat Induk Mandiri';
+    catColor = 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/60 dark:text-purple-200 dark:border-purple-800';
+  } else if (isBajem) {
+    catLabel = 'Bakal Jemaat';
+    catColor = 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-900/50';
+  }
 
   return (
     <div className="space-y-6 pb-16 max-w-4xl mx-auto px-3.5 sm:px-6">

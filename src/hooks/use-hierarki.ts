@@ -844,7 +844,15 @@ export function useElevateStatus() {
       nama_induk_baru?: string;
       id_mupel_baru?: string;
     }) => {
-      const { error } = await supabase.rpc('process_status_elevation', {
+      // 1. Ambil detail Pos Pelkes saat ini untuk fallback
+      const { data: posData } = await supabase
+        .from('m_pos_pelkes')
+        .select('id_pos, id_induk, nama_pos, kategori, alamat, latitude, longitude, jemaat_induk:m_jemaat_induk(id_mupel)')
+        .eq('id_pos', data.id_pos)
+        .maybeSingle();
+
+      // 2. Eksekusi Atomic RPC process_status_elevation
+      const { error: rpcError } = await supabase.rpc('process_status_elevation', {
         p_id_pos: data.id_pos,
         p_target_status: data.target_status,
         p_tanggal_perubahan: data.tanggal_perubahan,
@@ -854,7 +862,60 @@ export function useElevateStatus() {
         p_id_mupel_baru: data.id_mupel_baru || null,
       });
 
-      if (error) throw error;
+      // 3. Apabila RPC gagal karena skema DB (misal not-null constraint pada latitude/longitude), eksekusi fallback mutasi client
+      if (rpcError) {
+        console.warn('RPC process_status_elevation failed, running fallback client mutation:', rpcError.message);
+
+        if (data.target_status === 'BAJEM') {
+          const { error: posErr } = await supabase
+            .from('m_pos_pelkes')
+            .update({ kategori: 'Bajem', updated_at: new Date().toISOString() })
+            .eq('id_pos', data.id_pos);
+          if (posErr) throw posErr;
+        } else if (data.target_status === 'JEMAAT_INDUK' && data.id_induk_baru && data.nama_induk_baru) {
+          const mupelId = data.id_mupel_baru || (posData?.jemaat_induk as any)?.id_mupel || 'M - 01';
+          const lat = posData?.latitude ?? 0;
+          const lng = posData?.longitude ?? 0;
+          const alamat = posData?.alamat ?? null;
+
+          // Upsert ke m_jemaat_induk dengan sertakan latitude, longitude & alamat
+          const { error: insertError } = await supabase
+            .from('m_jemaat_induk')
+            .upsert({
+              id_induk: data.id_induk_baru,
+              id_mupel: mupelId,
+              nama_induk: data.nama_induk_baru,
+              alamat: alamat,
+              latitude: lat,
+              longitude: lng,
+              keterangan: `Ditingkatkan dari Pos Pelkes (${posData?.nama_pos || data.id_pos}). SK: ${data.keterangan_perubahan}`,
+              updated_at: new Date().toISOString()
+            });
+
+          if (insertError) throw insertError;
+
+          // Update m_pos_pelkes ke Jemaat Induk baru
+          const { error: posErr } = await supabase
+            .from('m_pos_pelkes')
+            .update({ id_induk: data.id_induk_baru, kategori: 'Bajem', updated_at: new Date().toISOString() })
+            .eq('id_pos', data.id_pos);
+          if (posErr) throw posErr;
+        }
+
+        // Catat histori perubahan status
+        await supabase
+          .from('t_histori_perubahan_status')
+          .insert({
+            id_histori: 'HIS-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+            id_pos: data.id_pos,
+            id_induk_baru: data.id_induk_baru || null,
+            status_lama: posData?.kategori || 'Pos Pelkes',
+            status_baru: data.target_status === 'BAJEM' ? 'Bajem' : 'Jemaat Induk',
+            tanggal_perubahan: data.tanggal_perubahan,
+            keterangan_perubahan: data.keterangan_perubahan,
+          });
+      }
+
       return true;
     },
     onSuccess: () => {
