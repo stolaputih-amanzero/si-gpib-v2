@@ -1,18 +1,34 @@
 'use client';
 
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { useProfileAkun } from '@/hooks/use-profile';
 import { MessageCircle, ShieldAlert } from 'lucide-react';
 
 export function ReadOnlyNoticeBanner() {
   const { data: currentUser } = useCurrentUser();
+  const { data: akun } = useProfileAkun(currentUser?.id);
 
   if (!currentUser || currentUser.role !== 'read_only') {
     return null;
   }
 
-  const waMessage = encodeURIComponent(
-    `Halo Admin SI GPIB, saya baru saja mendaftar akun (${currentUser.email}) dan memohon penetapan role/akses definitif.`
-  );
+  const userEmail = akun?.email || currentUser?.email || '';
+  const userNama = akun?.nama_lengkap || '';
+  const userPhone = akun?.no_hp || '';
+
+  const rawMessage = `Halo Admin SI GPIB, saya baru saja mendaftar akun di SI GPIB dan memohon penetapan peran (role assignment).
+
+Berikut data diri saya:
+- Nama Lengkap: ${userNama || '[Isi Nama Lengkap]'}
+- Email: ${userEmail || '[Isi Email]'}
+- No. HP/WA: ${userPhone || '[Isi No. HP/WA]'}
+- Jabatan: [Isi Jabatan / Peran]
+- Mupel: [Isi Mupel]
+- Jemaat Induk: [Isi Jemaat Induk]
+
+Mohon bantuannya untuk dapat memproses penetapan role akun saya. Terima kasih!`;
+
+  const waMessage = encodeURIComponent(rawMessage);
   const waUrl = `https://wa.me/62859106811190?text=${waMessage}`;
 
   return (
