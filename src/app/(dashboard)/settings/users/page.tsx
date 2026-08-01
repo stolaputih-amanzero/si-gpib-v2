@@ -13,6 +13,7 @@ import { PosCascadingSelector } from '@/components/hierarki/HierarkiSelector/Pos
 import { JemaatCascadingSelector } from '@/components/hierarki/HierarkiSelector/JemaatCascadingSelector';
 import { MupelSelect } from '@/components/hierarki/HierarkiSelector/MupelSelect';
 import { useToast } from '@/components/ui/toast';
+import { RoleBadge } from '@/components/profile/RoleBadge';
 import {
   ShieldCheck,
   Search,
@@ -30,22 +31,6 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-
-const ROLE_LABELS: Record<UserRole, { label: string; bg: string; text: string }> = {
-  superadmin: { label: 'Superadmin (Sinode)', bg: 'bg-purple-500/10', text: 'text-purple-600 dark:text-purple-400' },
-  super_user: { label: 'Super User', bg: 'bg-purple-500/10', text: 'text-purple-600 dark:text-purple-400' },
-  admin_mupel: { label: 'Admin Mupel', bg: 'bg-amber-500/10', text: 'text-amber-600 dark:text-amber-400' },
-  admin_jemaat: { label: 'Admin Jemaat', bg: 'bg-blue-500/10', text: 'text-blue-600 dark:text-blue-400' },
-  kmj: { label: 'KMJ', bg: 'bg-blue-500/10', text: 'text-blue-600 dark:text-blue-400' },
-  pj_pos: { label: 'PJ Pos Pelkes', bg: 'bg-emerald-500/10', text: 'text-emerald-600 dark:text-emerald-400' },
-  pj: { label: 'PJ Pos Pelkes', bg: 'bg-emerald-500/10', text: 'text-emerald-600 dark:text-emerald-400' },
-  pendeta: { label: 'Pendeta GPIB', bg: 'bg-indigo-500/10', text: 'text-indigo-600 dark:text-indigo-400' },
-  pelayan: { label: 'Pelayan Field', bg: 'bg-cyan-500/10', text: 'text-cyan-600 dark:text-cyan-400' },
-  relawan: { label: 'Relawan', bg: 'bg-rose-500/10', text: 'text-rose-600 dark:text-rose-400' },
-  read_only: { label: 'Read Only (Pending Role)', bg: 'bg-amber-500/10', text: 'text-amber-600 dark:text-amber-400' },
-  user: { label: 'User Biasa', bg: 'bg-slate-500/10', text: 'text-slate-600 dark:text-slate-400' },
-};
-
 import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
 
 function getHierarchyDisplayLabel(user: UserManagementItem) {
@@ -67,11 +52,11 @@ function getHierarchyDisplayLabel(user: UserManagementItem) {
   if (!posLabel) {
     if (role === 'superadmin') posLabel = 'Semua (Nasional)';
     else if (role === 'admin_mupel') posLabel = 'Seluruh Pos Pelkes di Mupel';
-    else if (role === 'pj_pos') posLabel = 'Seluruh Pos Pelkes di Jemaat (Akses Multi-Pos)';
+    else if (role === 'pj_pos') posLabel = 'Seluruh Pos Pelkes di Jemaat (Multi-Pos)';
     else if (role === 'admin_jemaat' || role === 'pendeta') posLabel = 'Seluruh Pos Pelkes di Jemaat';
     else posLabel = 'Belum Ditentukan';
   } else if (role === 'pj_pos') {
-    posLabel = `${posLabel} (Akses Multi-Pos Pelkes)`;
+    posLabel = `${posLabel} (Multi-Pos)`;
   }
 
   return { mupelLabel, jemaatLabel, posLabel };
@@ -117,14 +102,14 @@ export default function UserManagementPage() {
           <Lock className="w-8 h-8" />
         </div>
         <div>
-          <h2 className="text-xl font-serif font-bold text-text-high">Otorisasi Akses Dibatasi</h2>
-          <p className="text-xs sm:text-sm text-text-muted max-w-md mt-1">
+          <h2 className="text-xl font-serif font-bold text-ink-primary">Otorisasi Akses Dibatasi</h2>
+          <p className="text-xs sm:text-sm text-ink-secondary max-w-md mt-1">
             Halaman Manajemen User & Role hanya dapat diakses oleh pengguna dengan role <strong>SuperAdmin</strong> atau <strong>Super User</strong>.
           </p>
         </div>
         <Link
           href="/dashboard"
-          className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold shadow-soft hover:bg-brand-primary-dark transition-all min-h-[44px]"
+          className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 text-white text-xs font-bold shadow-soft hover:bg-brand-700 transition-all min-h-[44px]"
         >
           Kembali ke Dashboard
         </Link>
@@ -189,8 +174,7 @@ export default function UserManagementPage() {
         'Pengguna Dibuat',
         `Akun ${addNamaLengkap} berhasil dibuat.${result?.password ? ` Password sementara: ${result.password}` : ''}`
       );
-      
-      // Reset state
+
       setIsAddingUser(false);
       setAddNamaLengkap('');
       setAddEmail('');
@@ -220,32 +204,32 @@ export default function UserManagementPage() {
   };
 
   const totalUsers = usersList?.length || 0;
-  const superadminCount = usersList?.filter((u) => u.role === 'superadmin').length || 0;
+  const superadminCount = usersList?.filter((u) => u.role === 'superadmin' || u.role === 'super_user').length || 0;
   const mupelAdminCount = usersList?.filter((u) => u.role === 'admin_mupel').length || 0;
-  const jemaatAdminCount = usersList?.filter((u) => u.role === 'admin_jemaat' || u.role === 'pendeta').length || 0;
+  const jemaatAdminCount = usersList?.filter((u) => u.role === 'admin_jemaat' || u.role === 'pendeta' || u.role === 'kmj').length || 0;
 
   return (
-    <div className="w-full space-y-6 pb-16">
-      {/* Top Header Navigation */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-3">
+    <div className="w-full space-y-6 pb-20 px-2 sm:px-4 md:px-6 max-w-7xl mx-auto">
+      {/* Top Standard Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+        <div className="flex items-start gap-3">
           <Link
             href="/settings"
-            className="p-2.5 rounded-xl text-text-high hover:bg-surface-sunken transition-all border border-border-subtle/50 min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="p-2.5 rounded-xl text-ink-primary hover:bg-surface-sunken transition-all border border-line-subtle min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0"
             title="Kembali ke Pengaturan"
           >
-            <ChevronLeft size={20} className="text-brand-primary" />
+            <ChevronLeft size={20} className="text-brand-600" />
           </Link>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl md:text-2xl font-serif font-bold text-brand-primary">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="font-display text-xl sm:text-2xl font-semibold text-ink-primary tracking-tight">
                 Manajemen Pengguna & RBAC
               </h1>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 shrink-0">
                 Superuser Exclusive
               </span>
             </div>
-            <p className="text-xs md:text-sm text-text-muted mt-0.5">
+            <p className="text-xs sm:text-sm text-ink-tertiary mt-0.5">
               Kelola otorisasi role, hak akses, dan penguncian wilayah Poka-Yoke
             </p>
           </div>
@@ -254,64 +238,65 @@ export default function UserManagementPage() {
         <button
           type="button"
           onClick={() => setIsAddingUser(true)}
-          className="px-4 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-blue-800 transition-all flex items-center gap-1.5 shadow-sm min-h-[40px] active:scale-95"
+          className="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 active:scale-95 text-white text-xs font-semibold transition-all flex items-center justify-center gap-2 shadow-xs min-h-[44px] shrink-0 sm:self-start"
         >
-          <Plus size={16} />
-          <span>Tambah Pengguna</span>
+          <Plus size={18} />
+          <span className="hidden sm:inline">Tambah Pengguna</span>
+          <span className="sm:hidden">+ Pengguna</span>
         </button>
       </div>
 
-      {/* KPI Cards Overview */}
+      {/* KPI Overview Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft">
-          <p className="text-xs text-text-muted font-medium">Total Akun Terdaftar</p>
-          <p className="text-2xl font-serif font-bold text-brand-primary tabular-nums mt-1">{totalUsers}</p>
-          <p className="text-[11px] text-text-muted mt-0.5">Seluruh Pengguna</p>
+        <div className="bg-surface-1 p-3.5 sm:p-4 rounded-2xl border border-line-subtle shadow-2xs">
+          <p className="text-xs text-ink-tertiary font-medium">Total Akun Terdaftar</p>
+          <p className="text-xl sm:text-2xl font-display font-semibold text-ink-primary tabular-nums mt-1">{totalUsers}</p>
+          <p className="text-[11px] text-ink-tertiary mt-0.5">Seluruh Pengguna</p>
         </div>
-        <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft">
+        <div className="bg-surface-1 p-3.5 sm:p-4 rounded-2xl border border-line-subtle shadow-2xs">
           <p className="text-xs text-purple-600 dark:text-purple-400 font-medium flex items-center gap-1">
             <Crown size={14} />
             <span>Superadmin</span>
           </p>
-          <p className="text-2xl font-serif font-bold text-purple-600 dark:text-purple-400 tabular-nums mt-1">{superadminCount}</p>
-          <p className="text-[11px] text-text-muted mt-0.5">Akses Nasional</p>
+          <p className="text-xl sm:text-2xl font-display font-semibold text-purple-600 dark:text-purple-400 tabular-nums mt-1">{superadminCount}</p>
+          <p className="text-[11px] text-ink-tertiary mt-0.5">Akses Nasional</p>
         </div>
-        <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft">
+        <div className="bg-surface-1 p-3.5 sm:p-4 rounded-2xl border border-line-subtle shadow-2xs">
           <p className="text-xs text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1">
             <Building size={14} />
             <span>Admin Mupel</span>
           </p>
-          <p className="text-2xl font-serif font-bold text-amber-600 dark:text-amber-400 tabular-nums mt-1">{mupelAdminCount}</p>
-          <p className="text-[11px] text-text-muted mt-0.5">Akses Mupel</p>
+          <p className="text-xl sm:text-2xl font-display font-semibold text-amber-600 dark:text-amber-400 tabular-nums mt-1">{mupelAdminCount}</p>
+          <p className="text-[11px] text-ink-tertiary mt-0.5">Akses Mupel</p>
         </div>
-        <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft">
+        <div className="bg-surface-1 p-3.5 sm:p-4 rounded-2xl border border-line-subtle shadow-2xs">
           <p className="text-xs text-blue-600 dark:text-blue-400 font-medium flex items-center gap-1">
             <UserCheck size={14} />
             <span>Admin Jemaat/KMJ</span>
           </p>
-          <p className="text-2xl font-serif font-bold text-blue-600 dark:text-blue-400 tabular-nums mt-1">{jemaatAdminCount}</p>
-          <p className="text-[11px] text-text-muted mt-0.5">Akses Jemaat</p>
+          <p className="text-xl sm:text-2xl font-display font-semibold text-blue-600 dark:text-blue-400 tabular-nums mt-1">{jemaatAdminCount}</p>
+          <p className="text-[11px] text-ink-tertiary mt-0.5">Akses Jemaat</p>
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft space-y-3">
+      {/* Filter & Search Section */}
+      <div className="bg-surface-1 p-3.5 sm:p-4 rounded-2xl border border-line-subtle shadow-2xs space-y-3">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="md:col-span-2 relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-tertiary" size={18} />
             <input
               type="text"
               placeholder="Cari pengguna (nama, email, mupel, jemaat, pos)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-line-subtle bg-surface-base text-xs sm:text-sm text-ink-primary focus:outline-none focus:ring-2 focus:ring-brand-500 min-h-[44px]"
             />
           </div>
           <div>
             <select
               value={selectedRoleFilter}
               onChange={(e) => setSelectedRoleFilter(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm font-semibold text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-line-subtle bg-surface-base text-xs sm:text-sm font-semibold text-ink-primary focus:outline-none focus:ring-2 focus:ring-brand-500 min-h-[44px]"
             >
               <option value="all">Semua Role Pengguna</option>
               <option value="superadmin">Superadmin (Sinode)</option>
@@ -321,6 +306,7 @@ export default function UserManagementPage() {
               <option value="pendeta">Pendeta GPIB</option>
               <option value="pelayan">Pelayan Field</option>
               <option value="relawan">Relawan</option>
+              <option value="read_only">Read Only (Pending Role)</option>
             </select>
           </div>
         </div>
@@ -328,11 +314,11 @@ export default function UserManagementPage() {
 
       {/* Users List */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-text-high">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-sm sm:text-base font-semibold text-ink-primary font-display">
             Daftar Pengguna ({usersList?.length || 0})
           </h2>
-          <span className="text-xs text-text-muted">
+          <span className="text-xs text-ink-tertiary">
             Otorisasi Terpusat Poka-Yoke
           </span>
         </div>
@@ -340,7 +326,7 @@ export default function UserManagementPage() {
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle animate-pulse space-y-3">
+              <div key={i} className="bg-surface-1 p-4 rounded-2xl border border-line-subtle animate-pulse space-y-3">
                 <div className="h-4 bg-surface-sunken rounded w-3/4"></div>
                 <div className="h-3 bg-surface-sunken rounded w-1/2"></div>
               </div>
@@ -349,82 +335,69 @@ export default function UserManagementPage() {
         ) : usersList && usersList.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {usersList.map((user) => {
-              const roleMeta = ROLE_LABELS[user.role] || {
-                label: user.role,
-                bg: 'bg-surface-sunken',
-                text: 'text-text-high',
-              };
               const { mupelLabel, jemaatLabel, posLabel } = getHierarchyDisplayLabel(user);
 
               return (
                 <div
                   key={user.id}
-                  className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft space-y-3 hover:border-brand-primary/40 transition-colors"
+                  className="bg-surface-1 p-4 rounded-2xl border border-line-subtle shadow-2xs space-y-3 hover:border-brand-500/40 transition-all flex flex-col justify-between"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-brand-primary/10 text-brand-primary font-serif font-bold text-base flex items-center justify-center shrink-0">
+                  <div className="space-y-2">
+                    {/* Avatar & User Details */}
+                    <div className="flex items-start gap-3">
+                      <div className="w-11 h-11 rounded-2xl bg-brand-500/10 text-brand-600 font-display font-bold text-base flex items-center justify-center shrink-0 border border-brand-500/20 shadow-2xs">
                         {user.nama_lengkap.charAt(0).toUpperCase()}
                       </div>
-                      <div className="min-w-0">
-                        <h3 className="font-bold text-sm text-text-high truncate">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-display font-semibold text-sm sm:text-base text-ink-primary truncate leading-snug">
                           {user.nama_lengkap}
                         </h3>
-                        <p className="text-xs text-text-muted truncate">{user.email}</p>
+                        <p className="text-xs text-ink-tertiary truncate font-mono">{user.email}</p>
+                        
+                        {/* Role Badge safely wrapped under name/email */}
+                        <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+                          <RoleBadge role={user.role} />
+                        </div>
                       </div>
                     </div>
 
-                    <span
-                      className={cn(
-                        'px-2.5 py-1 rounded-full text-[11px] font-bold shrink-0',
-                        roleMeta.bg,
-                        roleMeta.text
-                      )}
-                    >
-                      {roleMeta.label}
-                    </span>
-                  </div>
-
-                  {/* Hierarchy Assignment Details */}
-                  <div className="bg-surface-base p-2.5 rounded-xl border border-border-subtle/60 text-xs space-y-1">
-                    <div className="flex items-center justify-between text-text-muted">
-                      <span>Assigned Mupel:</span>
-                      <span className="font-semibold text-text-high">
-                        {mupelLabel}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-text-muted">
-                      <span>Assigned Jemaat:</span>
-                      <span className="font-semibold text-text-high">
-                        {jemaatLabel}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-text-muted">
-                      <span>Assigned Pos Pelkes:</span>
-                      <span className="font-semibold text-text-high">
-                        {posLabel}
-                      </span>
+                    {/* Hierarchy Assignment Details Box */}
+                    <div className="bg-surface-sunken p-3 rounded-xl border border-line-hairline text-xs space-y-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <div>
+                          <span className="text-[10px] font-bold text-ink-tertiary uppercase tracking-wider block">Assigned Mupel</span>
+                          <span className="font-semibold text-ink-primary text-xs block truncate" title={mupelLabel}>{mupelLabel}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-bold text-ink-tertiary uppercase tracking-wider block">Assigned Jemaat</span>
+                          <span className="font-semibold text-ink-primary text-xs block truncate" title={jemaatLabel}>{jemaatLabel}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-bold text-ink-tertiary uppercase tracking-wider block">Assigned Pos Pelkes</span>
+                          <span className="font-semibold text-ink-primary text-xs block truncate" title={posLabel}>{posLabel}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Actions & Status */}
-                  <div className="flex items-center justify-between pt-1">
+                  {/* Actions & Status Row */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-line-hairline">
                     <span
                       className={cn(
-                        'inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md',
+                        'inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full self-start sm:self-auto',
                         user.status === 'Active'
-                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                          : 'bg-red-500/10 text-red-600 dark:text-red-400'
+                          ? 'bg-ok-soft text-ok border border-ok/20'
+                          : 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
                       )}
                     >
                       <CheckCircle2 size={12} />
                       <span>{user.status || 'Active'}</span>
                     </span>
 
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
                       <Link
                         href={`/settings/users/${user.id}`}
-                        className="px-3 py-1.5 rounded-xl bg-brand-primary/10 text-brand-primary text-xs font-semibold hover:bg-brand-primary hover:text-white transition-all flex items-center gap-1 min-h-[36px]"
+                        className="px-3 py-1.5 rounded-xl bg-brand-500/10 text-brand-600 hover:bg-brand-600 hover:text-white transition-all flex items-center justify-center gap-1 text-xs font-semibold min-h-[38px] flex-1 sm:flex-initial"
                         title="Buka Profil 360° Pengguna"
                       >
                         <UserCheck size={14} />
@@ -434,7 +407,7 @@ export default function UserManagementPage() {
                       <button
                         type="button"
                         onClick={() => handleOpenEditModal(user)}
-                        className="px-3 py-1.5 rounded-xl bg-surface-sunken text-xs font-semibold text-text-high hover:bg-brand-primary hover:text-white transition-all flex items-center gap-1.5 min-h-[36px]"
+                        className="px-3 py-1.5 rounded-xl bg-surface-sunken hover:bg-surface-elevated text-xs font-semibold text-ink-primary border border-line-subtle transition-all flex items-center justify-center gap-1.5 min-h-[38px] flex-1 sm:flex-initial"
                       >
                         <Edit size={14} />
                         <span>Ubah Role</span>
@@ -446,10 +419,10 @@ export default function UserManagementPage() {
             })}
           </div>
         ) : (
-          <div className="bg-surface-elevated rounded-2xl p-8 text-center border border-border-subtle space-y-2">
-            <Users size={36} className="mx-auto text-text-muted opacity-50" />
-            <p className="font-semibold text-text-high text-sm">Tidak Ada Pengguna Ditemukan</p>
-            <p className="text-xs text-text-muted">
+          <div className="bg-surface-1 rounded-2xl p-8 text-center border border-line-subtle space-y-2">
+            <Users size={36} className="mx-auto text-ink-tertiary opacity-50" />
+            <p className="font-semibold text-ink-primary text-sm">Tidak Ada Pengguna Ditemukan</p>
+            <p className="text-xs text-ink-tertiary">
               Coba sesuaikan kata kunci pencarian atau kriteria filter role.
             </p>
           </div>
@@ -458,22 +431,22 @@ export default function UserManagementPage() {
 
       {/* Modal Edit Role & Hierarchy Assignment */}
       {editingUser && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-          <div className="bg-surface-elevated w-full max-w-lg rounded-t-3xl sm:rounded-2xl p-5 border border-border-subtle shadow-heavy max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
-            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-surface-elevated w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 border border-line-subtle shadow-heavy max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
+            <div className="flex items-center justify-between border-b border-line-subtle pb-3">
               <div>
-                <h2 className="text-base font-serif font-bold text-brand-primary flex items-center gap-2">
+                <h2 className="text-base font-serif font-bold text-brand-600 flex items-center gap-2">
                   <ShieldCheck size={18} />
                   <span>Atur Role & Otorisasi Poka-Yoke</span>
                 </h2>
-                <p className="text-xs text-text-muted mt-0.5">
-                  User: <strong className="text-text-high">{editingUser.nama_lengkap}</strong> ({editingUser.email})
+                <p className="text-xs text-ink-tertiary mt-0.5">
+                  User: <strong className="text-ink-primary">{editingUser.nama_lengkap}</strong> ({editingUser.email})
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setEditingUser(null)}
-                className="w-9 h-9 rounded-full bg-surface-sunken flex items-center justify-center text-text-muted hover:text-text-high min-h-[44px] min-w-[44px]"
+                className="w-9 h-9 rounded-full bg-surface-sunken flex items-center justify-center text-ink-tertiary hover:text-ink-primary min-h-[44px] min-w-[44px]"
               >
                 <X size={18} />
               </button>
@@ -482,35 +455,35 @@ export default function UserManagementPage() {
             <form onSubmit={handleSaveUser} className="space-y-4">
               {/* Nama Lengkap */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-high">Nama Lengkap *</label>
+                <label className="text-xs font-semibold text-ink-primary">Nama Lengkap *</label>
                 <input
                   type="text"
                   value={formNamaLengkap}
                   onChange={(e) => setFormNamaLengkap(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-line-subtle bg-surface-base text-sm text-ink-primary focus:outline-none focus:ring-2 focus:ring-brand-500 min-h-[44px]"
                   required
                 />
               </div>
 
               {/* Email */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-high">Email *</label>
+                <label className="text-xs font-semibold text-ink-primary">Email *</label>
                 <input
                   type="email"
                   value={formEmail}
                   onChange={(e) => setFormEmail(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-line-subtle bg-surface-base text-sm text-ink-primary focus:outline-none focus:ring-2 focus:ring-brand-500 min-h-[44px]"
                   required
                 />
               </div>
 
               {/* Select Role */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-high">Role Hak Akses (RBAC) *</label>
+                <label className="text-xs font-semibold text-ink-primary">Role Hak Akses (RBAC) *</label>
                 <select
                   value={formRole}
                   onChange={(e) => setFormRole(e.target.value as UserRole)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm font-semibold text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-line-subtle bg-surface-base text-sm font-semibold text-ink-primary focus:outline-none focus:ring-2 focus:ring-brand-500 min-h-[44px]"
                 >
                   <option value="superadmin">Superadmin (Sinode) - Akses Penuh Nasional</option>
                   <option value="admin_mupel">Admin Mupel - Terkunci 1 Mupel</option>
@@ -524,11 +497,11 @@ export default function UserManagementPage() {
 
               {/* Status Select */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-high">Status Akun Pengguna</label>
+                <label className="text-xs font-semibold text-ink-primary">Status Akun Pengguna</label>
                 <select
                   value={formStatus}
                   onChange={(e) => setFormStatus(e.target.value as any)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-line-subtle bg-surface-base text-sm text-ink-primary focus:outline-none focus:ring-2 focus:ring-brand-500 min-h-[44px]"
                 >
                   <option value="Active">Active (Aktif)</option>
                   <option value="Inactive">Inactive (Non-Aktif)</option>
@@ -537,10 +510,10 @@ export default function UserManagementPage() {
               </div>
 
               {/* Dynamic Cascading Selector Based on Role Requirements */}
-              <div className="space-y-2 pt-2 border-t border-border-subtle">
-                <label className="text-xs font-semibold text-text-high flex items-center justify-between">
+              <div className="space-y-2 pt-2 border-t border-line-subtle">
+                <label className="text-xs font-semibold text-ink-primary flex items-center justify-between">
                   <span>Penetapan Wilayah Hierarki Poka-Yoke</span>
-                  <span className="text-[11px] text-brand-primary font-normal flex items-center gap-1">
+                  <span className="text-[11px] text-brand-600 font-normal flex items-center gap-1">
                     <Lock size={12} /> Auto-Lock untuk Role
                   </span>
                 </label>
@@ -556,7 +529,7 @@ export default function UserManagementPage() {
                       onChange={setFormMupel}
                       required={true}
                     />
-                    <p className="text-[11px] text-text-muted">
+                    <p className="text-[11px] text-ink-tertiary">
                       Admin Mupel hanya dapat mengakses data dalam Mupel ini.
                     </p>
                   </div>
@@ -568,7 +541,7 @@ export default function UserManagementPage() {
                       onMupelChange={setFormMupel}
                       defaultIndukId={formInduk || undefined}
                     />
-                    <p className="text-[11px] text-text-muted">
+                    <p className="text-[11px] text-ink-tertiary">
                       PJ Pos Pelkes / Admin Jemaat / KMJ terkunci pada Mupel & Jemaat Induk ini (otomatis memiliki hak akses ke seluruh Pos Pelkes di wilayah Jemaat Induk).
                     </p>
                   </div>
@@ -582,7 +555,7 @@ export default function UserManagementPage() {
                       defaultPosId={formPos || undefined}
                       required={false}
                     />
-                    <p className="text-[11px] text-text-muted">
+                    <p className="text-[11px] text-ink-tertiary">
                       PJ Pos Pelkes / Pelayan / Relawan terkunci pada Mupel & Jemaat Induk ini (PJ memiliki hak akses ke seluruh Pos Pelkes di wilayah Jemaat Induk).
                     </p>
                   </div>
@@ -590,7 +563,7 @@ export default function UserManagementPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2 pt-3 border-t border-border-subtle">
+              <div className="flex items-center gap-2 pt-3 border-t border-line-subtle">
                 <button
                   type="button"
                   onClick={() => handleDeleteUser(editingUser.id, editingUser.nama_lengkap)}
@@ -602,14 +575,14 @@ export default function UserManagementPage() {
                 <button
                   type="button"
                   onClick={() => setEditingUser(null)}
-                  className="flex-1 py-2.5 rounded-xl border border-border-subtle text-xs font-bold text-text-high hover:bg-surface-sunken transition-all min-h-[44px]"
+                  className="flex-1 py-2.5 rounded-xl border border-line-subtle text-xs font-bold text-ink-primary hover:bg-surface-sunken transition-all min-h-[44px]"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={updateRoleMutation.isPending}
-                  className="flex-1 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl bg-brand-600 text-white text-xs font-bold hover:bg-brand-700 active:scale-95 transition-all shadow-xs min-h-[44px] disabled:opacity-50"
                 >
                   {updateRoleMutation.isPending ? 'Menyimpan...' : 'Simpan Otorisasi'}
                 </button>
@@ -621,22 +594,22 @@ export default function UserManagementPage() {
 
       {/* Modal Tambah Pengguna */}
       {isAddingUser && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-          <div className="bg-surface-elevated w-full max-w-lg rounded-t-3xl sm:rounded-2xl p-5 border border-border-subtle shadow-heavy max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
-            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-surface-elevated w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 border border-line-subtle shadow-heavy max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
+            <div className="flex items-center justify-between border-b border-line-subtle pb-3">
               <div>
-                <h2 className="text-base font-serif font-bold text-brand-primary flex items-center gap-2">
+                <h2 className="text-base font-serif font-bold text-brand-600 flex items-center gap-2">
                   <Plus size={18} />
                   <span>Tambah Pengguna Baru</span>
                 </h2>
-                <p className="text-xs text-text-muted mt-0.5">
+                <p className="text-xs text-ink-tertiary mt-0.5">
                   Buat akun login baru dan tentukan hak akses penugasannya
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsAddingUser(false)}
-                className="w-9 h-9 rounded-full bg-surface-sunken flex items-center justify-center text-text-muted hover:text-text-high min-h-[44px] min-w-[44px]"
+                className="w-9 h-9 rounded-full bg-surface-sunken flex items-center justify-center text-ink-tertiary hover:text-ink-primary min-h-[44px] min-w-[44px]"
               >
                 <X size={18} />
               </button>
@@ -645,26 +618,26 @@ export default function UserManagementPage() {
             <form onSubmit={handleCreateUser} className="space-y-4">
               {/* Nama Lengkap */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-high">Nama Lengkap *</label>
+                <label className="text-xs font-semibold text-ink-primary">Nama Lengkap *</label>
                 <input
                   type="text"
                   placeholder="Contoh: Budi Santoso"
                   value={addNamaLengkap}
                   onChange={(e) => setAddNamaLengkap(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-line-subtle bg-surface-base text-sm text-ink-primary focus:outline-none focus:ring-2 focus:ring-brand-500 min-h-[44px]"
                   required
                 />
               </div>
 
               {/* Email */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-high">Email *</label>
+                <label className="text-xs font-semibold text-ink-primary">Email *</label>
                 <input
                   type="email"
                   placeholder="budi@example.com"
                   value={addEmail}
                   onChange={(e) => setAddEmail(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-line-subtle bg-surface-base text-sm text-ink-primary focus:outline-none focus:ring-2 focus:ring-brand-500 min-h-[44px]"
                   required
                 />
               </div>
@@ -672,26 +645,26 @@ export default function UserManagementPage() {
               {/* Password */}
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
-                  <label className="text-xs font-semibold text-text-high">Password *</label>
-                  <span className="text-[10px] text-text-muted">Kosongkan untuk auto-generate</span>
+                  <label className="text-xs font-semibold text-ink-primary">Password *</label>
+                  <span className="text-[10px] text-ink-tertiary">Kosongkan untuk auto-generate</span>
                 </div>
                 <input
                   type="password"
                   placeholder="Min. 6 karakter"
                   value={addPassword}
                   onChange={(e) => setAddPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-line-subtle bg-surface-base text-sm text-ink-primary focus:outline-none focus:ring-2 focus:ring-brand-500 min-h-[44px]"
                   minLength={6}
                 />
               </div>
 
               {/* Select Role */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-high">Role Hak Akses (RBAC) *</label>
+                <label className="text-xs font-semibold text-ink-primary">Role Hak Akses (RBAC) *</label>
                 <select
                   value={addRole}
                   onChange={(e) => setAddRole(e.target.value as UserRole)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm font-semibold text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-line-subtle bg-surface-base text-sm font-semibold text-ink-primary focus:outline-none focus:ring-2 focus:ring-brand-500 min-h-[44px]"
                 >
                   <option value="superadmin">Superadmin (Sinode) - Akses Penuh Nasional</option>
                   <option value="admin_mupel">Admin Mupel - Terkunci 1 Mupel</option>
@@ -705,11 +678,11 @@ export default function UserManagementPage() {
 
               {/* Status Select */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-high">Status Akun Pengguna</label>
+                <label className="text-xs font-semibold text-ink-primary">Status Akun Pengguna</label>
                 <select
                   value={addStatus}
                   onChange={(e) => setAddStatus(e.target.value as any)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-line-subtle bg-surface-base text-sm text-ink-primary focus:outline-none focus:ring-2 focus:ring-brand-500 min-h-[44px]"
                 >
                   <option value="Active">Active (Aktif)</option>
                   <option value="Inactive">Inactive (Non-Aktif)</option>
@@ -718,10 +691,10 @@ export default function UserManagementPage() {
               </div>
 
               {/* Dynamic Cascading Selector Based on Role Requirements */}
-              <div className="space-y-2 pt-2 border-t border-border-subtle">
-                <label className="text-xs font-semibold text-text-high flex items-center justify-between">
+              <div className="space-y-2 pt-2 border-t border-line-subtle">
+                <label className="text-xs font-semibold text-ink-primary flex items-center justify-between">
                   <span>Penetapan Wilayah Hierarki Poka-Yoke</span>
-                  <span className="text-[11px] text-brand-primary font-normal flex items-center gap-1">
+                  <span className="text-[11px] text-brand-600 font-normal flex items-center gap-1">
                     <Lock size={12} /> Auto-Lock untuk Role
                   </span>
                 </label>
@@ -737,7 +710,7 @@ export default function UserManagementPage() {
                       onChange={setAddMupel}
                       required={true}
                     />
-                    <p className="text-[11px] text-text-muted">
+                    <p className="text-[11px] text-ink-tertiary">
                       Admin Mupel hanya dapat mengakses data dalam Mupel ini.
                     </p>
                   </div>
@@ -749,7 +722,7 @@ export default function UserManagementPage() {
                       onMupelChange={setAddMupel}
                       defaultIndukId={addInduk || undefined}
                     />
-                    <p className="text-[11px] text-text-muted">
+                    <p className="text-[11px] text-ink-tertiary">
                       PJ Pos Pelkes / Admin Jemaat / KMJ terkunci pada Mupel & Jemaat Induk ini (otomatis memiliki hak akses ke seluruh Pos Pelkes di wilayah Jemaat Induk).
                     </p>
                   </div>
@@ -763,7 +736,7 @@ export default function UserManagementPage() {
                       defaultPosId={addPos || undefined}
                       required={false}
                     />
-                    <p className="text-[11px] text-text-muted">
+                    <p className="text-[11px] text-ink-tertiary">
                       PJ Pos Pelkes / Pelayan / Relawan terkunci pada Mupel & Jemaat Induk ini (PJ memiliki hak akses ke seluruh Pos Pelkes di wilayah Jemaat Induk).
                     </p>
                   </div>
@@ -771,18 +744,18 @@ export default function UserManagementPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2 pt-3 border-t border-border-subtle">
+              <div className="flex items-center gap-2 pt-3 border-t border-line-subtle">
                 <button
                   type="button"
                   onClick={() => setIsAddingUser(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-border-subtle text-xs font-bold text-text-high hover:bg-surface-sunken transition-all min-h-[44px]"
+                  className="flex-1 py-2.5 rounded-xl border border-line-subtle text-xs font-bold text-ink-primary hover:bg-surface-sunken transition-all min-h-[44px]"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={createUserMutation.isPending}
-                  className="flex-1 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl bg-brand-600 text-white text-xs font-bold hover:bg-brand-700 active:scale-95 transition-all shadow-xs min-h-[44px] disabled:opacity-50"
                 >
                   {createUserMutation.isPending ? 'Membuat...' : 'Buat Pengguna'}
                 </button>
