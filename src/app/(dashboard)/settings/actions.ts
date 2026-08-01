@@ -92,7 +92,7 @@ export async function updateOwnProfileAction(payload: {
             finalAvatarUrl = publicData.publicUrl;
           }
         } else {
-          console.warn('Storage upload error to pos-pelkes-assets, using base64 fallback in DB:', storageError);
+          console.warn('Storage upload warning for pos-pelkes-assets:', storageError);
         }
       } catch (uploadErr) {
         console.warn('Supabase storage avatar upload warning:', uploadErr);
@@ -121,31 +121,31 @@ export async function updateOwnProfileAction(payload: {
       }
 
       await supabase.auth.updateUser(authUpdate);
-    } catch {}
+    } catch (authErr) {
+      console.warn('Auth user update warning:', authErr);
+    }
 
-    // 2. Update public.users row by ID or Email
+    // 2. Find target row in public.users table by ID or Email
     const dbClient = createAdminClient() || supabase;
 
     let targetRowId = currentUserId;
-    if (currentUserId) {
-      const { data: rowById } = await dbClient
+    const { data: rowById } = await dbClient
+      .from('users')
+      .select('id, email')
+      .eq('id', currentUserId)
+      .maybeSingle();
+
+    if (rowById) {
+      targetRowId = rowById.id;
+    } else if (currentUserEmail) {
+      const { data: rowByEmail } = await dbClient
         .from('users')
         .select('id')
-        .eq('id', currentUserId)
+        .eq('email', currentUserEmail)
         .maybeSingle();
 
-      if (rowById) {
-        targetRowId = rowById.id;
-      } else if (currentUserEmail) {
-        const { data: rowByEmail } = await dbClient
-          .from('users')
-          .select('id')
-          .eq('email', currentUserEmail)
-          .maybeSingle();
-
-        if (rowByEmail) {
-          targetRowId = rowByEmail.id;
-        }
+      if (rowByEmail) {
+        targetRowId = rowByEmail.id;
       }
     }
 
@@ -164,9 +164,10 @@ export async function updateOwnProfileAction(payload: {
 
     if (dbError) {
       console.error('Error updating users table:', dbError);
+      return { success: false, error: dbError.message || 'Gagal memperbarui tabel users' };
     }
 
-    // 2.b If user is linked to m_pendeta, update m_pendeta email, foto_url & nama
+    // 2.b If user is linked to m_pendeta, update m_pendeta email, foto_url & nama_lengkap
     try {
       const { data: userData } = await dbClient
         .from('users')
@@ -174,22 +175,23 @@ export async function updateOwnProfileAction(payload: {
         .eq('id', targetRowId)
         .maybeSingle();
 
-      if (userData?.id_pendeta) {
+      const pendetaId = userData?.id_pendeta;
+      if (pendetaId) {
         await dbClient
           .from('m_pendeta')
           .update({
-            nama_pendeta: payload.nama_lengkap,
+            nama_lengkap: payload.nama_lengkap,
             email: finalEmail,
             foto_url: finalAvatarUrl || null,
             no_wa: payload.no_hp || null,
             updated_at: new Date().toISOString(),
           })
-          .eq('id_pendeta', userData.id_pendeta);
+          .eq('id_pendeta', pendetaId);
       } else if (currentUserEmail) {
         await dbClient
           .from('m_pendeta')
           .update({
-            nama_pendeta: payload.nama_lengkap,
+            nama_lengkap: payload.nama_lengkap,
             email: finalEmail,
             foto_url: finalAvatarUrl || null,
             no_wa: payload.no_hp || null,
@@ -198,10 +200,10 @@ export async function updateOwnProfileAction(payload: {
           .eq('email', currentUserEmail);
       }
     } catch (mErr) {
-      console.warn('m_pendeta foto_url update warning:', mErr);
+      console.warn('m_pendeta update warning:', mErr);
     }
 
-    // 3. Update session cookie safely
+    // 3. Update session cookie safely (omit huge base64 strings to prevent HTTP header size errors)
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('si_gpib_user_session')?.value;
     if (sessionCookie) {
@@ -209,17 +211,19 @@ export async function updateOwnProfileAction(payload: {
         const parsed = JSON.parse(sessionCookie);
         parsed.nama_lengkap = payload.nama_lengkap;
         parsed.email = finalEmail;
+
+        const safeAvatar = finalAvatarUrl && !finalAvatarUrl.startsWith('data:') ? finalAvatarUrl : (parsed.avatar_url || null);
         
-        parsed.avatar_url = finalAvatarUrl || null;
-        parsed.foto_url = finalAvatarUrl || null;
+        parsed.avatar_url = safeAvatar;
+        parsed.foto_url = safeAvatar;
         parsed.user_metadata = {
           ...parsed.user_metadata,
           email: finalEmail,
           nama_lengkap: payload.nama_lengkap,
           no_hp: payload.no_hp,
-          avatar_url: finalAvatarUrl || null,
-          foto_url: finalAvatarUrl || null,
-          picture: finalAvatarUrl || null,
+          avatar_url: safeAvatar,
+          foto_url: safeAvatar,
+          picture: safeAvatar,
         };
 
         cookieStore.set('si_gpib_user_session', JSON.stringify(parsed), {
@@ -239,7 +243,7 @@ export async function updateOwnProfileAction(payload: {
       keterangan: `Memperbarui profil pengguna & foto avatar (${payload.nama_lengkap})`,
     });
 
-    return { success: true, avatar_url: finalAvatarUrl, email: finalEmail };
+    return { success: true, avatar_url: finalAvatarUrl, email: finalEmail, nama_lengkap: payload.nama_lengkap };
   } catch (err: any) {
     console.error('Update own profile error:', err);
     return { success: false, error: err?.message || 'Gagal memperbarui profil pengguna' };
