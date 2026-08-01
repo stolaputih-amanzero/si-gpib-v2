@@ -30,12 +30,8 @@ export default async function PosPelkesPage() {
   }
 
   return (
-    <div className="p-4 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-brand-primary">Pos Pelkes & Bajem</h1>
-      </div>
-      
+    <div className="min-h-screen bg-surface-base">
       <PosPelkesList initialData={(posPelkes as any) || []} />
     </div>
-  )
+  );
 }

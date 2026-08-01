@@ -1,20 +1,25 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { SearchBar } from '@/components/ui/search-bar';
-import { cleanQuotes } from '@/lib/utils';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MapPin, ArrowRight, Map, Database, Plus, TrendingUp, Church, ChevronRight } from 'lucide-react';
+import { Search, Plus, TrendingUp, Church, Sprout, SearchX, Map, MapPin } from 'lucide-react';
+import Link from 'next/link';
+import { cleanQuotes } from '@/lib/utils';
 import { StatusElevationModal } from '@/components/hierarki/StatusElevationModal';
 import { PullToRefresh } from '@/components/mobile/PullToRefresh';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { haptic } from '@/lib/haptic/vibrate';
 import { useReveal } from '@/hooks/useReveal';
 import { normalizePosName } from '@/lib/utils/normalize-pos-name';
 import { PosName } from '@/components/ui/PosName';
 import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
+import { detectPosType } from '@/lib/utils/pos-type';
+import { ListRow } from '@/components/list/ListRow';
+import { FilterChips, FilterChipOption } from '@/components/list/FilterChips';
+import { SummaryStrip } from '@/components/list/SummaryStrip';
+import { EmptyState } from '@/components/list/EmptyState';
+import { ListSkeleton } from '@/components/list/ListSkeleton';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 interface PosPelkes {
   id_pos: string;
@@ -38,12 +43,20 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
   const router = useRouter();
   const { data: currentUser } = useCurrentUser();
   const canElevate = isSuperUserRole(currentUser?.role);
+  
   const [dataList, setDataList] = useState<PosPelkes[]>(initialData || []);
+  const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedMupel, setSelectedMupel] = useState('');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all');
   const [selectedJemaat, setSelectedJemaat] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [elevatePosItem, setElevatePosItem] = useState<{ id_pos: string; nama_pos: string; kategori?: string | null; id_induk: string } | null>(null);
+  const [elevatePosItem, setElevatePosItem] = useState<{
+    id_pos: string;
+    nama_pos: string;
+    kategori?: string | null;
+    id_induk: string;
+  } | null>(null);
+
   const itemsPerPage = 10;
   const listRevealRef = useReveal<HTMLDivElement>();
 
@@ -68,90 +81,77 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
 
   const handleRefresh = async () => {
     haptic.light();
+    setIsLoading(true);
     router.refresh();
+    setTimeout(() => setIsLoading(false), 600);
   };
 
-  const mupelOptions = useMemo(() => {
-    const mupels: Record<string, string> = {};
-    dataList.forEach((pos) => {
-      const jemaatObj = pos.jemaat_induk;
-      const j = Array.isArray(jemaatObj) ? jemaatObj[0] : jemaatObj;
-      const mupelObj = j?.mupel;
-      const m = Array.isArray(mupelObj) ? mupelObj[0] : mupelObj;
-      
-      if (m?.id_mupel && m?.nama_mupel) {
-        mupels[m.id_mupel] = cleanQuotes(m.nama_mupel);
-      }
-    });
-    return Object.entries(mupels)
-      .map(([id, name]) => ({ id, name }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [dataList]);
-
+  // Jemaat Options for Filtering
   const jemaatOptions = useMemo(() => {
     const jemaats: Record<string, string> = {};
     dataList.forEach((pos) => {
       const jemaatObj = pos.jemaat_induk;
       const j = Array.isArray(jemaatObj) ? jemaatObj[0] : jemaatObj;
       if (j?.id_induk && j?.nama_induk) {
-        if (!selectedMupel || j.id_mupel === selectedMupel) {
-          jemaats[j.id_induk] = cleanQuotes(j.nama_induk);
-        }
+        jemaats[j.id_induk] = cleanQuotes(j.nama_induk);
       }
     });
     return Object.entries(jemaats)
       .map(([id, name]) => ({ id, name }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [dataList, selectedMupel]);
+  }, [dataList]);
 
+  // Main Filtered Data
   const filteredData = useMemo(() => {
     const list = dataList.filter((pos) => {
+      // 1. Filter Category (Semua vs Pos Pelkes vs Bajem)
+      const posType = detectPosType(pos.nama_pos);
+      if (selectedCategoryFilter === 'pos_pelkes' && posType !== 'pos_pelkes') {
+        return false;
+      }
+      if (selectedCategoryFilter === 'bajem' && posType !== 'bajem') {
+        return false;
+      }
+
+      // 2. Filter Jemaat Induk
       const jemaatObj = pos.jemaat_induk;
       const j = Array.isArray(jemaatObj) ? jemaatObj[0] : jemaatObj;
-      const mupelObj = j?.mupel;
-      const m = Array.isArray(mupelObj) ? mupelObj[0] : mupelObj;
+      if (selectedJemaat && j?.id_induk !== selectedJemaat) {
+        return false;
+      }
 
+      // 3. Search Query Matching
       if (searchQuery) {
         const query = searchQuery.trim().toLowerCase();
-        const matchesName = pos.nama_pos ? normalizePosName(pos.nama_pos).toLowerCase().includes(query) || cleanQuotes(pos.nama_pos).toLowerCase().includes(query) : false;
+        const rawName = pos.nama_pos || '';
+        const normalizedName = normalizePosName(rawName).toLowerCase();
+        const cleanedName = cleanQuotes(rawName).toLowerCase();
+        const matchesName = normalizedName.includes(query) || cleanedName.includes(query);
         const matchesId = pos.id_pos ? pos.id_pos.toLowerCase().includes(query) : false;
         const matchesAddress = pos.alamat ? cleanQuotes(pos.alamat).toLowerCase().includes(query) : false;
-        
-        const jemaatName = j?.nama_induk ? cleanQuotes(j.nama_induk).toLowerCase() : '';
-        const jemaatId = j?.id_induk ? j.id_induk.toLowerCase() : '';
-        const mupelName = m?.nama_mupel ? cleanQuotes(m.nama_mupel).toLowerCase() : '';
-        const mupelId = j?.id_mupel ? j.id_mupel.toLowerCase() : '';
 
-        const matchesJemaat = jemaatName.includes(query) || jemaatId.includes(query);
-        const matchesMupel = mupelName.includes(query) || mupelId.includes(query);
-        
+        const mupelObj = j?.mupel;
+        const m = Array.isArray(mupelObj) ? mupelObj[0] : mupelObj;
+        const jemaatName = j?.nama_induk ? cleanQuotes(j.nama_induk).toLowerCase() : '';
+        const mupelName = m?.nama_mupel ? cleanQuotes(m.nama_mupel).toLowerCase() : '';
+
+        const matchesJemaat = jemaatName.includes(query);
+        const matchesMupel = mupelName.includes(query);
+
         if (!matchesName && !matchesId && !matchesAddress && !matchesJemaat && !matchesMupel) {
           return false;
         }
       }
 
-      if (selectedMupel && j?.id_mupel !== selectedMupel) {
-        return false;
-      }
-
-      if (selectedJemaat && j?.id_induk !== selectedJemaat) {
-        return false;
-      }
-
       return true;
     });
 
+    // Sort by relevance if search query exists
     if (searchQuery) {
       const query = searchQuery.trim().toLowerCase();
-      
       const getRelevanceScore = (posItem: PosPelkes) => {
-        const jemaatObj = posItem.jemaat_induk;
-        const j = Array.isArray(jemaatObj) ? jemaatObj[0] : jemaatObj;
-        const mupelObj = j?.mupel;
-        const m = Array.isArray(mupelObj) ? mupelObj[0] : mupelObj;
-
-        let score = 0;
         const name = posItem.nama_pos ? normalizePosName(posItem.nama_pos).toLowerCase() : '';
+        let score = 0;
         if (name === query) score += 100;
         else if (name.startsWith(query)) score += 50;
         else if (name.includes(query)) score += 20;
@@ -159,29 +159,61 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
         const id = posItem.id_pos ? posItem.id_pos.toLowerCase() : '';
         if (id === query) score += 40;
         else if (id.includes(query)) score += 10;
-
-        const jName = j?.nama_induk ? cleanQuotes(j.nama_induk).toLowerCase() : '';
-        if (jName === query) score += 8;
-        else if (jName.includes(query)) score += 4;
-
-        const mName = m?.nama_mupel ? cleanQuotes(m.nama_mupel).toLowerCase() : '';
-        if (mName === query) score += 4;
-        else if (mName.includes(query)) score += 2;
-
-        const address = posItem.alamat ? cleanQuotes(posItem.alamat).toLowerCase() : '';
-        if (address.includes(query)) score += 1;
-
         return score;
       };
-
       return [...list].sort((a, b) => getRelevanceScore(b) - getRelevanceScore(a));
     }
 
     return list;
-  }, [dataList, searchQuery, selectedMupel, selectedJemaat]);
+  }, [dataList, searchQuery, selectedCategoryFilter, selectedJemaat]);
 
+  // Counts for Summary Strip & Chips
+  const posPelkesCount = useMemo(() => {
+    return dataList.filter((p) => detectPosType(p.nama_pos) === 'pos_pelkes').length;
+  }, [dataList]);
+
+  const bajemCount = useMemo(() => {
+    return dataList.filter((p) => detectPosType(p.nama_pos) === 'bajem').length;
+  }, [dataList]);
+
+  const activeFilteredPosCount = filteredData.filter((p) => detectPosType(p.nama_pos) === 'pos_pelkes').length;
+  const activeFilteredBajemCount = filteredData.filter((p) => detectPosType(p.nama_pos) === 'bajem').length;
+
+  // Filter Chips Config
+  const filterChips: FilterChipOption[] = useMemo(() => {
+    const chips: FilterChipOption[] = [
+      { id: 'all', label: 'Semua', count: dataList.length },
+      { id: 'pos_pelkes', label: 'Pos Pelkes', count: posPelkesCount },
+      { id: 'bajem', label: 'Bajem', count: bajemCount },
+    ];
+
+    if (jemaatOptions.length > 1) {
+      jemaatOptions.forEach((j) => {
+        chips.push({
+          id: `jemaat_${j.id}`,
+          label: j.name,
+        });
+      });
+    }
+
+    return chips;
+  }, [dataList.length, posPelkesCount, bajemCount, jemaatOptions]);
+
+  const handleChipSelect = (id: string) => {
+    setCurrentPage(1);
+    if (id.startsWith('jemaat_')) {
+      const jId = id.replace('jemaat_', '');
+      setSelectedJemaat(jId);
+    } else {
+      setSelectedJemaat('');
+      setSelectedCategoryFilter(id);
+    }
+  };
+
+  const selectedChipId = selectedJemaat ? `jemaat_${selectedJemaat}` : selectedCategoryFilter;
+
+  // Pagination
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  
   const currentData = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filteredData.slice(start, start + itemsPerPage);
@@ -199,318 +231,228 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
     });
   };
 
+  const isFilterActive = Boolean(searchQuery || selectedCategoryFilter !== 'all' || selectedJemaat);
+
+  const resetFilters = () => {
+    setSearchQuery('');
+    setSelectedCategoryFilter('all');
+    setSelectedJemaat('');
+    setCurrentPage(1);
+  };
+
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-      <div className="space-y-4 pb-24">
-        {/* Search & Filter Header */}
-        <div className="card-flat p-4 space-y-4">
-          <div className="flex flex-col md:flex-row gap-3 justify-between items-center">
-            <div className="w-full md:max-w-xl">
-              <SearchBar
-                placeholder="Cari nama pos, ID, alamat, jemaat, atau mupel..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-              />
-            </div>
-            <div className="flex gap-2 w-full md:w-auto shrink-0 justify-end">
-              <Button asChild variant="outline" className="flex-1 md:flex-none min-h-[48px]" onClick={() => haptic.light()}>
-                <Link href="/dashboard/peta">
-                  <Map size={18} className="mr-2" />
-                  Peta
-                </Link>
-              </Button>
-              <Button asChild variant="default" className="flex-1 md:flex-none min-h-[48px] text-white" onClick={() => haptic.light()}>
-                <Link href="/dashboard/pos-pelkes/baru" className="text-white flex items-center justify-center">
-                  <Plus size={18} className="mr-2 text-white" />
-                  <span className="text-white font-semibold">Tambah Pos</span>
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 hairline-t">
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-ink-primary">Saring berdasarkan Mupel</label>
-              <select
-                value={selectedMupel}
-                onChange={(e) => {
-                  haptic.selection();
-                  setSelectedMupel(e.target.value);
-                  setSelectedJemaat('');
-                  setCurrentPage(1);
-                }}
-                className="field text-sm min-h-[48px]"
-              >
-                <option value="">Semua Mupel</option>
-                {mupelOptions.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
+      <div className="min-h-screen bg-surface-base pb-36 relative">
+        {/* 1. Sticky Header */}
+        <div className="sticky top-0 z-40 bg-surface-1/85 backdrop-blur-md hairline-b pt-safe px-4 pb-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <h1 className="font-display text-2xl font-semibold text-ink-primary tracking-tight truncate">
+                Pos Pelkes & Bajem
+              </h1>
+              <span className="bg-surface-brand text-brand-600 text-sm font-medium px-2.5 py-0.5 rounded-full tnum shrink-0 border border-brand-500/20">
+                {filteredData.length} Pos
+              </span>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-ink-primary">Saring berdasarkan Jemaat Induk</label>
-              <select
-                value={selectedJemaat}
-                onChange={(e) => {
-                  haptic.selection();
-                  setSelectedJemaat(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="field text-sm min-h-[48px]"
-              >
-                <option value="">Semua Jemaat Induk</option>
-                {jemaatOptions.map((j) => (
-                  <option key={j.id} value={j.id}>
-                    {j.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Button asChild variant="ghost" size="sm" className="min-h-[44px] shrink-0 text-brand-600 hover:bg-surface-brand" onClick={() => haptic.light()}>
+              <Link href="/dashboard/peta">
+                <Map size={18} className="mr-1.5" />
+                <span className="hidden sm:inline">Peta</span>
+              </Link>
+            </Button>
           </div>
         </div>
 
-        {/* Data Section */}
-        <div className="space-y-4">
-          {filteredData.length > 0 ? (
+        {/* 2. Tonal Search Bar */}
+        <div className="px-4 pt-3 pb-1">
+          <div className="relative h-12 rounded-xl bg-surface-sunken flex items-center px-3.5 transition-all focus-within:ring-2 focus-within:ring-brand-400/20 focus-within:bg-surface-1 focus-within:border-brand-400 border border-transparent">
+            <Search className="h-5 w-5 text-ink-tertiary mr-2.5 shrink-0" />
+            <input
+              type="text"
+              placeholder="Cari pos, bajem, ID, atau jemaat..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full bg-transparent text-base text-ink-primary placeholder:text-ink-tertiary focus:outline-none"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="text-xs font-bold text-ink-tertiary hover:text-ink-primary px-2 py-1"
+              >
+                Hapus
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* 3. Horizontal Filter Chips (Height 44px) */}
+        <FilterChips
+          options={filterChips}
+          selectedId={selectedChipId}
+          onSelect={handleChipSelect}
+        />
+
+        {/* 4. Fraunces Summary Strip */}
+        <SummaryStrip
+          items={[
+            { label: 'Pos Pelkes', value: activeFilteredPosCount },
+            { label: 'Bajem', value: activeFilteredBajemCount },
+            { label: 'Total Scoped', value: filteredData.length },
+          ]}
+          className="hairline-b bg-surface-1/40"
+        />
+
+        {/* 5. Content Area: Cardless List or Loading/Empty State */}
+        <div className="pt-1">
+          {isLoading ? (
+            <ListSkeleton count={6} />
+          ) : filteredData.length > 0 ? (
             <>
-              {/* Mobile Hairline List View (< 768px) */}
-              <div ref={listRevealRef} className="md:hidden card-flat overflow-hidden divide-y divide-line-hairline reveal-stagger">
+              {/* Cardless List Container */}
+              <div ref={listRevealRef} className="divide-y divide-line-hairline reveal-stagger">
                 {currentData.map((pos) => {
+                  const posType = detectPosType(pos.nama_pos);
+                  const isBajem = posType === 'bajem';
+                  
                   const jemaatObj = pos.jemaat_induk;
                   const j = Array.isArray(jemaatObj) ? jemaatObj[0] : jemaatObj;
                   const mupelObj = j?.mupel;
                   const m = Array.isArray(mupelObj) ? mupelObj[0] : mupelObj;
                   const cleanedJemaat = j?.nama_induk ? cleanQuotes(j.nama_induk) : '';
                   const cleanedMupel = m?.nama_mupel ? cleanQuotes(m.nama_mupel) : '';
+                  const cleanedAddress = pos.alamat ? cleanQuotes(pos.alamat) : '';
+
+                  const displayName = pos.nama_pos || `Pos ${pos.id_pos}`;
 
                   return (
-                    <div
+                    <ListRow
                       key={pos.id_pos}
-                      className="tap flex items-center justify-between gap-3 p-4 hover:bg-surface-sunken/50 cursor-pointer"
-                      onClick={(e) => {
-                        if ((e.target as HTMLElement).closest('button, a')) return;
-                        haptic.light();
-                        router.push(`/dashboard/pos-pelkes/${pos.id_pos}`);
-                      }}
-                    >
-                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-surface-brand text-brand-600">
-                        <Church className="h-5 w-5" />
-                      </span>
-                      <div className="min-w-0 flex-1 text-left">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="block truncate text-base font-semibold text-ink-primary">
-                            <PosName name={pos.nama_pos} />
+                      icon={isBajem ? <Sprout className="h-5 w-5" /> : <Church className="h-5 w-5" />}
+                      iconVariant={isBajem ? 'accent' : 'brand'}
+                      title={<PosName name={displayName} />}
+                      subtitle={
+                        cleanedJemaat ? (
+                          <span>
+                            {cleanedJemaat} {cleanedMupel ? `· Mupel ${cleanedMupel.replace(/^Mupel\s+/i, '')}` : ''}
                           </span>
-                          <Badge variant="brand" className="text-[10px] py-0 px-1.5 shrink-0">
-                            {pos.kategori || 'Pos'}
-                          </Badge>
-                        </div>
-                        <span className="block truncate text-sm text-ink-secondary">
-                          {cleanedJemaat ? `${cleanedJemaat}` : 'Induk tak terdaftar'} {cleanedMupel ? `· ${cleanedMupel}` : ''}
-                        </span>
-                        {pos.alamat && (
-                          <div className="flex items-center gap-1 text-xs text-ink-tertiary mt-1 truncate">
+                        ) : (
+                          <span className="text-ink-disabled">Induk tak terdaftar</span>
+                        )
+                      }
+                      meta={
+                        cleanedAddress ? (
+                          <span className="inline-flex items-center gap-1">
                             <MapPin size={12} className="shrink-0 text-brand-400" />
-                            <span className="truncate">{cleanQuotes(pos.alamat)}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2 shrink-0">
-                        {canElevate && (
-                          <Button
+                            <span className="truncate">{cleanedAddress}</span>
+                          </span>
+                        ) : (
+                          <span>ID: {pos.id_pos}</span>
+                        )
+                      }
+                      badge={
+                        <Badge
+                          variant={isBajem ? 'outline' : 'brand'}
+                          className={isBajem ? 'bg-surface-accent text-accent-600 border-accent-300/40 text-[10px] py-0 px-2' : 'text-[10px] py-0 px-2'}
+                        >
+                          {isBajem ? 'Bajem' : pos.kategori || 'Pos'}
+                        </Badge>
+                      }
+                      action={
+                        canElevate ? (
+                          <button
                             type="button"
-                            variant="ghost"
-                            size="sm"
                             onClick={(e) => handleOpenElevate(e, pos)}
-                            className="min-h-[40px] px-2 text-accent-600 hover:bg-surface-accent"
-                            title="Elevasi Status"
+                            className="p-2 rounded-xl text-accent-600 hover:bg-surface-accent transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                            title="Elevasi Status Pos/Bajem"
                           >
                             <TrendingUp size={16} />
-                          </Button>
-                        )}
-                        <ChevronRight className="h-5 w-5 text-ink-tertiary" />
-                      </div>
-                    </div>
+                          </button>
+                        ) : null
+                      }
+                      onClick={() => router.push(`/dashboard/pos-pelkes/${pos.id_pos}`)}
+                    />
                   );
                 })}
               </div>
 
-              {/* Desktop Table View (>= 768px) */}
-              <div className="hidden md:block card-flat overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-line-hairline">
-                    <thead className="bg-surface-sunken">
-                      <tr>
-                        <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-ink-secondary uppercase tracking-wider">
-                          Nama Pos Pelkes / Bajem
-                        </th>
-                        <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-ink-secondary uppercase tracking-wider">
-                          Alamat
-                        </th>
-                        <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-ink-secondary uppercase tracking-wider whitespace-nowrap">
-                          Tgl Berdiri
-                        </th>
-                        <th scope="col" className="px-6 py-4 text-right text-xs font-bold text-ink-secondary uppercase tracking-wider">
-                          Aksi
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-surface-1 divide-y divide-line-hairline">
-                      {currentData.map((pos) => {
-                        const jemaatObj = pos.jemaat_induk;
-                        const j = Array.isArray(jemaatObj) ? jemaatObj[0] : jemaatObj;
-                        const mupelObj = j?.mupel;
-                        const m = Array.isArray(mupelObj) ? mupelObj[0] : mupelObj;
-                        const cleanedJemaat = j?.nama_induk ? cleanQuotes(j.nama_induk) : '';
-                        const cleanedMupel = m?.nama_mupel ? cleanQuotes(m.nama_mupel) : '';
-                        const cleanedAddress = pos.alamat ? cleanQuotes(pos.alamat) : '';
-
-                        return (
-                          <tr 
-                            key={pos.id_pos} 
-                            className="tap hover:bg-surface-sunken/60 cursor-pointer"
-                            onClick={(e) => {
-                              if ((e.target as HTMLElement).closest('button, a')) return;
-                              haptic.light();
-                              router.push(`/dashboard/pos-pelkes/${pos.id_pos}`);
-                            }}
-                          >
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-2">
-                                <Badge variant="brand" className="text-xs">
-                                  {pos.kategori || 'Pos Pelkes'}
-                                </Badge>
-                                <div className="font-semibold text-brand-600"><PosName name={pos.nama_pos} /></div>
-                              </div>
-                              <div className="text-xs text-ink-secondary mt-1 space-x-2">
-                                <span>ID: {pos.id_pos}</span>
-                                {j && (
-                                  <>
-                                    <span>•</span>
-                                    <span className="font-medium text-ink-primary">Induk: {cleanedJemaat}</span>
-                                  </>
-                                )}
-                                {m && (
-                                  <>
-                                    <span>•</span>
-                                    <span className="text-accent-600 font-medium">Mupel: {cleanedMupel}</span>
-                                  </>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="text-sm text-ink-primary line-clamp-2">{cleanedAddress || '-'}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-ink-secondary tnum">
-                              {pos.tgl_berdiri || '-'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                              {canElevate && (
-                                <Button
-                                  type="button"
-                                  variant="secondary"
-                                  size="sm"
-                                  onClick={(e) => handleOpenElevate(e, pos)}
-                                  className="min-h-[44px] text-accent-600 bg-surface-accent border-accent-100"
-                                >
-                                  <TrendingUp size={14} className="mr-1" />
-                                  Elevasi Status
-                                </Button>
-                              )}
-
-                              <Button asChild variant="outline" size="sm" className="min-h-[44px]">
-                                <Link href={`/dashboard/pos-pelkes/${pos.id_pos}`}>
-                                  Detail <ArrowRight size={14} className="ml-1" />
-                                </Link>
-                              </Button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Pagination Controls */}
+              {/* Touch-Friendly Pagination */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between card-flat px-4 py-3 sm:px-6">
-                  <div className="flex flex-1 justify-between sm:hidden">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        haptic.selection();
-                        setCurrentPage(p => Math.max(1, p - 1));
-                      }}
-                      disabled={currentPage === 1}
-                      className="min-h-[48px]"
-                    >
-                      Sebelumnya
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        haptic.selection();
-                        setCurrentPage(p => Math.min(totalPages, p + 1));
-                      }}
-                      disabled={currentPage === totalPages}
-                      className="min-h-[48px] ml-3"
-                    >
-                      Selanjutnya
-                    </Button>
-                  </div>
-                  <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-sm text-ink-secondary">
-                        Menampilkan <span className="font-medium text-ink-primary tnum">{(currentPage - 1) * itemsPerPage + 1}</span> hingga <span className="font-medium text-ink-primary tnum">{Math.min(currentPage * itemsPerPage, filteredData.length)}</span> dari <span className="font-medium text-ink-primary tnum">{filteredData.length}</span> hasil
-                      </p>
-                    </div>
-                    <div>
-                      <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                        {Array.from({ length: totalPages }).map((_, i) => (
-                          <Button
-                            key={i}
-                            variant={currentPage === i + 1 ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => {
-                              haptic.selection();
-                              setCurrentPage(i + 1);
-                            }}
-                            className="min-h-[44px] rounded-none first:rounded-l-md last:rounded-r-md tnum"
-                          >
-                            {i + 1}
-                          </Button>
-                        ))}
-                      </nav>
-                    </div>
-                  </div>
+                <div className="flex items-center justify-between px-4 py-4 hairline-t mt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      haptic.selection();
+                      setCurrentPage((p) => Math.max(1, p - 1));
+                    }}
+                    disabled={currentPage === 1}
+                    className="min-h-[44px] px-4 text-xs font-semibold"
+                  >
+                    Sebelumnya
+                  </Button>
+
+                  <span className="text-xs font-semibold text-ink-secondary tnum">
+                    Halaman <strong className="text-ink-primary font-bold">{currentPage}</strong> dari {totalPages}
+                  </span>
+
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      haptic.selection();
+                      setCurrentPage((p) => Math.min(totalPages, p + 1));
+                    }}
+                    disabled={currentPage === totalPages}
+                    className="min-h-[44px] px-4 text-xs font-semibold"
+                  >
+                    Selanjutnya
+                  </Button>
                 </div>
               )}
             </>
           ) : (
-            <div className="text-center py-12 card-flat space-y-3">
-              <Database className="mx-auto h-12 w-12 text-ink-tertiary" />
-              <h3 className="text-base font-semibold text-ink-primary">Tidak ada data Pos Pelkes</h3>
-              <p className="text-sm text-ink-secondary max-w-xs mx-auto">
-                Tidak ada Pos Pelkes yang cocok dengan kriteria pencarian Anda.
-              </p>
-              <Button asChild className="min-h-[48px] mt-2" onClick={() => haptic.light()}>
-                <Link href="/dashboard/pos-pelkes/baru">
-                  <Plus size={16} className="mr-1.5" />
-                  Tambah Pos Pelkes Baru
-                </Link>
-              </Button>
-            </div>
+            /* Contextual Empty State */
+            <EmptyState
+              icon={isFilterActive ? SearchX : Church}
+              title={isFilterActive ? 'Tidak ada Pos atau Bajem ditemukan' : 'Belum Ada Pos Pelkes'}
+              description={
+                isFilterActive
+                  ? 'Tidak ada Pos Pelkes atau Bajem yang cocok dengan kriteria pencarian atau filter Anda.'
+                  : 'Daftar Pos Pelkes terdaftar masih kosong untuk jemaat ini.'
+              }
+              action={
+                isFilterActive
+                  ? {
+                      label: 'Reset Filter',
+                      onClick: resetFilters,
+                      variant: 'outline',
+                    }
+                  : {
+                      label: 'Tambah Pos Baru',
+                      href: '/dashboard/pos-pelkes/baru',
+                      variant: 'primary',
+                    }
+              }
+            />
           )}
         </div>
 
+        {/* 6. Floating Sticky Bottom Action Button ("Tambah Pos") */}
+        <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] inset-x-0 z-30 pointer-events-none px-4 bg-gradient-to-t from-surface-base via-surface-base/90 to-transparent pt-6 pb-2">
+          <Link
+            href="/dashboard/pos-pelkes/baru"
+            onClick={() => haptic.light()}
+            className="pointer-events-auto h-12 w-full max-w-lg mx-auto rounded-xl bg-brand-600 hover:bg-brand-700 active:scale-[0.98] text-white font-semibold shadow-md tap flex items-center justify-center gap-2 transition-all"
+          >
+            <Plus size={20} className="stroke-[2.5]" />
+            <span>Tambah Pos</span>
+          </Link>
+        </div>
+
+        {/* Status Elevation Modal */}
         {elevatePosItem && (
           <StatusElevationModal
             isOpen={!!elevatePosItem}
