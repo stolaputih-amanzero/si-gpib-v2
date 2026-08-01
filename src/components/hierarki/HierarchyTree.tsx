@@ -135,9 +135,11 @@ function JemaatTreeBranch({ id_mupel, searchQuery }: { id_mupel: string; searchQ
                 </span>
                 <div className="min-w-0">
                   <h4 className="font-extrabold text-text-high text-xs sm:text-sm truncate">{jemaat.nama_induk}</h4>
-                  <span className="text-[11px] text-text-muted truncate block">
-                    {jemaat.kmj ? `KMJ: ${jemaat.kmj.nama_lengkap}` : 'Belum ada KMJ'}
-                  </span>
+                  {(jemaat.keterangan || jemaat.id_induk) && (
+                    <span className="text-[11px] text-text-muted truncate block">
+                      {jemaat.keterangan || jemaat.id_induk}
+                    </span>
+                  )}
                 </div>
               </button>
 
