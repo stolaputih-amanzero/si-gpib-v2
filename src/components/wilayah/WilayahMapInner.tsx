@@ -66,11 +66,12 @@ const createBajemMarkerIcon = (hasKerawananKritis: boolean, hasPotensi: boolean)
         align-items: center;
         justify-content: center;
       ">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M7 20h10"/>
-          <path d="M12 20v-8"/>
-          <path d="M12 12c-3.3 0-6-2.7-6-6 0 0 4 0 6 3"/>
-          <path d="M12 12c3.3 0 6-2.7 6-6 0 0-4 0-6 3"/>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m18 7 4 2v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9l4-2"/>
+          <path d="M14 22v-4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v4"/>
+          <path d="M18 22V5l-6-3-6 3v17"/>
+          <path d="M12 7v5"/>
+          <path d="M10 9h4"/>
         </svg>
         ${badgeDot}
       </div>
@@ -105,12 +106,11 @@ const createPosPelkesMarkerIcon = (hasKerawananKritis: boolean, hasPotensi: bool
         align-items: center;
         justify-content: center;
       ">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m18 7 4 2v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9l4-2"/>
-          <path d="M14 22v-4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v4"/>
-          <path d="M18 22V5l-6-3-6 3v17"/>
-          <path d="M12 7v5"/>
-          <path d="M10 9h4"/>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 20h10"/>
+          <path d="M12 20v-8"/>
+          <path d="M12 12c-3.3 0-6-2.7-6-6 0 0 4 0 6 3"/>
+          <path d="M12 12c3.3 0 6-2.7 6-6 0 0-4 0-6 3"/>
         </svg>
         ${badgeDot}
       </div>

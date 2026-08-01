@@ -277,8 +277,8 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkesItem[] })
         {/* 4. Fraunces Summary Strip */}
         <SummaryStrip
           metrics={[
-            { label: 'Pos Pelkes', value: activeFilteredPosCount, icon: <Church size={16} className="text-blue-600 dark:text-blue-400" /> },
-            { label: 'Bajem', value: activeFilteredBajemCount, icon: <Sprout size={16} className="text-emerald-600 dark:text-emerald-400" /> },
+            { label: 'Pos Pelkes', value: activeFilteredPosCount, icon: <Sprout size={16} className="text-blue-600 dark:text-blue-400" /> },
+            { label: 'Bajem', value: activeFilteredBajemCount, icon: <Church size={16} className="text-emerald-600 dark:text-emerald-400" /> },
             { label: 'Total Scoped', value: filteredData.length, icon: <Layers size={16} className="text-purple-600 dark:text-purple-400" /> },
           ]}
           className="hairline-b bg-surface-1/40"
@@ -326,7 +326,7 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkesItem[] })
                   return (
                     <ListRow
                       key={pos.id_pos}
-                      icon={isBajem ? <Sprout className="h-5 w-5" /> : <Church className="h-5 w-5" />}
+                      icon={isBajem ? <Church className="h-5 w-5" /> : <Sprout className="h-5 w-5" />}
                       iconVariant={isBajem ? 'accent' : 'brand'}
                       title={<PosName name={displayName} />}
                       subtitle={

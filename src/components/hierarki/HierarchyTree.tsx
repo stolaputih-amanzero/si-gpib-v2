@@ -193,9 +193,9 @@ function PosTreeLeaf({ id_induk, id_mupel, searchQuery }: { id_induk: string; id
           >
             <div className="flex items-center gap-2">
               {isBajem ? (
-                <Sprout size={14} className="text-accent-600 dark:text-accent-400 shrink-0" />
+                <Church size={14} className="text-accent-600 dark:text-accent-400 shrink-0" />
               ) : (
-                <Church size={14} className="text-brand-600 dark:text-brand-400 shrink-0" />
+                <Sprout size={14} className="text-brand-600 dark:text-brand-400 shrink-0" />
               )}
               <span className="font-semibold text-xs text-text-high"><PosName name={pos.nama_pos} /></span>
             </div>

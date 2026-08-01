@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { elevateStatusSchema, ElevateStatusInput } from '@/lib/validations/hierarki.schema';
 import { useElevateStatus } from '@/hooks/use-hierarki';
-import { X, TrendingUp, Calendar, FileText, Church, Sprout, ArrowRight, Loader2 } from 'lucide-react';
+import { X, TrendingUp, Calendar, FileText, Church, ArrowRight, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { PosName } from '@/components/ui/PosName';
 
@@ -132,7 +132,7 @@ export function StatusElevationModal({ isOpen, onClose, posItem }: StatusElevati
                     : 'border-border-subtle bg-surface-base text-text-muted hover:text-text-high'
                 }`}
               >
-                <Sprout size={16} />
+                <Church size={16} />
                 <span>Bakal Jemaat (Bajem)</span>
               </button>
 

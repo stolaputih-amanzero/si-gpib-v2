@@ -117,7 +117,7 @@ export function PosDetailClient({ id_mupel, id_induk, id_pos }: PosDetailClientP
                 "p-3.5 rounded-2xl shrink-0 flex items-center justify-center border",
                 isBajem ? "bg-surface-accent text-accent-600 border-accent-300/40" : "bg-surface-brand text-brand-600 border-brand-500/20"
               )}>
-                {isBajem ? <Sprout className="w-6 h-6" /> : <Church className="w-6 h-6" />}
+                {isBajem ? <Church className="w-6 h-6" /> : <Sprout className="w-6 h-6" />}
               </div>
               <div className="flex flex-col justify-center space-y-0.5 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">

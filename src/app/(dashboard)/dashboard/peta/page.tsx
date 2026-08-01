@@ -34,12 +34,12 @@ export default function PetaPage() {
               </span>
               <span>•</span>
               <span className="inline-flex items-center gap-1 font-medium text-accent-700 dark:text-accent-300">
-                <Sprout size={14} className="text-accent-600 dark:text-accent-400 shrink-0" />
+                <Church size={14} className="text-accent-600 dark:text-accent-400 shrink-0" />
                 <span>Bajem</span>
               </span>
               <span>•</span>
               <span className="inline-flex items-center gap-1 font-medium text-brand-700 dark:text-brand-300">
-                <Church size={14} className="text-brand-600 dark:text-brand-400 shrink-0" />
+                <Sprout size={14} className="text-brand-600 dark:text-brand-400 shrink-0" />
                 <span>Pos Pelkes</span>
               </span>
             </p>

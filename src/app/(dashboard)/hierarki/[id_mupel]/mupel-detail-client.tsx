@@ -97,8 +97,8 @@ export function MupelDetailClient({ id_mupel }: MupelDetailClientProps) {
       <SummaryStrip
         metrics={[
           { label: 'Jemaat Induk', value: jemaatList?.length || 0, icon: <Church size={16} className="text-indigo-600 dark:text-indigo-400" /> },
-          { label: 'Bajem', value: totalBajemCount, icon: <Sprout size={16} className="text-emerald-600 dark:text-emerald-400" /> },
-          { label: 'Pos Pelkes', value: totalPosPelkesCount, icon: <Church size={16} className="text-blue-600 dark:text-blue-400" /> },
+          { label: 'Bajem', value: totalBajemCount, icon: <Church size={16} className="text-emerald-600 dark:text-emerald-400" /> },
+          { label: 'Pos Pelkes', value: totalPosPelkesCount, icon: <Sprout size={16} className="text-blue-600 dark:text-blue-400" /> },
         ]}
         className="hairline-b bg-surface-1/40 rounded-xl py-2 px-3"
       />

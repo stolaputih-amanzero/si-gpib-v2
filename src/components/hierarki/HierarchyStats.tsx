@@ -78,7 +78,7 @@ export function HierarchyStats({ overrideStats }: HierarchyStatsProps) {
         {/* 3. Bajem */}
         <div className="bg-surface-elevated p-3.5 rounded-2xl border border-border-subtle shadow-soft flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
-            <Sprout size={20} />
+            <Church size={20} />
           </div>
           <div>
             <span className="block text-[11px] font-bold text-text-muted uppercase tracking-wider">Bajem</span>
@@ -91,7 +91,7 @@ export function HierarchyStats({ overrideStats }: HierarchyStatsProps) {
         {/* 4. Pos Pelkes */}
         <div className="bg-surface-elevated p-3.5 rounded-2xl border border-border-subtle shadow-soft flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
-            <Church size={20} />
+            <Sprout size={20} />
           </div>
           <div>
             <span className="block text-[11px] font-bold text-text-muted uppercase tracking-wider">Pos Pelkes</span>

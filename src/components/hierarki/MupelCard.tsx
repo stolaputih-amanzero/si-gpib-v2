@@ -85,12 +85,12 @@ export function MupelCard({ mupel }: MupelCardProps) {
         </span>
         <span>•</span>
         <span className="flex items-center gap-1 font-semibold text-accent-600 dark:text-accent-400">
-          <Sprout size={14} />
+          <Church size={14} />
           {mupel.bajem_count ?? 0} Bajem
         </span>
         <span>•</span>
         <span className="flex items-center gap-1 font-semibold text-brand-600 dark:text-brand-400">
-          <Church size={14} />
+          <Sprout size={14} />
           {mupel.pos_count ?? 0} Pos Pelkes
         </span>
       </div>
