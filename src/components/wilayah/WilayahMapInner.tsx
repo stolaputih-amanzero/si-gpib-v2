@@ -199,6 +199,7 @@ export default function WilayahMapInner({ data, jemaatData = [], selectedPosId, 
                   const hasKritis = item.kerawanan_list.some((k) => k.frekuensi === 'Kritis' || k.frekuensi === 'Tinggi');
                   const hasPotensi = item.jumlah_potensi > 0;
                   const icon = createPosMarkerIcon(hasKritis, hasPotensi);
+                  const isBajemItem = item.kategori === 'Bajem' || item.nama_pos.toLowerCase().includes('bajem');
 
                   return (
                     <Marker
@@ -215,8 +216,12 @@ export default function WilayahMapInner({ data, jemaatData = [], selectedPosId, 
                         <div className="p-3 min-w-[250px] max-w-[320px] space-y-2.5 text-slate-900 dark:text-slate-100">
                           {/* Header */}
                           <div className="border-b border-slate-200 dark:border-slate-800 pb-2">
-                            <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800 inline-block">
-                              {item.id_pos} • Pos Pelkes
+                            <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full inline-block border ${
+                              isBajemItem 
+                                ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200 border-emerald-300' 
+                                : 'bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-200 border-blue-300'
+                            }`}>
+                              {item.id_pos} • {isBajemItem ? 'Bajem' : 'Pos Pelkes'}
                             </span>
                             <h3 className="font-extrabold text-base text-slate-900 dark:text-white leading-snug mt-1">
                               <PosName name={item.nama_pos} />

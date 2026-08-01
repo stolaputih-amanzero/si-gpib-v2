@@ -3,7 +3,7 @@
 import { useWilayahMapData, useJemaatMapData } from '@/hooks/use-wilayah';
 import { WilayahMap } from '@/components/wilayah/WilayahMap';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Map, MapPin, RefreshCw } from 'lucide-react';
+import { Map, Church, Sprout, RefreshCw } from 'lucide-react';
 
 export default function PetaPage() {
   const { data: posData, isLoading: isLoadingPos, refetch: refetchPos } = useWilayahMapData();
@@ -27,17 +27,21 @@ export default function PetaPage() {
             <h1 className="text-xl font-serif font-bold text-brand-primary">
               Peta Sebaran Terpadu
             </h1>
-            <p className="text-xs text-text-muted flex items-center gap-1.5 flex-wrap mt-0.5">
-              <span className="inline-flex items-center gap-1 font-medium">
-                <span className="w-4 h-4 rounded-full bg-[#1E40AF] text-white flex items-center justify-center text-[10px] shadow-sm">⛪</span>
-                <span>Gereja Jemaat Induk</span>
+            <p className="text-xs text-text-muted flex items-center gap-2 flex-wrap mt-0.5">
+              <span className="inline-flex items-center gap-1 font-medium text-indigo-700 dark:text-indigo-300">
+                <Church size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
+                <span>Jemaat Induk</span>
               </span>
-              <span>&</span>
-              <span className="inline-flex items-center gap-1 font-medium">
-                <MapPin size={15} className="text-blue-600 fill-blue-600/30 shrink-0" />
-                <span>Pos Pelkes/Bajem</span>
+              <span>•</span>
+              <span className="inline-flex items-center gap-1 font-medium text-accent-700 dark:text-accent-300">
+                <Sprout size={14} className="text-accent-600 dark:text-accent-400 shrink-0" />
+                <span>Bajem</span>
               </span>
-              <span>GPIB</span>
+              <span>•</span>
+              <span className="inline-flex items-center gap-1 font-medium text-brand-700 dark:text-brand-300">
+                <Church size={14} className="text-brand-600 dark:text-brand-400 shrink-0" />
+                <span>Pos Pelkes</span>
+              </span>
             </p>
           </div>
         </div>

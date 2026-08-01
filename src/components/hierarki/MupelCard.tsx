@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { MupelItem, useDeleteMupel } from '@/hooks/use-hierarki';
-import { Layers, Church, MapPin, Trash2, Building2 } from 'lucide-react';
+import { Layers, Church, Sprout, Trash2 } from 'lucide-react';
 import { SecureDeleteModal } from '@/components/ui/SecureDeleteModal';
 import { useToast } from '@/components/ui/toast';
 
@@ -39,7 +39,7 @@ export function MupelCard({ mupel }: MupelCardProps) {
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-3 rounded-xl bg-brand-primary/10 text-brand-primary group-hover:bg-brand-primary group-hover:text-white transition-colors">
+          <div className="p-3 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 group-hover:bg-purple-600 group-hover:text-white transition-colors">
             <Layers size={22} />
           </div>
 
@@ -84,13 +84,13 @@ export function MupelCard({ mupel }: MupelCardProps) {
           {mupel.jemaat_count ?? 0} Jemaat
         </span>
         <span>•</span>
-        <span className="flex items-center gap-1 font-semibold text-purple-600 dark:text-purple-400">
-          <Building2 size={14} />
+        <span className="flex items-center gap-1 font-semibold text-accent-600 dark:text-accent-400">
+          <Sprout size={14} />
           {mupel.bajem_count ?? 0} Bajem
         </span>
         <span>•</span>
-        <span className="flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
-          <MapPin size={14} />
+        <span className="flex items-center gap-1 font-semibold text-brand-600 dark:text-brand-400">
+          <Church size={14} />
           {mupel.pos_count ?? 0} Pos Pelkes
         </span>
       </div>

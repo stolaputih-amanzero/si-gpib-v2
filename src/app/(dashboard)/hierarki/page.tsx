@@ -6,7 +6,7 @@ import { useMupelList } from '@/hooks/use-hierarki';
 import { HierarchyStats } from '@/components/hierarki/HierarchyStats';
 import { SearchBar } from '@/components/ui/search-bar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Layers, LayoutList, GitFork, Church, MapPin } from 'lucide-react';
+import { Layers, LayoutList, GitFork, Church } from 'lucide-react';
 import { ListRow } from '@/components/list/ListRow';
 import { SummaryStrip } from '@/components/list/SummaryStrip';
 import { EmptyState } from '@/components/list/EmptyState';
@@ -85,7 +85,7 @@ export default function HierarkiEntryPage() {
         metrics={[
           { label: 'Total Mupel', value: totalMupel, icon: <Layers size={16} /> },
           { label: 'Total Jemaat Induk', value: totalJemaat, icon: <Church size={16} /> },
-          { label: 'Total Pos Pelkes', value: totalPos, icon: <MapPin size={16} /> },
+          { label: 'Total Pos Pelkes', value: totalPos, icon: <Church size={16} /> },
         ]}
         className="hairline-b bg-surface-1/40 rounded-xl py-2 px-3"
       />

@@ -226,6 +226,7 @@ export interface PotensiItem {
 export interface MapPosPelkesItem {
   id_pos: string;
   nama_pos: string;
+  kategori?: string | null;
   latitude: number;
   longitude: number;
   mupel: string | null;
@@ -350,6 +351,7 @@ export function useWilayahMapData() {
         .select(`
           id_pos, 
           nama_pos, 
+          kategori,
           latitude, 
           longitude,
           jemaat_induk:m_jemaat_induk(nama_induk, id_mupel)
@@ -382,6 +384,7 @@ export function useWilayahMapData() {
           return {
             id_pos: pos.id_pos,
             nama_pos: pos.nama_pos,
+            kategori: pos.kategori || null,
             latitude: Number(pos.latitude),
             longitude: Number(pos.longitude),
             mupel: pos.jemaat_induk?.id_mupel || null,
