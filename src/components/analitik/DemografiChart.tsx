@@ -23,11 +23,13 @@ export function DemografiChart({ data = [] }: DemografiChartProps) {
             <XAxis dataKey="kategori" tick={{ fontSize: 12 }} stroke="var(--color-text-muted, #6B7280)" />
             <YAxis tick={{ fontSize: 12 }} stroke="var(--color-text-muted, #6B7280)" />
             <Tooltip
+              cursor={{ fill: 'rgba(128, 128, 128, 0.12)' }}
               contentStyle={{
-                backgroundColor: 'var(--color-surface-elevated, #ffffff)',
+                backgroundColor: 'var(--color-surface-elevated, #1e293b)',
+                color: 'var(--color-text-high, #f8fafc)',
                 borderRadius: '12px',
-                border: '1px solid var(--color-border-subtle, #e5e7eb)',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                border: '1px solid var(--color-border-subtle, #334155)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
                 fontSize: '12px',
               }}
             />

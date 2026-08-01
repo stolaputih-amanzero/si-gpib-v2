@@ -9,9 +9,24 @@ interface ChartData {
   total: number;
 }
 
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-surface-elevated p-3 rounded-xl border border-border-subtle shadow-medium text-xs space-y-1 min-w-[140px]">
+        <p className="font-extrabold text-text-high">{label}</p>
+        <div className="flex items-center justify-between gap-2 pt-1 border-t border-border-subtle">
+          <span className="text-text-muted font-medium">Total Jiwa:</span>
+          <span className="tabular-nums font-black text-brand-primary">{payload[0].value} Jiwa</span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export function DemografiChart({ data }: { data: ChartData[] }) {
-  // Brand colors or a specific palette
-  const colors = ['#1E40AF', '#3B82F6', '#60A5FA', '#93C5FD', '#10B981', '#F59E0B', '#EF4444'];
+  // Harmonious palette for Pelkat categories
+  const colors = ['#3B82F6', '#6366F1', '#8B5CF6', '#EC4899', '#10B981', '#F59E0B', '#EF4444'];
 
   return (
     <Card className="border-border-subtle shadow-soft bg-surface-elevated">
@@ -30,25 +45,24 @@ export function DemografiChart({ data }: { data: ChartData[] }) {
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(128, 128, 128, 0.15)" />
                 <XAxis 
                   dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fill: '#6B7280', fontSize: 12 }} 
+                  tick={{ fill: 'var(--text-muted, #94a3b8)', fontSize: 12 }} 
                   dy={10}
                 />
                 <YAxis 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fill: '#6B7280', fontSize: 12 }} 
+                  tick={{ fill: 'var(--text-muted, #94a3b8)', fontSize: 12 }} 
                 />
                 <Tooltip 
-                  cursor={{ fill: '#F3F4F6' }}
-                  contentStyle={{ borderRadius: '8px', border: '1px solid #E5E7EB', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  formatter={(value: any) => [`${value} Jiwa`, 'Total']}
+                  cursor={{ fill: 'rgba(128, 128, 128, 0.12)' }}
+                  content={<CustomTooltip />}
                 />
-                <Bar dataKey="total" radius={[4, 4, 0, 0]} maxBarSize={50}>
+                <Bar dataKey="total" radius={[6, 6, 0, 0]} maxBarSize={50}>
                   {data.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                   ))}
