@@ -48,17 +48,26 @@ export function HierarchyTree({ mupelList, searchQuery }: HierarchyTreeProps) {
                   <h3 className="font-extrabold text-text-high text-sm sm:text-base truncate leading-snug">
                     {mupel.nama_mupel}
                   </h3>
-                  <p className="text-xs text-text-muted hidden sm:block truncate mt-0.5">
-                    {mupel.jemaat_count ?? 0} Jemaat · {mupel.bajem_count ?? 0} Bajem · {mupel.pos_count ?? 0} Pos Pelkes
-                  </p>
+                  <div className="flex items-center gap-2 flex-wrap text-xs font-bold mt-0.5">
+                    <span className="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-400">
+                      <Church size={13} />
+                      <span>{mupel.jemaat_count ?? 0} Jemaat</span>
+                    </span>
+                    <span className="text-text-muted/40">•</span>
+                    <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                      <Church size={13} />
+                      <span>{mupel.bajem_count ?? 0} Bajem</span>
+                    </span>
+                    <span className="text-text-muted/40">•</span>
+                    <span className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                      <Sprout size={13} />
+                      <span>{mupel.pos_count ?? 0} Pos Pelkes</span>
+                    </span>
+                  </div>
                 </div>
               </button>
 
               <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-                <span className="text-xs font-semibold text-text-muted sm:hidden">
-                  {mupel.jemaat_count ?? 0} Jemaat
-                </span>
-
                 <Link
                   href={`/hierarki/${encodeURIComponent(mupel.id_mupel)}`}
                   className="p-2 text-text-muted hover:text-brand-primary hover:bg-surface-sunken rounded-xl transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
@@ -143,8 +152,9 @@ function JemaatTreeBranch({ id_mupel, searchQuery }: { id_mupel: string; searchQ
               </button>
 
               <div className="flex items-center gap-1.5 shrink-0">
-                <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-md bg-indigo-500/10">
-                  {jemaat.pos_count ?? 0} Pos Pelkes
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-md bg-blue-500/10">
+                  <Sprout size={12} />
+                  <span>{jemaat.pos_count ?? 0} Pos Pelkes</span>
                 </span>
 
                 <Link

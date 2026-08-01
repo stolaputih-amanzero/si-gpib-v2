@@ -6,7 +6,7 @@ import { useMupelList } from '@/hooks/use-hierarki';
 import { HierarchyStats } from '@/components/hierarki/HierarchyStats';
 import { SearchBar } from '@/components/ui/search-bar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Layers, LayoutList, GitFork, Church } from 'lucide-react';
+import { Layers, LayoutList, GitFork, Church, Sprout } from 'lucide-react';
 import { ListRow } from '@/components/list/ListRow';
 import { SummaryStrip } from '@/components/list/SummaryStrip';
 import { EmptyState } from '@/components/list/EmptyState';
@@ -85,7 +85,7 @@ export default function HierarkiEntryPage() {
         metrics={[
           { label: 'Total Mupel', value: totalMupel, icon: <Layers size={16} className="text-purple-600 dark:text-purple-400" /> },
           { label: 'Total Jemaat Induk', value: totalJemaat, icon: <Church size={16} className="text-indigo-600 dark:text-indigo-400" /> },
-          { label: 'Total Pos Pelkes', value: totalPos, icon: <Church size={16} className="text-blue-600 dark:text-blue-400" /> },
+          { label: 'Total Pos Pelkes', value: totalPos, icon: <Sprout size={16} className="text-blue-600 dark:text-blue-400" /> },
         ]}
         className="hairline-b bg-surface-1/40 rounded-xl py-2 px-3"
       />
@@ -129,8 +129,21 @@ export default function HierarkiEntryPage() {
               title={mupel.nama_mupel}
               subtitle={mupel.keterangan || `Kode Mupel: ${mupel.id_mupel}`}
               meta={
-                <span>
-                  {mupel.jemaat_count ?? 0} Jemaat · {mupel.bajem_count ?? 0} Bajem · {mupel.pos_count ?? 0} Pos Pelkes
+                <span className="flex items-center gap-2 flex-wrap text-xs font-bold">
+                  <span className="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-400">
+                    <Church size={13} />
+                    <span>{mupel.jemaat_count ?? 0} Jemaat</span>
+                  </span>
+                  <span className="text-text-muted/40">•</span>
+                  <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                    <Church size={13} />
+                    <span>{mupel.bajem_count ?? 0} Bajem</span>
+                  </span>
+                  <span className="text-text-muted/40">•</span>
+                  <span className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                    <Sprout size={13} />
+                    <span>{mupel.pos_count ?? 0} Pos Pelkes</span>
+                  </span>
                 </span>
               }
               href={`/hierarki/${encodeURIComponent(mupel.id_mupel)}`}
