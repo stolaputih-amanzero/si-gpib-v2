@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { MupelItem, useJemaatByMupel, usePosByJemaat } from '@/hooks/use-hierarki';
 import { Layers, Church, Sprout, ChevronRight, ChevronDown } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PosName } from '@/components/ui/PosName';
 import { detectPosType } from '@/lib/utils/pos-type';
 import { cn } from '@/lib/utils';
+import { ListRow } from '@/components/list/ListRow';
 
 interface HierarchyTreeProps {
   mupelList: MupelItem[];
@@ -28,46 +28,39 @@ export function HierarchyTree({ mupelList, searchQuery }: HierarchyTreeProps) {
 
         return (
           <div key={mupel.id_mupel} className="transition-colors">
-            {/* Level 1: Mupel Row Header - Strictly Identical to List View */}
-            <div className="flex items-center justify-between p-3.5 sm:p-4 min-h-[52px] hover:bg-surface-hover/60 transition-colors">
-              <Link
-                href={`/hierarki/${encodeURIComponent(mupel.id_mupel)}`}
-                className="flex items-center gap-3 flex-1 min-w-0 group"
-              >
-                <div className="h-11 w-11 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 shadow-2xs font-semibold min-h-[44px] min-w-[44px] group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                  <Layers className="h-5 w-5" />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-extrabold text-text-high text-sm group-hover:text-brand-primary transition-colors leading-snug truncate">
-                    {mupel.nama_mupel}
-                  </h3>
-                  <p className="text-xs text-text-muted truncate">
-                    {mupel.keterangan || mupel.id_mupel}
-                  </p>
-                  <div className="flex items-center gap-2 flex-wrap text-xs font-bold mt-0.5">
-                    <span className="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-400" title="Jemaat Induk">
-                      <Church size={13} />
-                      <span>{mupel.jemaat_count ?? 0}</span>
-                    </span>
-                    <span className="text-text-muted/40">•</span>
-                    <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400" title="Bakal Jemaat (Bajem)">
-                      <Church size={13} />
-                      <span>{mupel.bajem_count ?? 0}</span>
-                    </span>
-                    <span className="text-text-muted/40">•</span>
-                    <span className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400" title="Pos Pelkes">
-                      <Sprout size={13} />
-                      <span>{mupel.pos_count ?? 0}</span>
-                    </span>
-                  </div>
-                </div>
-              </Link>
-
-              <div className="flex items-center gap-1 shrink-0 ml-2">
+            {/* Level 1: Mupel Row Header - Reusing ListRow for 100% Visual Identity */}
+            <ListRow
+              icon={<Layers className="h-5 w-5 text-purple-600 dark:text-purple-400" />}
+              iconClassName="bg-purple-500/10 text-purple-600 dark:text-purple-400"
+              title={mupel.nama_mupel}
+              subtitle={mupel.keterangan || mupel.id_mupel}
+              meta={
+                <span className="flex items-center gap-2 flex-wrap text-xs font-bold">
+                  <span className="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-400" title="Jemaat Induk">
+                    <Church size={13} />
+                    <span>{mupel.jemaat_count ?? 0}</span>
+                  </span>
+                  <span className="text-text-muted/40">•</span>
+                  <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400" title="Bakal Jemaat (Bajem)">
+                    <Church size={13} />
+                    <span>{mupel.bajem_count ?? 0}</span>
+                  </span>
+                  <span className="text-text-muted/40">•</span>
+                  <span className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400" title="Pos Pelkes">
+                    <Sprout size={13} />
+                    <span>{mupel.pos_count ?? 0}</span>
+                  </span>
+                </span>
+              }
+              href={`/hierarki/${encodeURIComponent(mupel.id_mupel)}`}
+              action={
                 <button
                   type="button"
-                  onClick={() => toggleMupel(mupel.id_mupel)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleMupel(mupel.id_mupel);
+                  }}
                   className="p-2 text-text-muted hover:text-text-high hover:bg-surface-sunken rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center active:scale-95"
                   title={isExpanded ? 'Tutup cabang Mupel' : 'Buka cabang Mupel'}
                 >
@@ -77,8 +70,8 @@ export function HierarchyTree({ mupelList, searchQuery }: HierarchyTreeProps) {
                     <ChevronRight size={18} />
                   )}
                 </button>
-              </div>
-            </div>
+              }
+            />
 
             {/* Tree Branch: List Jemaat Induk */}
             {isExpanded && (
@@ -104,8 +97,8 @@ function JemaatTreeBranch({ id_mupel, searchQuery }: { id_mupel: string; searchQ
   if (isLoading) {
     return (
       <div className="py-3 px-3 space-y-2">
-        <Skeleton className="h-10 w-full rounded-xl" />
-        <Skeleton className="h-10 w-full rounded-xl" />
+        <Skeleton className="h-12 w-full rounded-xl" />
+        <Skeleton className="h-12 w-full rounded-xl" />
       </div>
     );
   }
@@ -126,57 +119,49 @@ function JemaatTreeBranch({ id_mupel, searchQuery }: { id_mupel: string; searchQ
 
         return (
           <div key={jemaat.id_induk} className="transition-colors">
-            {/* Level 2: Jemaat Induk Row - Strictly Uniform Icons & Typography */}
-            <div className="flex items-center justify-between p-3.5 sm:p-4 min-h-[48px] hover:bg-surface-hover/60 transition-colors">
-              <Link
-                href={`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(jemaat.id_induk)}`}
-                className="flex items-center gap-3 flex-1 min-w-0 group"
-              >
-                <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 shadow-2xs font-semibold min-h-[40px] min-w-[40px] group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                  <Church className="h-5 w-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="font-extrabold text-text-high text-sm group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors leading-snug truncate">
-                    {jemaat.nama_induk}
-                  </h4>
-                  {(jemaat.keterangan || jemaat.id_induk) && (
-                    <span className="text-xs text-text-muted truncate block">
-                      {jemaat.keterangan || jemaat.id_induk}
-                    </span>
-                  )}
-                  <div className="flex items-center gap-2 text-xs font-bold mt-0.5">
-                    <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400" title="Bakal Jemaat (Bajem)">
-                      <Church size={13} />
-                      <span>{jemaat.bajem_count ?? 0}</span>
-                    </span>
-                    <span className="text-text-muted/40">•</span>
-                    <span className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400" title="Pos Pelkes">
-                      <Sprout size={13} />
-                      <span>{jemaat.pos_count ?? 0}</span>
-                    </span>
-                  </div>
-                </div>
-              </Link>
-
-              <div className="flex items-center gap-1 shrink-0 ml-2">
+            {/* Level 2: Jemaat Induk Row - Reusing ListRow */}
+            <ListRow
+              icon={<Church className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />}
+              iconClassName="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+              title={jemaat.nama_induk}
+              subtitle={jemaat.keterangan || jemaat.id_induk}
+              meta={
+                <span className="flex items-center gap-2 flex-wrap text-xs font-bold">
+                  <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400" title="Bakal Jemaat (Bajem)">
+                    <Church size={13} />
+                    <span>{jemaat.bajem_count ?? 0}</span>
+                  </span>
+                  <span className="text-text-muted/40">•</span>
+                  <span className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400" title="Pos Pelkes">
+                    <Sprout size={13} />
+                    <span>{jemaat.pos_count ?? 0}</span>
+                  </span>
+                </span>
+              }
+              href={`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(jemaat.id_induk)}`}
+              action={
                 <button
                   type="button"
-                  onClick={() => toggleJemaat(jemaat.id_induk)}
-                  className="p-1.5 text-text-muted hover:text-text-high hover:bg-surface-sunken rounded-lg transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center active:scale-95"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleJemaat(jemaat.id_induk);
+                  }}
+                  className="p-2 text-text-muted hover:text-text-high hover:bg-surface-sunken rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center active:scale-95"
                   title={isJExpanded ? 'Tutup pos di jemaat ini' : 'Buka pos di jemaat ini'}
                 >
                   {isJExpanded ? (
-                    <ChevronDown size={16} className="text-indigo-600 dark:text-indigo-400" />
+                    <ChevronDown size={18} className="text-indigo-600 dark:text-indigo-400" />
                   ) : (
-                    <ChevronRight size={16} />
+                    <ChevronRight size={18} />
                   )}
                 </button>
-              </div>
-            </div>
+              }
+            />
 
             {/* Tree Leaf: List Pos Pelkes & Bajem */}
             {isJExpanded && (
-              <div className="bg-surface-sunken/60 pl-4 sm:pl-8 py-2 border-t border-line-hairline space-y-1">
+              <div className="bg-surface-sunken/70 pl-4 sm:pl-8 border-t border-line-hairline divide-y divide-line-hairline">
                 <PosTreeLeaf id_induk={jemaat.id_induk} id_mupel={id_mupel} searchQuery={searchQuery} />
               </div>
             )}
@@ -191,63 +176,54 @@ function PosTreeLeaf({ id_induk, id_mupel, searchQuery }: { id_induk: string; id
   const { data: posList, isLoading } = usePosByJemaat(id_induk, searchQuery);
 
   if (isLoading) {
-    return <Skeleton className="h-8 w-full rounded-lg my-1" />;
+    return <Skeleton className="h-10 w-full rounded-xl my-1" />;
   }
 
   if (!posList || posList.length === 0) {
-    return <p className="text-xs text-text-muted italic py-2 px-3">Belum ada Pos Pelkes / Bajem terdaftar.</p>;
+    return <p className="text-xs text-text-muted italic py-3 px-4">Belum ada Pos Pelkes / Bajem terdaftar.</p>;
   }
 
   return (
-    <div className="space-y-1 pr-3">
+    <>
       {posList.map((pos) => {
         const isBajem = detectPosType(pos) === 'bajem';
 
         return (
-          <Link
+          <ListRow
             key={pos.id_pos}
-            href={`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(id_induk)}/${encodeURIComponent(pos.id_pos)}`}
-            className={cn(
-              "flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all min-h-[44px]",
-              "hover:bg-surface-hover hover:shadow-xs",
-              isBajem ? "hover:border-emerald-500/30" : "hover:border-blue-500/30"
-            )}
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className={cn(
-                "h-9 w-9 rounded-xl flex items-center justify-center shrink-0 shadow-2xs min-h-[36px] min-w-[36px]",
-                isBajem ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-              )}>
-                {isBajem ? <Church className="h-4 w-4" /> : <Sprout className="h-4 w-4" />}
-              </div>
-
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-sm text-text-high truncate">
-                    <PosName name={pos.nama_pos} />
-                  </span>
-                  <span className={cn(
-                    "text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded border shrink-0",
+            icon={
+              isBajem ? (
+                <Church className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              ) : (
+                <Sprout className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              )
+            }
+            iconClassName={
+              isBajem
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+            }
+            title={
+              <div className="flex items-center gap-2">
+                <PosName name={pos.nama_pos} />
+                <span
+                  className={cn(
+                    'text-[10px] font-black uppercase px-2 py-0.5 rounded-full border shadow-2xs shrink-0',
                     isBajem
-                      ? "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200 border-emerald-300"
-                      : "bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-200 border-blue-300"
-                  )}>
-                    {isBajem ? 'Bajem' : 'Pos'}
-                  </span>
-                </div>
-                <span className="text-xs text-text-muted truncate block">
-                  {pos.pj ? `PJ: ${pos.pj.nama_lengkap}` : 'Belum ada PJ'}
+                      ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300'
+                      : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300'
+                  )}
+                >
+                  {isBajem ? 'Bajem' : 'Pos'}
                 </span>
               </div>
-            </div>
-
-            <div className="flex items-center gap-1 text-text-muted shrink-0">
-              <ChevronRight size={14} className="text-text-tertiary" />
-            </div>
-          </Link>
+            }
+            subtitle={pos.pj ? `PJ: ${pos.pj.nama_lengkap}` : 'Belum ada PJ'}
+            href={`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(id_induk)}/${encodeURIComponent(pos.id_pos)}`}
+          />
         );
       })}
-    </div>
+    </>
   );
 }
 
