@@ -62,10 +62,10 @@ export function CopyableContact({ icon: Icon, value, label, className }: Copyabl
         <button
           type="button"
           onClick={handleCopy}
-          className="p-2 rounded-lg text-ink-tertiary hover:text-emerald-600 hover:bg-surface-1 transition-colors shrink-0"
+          className="p-2 rounded-lg text-emerald-600 dark:text-emerald-400 hover:bg-surface-1 transition-colors shrink-0"
           title="Salin Nomor Telepon"
         >
-          {copied ? <Check size={14} className="text-ok" /> : <Copy size={14} />}
+          {copied ? <Check size={15} className="text-ok" /> : <Copy size={15} />}
         </button>
       </div>
     );
@@ -82,13 +82,13 @@ export function CopyableContact({ icon: Icon, value, label, className }: Copyabl
       title={`Ketuk untuk menyalin ${value}`}
     >
       <div className="flex items-center gap-2 min-w-0 flex-1">
-        <Icon size={16} className="text-ink-tertiary group-hover:text-brand-600 shrink-0 transition-colors" />
+        <Icon size={16} className="text-brand-600 dark:text-brand-400 shrink-0 transition-colors" />
         <span className="truncate font-mono">{value}</span>
       </div>
       {copied ? (
-        <Check size={14} className="text-ok shrink-0 animate-pop ml-2" />
+        <Check size={15} className="text-ok shrink-0 animate-pop ml-2" />
       ) : (
-        <Copy size={14} className="text-ink-tertiary opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2" />
+        <Copy size={15} className="text-ink-secondary group-hover:text-brand-600 dark:text-ink-secondary shrink-0 ml-2 transition-colors" />
       )}
     </button>
   );
