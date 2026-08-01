@@ -241,8 +241,7 @@ export default function UserManagementPage() {
           className="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 active:scale-95 text-white text-xs font-semibold transition-all flex items-center justify-center gap-2 shadow-xs min-h-[44px] shrink-0 sm:self-start"
         >
           <Plus size={18} />
-          <span className="hidden sm:inline">Tambah Pengguna</span>
-          <span className="sm:hidden">+ Pengguna</span>
+          <span>Pengguna</span>
         </button>
       </div>
 
