@@ -6,7 +6,11 @@ import { useJadwalList, useDeleteJadwal, JadwalItem } from '@/hooks/use-jadwal';
 import { JadwalCard } from '@/components/jadwal/JadwalCard';
 import { JadwalForm } from '@/components/jadwal/JadwalForm';
 import { useToast } from '@/components/ui/toast';
-import { Plus, Search, Calendar } from 'lucide-react';
+import { SummaryStrip } from '@/components/list/SummaryStrip';
+import { SearchBar } from '@/components/ui/search-bar';
+import { EmptyState } from '@/components/list/EmptyState';
+import { ListSkeleton } from '@/components/list/ListSkeleton';
+import { Plus, Calendar, Clock, Filter } from 'lucide-react';
 
 function JadwalPageContent() {
   const searchParams = useSearchParams();
@@ -62,101 +66,90 @@ function JadwalPageContent() {
   const totalJadwal = jadwalList?.length || 0;
 
   return (
-    <div className="w-full space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="w-full space-y-4 pb-12">
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-1 p-5 rounded-2xl border border-border-subtle shadow-xs">
         <div>
-          <h1 className="text-xl md:text-2xl font-serif font-bold text-brand-primary">Jadwal Ibadah Pos Pelkes</h1>
-          <p className="text-xs md:text-sm text-text-muted mt-0.5">Penjadwalan Ibadah Rutin, Pelkat & Sektor</p>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="p-2 rounded-xl bg-surface-brand text-brand-600">
+              <Calendar className="w-5 h-5" />
+            </span>
+            <h1 className="font-display text-xl sm:text-2xl font-semibold text-ink-primary tracking-tight">
+              Jadwal Ibadah Pos Pelkes
+            </h1>
+          </div>
+          <p className="text-xs sm:text-sm text-ink-tertiary">
+            Penjadwalan Ibadah Rutin, Pelkat &amp; Sektor Terintegrasi
+          </p>
         </div>
 
         <button
           type="button"
           onClick={handleAddNew}
-          className="px-4 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-brand-primary-dark transition-all flex items-center gap-2 shadow-soft min-h-[44px]"
+          className="px-4 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-brand-primary-dark transition-all flex items-center justify-center gap-2 shadow-soft min-h-[44px] shrink-0"
         >
           <Plus size={18} />
-          <span className="hidden sm:inline">Tambah Jadwal</span>
-          <span className="sm:hidden">Jadwal</span>
+          <span>Tambah Jadwal</span>
         </button>
       </div>
 
-      {/* KPI Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft">
-          <p className="text-xs text-text-muted font-medium">Total Jadwal Rutin</p>
-          <p className="text-2xl font-serif font-bold text-brand-primary tabular-nums mt-1">{totalJadwal}</p>
-          <p className="text-[11px] text-text-muted mt-0.5">Terdaftar di Pos</p>
-        </div>
-        <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft sm:col-span-2">
-          <p className="text-xs text-text-muted font-medium">Filter Pos Pelkes</p>
-          <input
-            type="text"
-            placeholder="Filter ID Pos..."
-            value={selectedPos}
-            onChange={(e) => setSelectedPos(e.target.value)}
-            className="w-full mt-1.5 px-3 py-2 rounded-xl border border-border-subtle bg-surface-base text-xs font-semibold text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
-          />
-        </div>
-      </div>
+      {/* Summary Metrics Strip */}
+      <SummaryStrip
+        metrics={[
+          { label: 'Total Jadwal Terdaftar', value: totalJadwal, icon: <Calendar size={16} className="text-brand-600 dark:text-brand-400" /> },
+          { label: 'Frekuensi Penjadwalan', value: 'Rutin & Sektor', icon: <Clock size={16} className="text-purple-600 dark:text-purple-400" /> },
+        ]}
+        className="hairline-b bg-surface-1/40 rounded-xl py-2 px-3"
+      />
 
-      {/* Search Bar */}
-      <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft">
-        <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
-          <input
-            type="text"
-            placeholder="Cari jadwal (jenis ibadah, hari, pos pelkes)..."
+      {/* Search & Filter Bar */}
+      <div className="bg-surface-1 p-3.5 rounded-2xl border border-border-subtle shadow-xs space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-3">
+        <div className="flex-1">
+          <SearchBar
+            placeholder="Cari jadwal ibadah, hari, jenis, atau lokasi..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
           />
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="relative flex-1 sm:w-48">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={15} />
+            <input
+              type="text"
+              placeholder="Filter ID Pos..."
+              value={selectedPos}
+              onChange={(e) => setSelectedPos(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 rounded-xl border border-border-subtle bg-surface-sunken text-xs font-semibold text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[40px]"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Jadwal List */}
-      <div className="space-y-3">
-        <h2 className="text-base font-semibold text-text-high">
-          Daftar Jadwal Ibadah ({jadwalList?.length || 0})
-        </h2>
-
-        {isLoading ? (
-          <div className="grid grid-cols-1 gap-3">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle animate-pulse space-y-3">
-                <div className="h-4 bg-surface-sunken rounded w-3/4"></div>
-                <div className="h-3 bg-surface-sunken rounded w-1/2"></div>
-              </div>
-            ))}
-          </div>
-        ) : jadwalList && jadwalList.length > 0 ? (
-          <div className="grid grid-cols-1 gap-3">
-            {jadwalList.map((item) => (
-              <JadwalCard
-                key={item.id_ibadah}
-                item={item}
-                onClickCard={handleEdit}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="bg-surface-elevated rounded-2xl p-8 text-center border border-border-subtle space-y-3 animate-fadeIn">
-            <Calendar size={36} className="mx-auto text-text-muted opacity-50" />
-            <p className="font-semibold text-text-high text-sm">Belum Ada Jadwal Ibadah Terdaftar</p>
-            <p className="text-xs text-text-muted max-w-xs mx-auto">
-              Belum ada jadwal ibadah rutin terdaftar {selectedPos ? `untuk Pos Pelkes ${selectedPos}` : ''}.
-            </p>
-            <button
-              type="button"
-              onClick={handleAddNew}
-              className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-brand-primary text-white rounded-xl text-xs font-semibold hover:bg-brand-primary-dark transition-all shadow-soft"
-            >
-              <Plus size={14} />
-              <span>Tambah Jadwal</span>
-            </button>
-          </div>
-        )}
-      </div>
+      {/* Main Content Area (Cardless Fluid List) */}
+      {isLoading ? (
+        <ListSkeleton count={6} />
+      ) : !jadwalList || jadwalList.length === 0 ? (
+        <EmptyState
+          icon={Calendar}
+          title="Belum Ada Jadwal Ibadah"
+          description={selectedPos ? `Belum ada jadwal ibadah rutin terdaftar untuk Pos Pelkes ${selectedPos}.` : 'Belum ada jadwal ibadah rutin yang cocok dengan pencarian Anda.'}
+          action={{
+            label: 'Tambah Jadwal Baru',
+            onClick: handleAddNew,
+          }}
+        />
+      ) : (
+        <div className="divide-y divide-line-hairline bg-surface-1 hairline-t hairline-b rounded-2xl overflow-hidden shadow-xs">
+          {jadwalList.map((item) => (
+            <JadwalCard
+              key={item.id_ibadah}
+              item={item}
+              onClickCard={handleEdit}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Modal Form */}
       {showModal && (
