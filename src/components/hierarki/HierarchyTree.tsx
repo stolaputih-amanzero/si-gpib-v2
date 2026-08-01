@@ -49,19 +49,19 @@ export function HierarchyTree({ mupelList, searchQuery }: HierarchyTreeProps) {
                     {mupel.nama_mupel}
                   </h3>
                   <div className="flex items-center gap-2 flex-wrap text-xs font-bold mt-0.5">
-                    <span className="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-400">
+                    <span className="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-400" title="Jemaat Induk">
                       <Church size={13} />
-                      <span>{mupel.jemaat_count ?? 0} Jemaat</span>
+                      <span>{mupel.jemaat_count ?? 0}</span>
                     </span>
                     <span className="text-text-muted/40">•</span>
-                    <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                    <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400" title="Bakal Jemaat (Bajem)">
                       <Church size={13} />
-                      <span>{mupel.bajem_count ?? 0} Bajem</span>
+                      <span>{mupel.bajem_count ?? 0}</span>
                     </span>
                     <span className="text-text-muted/40">•</span>
-                    <span className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                    <span className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400" title="Pos Pelkes">
                       <Sprout size={13} />
-                      <span>{mupel.pos_count ?? 0} Pos Pelkes</span>
+                      <span>{mupel.pos_count ?? 0}</span>
                     </span>
                   </div>
                 </div>
@@ -152,9 +152,9 @@ function JemaatTreeBranch({ id_mupel, searchQuery }: { id_mupel: string; searchQ
               </button>
 
               <div className="flex items-center gap-1.5 shrink-0">
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-md bg-blue-500/10">
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-md bg-blue-500/10" title="Pos Pelkes">
                   <Sprout size={12} />
-                  <span>{jemaat.pos_count ?? 0} Pos Pelkes</span>
+                  <span>{jemaat.pos_count ?? 0}</span>
                 </span>
 
                 <Link
