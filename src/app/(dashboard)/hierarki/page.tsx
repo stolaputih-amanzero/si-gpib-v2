@@ -116,7 +116,7 @@ export default function HierarkiEntryPage() {
       ) : viewMode === 'tree' ? (
         <HierarchyTree mupelList={mupelList} />
       ) : (
-        <div data-testid="mupel-list" className="divide-y divide-line-hairline bg-surface-1 hairline-t hairline-b rounded-2xl overflow-hidden">
+        <div data-testid="mupel-list" className="bg-surface-1 hairline-t hairline-b rounded-2xl overflow-hidden shadow-xs">
           {mupelList.map((mupel) => (
             <ListRow
               key={mupel.id_mupel}

@@ -22,13 +22,13 @@ export function HierarchyTree({ mupelList, searchQuery }: HierarchyTreeProps) {
   };
 
   return (
-    <div className="divide-y divide-line-hairline bg-surface-1 hairline-t hairline-b rounded-2xl overflow-hidden shadow-xs">
+    <div className="bg-surface-1 hairline-t hairline-b rounded-2xl overflow-hidden shadow-xs">
       {mupelList.map((mupel) => {
         const isExpanded = Boolean(expandedMupel[mupel.id_mupel]);
 
         return (
           <div key={mupel.id_mupel} className="transition-colors">
-            {/* Level 1: Mupel Row Header - Reusing ListRow for 100% Visual Identity */}
+            {/* Level 1: Mupel Row Header - Identical Alignment, Icon Size, and Chevron Position */}
             <ListRow
               icon={<Layers className="h-5 w-5 text-purple-600 dark:text-purple-400" />}
               iconClassName="bg-purple-500/10 text-purple-600 dark:text-purple-400"
@@ -61,13 +61,13 @@ export function HierarchyTree({ mupelList, searchQuery }: HierarchyTreeProps) {
                     e.stopPropagation();
                     toggleMupel(mupel.id_mupel);
                   }}
-                  className="p-2 text-text-muted hover:text-text-high hover:bg-surface-sunken rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center active:scale-95"
+                  className="p-0 text-ink-tertiary hover:text-ink-primary transition-colors shrink-0 self-center flex items-center justify-center active:scale-95"
                   title={isExpanded ? 'Tutup cabang Mupel' : 'Buka cabang Mupel'}
                 >
                   {isExpanded ? (
-                    <ChevronDown size={18} className="text-purple-600 dark:text-purple-400" />
+                    <ChevronDown className="h-5 w-5 text-purple-600 dark:text-purple-400 shrink-0" />
                   ) : (
-                    <ChevronRight size={18} />
+                    <ChevronRight className="h-5 w-5 text-ink-tertiary shrink-0" />
                   )}
                 </button>
               }
@@ -75,7 +75,7 @@ export function HierarchyTree({ mupelList, searchQuery }: HierarchyTreeProps) {
 
             {/* Tree Branch: List Jemaat Induk */}
             {isExpanded && (
-              <div className="bg-surface-sunken/40 pl-4 sm:pl-8 border-t border-line-hairline divide-y divide-line-hairline">
+              <div className="bg-surface-sunken/40 pl-4 sm:pl-8 border-t border-line-hairline">
                 <JemaatTreeBranch id_mupel={mupel.id_mupel} searchQuery={searchQuery} />
               </div>
             )}
@@ -119,7 +119,7 @@ function JemaatTreeBranch({ id_mupel, searchQuery }: { id_mupel: string; searchQ
 
         return (
           <div key={jemaat.id_induk} className="transition-colors">
-            {/* Level 2: Jemaat Induk Row - Reusing ListRow */}
+            {/* Level 2: Jemaat Induk Row - Identical Chevron Alignment */}
             <ListRow
               icon={<Church className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />}
               iconClassName="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
@@ -147,13 +147,13 @@ function JemaatTreeBranch({ id_mupel, searchQuery }: { id_mupel: string; searchQ
                     e.stopPropagation();
                     toggleJemaat(jemaat.id_induk);
                   }}
-                  className="p-2 text-text-muted hover:text-text-high hover:bg-surface-sunken rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center active:scale-95"
+                  className="p-0 text-ink-tertiary hover:text-ink-primary transition-colors shrink-0 self-center flex items-center justify-center active:scale-95"
                   title={isJExpanded ? 'Tutup pos di jemaat ini' : 'Buka pos di jemaat ini'}
                 >
                   {isJExpanded ? (
-                    <ChevronDown size={18} className="text-indigo-600 dark:text-indigo-400" />
+                    <ChevronDown className="h-5 w-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
                   ) : (
-                    <ChevronRight size={18} />
+                    <ChevronRight className="h-5 w-5 text-ink-tertiary shrink-0" />
                   )}
                 </button>
               }
@@ -161,7 +161,7 @@ function JemaatTreeBranch({ id_mupel, searchQuery }: { id_mupel: string; searchQ
 
             {/* Tree Leaf: List Pos Pelkes & Bajem */}
             {isJExpanded && (
-              <div className="bg-surface-sunken/70 pl-4 sm:pl-8 border-t border-line-hairline divide-y divide-line-hairline">
+              <div className="bg-surface-sunken/70 pl-4 sm:pl-8 border-t border-line-hairline">
                 <PosTreeLeaf id_induk={jemaat.id_induk} id_mupel={id_mupel} searchQuery={searchQuery} />
               </div>
             )}
