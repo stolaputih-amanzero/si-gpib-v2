@@ -201,9 +201,23 @@ export function MobileHeader() {
     <>
       <header className="sticky top-0 z-40 w-full bg-surface-1/95 backdrop-blur-md hairline-b md:hidden shadow-xs select-none">
         <div className="flex items-center justify-between min-h-[56px] px-3 pt-safe py-1">
-          {/* Kiri Atas: Back button / Brand + Breadcrumb Navigasi Sidebar */}
+          {/* Kiri Atas: Hamburger Menu Drawer Button + Back button + Breadcrumb Navigasi Sidebar */}
           <div className="flex items-center gap-1.5 flex-1 min-w-0 pr-2">
-            {!isRoot ? (
+            {/* Hamburger / Sidebar Navigation Drawer Button (Kiri Atas) */}
+            <button
+              type="button"
+              onClick={() => {
+                haptic.medium();
+                setIsDrawerOpen(true);
+              }}
+              className="flex items-center justify-center min-h-[40px] min-w-[40px] rounded-xl text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20 active:scale-95 transition-all shrink-0 border border-brand-primary/20"
+              aria-label="Buka Menu Sidebar Navigasi"
+              title="Sidebar Navigasi"
+            >
+              <Menu size={19} className="stroke-[2.5px]" />
+            </button>
+
+            {!isRoot && (
               <button
                 type="button"
                 onClick={() => {
@@ -216,11 +230,6 @@ export function MobileHeader() {
               >
                 <ChevronLeft className="w-5 h-5 text-brand-600" />
               </button>
-            ) : (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-xl bg-surface-brand text-brand-600 shrink-0">
-                <Layers size={15} className="stroke-[2.5px]" />
-                <span className="text-[11px] font-black tracking-wider uppercase">SI GPIB</span>
-              </div>
             )}
 
             {/* Breadcrumb Trail di Kiri Atas */}
@@ -262,20 +271,6 @@ export function MobileHeader() {
           {/* Kanan Atas: Quick Action Controls */}
           <div className="flex items-center shrink-0 gap-1.5">
             <NetworkStatusBadge />
-
-            {/* Mobile Sidebar Menu Button */}
-            <button
-              type="button"
-              onClick={() => {
-                haptic.medium();
-                setIsDrawerOpen(true);
-              }}
-              className="flex items-center justify-center min-h-[40px] min-w-[40px] rounded-xl text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20 active:scale-95 transition-all border border-brand-primary/20"
-              aria-label="Buka Menu Sidebar Navigasi"
-              title="Sidebar Navigasi"
-            >
-              <Menu size={18} className="stroke-[2.5px]" />
-            </button>
 
             <button
               type="button"
