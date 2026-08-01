@@ -51,7 +51,7 @@ export function ProfileView({
   // If user is read_only, ONLY render the ProfileHero card (no stat strips, tabs, or sub-sections)
   if (isReadOnlyUser) {
     return (
-      <div className="space-y-6 max-w-4xl mx-auto pb-24 px-2.5 sm:px-4 md:px-6">
+      <div className="w-full max-w-5xl mx-auto space-y-6 sm:space-y-8 pb-24 px-3 sm:px-6 md:px-8">
         <ProfileHero
           userId={targetUserId}
           mode={mode}
@@ -64,7 +64,7 @@ export function ProfileView({
   const canEditDimensions = isSelf || isSuperUser || isAdminMupel;
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-24 px-2.5 sm:px-4 md:px-6">
+    <div className="w-full max-w-5xl mx-auto space-y-6 sm:space-y-8 pb-24 px-3 sm:px-6 md:px-8">
       {/* Hero Header */}
       <ProfileHero
         userId={targetUserId}

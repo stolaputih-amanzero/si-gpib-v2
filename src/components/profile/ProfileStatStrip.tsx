@@ -60,7 +60,7 @@ function StatCell({ label, value, isNumeric = true, rawNumber = 0, icon: Icon, c
   const displayVal = isNumeric ? animatedNumber.toLocaleString('id-ID') : value;
 
   return (
-    <div className="bg-surface-1 p-3.5 rounded-2xl border border-line-subtle shadow-2xs relative overflow-hidden flex flex-col justify-between hover:border-brand-500/30 transition-all">
+    <div className="bg-surface-1/60 backdrop-blur-xs p-3.5 sm:p-4 rounded-2xl border border-line-subtle/40 hover:bg-surface-1 hover:border-brand-500/30 transition-all flex flex-col justify-between">
       <div className="flex items-start justify-between gap-1.5">
         <span className="text-[11px] font-semibold text-ink-tertiary leading-tight">
           {label}
@@ -69,7 +69,7 @@ function StatCell({ label, value, isNumeric = true, rawNumber = 0, icon: Icon, c
           <Icon size={15} />
         </div>
       </div>
-      <div className="font-display tnum text-xl sm:text-2xl font-semibold text-ink-primary mt-2 truncate">
+      <div className="font-display tnum text-xl sm:text-2xl font-bold text-ink-primary mt-2 truncate">
         {displayVal}
       </div>
     </div>
