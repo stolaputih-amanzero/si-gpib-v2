@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Plus, TrendingUp, Church, Sprout, SearchX, Map, MapPin } from 'lucide-react';
+import { Search, Plus, TrendingUp, Church, Sprout, SearchX, Map, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { cleanQuotes, cn } from '@/lib/utils';
 import { StatusElevationModal } from '@/components/hierarki/StatusElevationModal';
@@ -373,36 +373,40 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkesItem[] })
                 })}
               </div>
 
-              {/* Touch-Friendly Pagination */}
+              {/* Sleek Compact Pagination Nav */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between px-4 py-4 hairline-t mt-2">
-                  <Button
-                    variant="outline"
+                <div className="flex items-center justify-center gap-3 px-4 py-4 hairline-t mt-2 select-none">
+                  <button
+                    type="button"
                     onClick={() => {
                       haptic.selection();
                       setCurrentPage((p) => Math.max(1, p - 1));
                     }}
                     disabled={currentPage === 1}
-                    className="min-h-[44px] px-4 text-xs font-semibold"
+                    className="tap h-11 w-11 rounded-xl bg-surface-sunken hover:bg-surface-brand text-ink-primary flex items-center justify-center border border-border-subtle/50 disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-95 shrink-0 min-h-[44px] min-w-[44px]"
+                    aria-label="Halaman Sebelumnya"
                   >
-                    Sebelumnya
-                  </Button>
+                    <ChevronLeft size={18} />
+                  </button>
 
-                  <span className="text-xs font-semibold text-ink-secondary tnum">
-                    Halaman <strong className="text-ink-primary font-bold">{currentPage}</strong> dari {totalPages}
-                  </span>
+                  <div className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-sunken/60 text-xs font-semibold text-ink-secondary tnum border border-border-subtle/40 min-h-[44px]">
+                    <span className="text-ink-primary font-bold text-sm">{currentPage}</span>
+                    <span className="text-ink-tertiary">/</span>
+                    <span>{totalPages}</span>
+                  </div>
 
-                  <Button
-                    variant="outline"
+                  <button
+                    type="button"
                     onClick={() => {
                       haptic.selection();
                       setCurrentPage((p) => Math.min(totalPages, p + 1));
                     }}
                     disabled={currentPage === totalPages}
-                    className="min-h-[44px] px-4 text-xs font-semibold"
+                    className="tap h-11 w-11 rounded-xl bg-surface-sunken hover:bg-surface-brand text-ink-primary flex items-center justify-center border border-border-subtle/50 disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-95 shrink-0 min-h-[44px] min-w-[44px]"
+                    aria-label="Halaman Selanjutnya"
                   >
-                    Selanjutnya
-                  </Button>
+                    <ChevronRight size={18} />
+                  </button>
                 </div>
               )}
             </>
