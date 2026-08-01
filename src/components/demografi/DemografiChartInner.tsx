@@ -37,22 +37,23 @@ export function DemografiChartInner({ data }: DemografiChartProps) {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-surface-elevated p-3 rounded-lg shadow-float border border-border-subtle text-xs space-y-1.5 min-w-[140px]">
-          <p className="font-bold text-text-high text-sm flex items-center gap-1">
-            <span>{data.icon}</span> {data.fullNama} ({data.nama})
+        <div className="bg-surface-elevated p-3.5 rounded-xl shadow-medium border border-border-subtle text-xs space-y-2 min-w-[160px]">
+          <p className="font-extrabold text-text-high text-sm flex items-center gap-1.5">
+            <span>{data.icon}</span>
+            <span>{data.fullNama} ({data.nama})</span>
           </p>
-          <div className="border-t border-border-subtle pt-1 space-y-1">
-            <div className="flex justify-between text-blue-600 font-medium">
+          <div className="border-t border-border-subtle pt-1.5 space-y-1.5">
+            <div className="flex items-center justify-between text-blue-600 dark:text-blue-400 font-semibold">
               <span>Laki-Laki:</span>
-              <span className="tabular-nums font-bold">{data.laki}</span>
+              <span className="tabular-nums font-extrabold">{data.laki} Jiwa</span>
             </div>
-            <div className="flex justify-between text-pink-600 font-medium">
+            <div className="flex items-center justify-between text-pink-600 dark:text-pink-400 font-semibold">
               <span>Perempuan:</span>
-              <span className="tabular-nums font-bold">{data.perempuan}</span>
+              <span className="tabular-nums font-extrabold">{data.perempuan} Jiwa</span>
             </div>
-            <div className="flex justify-between text-brand-primary font-bold pt-1 border-t border-border-subtle">
+            <div className="flex items-center justify-between text-text-high font-extrabold pt-1.5 border-t border-border-subtle">
               <span>Total Jiwa:</span>
-              <span className="tabular-nums">{data.total}</span>
+              <span className="tabular-nums font-black text-brand-600 dark:text-brand-400">{data.total} Jiwa</span>
             </div>
           </div>
         </div>
@@ -65,16 +66,24 @@ export function DemografiChartInner({ data }: DemografiChartProps) {
     <div className="w-full h-[260px] md:h-[340px]">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(128, 128, 128, 0.15)" />
           <XAxis 
             dataKey="nama" 
-            tick={{ fontSize: 12, fill: 'var(--color-text-muted)' }}
+            axisLine={false}
+            tickLine={false}
+            tick={{ fontSize: 12, fill: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}
+            dy={8}
           />
           <YAxis 
-            tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }}
+            axisLine={false}
+            tickLine={false}
+            tick={{ fontSize: 11, fill: 'var(--text-muted, #94a3b8)' }}
             allowDecimals={false}
           />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip 
+            cursor={{ fill: 'rgba(128, 128, 128, 0.12)' }}
+            content={<CustomTooltip />} 
+          />
           <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }} />
           <Bar dataKey="laki" fill="#3B82F6" name="Laki-Laki" radius={[4, 4, 0, 0]} />
           <Bar dataKey="perempuan" fill="#EC4899" name="Perempuan" radius={[4, 4, 0, 0]} />
