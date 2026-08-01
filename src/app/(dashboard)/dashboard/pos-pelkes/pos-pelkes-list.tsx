@@ -8,7 +8,6 @@ import { cleanQuotes, cn } from '@/lib/utils';
 import { StatusElevationModal } from '@/components/hierarki/StatusElevationModal';
 import { PullToRefresh } from '@/components/mobile/PullToRefresh';
 import { haptic } from '@/lib/haptic/vibrate';
-import { useReveal } from '@/hooks/useReveal';
 import { normalizePosName } from '@/lib/utils/normalize-pos-name';
 import { PosName } from '@/components/ui/PosName';
 import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
@@ -48,7 +47,6 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkesItem[] })
   } | null>(null);
 
   const itemsPerPage = 10;
-  const listRevealRef = useReveal<HTMLDivElement>();
 
   const handleRefresh = async () => {
     haptic.light();
@@ -305,9 +303,8 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkesItem[] })
             <>
               {/* Cardless List Container (opacity-90 during background refetch) */}
               <div
-                ref={listRevealRef}
                 className={cn(
-                  'divide-y divide-line-hairline reveal-stagger transition-opacity duration-200',
+                  'divide-y divide-line-hairline transition-opacity duration-200',
                   isFetching && 'opacity-90'
                 )}
               >

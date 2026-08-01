@@ -2,7 +2,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
-import { useCurrentUser } from '@/hooks/use-current-user';
 
 export interface PosPelkesItem {
   id_pos: string;
@@ -23,14 +22,12 @@ export interface PosPelkesItem {
 }
 
 export function usePosPelkes(options?: { initialData?: PosPelkesItem[] }) {
-  const { data: currentUser, isLoading: isUserLoading } = useCurrentUser();
   const supabase = createClient();
-
-  const scopeKey = currentUser?.id ? `user_${currentUser.id}` : 'public_scope';
-  const hasInitialData = Array.isArray(options?.initialData) && options.initialData.length > 0;
+  const initialData = options?.initialData;
+  const hasInitialData = Array.isArray(initialData) && initialData.length > 0;
 
   return useQuery<PosPelkesItem[]>({
-    queryKey: ['pos-pelkes', 'list', scopeKey],
+    queryKey: ['pos-pelkes', 'list'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('m_pos_pelkes')
@@ -59,9 +56,7 @@ export function usePosPelkes(options?: { initialData?: PosPelkesItem[] }) {
 
       return (data as unknown as PosPelkesItem[]) || [];
     },
-    // Guard: Do NOT fetch before currentUser loading is resolved (unless initialData is present)
-    enabled: !isUserLoading || hasInitialData,
-    initialData: hasInitialData ? options?.initialData : undefined,
+    initialData: hasInitialData ? initialData : undefined,
     staleTime: 5 * 60_000, // 5 minutes master data freshness
     gcTime: 15 * 60_000, // 15 minutes cache memory
     refetchOnWindowFocus: false, // 🔴 Disable auto-refetch on window/keyboard focus
