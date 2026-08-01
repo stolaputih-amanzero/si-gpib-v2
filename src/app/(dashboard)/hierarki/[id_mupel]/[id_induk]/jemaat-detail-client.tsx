@@ -31,7 +31,6 @@ import {
   Search,
   PhoneCall,
   UserPlus,
-  Building,
   Sprout,
   TrendingUp,
   Edit3,
@@ -180,7 +179,7 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
               {/* Floating Top Badges */}
               <div className="absolute top-4 left-4 z-20 flex items-center gap-2 flex-wrap">
                 <span className="px-3 py-1 rounded-xl bg-black/60 backdrop-blur-md text-white border border-white/20 text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md">
-                  <Church size={13} className="text-purple-400" />
+                  <Church size={13} className="text-indigo-400" />
                   <span>Jemaat Induk</span>
                 </span>
                 <span className="px-3 py-1 rounded-xl bg-black/50 backdrop-blur-md text-white/90 border border-white/10 text-[11px] font-bold">
@@ -200,13 +199,13 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
               </button>
             </div>
           ) : (
-            <div className="relative h-32 sm:h-44 w-full bg-gradient-to-br from-brand-primary via-indigo-900 to-purple-950 p-5 overflow-hidden flex flex-col justify-between">
+            <div className="relative h-36 sm:h-48 w-full bg-gradient-to-br from-indigo-800 via-indigo-900 to-purple-950 p-4 sm:p-6 overflow-hidden flex flex-col justify-between">
               <div className="absolute -right-8 -bottom-8 opacity-15 pointer-events-none">
                 <Church className="w-64 h-64 text-white" />
               </div>
               <div className="relative z-10 flex items-center justify-between">
                 <span className="px-3 py-1 rounded-xl bg-white/10 backdrop-blur-md text-white border border-white/20 text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5">
-                  <Church size={13} className="text-purple-300" />
+                  <Church size={13} className="text-indigo-300" />
                   <span>Jemaat Induk Mandiri</span>
                 </span>
               </div>
@@ -219,14 +218,14 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
               {/* Church Avatar & Title Block */}
               <div className="flex items-start gap-4">
                 <div className={cn(
-                  "relative z-20 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-surface-elevated border-4 border-surface-elevated shadow-lg flex items-center justify-center text-brand-primary shrink-0 ring-1 ring-border-subtle",
+                  "relative z-20 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-surface-elevated border-4 border-surface-elevated shadow-lg flex items-center justify-center text-indigo-600 shrink-0 ring-1 ring-border-subtle",
                   jemaat?.foto_url ? "-mt-12 sm:-mt-14" : ""
                 )}>
-                  <Church className="w-8 h-8 sm:w-10 sm:h-10 text-purple-600 dark:text-purple-400" />
+                  <Church className="w-8 h-8 sm:w-10 sm:h-10 text-indigo-600 dark:text-indigo-400" />
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-black uppercase tracking-wider text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-md border border-purple-200/60">
+                    <span className="text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-0.5 rounded-md border border-indigo-200/60">
                       {id_induk}
                     </span>
                     <span className="text-xs font-semibold text-text-muted">
@@ -308,7 +307,7 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
               value="pos-pelkes" 
               className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold whitespace-nowrap rounded-lg"
             >
-              <Building size={14} />
+              <Church size={14} className="text-brand-600 dark:text-brand-400" />
               <span>Pos Pelkes & Bajem</span>
             </TabsTrigger>
             <TabsTrigger 

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Plus, TrendingUp, Church, Sprout, SearchX, Map, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Plus, TrendingUp, Church, Sprout, Layers, SearchX, Map, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { cleanQuotes, cn } from '@/lib/utils';
 import { StatusElevationModal } from '@/components/hierarki/StatusElevationModal';
@@ -277,9 +277,9 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkesItem[] })
         {/* 4. Fraunces Summary Strip */}
         <SummaryStrip
           metrics={[
-            { label: 'Pos Pelkes', value: activeFilteredPosCount },
-            { label: 'Bajem', value: activeFilteredBajemCount },
-            { label: 'Total Scoped', value: filteredData.length },
+            { label: 'Pos Pelkes', value: activeFilteredPosCount, icon: <Church size={16} className="text-blue-600 dark:text-blue-400" /> },
+            { label: 'Bajem', value: activeFilteredBajemCount, icon: <Sprout size={16} className="text-emerald-600 dark:text-emerald-400" /> },
+            { label: 'Total Scoped', value: filteredData.length, icon: <Layers size={16} className="text-purple-600 dark:text-purple-400" /> },
           ]}
           className="hairline-b bg-surface-1/40"
         />

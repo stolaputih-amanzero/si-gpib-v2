@@ -83,9 +83,9 @@ export default function HierarkiEntryPage() {
       {/* Summary Metrics Strip */}
       <SummaryStrip
         metrics={[
-          { label: 'Total Mupel', value: totalMupel, icon: <Layers size={16} /> },
-          { label: 'Total Jemaat Induk', value: totalJemaat, icon: <Church size={16} /> },
-          { label: 'Total Pos Pelkes', value: totalPos, icon: <Church size={16} /> },
+          { label: 'Total Mupel', value: totalMupel, icon: <Layers size={16} className="text-purple-600 dark:text-purple-400" /> },
+          { label: 'Total Jemaat Induk', value: totalJemaat, icon: <Church size={16} className="text-indigo-600 dark:text-indigo-400" /> },
+          { label: 'Total Pos Pelkes', value: totalPos, icon: <Church size={16} className="text-blue-600 dark:text-blue-400" /> },
         ]}
         className="hairline-b bg-surface-1/40 rounded-xl py-2 px-3"
       />
@@ -124,8 +124,8 @@ export default function HierarkiEntryPage() {
           {mupelList.map((mupel) => (
             <ListRow
               key={mupel.id_mupel}
-              icon={<Layers className="h-5 w-5" />}
-              iconVariant="brand"
+              icon={<Layers className="h-5 w-5 text-purple-600 dark:text-purple-400" />}
+              iconClassName="bg-purple-500/10 text-purple-600 dark:text-purple-400"
               title={mupel.nama_mupel}
               subtitle={mupel.keterangan || `Kode Mupel: ${mupel.id_mupel}`}
               meta={

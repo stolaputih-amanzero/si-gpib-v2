@@ -5,7 +5,7 @@ import { useMupelDetail, useJemaatByMupel, JemaatIndukItem } from '@/hooks/use-h
 import { BreadcrumbNav } from '@/components/hierarki/BreadcrumbNav';
 import { JemaatFormModal } from '@/components/hierarki/JemaatFormModal';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Layers, Church, Search, Plus, MapPin, Sprout } from 'lucide-react';
+import { Layers, Church, Search, Plus, Sprout } from 'lucide-react';
 import { ListRow } from '@/components/list/ListRow';
 import { SummaryStrip } from '@/components/list/SummaryStrip';
 import { EmptyState } from '@/components/list/EmptyState';
@@ -61,7 +61,7 @@ export function MupelDetailClient({ id_mupel }: MupelDetailClientProps) {
         <div className="bg-surface-1 p-5 rounded-2xl border border-border-subtle shadow-xs space-y-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3.5 min-w-0">
-              <div className="p-3 rounded-2xl bg-surface-brand text-brand-600 shrink-0 flex items-center justify-center">
+              <div className="p-3 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0 flex items-center justify-center">
                 <Layers className="w-6 h-6" />
               </div>
               <div className="flex flex-col justify-center min-w-0">
@@ -96,9 +96,9 @@ export function MupelDetailClient({ id_mupel }: MupelDetailClientProps) {
       {/* Summary Metrics Strip */}
       <SummaryStrip
         metrics={[
-          { label: 'Jemaat Induk', value: jemaatList?.length || 0, icon: <Church size={16} /> },
-          { label: 'Bajem', value: totalBajemCount, icon: <Sprout size={16} /> },
-          { label: 'Pos Pelkes', value: totalPosPelkesCount, icon: <MapPin size={16} /> },
+          { label: 'Jemaat Induk', value: jemaatList?.length || 0, icon: <Church size={16} className="text-indigo-600 dark:text-indigo-400" /> },
+          { label: 'Bajem', value: totalBajemCount, icon: <Sprout size={16} className="text-emerald-600 dark:text-emerald-400" /> },
+          { label: 'Pos Pelkes', value: totalPosPelkesCount, icon: <Church size={16} className="text-blue-600 dark:text-blue-400" /> },
         ]}
         className="hairline-b bg-surface-1/40 rounded-xl py-2 px-3"
       />
@@ -140,8 +140,8 @@ export function MupelDetailClient({ id_mupel }: MupelDetailClientProps) {
           {jemaatList.map((jemaat) => (
             <ListRow
               key={jemaat.id_induk}
-              icon={<Church className="h-5 w-5" />}
-              iconVariant="brand"
+              icon={<Church className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />}
+              iconClassName="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
               title={jemaat.nama_induk}
               subtitle={
                 <span>
