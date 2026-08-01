@@ -141,11 +141,18 @@ function JemaatTreeBranch({ id_mupel, searchQuery }: { id_mupel: string; searchQ
                 </div>
               </button>
 
-              <div className="flex items-center gap-1.5 shrink-0">
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-md bg-blue-500/10" title="Pos Pelkes">
-                  <Sprout size={12} />
-                  <span>{jemaat.pos_count ?? 0}</span>
-                </span>
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2 text-xs font-bold">
+                  <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400" title="Bakal Jemaat (Bajem)">
+                    <Church size={13} />
+                    <span>{jemaat.bajem_count ?? 0}</span>
+                  </span>
+                  <span className="text-text-muted/40">•</span>
+                  <span className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400" title="Pos Pelkes">
+                    <Sprout size={13} />
+                    <span>{jemaat.pos_count ?? 0}</span>
+                  </span>
+                </div>
 
                 <button
                   type="button"
