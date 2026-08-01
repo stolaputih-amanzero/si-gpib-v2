@@ -3,32 +3,58 @@
 import { cn } from '@/lib/utils';
 import { haptic } from '@/lib/haptic/vibrate';
 
+export interface FilterChip {
+  key?: string;
+  id?: string;
+  label: string;
+  count?: number;
+}
+
 export interface FilterChipOption {
+  key?: string;
   id: string;
   label: string;
   count?: number;
 }
 
 export interface FilterChipsProps {
-  options: FilterChipOption[];
-  selectedId: string;
-  onSelect: (id: string) => void;
+  items?: FilterChip[];
+  options?: FilterChipOption[];
+  active?: string;
+  selectedId?: string;
+  onChange?: (key: string) => void;
+  onSelect?: (id: string) => void;
   className?: string;
 }
 
-export function FilterChips({ options, selectedId, onSelect, className }: FilterChipsProps) {
+export function FilterChips({
+  items,
+  options,
+  active,
+  selectedId,
+  onChange,
+  onSelect,
+  className,
+}: FilterChipsProps) {
+  const chipList = items || options || [];
+  const currentActive = active ?? selectedId ?? '';
+
+  const handleSelect = (key: string) => {
+    haptic.selection();
+    if (onChange) onChange(key);
+    if (onSelect) onSelect(key);
+  };
+
   return (
     <div className={cn('flex gap-2 overflow-x-auto no-scrollbar px-4 py-2.5 items-center select-none', className)}>
-      {options.map((opt) => {
-        const isSelected = opt.id === selectedId;
+      {chipList.map((opt) => {
+        const itemKey = opt.key || opt.id || '';
+        const isSelected = itemKey === currentActive;
         return (
           <button
-            key={opt.id}
+            key={itemKey}
             type="button"
-            onClick={() => {
-              haptic.selection();
-              onSelect(opt.id);
-            }}
+            onClick={() => handleSelect(itemKey)}
             className={cn(
               'tap h-11 px-4 rounded-full text-sm font-medium whitespace-nowrap transition-all flex items-center justify-center gap-1.5 shrink-0 border min-w-[44px]',
               isSelected

@@ -29,6 +29,7 @@ import {
   Layers,
   Download,
   Share2,
+  ClipboardList,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -36,6 +37,13 @@ import { createClient } from '@/lib/supabase/client';
 import { formatPastoralKegiatanText } from '@/lib/formatters/pastoral-text';
 import { SecureDeleteModal } from '@/components/ui/SecureDeleteModal';
 import { useUserMupelAuth } from '@/hooks/use-hierarki-selector';
+import { ListRow } from '@/components/list/ListRow';
+import { FilterChips } from '@/components/list/FilterChips';
+import { SummaryStrip } from '@/components/list/SummaryStrip';
+import { EmptyState } from '@/components/list/EmptyState';
+import { ListSkeleton } from '@/components/list/ListSkeleton';
+import { PosName } from '@/components/ui/PosName';
+import { Badge } from '@/components/ui/badge';
 
 function isLogInUserHierarchy(log: LogPastoralItem, userAuth: any): boolean {
   if (!userAuth) return true;
@@ -449,165 +457,112 @@ export default function LaporanPastoralPage() {
         </p>
       </div>
 
-      {/* Scope Selector Bar: Wilayah Saya (Hierarki) vs Lihat Semua Wilayah */}
-      <div className="bg-surface-elevated p-3 rounded-2xl border border-border-subtle shadow-soft space-y-2">
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <div className="flex items-center gap-1.5 bg-surface-sunken p-1 rounded-xl w-full sm:w-auto">
-            <button
-              type="button"
-              onClick={() => setViewScope('hierarchy')}
-              className={`flex-1 sm:flex-none px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                viewScope === 'hierarchy'
-                  ? 'bg-surface-elevated text-brand-primary shadow-soft border border-border-subtle/50'
-                  : 'text-text-muted hover:text-text-high'
-              }`}
-            >
-              <span>📍 Wilayah Saya (Hierarki)</span>
-              <span className="px-1.5 py-0.5 rounded-full bg-brand-primary/10 text-[10px] font-bold text-brand-primary">
-                {hierarchyLogs.length}
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewScope('all')}
-              className={`flex-1 sm:flex-none px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                viewScope === 'all'
-                  ? 'bg-surface-elevated text-brand-primary shadow-soft border border-border-subtle/50'
-                  : 'text-text-muted hover:text-text-high'
-              }`}
-            >
-              <span>🌐 Lihat Semua Wilayah</span>
-              <span className="px-1.5 py-0.5 rounded-full bg-surface-sunken text-[10px] font-bold text-text-high">
-                {allLogs.length}
-              </span>
-            </button>
-          </div>
+      {/* Scope Filter Chips */}
+      <FilterChips
+        items={[
+          { key: 'hierarchy', label: '📍 Wilayah Saya (Hierarki)', count: hierarchyLogs.length },
+          { key: 'all', label: '🌐 Lihat Semua Wilayah', count: allLogs.length },
+        ]}
+        active={viewScope}
+        onChange={(key) => setViewScope(key as 'hierarchy' | 'all')}
+        className="px-0 py-1"
+      />
 
-          <div className="text-[11px] font-medium text-text-muted px-1">
-            {viewScope === 'hierarchy' ? (
-              <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                🔒 Data wilayah Anda (dapat Edit & Hapus)
-              </span>
-            ) : (
-              <span className="text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
-                👁️ Semua wilayah (luar wilayah hanya dapat dilihat)
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft">
-          <p className="text-xs text-text-muted font-medium">Total Log Pastoral</p>
-          <p className="text-2xl font-serif font-bold text-brand-primary tabular-nums mt-1">{totalLogs}</p>
-          <p className="text-[11px] text-text-muted mt-0.5">Catatan Terdaftar</p>
-        </div>
-        <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft">
-          <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Pelayanan Bulan Ini</p>
-          <p className="text-2xl font-serif font-bold text-emerald-600 dark:text-emerald-400 tabular-nums mt-1">{currentMonthLogs}</p>
-          <p className="text-[11px] text-text-muted mt-0.5">Kunjungan Terbuka</p>
-        </div>
-        <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft">
-          <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">Total Jiwa Dilayani</p>
-          <p className="text-2xl font-serif font-bold text-blue-600 dark:text-blue-400 tabular-nums mt-1">{totalJiwaServed}</p>
-          <p className="text-[11px] text-text-muted mt-0.5">Jiwa Terjangkau</p>
-        </div>
-      </div>
+      {/* Summary Metrics Strip */}
+      <SummaryStrip
+        metrics={[
+          { label: 'Total Log', value: totalLogs },
+          { label: 'Bulan Ini', value: currentMonthLogs },
+          { label: 'Total Jiwa', value: totalJiwaServed },
+        ]}
+        className="hairline-b bg-surface-1/40 rounded-xl py-2 px-3"
+      />
 
       {/* Search Bar */}
-      <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft">
-        <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
-          <input
-            type="text"
-            placeholder="Cari log pastoral (kegiatan, mupel, jemaat, pos pelkes, pendeta)..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
-          />
-        </div>
+      <div className="relative">
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
+        <input
+          type="text"
+          placeholder="Cari log pastoral (kegiatan, mupel, jemaat, pos pelkes, pendeta)..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+        />
       </div>
 
       {/* Logs List Section */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between px-1">
           <h2 className="text-base font-semibold text-text-high">
             Riwayat Kegiatan Pastoral ({displayedLogs.length})
           </h2>
           <span className="text-xs text-text-muted">
-            {isLoading ? 'Memuat...' : 'Klik kartu untuk melihat detail hierarki & foto'}
+            {isLoading ? 'Memuat...' : 'Klik baris untuk detail hierarki & foto'}
           </span>
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle animate-pulse space-y-3">
-                <div className="h-4 bg-surface-sunken rounded w-3/4"></div>
-                <div className="h-3 bg-surface-sunken rounded w-1/2"></div>
-              </div>
-            ))}
-          </div>
+          <ListSkeleton count={6} />
         ) : displayedLogs && displayedLogs.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="divide-y divide-line-hairline rounded-xl bg-surface-1 overflow-hidden hairline-t hairline-b">
             {displayedLogs.map((log) => {
-              const { jamStr, zonaWaktu, photoBase64, hierarchyInfo, cleanNotes } = extractMetaFromCatatan(log.catatan);
+              const { jamStr, zonaWaktu, photoBase64, hierarchyInfo } = extractMetaFromCatatan(log.catatan);
 
               const posNama = log.pos?.nama_pos || hierarchyInfo?.posName;
-              const posKategori = log.pos?.kategori || 'Pos Pelkes';
               const jemaatNama = log.pos?.jemaat_induk?.nama_induk || hierarchyInfo?.jemaatName;
               const mupelNama = log.pos?.jemaat_induk?.mupel?.nama_mupel || hierarchyInfo?.mupelName;
               const canManage = isLogInUserHierarchy(log, userAuth);
 
-              return (
-                <div
-                  key={log.id_log}
-                  onClick={() => handleOpenDetailModal(log)}
-                  className="bg-surface-elevated p-4.5 rounded-2xl border border-border-subtle shadow-soft space-y-3 hover:border-brand-primary hover:shadow-medium transition-all cursor-pointer group relative overflow-hidden"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1 min-w-0">
-                      <h3 className="font-serif font-bold text-base text-text-high leading-snug truncate group-hover:text-brand-primary transition-colors">
-                        {log.kegiatan}
-                      </h3>
-                      <div className="flex items-center gap-2 text-xs text-text-muted flex-wrap">
-                        <span className="inline-flex items-center gap-1 font-medium bg-surface-sunken px-2 py-0.5 rounded-md">
-                          <Calendar size={13} className="text-brand-primary" />
-                          {log.tgl}
-                        </span>
-                        {jamStr ? (
-                          <span className="inline-flex items-center gap-1 font-semibold text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-md">
-                            <Clock size={12} />
-                            {jamStr} {zonaWaktu || 'WIB'}
-                          </span>
-                        ) : null}
-                        {log.jml_jiwa ? (
-                          <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
-                            <Users size={12} />
-                            {log.jml_jiwa} Jiwa
-                          </span>
-                        ) : null}
-                      </div>
-                    </div>
+              const subtitleText = (
+                <span>
+                  {posNama && posNama !== 'Pelayanan Jemaat Direct' ? (
+                    <PosName name={posNama} />
+                  ) : (
+                    jemaatNama || 'Jemaat Direct'
+                  )}
+                  {mupelNama ? ` · Mupel ${mupelNama.replace(/^Mupel\s+/i, '')}` : ''}
+                </span>
+              );
 
-                    {/* Card Actions */}
-                    <div className="flex items-center gap-1 shrink-0">
+              const metaText = (
+                <span>
+                  {log.tgl} · Pkl. {jamStr || '09:00'} {zonaWaktu || 'WIB'}
+                  {log.jml_jiwa ? ` · ${log.jml_jiwa} Jiwa` : ''}
+                </span>
+              );
+
+              return (
+                <ListRow
+                  key={log.id_log}
+                  icon={<ClipboardList className="h-5 w-5" />}
+                  iconVariant="brand"
+                  title={log.kegiatan}
+                  subtitle={subtitleText}
+                  meta={metaText}
+                  badge={
+                    photoBase64 ? (
+                      <Badge variant="outline" className="text-[10px] py-0 px-1.5 border-amber-500/30 text-amber-600 dark:text-amber-400">
+                        <Camera size={10} className="mr-1 inline" />
+                        Foto GPS
+                      </Badge>
+                    ) : undefined
+                  }
+                  action={
+                    <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
                         onClick={(e) => handleShareWhatsApp(e, log)}
-                        className="p-2 rounded-xl text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
-                        title="Bagikan Laporan (Foto & Teks) ke WhatsApp"
+                        className="p-2 rounded-xl text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        title="Bagikan Laporan (Foto & Teks) ke WA"
                       >
                         <Share2 size={16} />
                       </button>
-                      {canManage ? (
+                      {canManage && (
                         <>
                           <button
                             type="button"
                             onClick={(e) => handleOpenEditDirect(e, log)}
-                            className="p-2 rounded-xl text-text-muted hover:text-brand-primary hover:bg-brand-primary/10 transition-colors"
+                            className="p-2 rounded-xl text-text-muted hover:text-brand-primary hover:bg-brand-primary/10 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                             title="Edit Log Pastoral"
                           >
                             <Edit size={16} />
@@ -615,125 +570,31 @@ export default function LaporanPastoralPage() {
                           <button
                             type="button"
                             onClick={(e) => handleDelete(e, log.id_log, log.kegiatan)}
-                            className="p-2 rounded-xl text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+                            className="p-2 rounded-xl text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                             title="Hapus Log"
                           >
                             <Trash2 size={16} />
                           </button>
                         </>
-                      ) : (
-                        <span className="px-2 py-1 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1" title="Luar wilayah Anda (Hanya Lihat)">
-                          <Eye size={11} />
-                          <span>Hanya Lihat</span>
-                        </span>
                       )}
                     </div>
-                  </div>
-
-                  {/* Photo Thumbnail if available */}
-                  {photoBase64 && (
-                    <div
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setViewPhotoUrl(photoBase64);
-                      }}
-                      className="relative h-36 w-full rounded-xl overflow-hidden bg-black/90 border border-border-subtle/80 cursor-zoom-in group/photo"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={photoBase64} alt="Foto Pastoral Stamped" className="w-full h-full object-cover group-hover/photo:scale-105 transition-transform duration-300" />
-                      <div className="absolute top-2 left-2 px-2.5 py-1 rounded-md bg-black/75 text-white text-[10px] font-bold flex items-center gap-1.5 backdrop-blur-sm border border-white/10">
-                        <Camera size={11} className="text-amber-400" />
-                        <span>Foto GPS Stamped (Klik untuk Perbesar)</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Full 3-Level Hierarchy Breakdown Details */}
-                  <div className="bg-surface-base p-2.5 rounded-xl border border-border-subtle/60 text-xs space-y-1">
-                    <div className="flex items-center justify-between text-text-muted">
-                      <span className="flex items-center gap-1 font-medium">
-                        <MapPin size={13} className="text-brand-primary" /> Pos Pelkes / Bajem:
-                      </span>
-                      <span className="font-bold text-text-high truncate max-w-[180px]">
-                        {posNama && posNama !== 'Pelayanan Jemaat Direct' ? `${posNama} (${posKategori})` : '-'}
-                      </span>
-                    </div>
-
-                    {jemaatNama && (
-                      <div className="flex items-center justify-between text-text-muted border-t border-border-subtle/30 pt-1">
-                        <span className="flex items-center gap-1">
-                          <Building size={13} className="text-blue-500" /> Jemaat Induk:
-                        </span>
-                        <span className="font-semibold text-text-high truncate max-w-[180px]">
-                          {jemaatNama}
-                        </span>
-                      </div>
-                    )}
-
-                    {mupelNama && (
-                      <div className="flex items-center justify-between text-text-muted border-t border-border-subtle/30 pt-1">
-                        <span className="flex items-center gap-1">
-                          <Layers size={13} className="text-purple-500" /> Mupel:
-                        </span>
-                        <span className="font-semibold text-text-high truncate max-w-[180px]">
-                          {mupelNama}
-                        </span>
-                      </div>
-                    )}
-
-                    {log.pendeta && (
-                      <div className="flex items-center justify-between text-text-muted border-t border-border-subtle/40 pt-1">
-                        <span className="flex items-center gap-1">
-                          <HeartHandshake size={13} className="text-emerald-500" /> Pelayan:
-                        </span>
-                        <span className="font-semibold text-text-high truncate max-w-[180px]">
-                          {log.pendeta.nama_lengkap}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Catatan Snippet */}
-                  {cleanNotes && (
-                    <p className="text-xs text-text-high italic bg-surface-sunken/60 p-2.5 rounded-xl border border-border-subtle/40 line-clamp-2">
-                      "{cleanNotes}"
-                    </p>
-                  )}
-
-                  <div className="flex items-center justify-between pt-0.5">
-                    <button
-                      type="button"
-                      onClick={(e) => handleShareWhatsApp(e, log)}
-                      className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
-                    >
-                      <Share2 size={12} />
-                      <span>Share WA (Foto + Teks)</span>
-                    </button>
-
-                    <div className="flex items-center text-[11px] font-semibold text-brand-primary gap-1 group-hover:translate-x-0.5 transition-transform">
-                      <Eye size={12} />
-                      <span>Lihat Detail Hierarki & Foto</span>
-                    </div>
-                  </div>
-                </div>
+                  }
+                  onClick={() => handleOpenDetailModal(log)}
+                />
               );
             })}
           </div>
         ) : (
-          <div className="bg-surface-elevated rounded-2xl p-10 text-center border border-border-subtle space-y-3">
-            <FileText size={40} className="mx-auto text-text-muted opacity-40" />
-            <h3 className="font-serif font-bold text-text-high text-base">Belum Ada Log Pastoral</h3>
-            <p className="text-xs text-text-muted max-w-md mx-auto">
-              Catat kunjungan rumah tangga, konseling jemaat, dan pelayanan sakramen/doa di Pos Pelkes.
-            </p>
-            <Link
-              href="/laporan/pastoral/baru"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-brand-primary-dark transition-all shadow-soft min-h-[44px]"
-            >
-              <Plus size={16} />
-              <span>Tambah Log Pastoral Baru</span>
-            </Link>
-          </div>
+          <EmptyState
+            icon={FileText}
+            title="Belum Ada Log Pastoral"
+            description="Catat kunjungan rumah tangga, konseling jemaat, dan pelayanan sakramen/doa di Pos Pelkes."
+            action={{
+              label: 'Tambah Log Pastoral Baru',
+              href: '/laporan/pastoral/baru',
+              variant: 'primary',
+            }}
+          />
         )}
       </div>
 

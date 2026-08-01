@@ -1,9 +1,17 @@
 'use client';
 
-export function ListSkeleton({ count = 6 }: { count?: number }) {
+export interface ListSkeletonProps {
+  count?: number;
+  rows?: number;
+  className?: string;
+}
+
+export function ListSkeleton({ count, rows = 6, className }: ListSkeletonProps) {
+  const rowCount = count ?? rows;
+
   return (
-    <div className="divide-y divide-line-hairline animate-pulse">
-      {Array.from({ length: count }).map((_, index) => (
+    <div className={`divide-y divide-line-hairline animate-pulse ${className || ''}`}>
+      {Array.from({ length: rowCount }).map((_, index) => (
         <div key={index} className="flex items-start gap-3 px-4 py-4 min-h-[76px]">
           {/* Chip Icon Skeleton (44x44px) */}
           <div className="h-11 w-11 rounded-xl bg-surface-sunken shrink-0 skeleton" />
