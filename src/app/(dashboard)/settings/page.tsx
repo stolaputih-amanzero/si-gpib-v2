@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/hooks/use-user';
 import { useToast } from '@/components/ui/toast';
-import { Shield, Bell, LogOut, ChevronRight, Check, User as UserIcon, RefreshCw, Crown, Lock, X, Palette } from 'lucide-react';
+import { Shield, Bell, LogOut, ChevronRight, User as UserIcon, RefreshCw, Crown, Lock, X, Palette } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -142,11 +142,6 @@ export default function SettingsHubPage() {
                   <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-brand-primary/10 text-brand-primary border border-brand-primary/20 uppercase">
                     {role}
                   </span>
-                  {user && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
-                      <Check className="w-3 h-3" /> Sesi Terverifikasi
-                    </span>
-                  )}
                 </div>
               </div>
             </div>
