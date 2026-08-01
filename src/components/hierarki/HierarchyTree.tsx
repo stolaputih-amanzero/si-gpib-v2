@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { MupelItem, useJemaatByMupel, usePosByJemaat } from '@/hooks/use-hierarki';
-import { Layers, Church, Sprout, ChevronRight, ChevronDown, ExternalLink } from 'lucide-react';
+import { Layers, Church, Sprout, ChevronRight, ChevronDown } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PosName } from '@/components/ui/PosName';
 import { detectPosType } from '@/lib/utils/pos-type';
@@ -66,14 +66,6 @@ export function HierarchyTree({ mupelList, searchQuery }: HierarchyTreeProps) {
               </button>
 
               <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-                <Link
-                  href={`/hierarki/${encodeURIComponent(mupel.id_mupel)}`}
-                  className="p-2 text-text-muted hover:text-brand-primary hover:bg-surface-sunken rounded-xl transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
-                  title="Lihat Detail Mupel"
-                >
-                  <ExternalLink size={16} />
-                </Link>
-
                 <button
                   type="button"
                   onClick={() => toggleMupel(mupel.id_mupel)}
@@ -154,14 +146,6 @@ function JemaatTreeBranch({ id_mupel, searchQuery }: { id_mupel: string; searchQ
                   <Sprout size={12} />
                   <span>{jemaat.pos_count ?? 0}</span>
                 </span>
-
-                <Link
-                  href={`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(jemaat.id_induk)}`}
-                  className="p-1.5 text-text-muted hover:text-indigo-600 hover:bg-surface-sunken rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
-                  title="Lihat Detail Jemaat"
-                >
-                  <ExternalLink size={14} />
-                </Link>
 
                 <button
                   type="button"
