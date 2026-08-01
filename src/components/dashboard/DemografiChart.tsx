@@ -6,17 +6,25 @@ import { Users } from 'lucide-react';
 
 interface ChartData {
   name: string;
+  fullName?: string;
+  icon?: string;
+  warna?: string;
   total: number;
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
+    const data = payload[0].payload;
     return (
-      <div className="bg-surface-elevated p-3 rounded-xl border border-border-subtle shadow-medium text-xs space-y-1 min-w-[140px]">
-        <p className="font-extrabold text-text-high">{label}</p>
+      <div className="bg-surface-elevated p-3 rounded-xl border border-border-subtle shadow-medium text-xs space-y-1.5 min-w-[160px]">
+        <p className="font-extrabold text-text-high text-sm flex items-center gap-1.5">
+          <span>{data.icon || '👥'}</span>
+          <span>{data.fullName || label}</span>
+          <span className="text-text-muted font-semibold text-xs">({data.name || label})</span>
+        </p>
         <div className="flex items-center justify-between gap-2 pt-1 border-t border-border-subtle">
           <span className="text-text-muted font-medium">Total Jiwa:</span>
-          <span className="tabular-nums font-black text-brand-primary">{payload[0].value} Jiwa</span>
+          <span className="tabular-nums font-black text-brand-primary text-sm">{data.total} Jiwa</span>
         </div>
       </div>
     );
@@ -25,8 +33,15 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export function DemografiChart({ data }: { data: ChartData[] }) {
-  // Harmonious palette for Pelkat categories
-  const colors = ['#3B82F6', '#6366F1', '#8B5CF6', '#EC4899', '#10B981', '#F59E0B', '#EF4444'];
+  // Default canonical Pelkat colors if not provided
+  const defaultColors: Record<string, string> = {
+    PA: '#F59E0B',   // Pelayanan Anak (Amber/Gold)
+    PT: '#10B981',   // Persekutuan Teruna (Emerald)
+    GP: '#3B82F6',   // Gerakan Pemuda (Blue)
+    PKP: '#EC4899',  // Persekutuan Kaum Perempuan (Pink)
+    PKB: '#06B6D4',  // Persekutuan Kaum Bapak (Cyan)
+    PKLU: '#8B5CF6', // Persekutuan Kaum Lanjut Usia (Purple)
+  };
 
   return (
     <Card className="border-border-subtle shadow-soft bg-surface-elevated">
@@ -50,7 +65,7 @@ export function DemografiChart({ data }: { data: ChartData[] }) {
                   dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fill: 'var(--text-muted, #94a3b8)', fontSize: 12 }} 
+                  tick={{ fill: 'var(--text-muted, #94a3b8)', fontSize: 12, fontWeight: 700 }} 
                   dy={10}
                 />
                 <YAxis 
@@ -62,9 +77,12 @@ export function DemografiChart({ data }: { data: ChartData[] }) {
                   cursor={{ fill: 'rgba(128, 128, 128, 0.12)' }}
                   content={<CustomTooltip />}
                 />
-                <Bar dataKey="total" radius={[6, 6, 0, 0]} maxBarSize={50}>
-                  {data.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                <Bar dataKey="total" radius={[6, 6, 0, 0]} maxBarSize={48}>
+                  {data.map((item, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={item.warna || defaultColors[item.name] || '#3B82F6'} 
+                    />
                   ))}
                 </Bar>
               </BarChart>
