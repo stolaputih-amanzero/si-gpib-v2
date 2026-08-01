@@ -72,7 +72,7 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkesItem[] })
   const filteredData = useMemo(() => {
     const list = dataList.filter((pos) => {
       // 1. Filter Category (Semua vs Pos Pelkes vs Bajem)
-      const posType = detectPosType(pos.nama_pos);
+      const posType = detectPosType(pos);
       if (selectedCategoryFilter === 'pos_pelkes' && posType !== 'pos_pelkes') {
         return false;
       }
@@ -136,15 +136,15 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkesItem[] })
 
   // Counts for Summary Strip & Chips
   const posPelkesCount = useMemo(() => {
-    return dataList.filter((p) => detectPosType(p.nama_pos) === 'pos_pelkes').length;
+    return dataList.filter((p) => detectPosType(p) === 'pos_pelkes').length;
   }, [dataList]);
 
   const bajemCount = useMemo(() => {
-    return dataList.filter((p) => detectPosType(p.nama_pos) === 'bajem').length;
+    return dataList.filter((p) => detectPosType(p) === 'bajem').length;
   }, [dataList]);
 
-  const activeFilteredPosCount = filteredData.filter((p) => detectPosType(p.nama_pos) === 'pos_pelkes').length;
-  const activeFilteredBajemCount = filteredData.filter((p) => detectPosType(p.nama_pos) === 'bajem').length;
+  const activeFilteredPosCount = filteredData.filter((p) => detectPosType(p) === 'pos_pelkes').length;
+  const activeFilteredBajemCount = filteredData.filter((p) => detectPosType(p) === 'bajem').length;
 
   // Filter Chips Config
   const filterChips: FilterChipOption[] = useMemo(() => {
@@ -309,7 +309,7 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkesItem[] })
                 )}
               >
                 {currentData.map((pos) => {
-                  const posType = detectPosType(pos.nama_pos);
+                  const posType = detectPosType(pos);
                   const isBajem = posType === 'bajem';
                   
                   const jemaatObj = pos.jemaat_induk;
