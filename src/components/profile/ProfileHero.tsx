@@ -11,7 +11,6 @@ import {
   Edit3,
   ShieldCheck,
   CheckCircle2,
-  ChevronRight,
   X,
   User,
   Award,
@@ -159,14 +158,6 @@ export function ProfileHero({ userId, mode = 'self', onEditProfile, onChangeRole
                   </span>
                 )}
               </div>
-            </div>
-          </div>
-
-          {/* Right: Chevron indicator for opening details */}
-          <div className="flex items-center gap-1 text-ink-tertiary group-hover:text-brand-600 transition-colors shrink-0 self-end sm:self-start pt-1">
-            <span className="text-xs font-semibold hidden sm:inline">Rincian Profil</span>
-            <div className="p-2 rounded-xl bg-surface-sunken group-hover:bg-brand-500/10 transition-colors">
-              <ChevronRight size={18} />
             </div>
           </div>
         </div>
