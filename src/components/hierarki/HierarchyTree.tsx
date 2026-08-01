@@ -28,7 +28,7 @@ export function HierarchyTree({ mupelList, searchQuery }: HierarchyTreeProps) {
 
         return (
           <div key={mupel.id_mupel} className="transition-colors">
-            {/* Level 1: Mupel Row Header - Identical Alignment, Icon Size, and Chevron Position */}
+            {/* Level 1: Mupel Row Header - Clicking Anywhere Expands/Collapses Tree Branch */}
             <ListRow
               icon={<Layers className="h-5 w-5 text-purple-600 dark:text-purple-400" />}
               iconClassName="bg-purple-500/10 text-purple-600 dark:text-purple-400"
@@ -52,24 +52,15 @@ export function HierarchyTree({ mupelList, searchQuery }: HierarchyTreeProps) {
                   </span>
                 </span>
               }
-              href={`/hierarki/${encodeURIComponent(mupel.id_mupel)}`}
+              onClick={() => toggleMupel(mupel.id_mupel)}
               action={
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    toggleMupel(mupel.id_mupel);
-                  }}
-                  className="p-0 text-ink-tertiary hover:text-ink-primary transition-colors shrink-0 self-center flex items-center justify-center active:scale-95"
-                  title={isExpanded ? 'Tutup cabang Mupel' : 'Buka cabang Mupel'}
-                >
+                <span className="p-0 text-ink-tertiary shrink-0 self-center flex items-center justify-center">
                   {isExpanded ? (
                     <ChevronDown className="h-5 w-5 text-purple-600 dark:text-purple-400 shrink-0" />
                   ) : (
                     <ChevronRight className="h-5 w-5 text-ink-tertiary shrink-0" />
                   )}
-                </button>
+                </span>
               }
             />
 
@@ -119,7 +110,7 @@ function JemaatTreeBranch({ id_mupel, searchQuery }: { id_mupel: string; searchQ
 
         return (
           <div key={jemaat.id_induk} className="transition-colors">
-            {/* Level 2: Jemaat Induk Row - Identical Chevron Alignment */}
+            {/* Level 2: Jemaat Induk Row - Clicking Anywhere Expands/Collapses Pos Branch */}
             <ListRow
               icon={<Church className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />}
               iconClassName="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
@@ -138,24 +129,15 @@ function JemaatTreeBranch({ id_mupel, searchQuery }: { id_mupel: string; searchQ
                   </span>
                 </span>
               }
-              href={`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(jemaat.id_induk)}`}
+              onClick={() => toggleJemaat(jemaat.id_induk)}
               action={
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    toggleJemaat(jemaat.id_induk);
-                  }}
-                  className="p-0 text-ink-tertiary hover:text-ink-primary transition-colors shrink-0 self-center flex items-center justify-center active:scale-95"
-                  title={isJExpanded ? 'Tutup pos di jemaat ini' : 'Buka pos di jemaat ini'}
-                >
+                <span className="p-0 text-ink-tertiary shrink-0 self-center flex items-center justify-center">
                   {isJExpanded ? (
                     <ChevronDown className="h-5 w-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
                   ) : (
                     <ChevronRight className="h-5 w-5 text-ink-tertiary shrink-0" />
                   )}
-                </button>
+                </span>
               }
             />
 
