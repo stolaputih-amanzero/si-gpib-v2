@@ -33,14 +33,14 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export function DemografiChart({ data }: { data: ChartData[] }) {
-  // Default canonical Pelkat colors if not provided
+  // Standard Baku Pelkat Colors
   const defaultColors: Record<string, string> = {
-    PA: '#F59E0B',   // Pelayanan Anak (Amber/Gold)
-    PT: '#10B981',   // Persekutuan Teruna (Emerald)
-    GP: '#3B82F6',   // Gerakan Pemuda (Blue)
-    PKP: '#EC4899',  // Persekutuan Kaum Perempuan (Pink)
-    PKB: '#06B6D4',  // Persekutuan Kaum Bapak (Cyan)
-    PKLU: '#8B5CF6', // Persekutuan Kaum Lanjut Usia (Purple)
+    PA: '#22C55E',   // Hijau Muda
+    PT: '#EAB308',   // Kuning
+    GP: '#1D4ED8',   // Biru Benhur
+    PKP: '#9333EA',  // Ungu
+    PKB: '#64748B',  // Abu-abu
+    PKLU: '#F97316', // Orange
   };
 
   return (
