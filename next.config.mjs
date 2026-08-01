@@ -2,11 +2,12 @@ import withPWAInit from 'next-pwa';
 
 const withPWA = withPWAInit({
   dest: 'public',
-  disable: false,
+  disable: process.env.NODE_ENV === 'development',
   register: true,
   skipWaiting: true,
   cacheOnFrontEndNav: true,
   reloadOnOnline: false,
+  buildExcludes: [/middleware-manifest\.json$/, /_buildManifest\.js$/, /_ssgManifest\.js$/],
   fallbacks: {
     document: '/offline',
   },
