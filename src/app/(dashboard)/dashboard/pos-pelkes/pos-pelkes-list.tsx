@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Plus, TrendingUp, Church, Sprout, SearchX, Map, MapPin } from 'lucide-react';
 import Link from 'next/link';
-import { cleanQuotes } from '@/lib/utils';
+import { cleanQuotes, cn } from '@/lib/utils';
 import { StatusElevationModal } from '@/components/hierarki/StatusElevationModal';
 import { PullToRefresh } from '@/components/mobile/PullToRefresh';
 import { haptic } from '@/lib/haptic/vibrate';
@@ -13,6 +13,7 @@ import { normalizePosName } from '@/lib/utils/normalize-pos-name';
 import { PosName } from '@/components/ui/PosName';
 import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
 import { detectPosType } from '@/lib/utils/pos-type';
+import { usePosPelkes, PosPelkesItem } from '@/hooks/use-pos-pelkes';
 import { ListRow } from '@/components/list/ListRow';
 import { FilterChips, FilterChipOption } from '@/components/list/FilterChips';
 import { SummaryStrip } from '@/components/list/SummaryStrip';
@@ -21,31 +22,20 @@ import { ListSkeleton } from '@/components/list/ListSkeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-interface PosPelkes {
-  id_pos: string;
-  id_induk?: string;
-  nama_pos: string;
-  kategori?: string | null;
-  alamat: string | null;
-  tgl_berdiri: string | null;
-  jemaat_induk?: {
-    id_induk: string;
-    nama_induk: string;
-    id_mupel: string;
-    mupel?: {
-      id_mupel: string;
-      nama_mupel: string;
-    } | null;
-  } | null;
-}
-
-export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
+export function PosPelkesList({ initialData }: { initialData: PosPelkesItem[] }) {
   const router = useRouter();
   const { data: currentUser } = useCurrentUser();
   const canElevate = isSuperUserRole(currentUser?.role);
-  
-  const [dataList, setDataList] = useState<PosPelkes[]>(initialData || []);
-  const [isLoading, setIsLoading] = useState(false);
+
+  // TanStack Query Data Hook (5 min stale time, enabled auth guard)
+  const {
+    data: dataList = initialData || [],
+    isPending,
+    isFetching,
+    isError,
+    refetch,
+  } = usePosPelkes({ initialData });
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all');
   const [selectedJemaat, setSelectedJemaat] = useState('');
@@ -60,33 +50,12 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
   const itemsPerPage = 10;
   const listRevealRef = useReveal<HTMLDivElement>();
 
-  useEffect(() => {
-    if (initialData && initialData.length > 0) {
-      setDataList(initialData);
-      try {
-        localStorage.setItem('draft:pos-pelkes-cache', JSON.stringify(initialData));
-      } catch {}
-    } else {
-      try {
-        const cached = localStorage.getItem('draft:pos-pelkes-cache');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setDataList(parsed);
-          }
-        }
-      } catch {}
-    }
-  }, [initialData]);
-
   const handleRefresh = async () => {
     haptic.light();
-    setIsLoading(true);
-    router.refresh();
-    setTimeout(() => setIsLoading(false), 600);
+    await refetch();
   };
 
-  // Jemaat Options for Filtering
+  // Jemaat Options for Filtering (client-side computed in memory)
   const jemaatOptions = useMemo(() => {
     const jemaats: Record<string, string> = {};
     dataList.forEach((pos) => {
@@ -101,7 +70,7 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [dataList]);
 
-  // Main Filtered Data
+  // Main Filtered Data (client-side in-memory filter — fast, instant, zero flicker)
   const filteredData = useMemo(() => {
     const list = dataList.filter((pos) => {
       // 1. Filter Category (Semua vs Pos Pelkes vs Bajem)
@@ -149,7 +118,7 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
     // Sort by relevance if search query exists
     if (searchQuery) {
       const query = searchQuery.trim().toLowerCase();
-      const getRelevanceScore = (posItem: PosPelkes) => {
+      const getRelevanceScore = (posItem: PosPelkesItem) => {
         const name = posItem.nama_pos ? normalizePosName(posItem.nama_pos).toLowerCase() : '';
         let score = 0;
         if (name === query) score += 100;
@@ -219,7 +188,7 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
     return filteredData.slice(start, start + itemsPerPage);
   }, [filteredData, currentPage]);
 
-  const handleOpenElevate = (e: React.MouseEvent, pos: PosPelkes) => {
+  const handleOpenElevate = (e: React.MouseEvent, pos: PosPelkesItem) => {
     e.preventDefault();
     e.stopPropagation();
     haptic.medium();
@@ -243,6 +212,15 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
   return (
     <PullToRefresh onRefresh={handleRefresh}>
       <div className="min-h-screen bg-surface-base pb-36 relative">
+        {/* Subtle Top Progress Bar during background refetch (WCAG 2.1 AA compliant) */}
+        {isFetching && !isPending && (
+          <div
+            role="progressbar"
+            aria-label="Memuat data"
+            className="h-0.5 bg-brand-500 animate-pulse w-full sticky top-[57px] z-50"
+          />
+        )}
+
         {/* 1. Sticky Header */}
         <div className="sticky top-0 z-40 bg-surface-1/85 backdrop-blur-md hairline-b pt-safe px-4 pb-3">
           <div className="flex items-center justify-between gap-3">
@@ -309,12 +287,30 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkes[] }) {
 
         {/* 5. Content Area: Cardless List or Loading/Empty State */}
         <div className="pt-1">
-          {isLoading ? (
+          {/* 🔴 SKELETON HANYA SAAT INITIAL LOAD TANPA DATA (isPending) */}
+          {isPending && dataList.length === 0 ? (
             <ListSkeleton count={6} />
+          ) : isError && dataList.length === 0 ? (
+            <EmptyState
+              icon={SearchX}
+              title="Gagal Memuat Data"
+              description="Terjadi kesalahan koneksi saat memuat data Pos Pelkes."
+              action={{
+                label: 'Coba Lagi',
+                onClick: () => refetch(),
+                variant: 'primary',
+              }}
+            />
           ) : filteredData.length > 0 ? (
             <>
-              {/* Cardless List Container */}
-              <div ref={listRevealRef} className="divide-y divide-line-hairline reveal-stagger">
+              {/* Cardless List Container (opacity-90 during background refetch) */}
+              <div
+                ref={listRevealRef}
+                className={cn(
+                  'divide-y divide-line-hairline reveal-stagger transition-opacity duration-200',
+                  isFetching && 'opacity-90'
+                )}
+              >
                 {currentData.map((pos) => {
                   const posType = detectPosType(pos.nama_pos);
                   const isBajem = posType === 'bajem';
