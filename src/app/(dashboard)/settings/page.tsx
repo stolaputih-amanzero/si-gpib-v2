@@ -3,15 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/hooks/use-user';
 import { useToast } from '@/components/ui/toast';
-import { Shield, Bell, LogOut, ChevronRight, Check, User as UserIcon, RefreshCw, Crown, Lock, X, Palette, Edit3 } from 'lucide-react';
+import { Shield, Bell, LogOut, ChevronRight, Check, User as UserIcon, RefreshCw, Crown, Lock, X, Palette } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { BiometricSetup } from '@/components/biometric/BiometricSetup';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
-import { EditProfileModal } from '@/components/profile/EditProfileModal';
 import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
 import { useProfileAkun, useProfilePelayanan } from '@/hooks/use-profile';
+
 export default function SettingsHubPage() {
   const { user, nama, email, role, avatarUrl, isLoading, logout } = useUser();
   const { data: currentUser } = useCurrentUser();
@@ -23,16 +23,9 @@ export default function SettingsHubPage() {
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
-
-  // States for Profile Editing Modal
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [savedAvatar, setSavedAvatar] = useState<string>('');
+  const [savedAvatar] = useState<string>('');
 
   const displayAvatar = savedAvatar || akun?.avatar_url || akun?.foto_url || pelayanan?.foto_url || avatarUrl;
-
-  const handleOpenEditProfile = () => {
-    setIsEditingProfile(true);
-  };
 
   useEffect(() => {
     if (!user) return;
@@ -158,24 +151,6 @@ export default function SettingsHubPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
-              <Link
-                href="/settings/profile"
-                className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-brand-600 text-white hover:bg-brand-700 transition-all text-xs font-bold shrink-0 min-h-[44px] shadow-sm active:scale-95"
-              >
-                <UserIcon size={16} />
-                <span>Buka Profil 360°</span>
-              </Link>
-
-              <button
-                type="button"
-                onClick={handleOpenEditProfile}
-                className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white transition-all text-xs font-bold shrink-0 min-h-[44px] border border-brand-primary/20 active:scale-95 shadow-2xs"
-              >
-                <Edit3 size={15} />
-                <span>Edit Profil</span>
-              </button>
-            </div>
           </div>
         </CardHeader>
       </Card>
@@ -326,17 +301,6 @@ export default function SettingsHubPage() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Modal Edit Profil Pengguna */}
-      <EditProfileModal
-        isOpen={isEditingProfile}
-        onClose={() => setIsEditingProfile(false)}
-        onSuccess={(updated) => {
-          if (updated.avatar_url) {
-            setSavedAvatar(updated.avatar_url);
-          }
-        }}
-      />
 
       {/* Modal Ubah Kata Sandi */}
       {isChangingPassword && (
