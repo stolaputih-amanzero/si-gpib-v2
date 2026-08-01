@@ -3,10 +3,15 @@
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { usePelayanList, useDeletePelayan, PelayanItem } from '@/hooks/use-pelayan';
-import { PelayanCard } from '@/components/pelayan/PelayanCard';
 import { PelayanForm } from '@/components/pelayan/PelayanForm';
 import { useToast } from '@/components/ui/toast';
-import { Plus, Search, Users } from 'lucide-react';
+import { Plus, Search, Users, Edit, Trash2, ShieldCheck } from 'lucide-react';
+import { ListRow } from '@/components/list/ListRow';
+import { SummaryStrip } from '@/components/list/SummaryStrip';
+import { EmptyState } from '@/components/list/EmptyState';
+import { ListSkeleton } from '@/components/list/ListSkeleton';
+import { Badge } from '@/components/ui/badge';
+import { PosName } from '@/components/ui/PosName';
 
 function PelayanPageContent() {
   const { toast, confirm: confirmModal } = useToast();
@@ -24,7 +29,8 @@ function PelayanPageContent() {
 
   const deleteMutation = useDeletePelayan();
 
-  const handleEdit = (item: PelayanItem) => {
+  const handleEdit = (e: React.MouseEvent, item: PelayanItem) => {
+    e.stopPropagation();
     setEditingItem(item);
     setShowModal(true);
   };
@@ -34,7 +40,8 @@ function PelayanPageContent() {
     setShowModal(true);
   };
 
-  const handleDelete = (id_pelayan: string) => {
+  const handleDelete = (e: React.MouseEvent, id_pelayan: string) => {
+    e.stopPropagation();
     confirmModal({
       title: 'Hapus Pelayan Pos',
       message: 'Apakah Anda yakin ingin menghapus data pelayan ini?',
@@ -55,18 +62,22 @@ function PelayanPageContent() {
   const aktifCount = pelayanList?.filter((p) => p.status === 'Aktif').length || 0;
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-4 pb-12">
       {/* Top Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl md:text-2xl font-serif font-bold text-brand-primary">Data Pelayan Pos Pelkes</h1>
-          <p className="text-xs md:text-sm text-text-muted mt-0.5">Pendeta Pos, Penatua & Diaken Pelayan Field</p>
+          <h1 className="font-display text-2xl font-semibold text-ink-primary tracking-tight">
+            Data Pelayan Pos Pelkes
+          </h1>
+          <p className="text-xs text-ink-tertiary mt-0.5">
+            Pendeta Pos, Penatua & Diaken Pelayan Field
+          </p>
         </div>
 
         <button
           type="button"
           onClick={handleAddNew}
-          className="px-4 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-brand-primary-dark transition-all flex items-center gap-2 shadow-soft min-h-[44px]"
+          className="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 active:scale-95 text-white text-xs font-semibold transition-all flex items-center gap-2 shadow-xs min-h-[44px] shrink-0"
         >
           <Plus size={18} />
           <span className="hidden sm:inline">Tambah Pelayan</span>
@@ -74,93 +85,124 @@ function PelayanPageContent() {
         </button>
       </div>
 
-      {/* KPI Cards Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft">
-          <p className="text-xs text-text-muted font-medium">Total Pelayan</p>
-          <p className="text-2xl font-serif font-bold text-brand-primary tabular-nums mt-1">{totalPelayan}</p>
-          <p className="text-[11px] text-text-muted mt-0.5">Seluruh Pos Pelkes</p>
-        </div>
-        <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft">
-          <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Pelayan Aktif</p>
-          <p className="text-2xl font-serif font-bold text-emerald-600 dark:text-emerald-400 tabular-nums mt-1">{aktifCount}</p>
-          <p className="text-[11px] text-text-muted mt-0.5">Aktif Melayani</p>
-        </div>
-        <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft col-span-2 md:col-span-1">
-          <p className="text-xs text-text-muted font-medium">Filter Pos Pelkes</p>
-          <input
-            type="text"
-            placeholder="Filter ID Pos..."
-            value={selectedPos}
-            onChange={(e) => setSelectedPos(e.target.value)}
-            className="w-full mt-1.5 px-3 py-1.5 rounded-xl border border-border-subtle bg-surface-base text-xs font-semibold text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[36px]"
-          />
-        </div>
-      </div>
+      {/* Summary Metrics Strip */}
+      <SummaryStrip
+        metrics={[
+          { label: 'Total Pelayan', value: totalPelayan, icon: <Users size={16} /> },
+          { label: 'Pelayan Aktif', value: aktifCount, icon: <ShieldCheck size={16} /> },
+        ]}
+        className="hairline-b bg-surface-1/40 rounded-xl py-2 px-3"
+      />
 
-      {/* Search Bar */}
-      <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft">
-        <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
-          <input
-            type="text"
-            placeholder="Cari pelayan (nama, jabatan, pos pelkes)..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
-          />
+      {/* Search Input & Pos Filter Bar */}
+      <div className="bg-surface-1 p-3 rounded-2xl border border-border-subtle shadow-xs">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="md:col-span-2 relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-tertiary" size={18} />
+            <input
+              type="text"
+              placeholder="Cari pelayan (nama, jabatan, pos pelkes)..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-xs sm:text-sm text-ink-primary focus:outline-none focus:ring-2 focus:ring-brand-400 min-h-[44px]"
+            />
+          </div>
+          <div>
+            <input
+              type="text"
+              placeholder="Filter ID Pos Pelkes..."
+              value={selectedPos}
+              onChange={(e) => setSelectedPos(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-xs sm:text-sm font-medium text-ink-primary focus:outline-none focus:ring-2 focus:ring-brand-400 min-h-[44px]"
+            />
+          </div>
         </div>
       </div>
 
       {/* Pelayan List */}
-      <div className="space-y-3">
-        <h2 className="text-base font-semibold text-text-high">
-          Daftar Pelayan ({pelayanList?.length || 0})
-        </h2>
-
+      <div className="pt-1">
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle animate-pulse space-y-3">
-                <div className="h-4 bg-surface-sunken rounded w-3/4"></div>
-                <div className="h-3 bg-surface-sunken rounded w-1/2"></div>
-              </div>
-            ))}
-          </div>
+          <ListSkeleton count={6} />
         ) : pelayanList && pelayanList.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {pelayanList.map((item) => (
-              <PelayanCard
-                key={item.id_pelayan}
-                item={item}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            ))}
+          <div className="divide-y divide-line-hairline bg-surface-1 hairline-t hairline-b rounded-2xl overflow-hidden">
+            {pelayanList.map((item) => {
+              const posNamaDisplay = item.pos?.nama_pos ? (
+                <PosName name={item.pos.nama_pos} />
+              ) : (
+                <span>ID Pos: {item.id_pos}</span>
+              );
+
+              return (
+                <ListRow
+                  key={item.id_pelayan}
+                  icon={<Users className="h-5 w-5" />}
+                  iconVariant="brand"
+                  title={item.nama}
+                  subtitle={
+                    <span>
+                      {item.jabatan || 'Pelayan Pastoral'} · Pos: {posNamaDisplay}
+                    </span>
+                  }
+                  meta={
+                    <span>
+                      WA: {item.no_wa || '—'} · Status: {item.status}
+                    </span>
+                  }
+                  badge={
+                    <Badge variant={item.status === 'Aktif' ? 'brand' : 'outline'} className="text-[10px] py-0 px-2">
+                      {item.status}
+                    </Badge>
+                  }
+                  action={
+                    <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        onClick={(e) => handleEdit(e, item)}
+                        className="p-2 rounded-xl text-ink-tertiary hover:text-brand-600 hover:bg-surface-brand transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        title="Edit Pelayan"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => handleDelete(e, item.id_pelayan)}
+                        className="p-2 rounded-xl text-ink-tertiary hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        title="Hapus Pelayan"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  }
+                />
+              );
+            })}
           </div>
         ) : (
-          <div className="bg-surface-elevated rounded-2xl p-8 text-center border border-border-subtle space-y-2">
-            <Users size={36} className="mx-auto text-text-muted opacity-50" />
-            <p className="font-semibold text-text-high text-sm">Belum Ada Pelayan Terdaftar</p>
-            <p className="text-xs text-text-muted">
-              Klik tombol "+ Tambah Pelayan" untuk menginput pelayan Pos Pelkes pertama.
-            </p>
-          </div>
+          <EmptyState
+            icon={Users}
+            title="Belum Ada Pelayan Terdaftar"
+            description="Tidak ada data pelayan yang sesuai dengan pencarian Anda."
+            action={{
+              label: 'Tambah Pelayan Baru',
+              onClick: handleAddNew,
+              variant: 'primary',
+            }}
+          />
         )}
       </div>
 
       {/* Modal Form */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-surface-elevated w-full sm:max-w-2xl md:max-w-3xl rounded-t-3xl sm:rounded-2xl p-4 sm:p-6 border border-border-subtle shadow-heavy max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
+          <div className="bg-surface-1 w-full sm:max-w-2xl md:max-w-3xl rounded-t-3xl sm:rounded-2xl p-4 sm:p-6 border border-border-subtle shadow-lg max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
             <div className="flex items-center justify-between border-b border-border-subtle pb-3">
-              <h2 className="text-base font-serif font-bold text-brand-primary">
+              <h2 className="text-base font-serif font-bold text-brand-600">
                 {editingItem ? 'Edit Data Pelayan' : 'Input Pelayan Baru'}
               </h2>
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="w-9 h-9 rounded-full bg-surface-sunken flex items-center justify-center text-text-muted hover:text-text-high min-h-[44px] min-w-[44px]"
+                className="w-9 h-9 rounded-full bg-surface-sunken flex items-center justify-center text-ink-tertiary hover:text-ink-primary min-h-[44px] min-w-[44px]"
               >
                 ✕
               </button>
@@ -182,7 +224,7 @@ function PelayanPageContent() {
 
 export default function PelayanPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-xs text-text-muted animate-pulse">Memuat data pelayan...</div>}>
+    <Suspense fallback={<ListSkeleton count={4} className="my-8" />}>
       <PelayanPageContent />
     </Suspense>
   );

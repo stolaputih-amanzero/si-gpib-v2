@@ -2,33 +2,51 @@
 
 import { useState, useEffect } from 'react';
 import { useAsetList, useDeleteAset } from '@/hooks/use-aset';
-import { AsetTabs } from '@/components/aset/AsetTabs';
-import { AsetCard } from '@/components/aset/AsetCard';
 import { AsetForm } from '@/components/aset/AsetForm';
 import { AsetGenericItem } from '@/types/aset.types';
 import { useToast } from '@/components/ui/toast';
 import { getKategoriInfo } from '@/lib/constants/aset';
 import { shareAsetWA } from '@/lib/share/share-aset-wa';
-import { 
-  Plus, Search, Box, X, MapPin, Building, 
-  FileText, ExternalLink, Edit2, Trash2, Share2, Clock, UserCheck 
+import {
+  Plus,
+  Search,
+  Box,
+  X,
+  MapPin,
+  Building,
+  Edit2,
+  Trash2,
+  Share2,
+  Clock,
+  UserCheck,
+  Car,
+  Landmark,
 } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { ListRow } from '@/components/list/ListRow';
+import { FilterChips } from '@/components/list/FilterChips';
+import { SummaryStrip } from '@/components/list/SummaryStrip';
+import { EmptyState } from '@/components/list/EmptyState';
+import { ListSkeleton } from '@/components/list/ListSkeleton';
+import { Badge } from '@/components/ui/badge';
+import { PosName } from '@/components/ui/PosName';
 
 function formatDateTimeIndonesian(dateString?: string | null) {
   if (!dateString) return '-';
   try {
     const d = new Date(dateString);
     if (isNaN(d.getTime())) return '-';
-    
-    return d.toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }) + ' WIB';
+
+    return (
+      d.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }) + ' WIB'
+    );
   } catch {
     return dateString;
   }
@@ -50,7 +68,9 @@ export default function LaporanAsetPage() {
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         const userMeta = user.user_metadata || {};
         const { data: userRow } = await supabase
@@ -118,17 +138,21 @@ export default function LaporanAsetPage() {
   const selectedKategoriInfo = selectedDetail ? getKategoriInfo(selectedDetail.kategori) : null;
 
   return (
-    <div className="w-full space-y-6">
-      {/* Header */}
+    <div className="w-full space-y-4 pb-12">
+      {/* Top Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl md:text-2xl font-serif font-bold text-brand-primary">Inventaris Aset Pos Pelkes</h1>
-          <p className="text-xs md:text-sm text-text-muted mt-0.5">Pendataan Aset Tanah, Bangunan & Bergerak GPIB</p>
+          <h1 className="font-display text-2xl font-semibold text-ink-primary tracking-tight">
+            Inventaris Aset Pos Pelkes
+          </h1>
+          <p className="text-xs text-ink-tertiary mt-0.5">
+            Pendataan Aset Tanah, Bangunan & Bergerak GPIB
+          </p>
         </div>
 
         <Link
           href="/laporan/aset/baru"
-          className="px-4 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-semibold hover:bg-brand-primary-dark transition-all flex items-center gap-2 shadow-soft min-h-[44px]"
+          className="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 active:scale-95 text-white text-xs font-semibold transition-all flex items-center gap-2 shadow-xs min-h-[44px] shrink-0"
         >
           <Plus size={18} />
           <span className="hidden sm:inline">Tambah Aset Baru</span>
@@ -136,99 +160,113 @@ export default function LaporanAsetPage() {
         </Link>
       </div>
 
-      {/* KPI Cards Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft">
-          <p className="text-xs text-text-muted font-medium">Total Aset Recorded</p>
-          <p className="text-2xl font-serif font-bold text-brand-primary tabular-nums mt-1">{counts.ALL}</p>
-          <p className="text-[11px] text-text-muted mt-0.5">Seluruh Kategori</p>
-        </div>
-        <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft">
-          <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">Aset Tanah</p>
-          <p className="text-2xl font-serif font-bold text-amber-600 dark:text-amber-400 tabular-nums mt-1">{counts.TANAH}</p>
-          <p className="text-[11px] text-text-muted mt-0.5">Lahan Pos Pelkes</p>
-        </div>
-        <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft">
-          <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">Aset Bangunan</p>
-          <p className="text-2xl font-serif font-bold text-blue-600 dark:text-blue-400 tabular-nums mt-1">{counts.BANGUNAN}</p>
-          <p className="text-[11px] text-text-muted mt-0.5">Gereja / Pastori</p>
-        </div>
-        <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft">
-          <p className="text-xs text-pink-600 dark:text-pink-400 font-medium">Aset Bergerak</p>
-          <p className="text-2xl font-serif font-bold text-pink-600 dark:text-pink-400 tabular-nums mt-1">{counts.BERGERAK}</p>
-          <p className="text-[11px] text-text-muted mt-0.5">Kendaraan / Peralatan</p>
-        </div>
-      </div>
+      {/* Summary Metrics Strip */}
+      <SummaryStrip
+        metrics={[
+          { label: 'Total Aset', value: counts.ALL, icon: <Box size={16} /> },
+          { label: 'Tanah', value: counts.TANAH, icon: <Landmark size={16} /> },
+          { label: 'Bangunan', value: counts.BANGUNAN, icon: <Building size={16} /> },
+          { label: 'Bergerak', value: counts.BERGERAK, icon: <Car size={16} /> },
+        ]}
+        className="hairline-b bg-surface-1/40 rounded-xl py-2 px-3"
+      />
 
-      {/* Filter Controls & Search */}
-      <div className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft space-y-3">
-        <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
-          <input
-            type="text"
-            placeholder="Cari aset (nama pos, jenis, status hukum)..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
-          />
-        </div>
-
-        {/* Category Tabs */}
-        <AsetTabs
-          activeTab={activeCategory}
-          onTabChange={setActiveCategory}
-          counts={counts}
+      {/* Search Input Bar */}
+      <div className="relative bg-surface-1 p-3 rounded-2xl border border-border-subtle shadow-xs">
+        <Search size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-ink-tertiary" />
+        <input
+          type="text"
+          placeholder="Cari aset (nama pos, jenis, status hukum)..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full min-h-[44px] pl-10 pr-4 rounded-xl border border-border-subtle bg-surface-base text-xs sm:text-sm text-ink-primary focus:outline-none focus:ring-2 focus:ring-brand-400"
         />
       </div>
 
-      {/* Assets Grid */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-text-high">
-            Daftar Inventaris Aset {activeCategory ? `(${activeCategory})` : ''}
-          </h2>
-          <span className="text-xs text-text-muted">
-            {isLoading ? 'Memuat...' : `${asetList?.length || 0} Aset Terdaftar`}
-          </span>
-        </div>
+      {/* Filter Chips */}
+      <FilterChips
+        items={[
+          { key: '', label: 'Semua Kategori', count: counts.ALL },
+          { key: 'TANAH', label: '🏞️ Tanah', count: counts.TANAH },
+          { key: 'BANGUNAN', label: '⛪ Bangunan', count: counts.BANGUNAN },
+          { key: 'BERGERAK', label: '🚗 Bergerak', count: counts.BERGERAK },
+        ]}
+        active={activeCategory}
+        onChange={(key) => setActiveCategory(key)}
+        className="px-0 py-1"
+      />
 
+      {/* Main Aset List */}
+      <div className="pt-1">
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle animate-pulse space-y-3">
-                <div className="h-4 bg-surface-sunken rounded w-3/4"></div>
-                <div className="h-3 bg-surface-sunken rounded w-1/2"></div>
-                <div className="h-12 bg-surface-sunken rounded"></div>
-              </div>
-            ))}
-          </div>
+          <ListSkeleton count={6} />
         ) : asetList && asetList.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {asetList.map((item) => (
-              <AsetCard 
-                key={item.id} 
-                item={item} 
-                onSelect={(selected) => handleOpenDetail(selected)}
-              />
-            ))}
+          <div className="divide-y divide-line-hairline bg-surface-1 hairline-t hairline-b rounded-2xl overflow-hidden">
+            {asetList.map((item) => {
+              const iconComponent =
+                item.kategori === 'TANAH' ? (
+                  <Landmark className="h-5 w-5" />
+                ) : item.kategori === 'BANGUNAN' ? (
+                  <Building className="h-5 w-5" />
+                ) : (
+                  <Car className="h-5 w-5" />
+                );
+
+              const iconVariant =
+                item.kategori === 'TANAH' ? 'accent' : item.kategori === 'BANGUNAN' ? 'brand' : 'default';
+
+              const posNameDisplay = item.pos_nama ? (
+                <PosName name={item.pos_nama} />
+              ) : (
+                item.jemaat_induk || 'Sinode GPIB'
+              );
+
+              return (
+                <ListRow
+                  key={item.id}
+                  icon={iconComponent}
+                  iconVariant={iconVariant}
+                  title={item.judul}
+                  subtitle={
+                    <span>
+                      {posNameDisplay} {item.mupel_nama ? `· Mupel ${item.mupel_nama}` : ''}
+                    </span>
+                  }
+                  meta={
+                    <span>
+                      Kategori: {item.kategori} {item.tahun ? `· Thn ${item.tahun}` : ''}
+                    </span>
+                  }
+                  badge={
+                    item.kondisi ? (
+                      <Badge variant="outline" className="text-[10px] py-0 px-2">
+                        {item.kondisi}
+                      </Badge>
+                    ) : undefined
+                  }
+                  onClick={() => handleOpenDetail(item)}
+                />
+              );
+            })}
           </div>
         ) : (
-          <div className="bg-surface-elevated rounded-2xl p-8 text-center border border-border-subtle space-y-2">
-            <Box size={36} className="mx-auto text-text-muted opacity-50" />
-            <p className="font-semibold text-text-high text-sm">Belum Ada Aset Terdaftar</p>
-            <p className="text-xs text-text-muted">
-              {searchQuery || activeCategory
-                ? 'Tidak ada data aset yang cocok dengan kriteria pencarian.'
-                : 'Pilih Pos Pelkes untuk mulai memasukkan inventaris aset baru.'}
-            </p>
-          </div>
+          <EmptyState
+            icon={Box}
+            title="Belum Ada Aset Terdaftar"
+            description="Tidak ada data aset yang cocok dengan kriteria pencarian Anda."
+            action={{
+              label: 'Tambah Aset Baru',
+              href: '/laporan/aset/baru',
+              variant: 'primary',
+            }}
+          />
         )}
       </div>
 
       {/* DETAIL MODAL */}
       {selectedDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-surface-elevated w-full max-w-2xl rounded-2xl border border-border-subtle shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+          <div className="bg-surface-1 w-full max-w-2xl rounded-2xl border border-border-subtle shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
             {/* Modal Header */}
             <div className="p-4 sm:p-5 border-b border-border-subtle flex items-center justify-between bg-surface-sunken/40">
               <div className="flex items-center gap-3">
@@ -241,15 +279,15 @@ export default function LaporanAsetPage() {
                   {selectedKategoriInfo?.icon || '📦'}
                 </span>
                 <div>
-                  <h3 className="font-serif font-bold text-text-high text-lg leading-tight truncate max-w-[260px] sm:max-w-md">
+                  <h3 className="font-serif font-bold text-ink-primary text-lg leading-tight truncate max-w-[260px] sm:max-w-md">
                     {selectedDetail.judul}
                   </h3>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-xs font-semibold text-brand-primary">
+                    <span className="text-xs font-semibold text-brand-600">
                       {selectedKategoriInfo?.nama || selectedDetail.kategori}
                     </span>
                     {selectedDetail.kondisi && (
-                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-surface-sunken font-medium text-text-muted border border-border-subtle">
+                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-surface-sunken font-medium text-ink-tertiary border border-border-subtle">
                         {selectedDetail.kondisi}
                       </span>
                     )}
@@ -259,7 +297,7 @@ export default function LaporanAsetPage() {
               <button
                 type="button"
                 onClick={() => setSelectedDetail(null)}
-                className="w-9 h-9 rounded-xl bg-surface-sunken hover:bg-gray-200 dark:hover:bg-gray-800 text-text-muted flex items-center justify-center transition-colors"
+                className="w-9 h-9 rounded-xl bg-surface-sunken hover:bg-surface-sunken/80 text-ink-tertiary flex items-center justify-center transition-colors"
               >
                 <X size={18} />
               </button>
@@ -270,7 +308,7 @@ export default function LaporanAsetPage() {
               {/* Featured Hero Photo Showcase */}
               {activeHeroItem ? (
                 <div className="space-y-2">
-                  <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black/90 border border-border-subtle shadow-medium group">
+                  <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black/90 border border-border-subtle shadow-md group">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={activeHeroItem.file_path} alt={selectedDetail.judul} className="w-full h-full object-cover" />
                     <button
@@ -301,7 +339,7 @@ export default function LaporanAsetPage() {
                             onClick={() => setActiveHeroItem(img)}
                             className={`relative w-16 h-12 rounded-lg overflow-hidden shrink-0 border-2 transition-all ${
                               activeHeroItem.id_lampiran === img.id_lampiran
-                                ? 'border-brand-primary ring-2 ring-brand-primary/30 opacity-100'
+                                ? 'border-brand-600 ring-2 ring-brand-600/30 opacity-100'
                                 : 'border-border-subtle opacity-60 hover:opacity-100'
                             }`}
                           >
@@ -316,34 +354,34 @@ export default function LaporanAsetPage() {
 
               {/* Section 1: Lokasi & Hierarki */}
               <div className="p-4 rounded-xl bg-surface-sunken/60 border border-border-subtle space-y-3">
-                <h4 className="text-xs font-bold text-text-high uppercase tracking-wider flex items-center gap-1.5">
-                  <Building size={14} className="text-brand-primary" />
+                <h4 className="text-xs font-bold text-ink-primary uppercase tracking-wider flex items-center gap-1.5">
+                  <Building size={14} className="text-brand-600" />
                   <span>Lokasi Wilayah & Hierarki GPIB</span>
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                   <div>
-                    <span className="text-[11px] text-text-muted block">Mupel</span>
-                    <span className="font-semibold text-text-high">
+                    <span className="text-[11px] text-ink-tertiary block">Mupel</span>
+                    <span className="font-semibold text-ink-primary">
                       {selectedDetail.mupel_nama || selectedDetail.raw?.pos?.jemaat_induk?.mupel?.nama_mupel || '-'}
                     </span>
                   </div>
                   <div>
-                    <span className="text-[11px] text-text-muted block">Jemaat Induk</span>
-                    <span className="font-semibold text-text-high">
+                    <span className="text-[11px] text-ink-tertiary block">Jemaat Induk</span>
+                    <span className="font-semibold text-ink-primary">
                       {selectedDetail.jemaat_induk || selectedDetail.raw?.pos?.jemaat_induk?.nama_induk || '-'}
                     </span>
                   </div>
                   <div>
-                    <span className="text-[11px] text-text-muted block">Pos Pelkes</span>
-                    <span className="font-semibold text-text-high flex items-center gap-1">
+                    <span className="text-[11px] text-ink-tertiary block">Pos Pelkes</span>
+                    <span className="font-semibold text-ink-primary flex items-center gap-1">
                       {selectedDetail.pos_nama &&
                       !selectedDetail.pos_nama.toLowerCase().startsWith('jemaat ') &&
                       selectedDetail.pos_nama !== selectedDetail.jemaat_induk &&
                       selectedDetail.pos_nama !== 'Pelayanan Jemaat Direct' &&
                       selectedDetail.pos_nama !== '-' ? (
                         <>
-                          <MapPin size={12} className="text-brand-primary shrink-0" />
-                          <span>{selectedDetail.pos_nama}</span>
+                          <MapPin size={12} className="text-brand-600 shrink-0" />
+                          <PosName name={selectedDetail.pos_nama} />
                         </>
                       ) : (
                         <span>-</span>
@@ -354,11 +392,11 @@ export default function LaporanAsetPage() {
 
                 {selectedDetail.latitude && selectedDetail.longitude && (
                   <div className="pt-2 border-t border-border-subtle flex items-center justify-between text-xs">
-                    <span className="text-[11px] text-text-muted font-medium flex items-center gap-1">
-                      <MapPin size={12} className="text-brand-primary shrink-0" />
+                    <span className="text-[11px] text-ink-tertiary font-medium flex items-center gap-1">
+                      <MapPin size={12} className="text-brand-600 shrink-0" />
                       <span>Koordinat Fisik Aset:</span>
                     </span>
-                    <span className="font-mono font-semibold text-brand-primary">
+                    <span className="font-mono font-semibold text-brand-600">
                       {selectedDetail.latitude}, {selectedDetail.longitude}
                     </span>
                   </div>
@@ -367,7 +405,7 @@ export default function LaporanAsetPage() {
 
               {/* Section 2: Spesifikasi Detail Aset */}
               <div className="p-4 rounded-xl bg-surface-sunken/60 border border-border-subtle space-y-3">
-                <h4 className="text-xs font-bold text-text-high uppercase tracking-wider">
+                <h4 className="text-xs font-bold text-ink-primary uppercase tracking-wider">
                   Spesifikasi & Informasi Detail Aset
                 </h4>
 
@@ -375,27 +413,21 @@ export default function LaporanAsetPage() {
                 {selectedDetail.kategori === 'TANAH' && (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
                     <div>
-                      <span className="text-[11px] text-text-muted block">Luas Lahan</span>
-                      <span className="font-semibold text-text-high text-sm">
+                      <span className="text-[11px] text-ink-tertiary block">Luas Lahan</span>
+                      <span className="font-semibold text-ink-primary text-sm">
                         {selectedDetail.raw?.luas_m2 || '-'} m²
                       </span>
                     </div>
                     <div>
-                      <span className="text-[11px] text-text-muted block">Tahun Perolehan</span>
-                      <span className="font-semibold text-text-high">{selectedDetail.tahun || '-'}</span>
+                      <span className="text-[11px] text-ink-tertiary block">Tahun Perolehan</span>
+                      <span className="font-semibold text-ink-primary">{selectedDetail.tahun || '-'}</span>
                     </div>
                     <div>
-                      <span className="text-[11px] text-text-muted block">Status Hukum</span>
-                      <span className="font-semibold text-brand-primary">
+                      <span className="text-[11px] text-ink-tertiary block">Status Hukum</span>
+                      <span className="font-semibold text-brand-600">
                         {selectedDetail.raw?.status_hukum || '-'}
                       </span>
                     </div>
-                    {selectedDetail.raw?.potensi_sda && (
-                      <div className="col-span-2 sm:col-span-3">
-                        <span className="text-[11px] text-text-muted block">Potensi SDA</span>
-                        <span className="font-medium text-text-high">{selectedDetail.raw.potensi_sda}</span>
-                      </div>
-                    )}
                   </div>
                 )}
 
@@ -403,20 +435,20 @@ export default function LaporanAsetPage() {
                 {selectedDetail.kategori === 'BANGUNAN' && (
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                     <div>
-                      <span className="text-[11px] text-text-muted block">Nama Bangunan</span>
-                      <span className="font-semibold text-text-high">{selectedDetail.raw?.nama_bangunan || selectedDetail.judul || '-'}</span>
+                      <span className="text-[11px] text-ink-tertiary block">Nama Bangunan</span>
+                      <span className="font-semibold text-ink-primary">{selectedDetail.raw?.nama_bangunan || selectedDetail.judul || '-'}</span>
                     </div>
                     <div>
-                      <span className="text-[11px] text-text-muted block">Fungsi Utama</span>
-                      <span className="font-semibold text-text-high">{selectedDetail.raw?.fungsi || '-'}</span>
+                      <span className="text-[11px] text-ink-tertiary block">Fungsi Utama</span>
+                      <span className="font-semibold text-ink-primary">{selectedDetail.raw?.fungsi || '-'}</span>
                     </div>
                     <div>
-                      <span className="text-[11px] text-text-muted block">Tahun Berdiri</span>
-                      <span className="font-semibold text-text-high">{selectedDetail.tahun || '-'}</span>
+                      <span className="text-[11px] text-ink-tertiary block">Tahun Berdiri</span>
+                      <span className="font-semibold text-ink-primary">{selectedDetail.tahun || '-'}</span>
                     </div>
                     <div>
-                      <span className="text-[11px] text-text-muted block">Kondisi Bangunan</span>
-                      <span className="font-semibold text-brand-primary">{selectedDetail.kondisi || '-'}</span>
+                      <span className="text-[11px] text-ink-tertiary block">Kondisi Bangunan</span>
+                      <span className="font-semibold text-brand-600">{selectedDetail.kondisi || '-'}</span>
                     </div>
                   </div>
                 )}
@@ -425,112 +457,43 @@ export default function LaporanAsetPage() {
                 {selectedDetail.kategori === 'BERGERAK' && (
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                     <div>
-                      <span className="text-[11px] text-text-muted block">Jenis Aset</span>
-                      <span className="font-semibold text-text-high">{selectedDetail.raw?.jenis || '-'}</span>
+                      <span className="text-[11px] text-ink-tertiary block">Jenis Aset</span>
+                      <span className="font-semibold text-ink-primary">{selectedDetail.raw?.jenis || '-'}</span>
                     </div>
                     <div>
-                      <span className="text-[11px] text-text-muted block">Merk / Tipe</span>
-                      <span className="font-semibold text-text-high">{selectedDetail.raw?.merk_tipe || '-'}</span>
+                      <span className="text-[11px] text-ink-tertiary block">Merk / Tipe</span>
+                      <span className="font-semibold text-ink-primary">{selectedDetail.raw?.merk_tipe || '-'}</span>
                     </div>
                     <div>
-                      <span className="text-[11px] text-text-muted block">Kondisi Aset</span>
-                      <span className="font-semibold text-brand-primary">{selectedDetail.kondisi || '-'}</span>
+                      <span className="text-[11px] text-ink-tertiary block">Kondisi Aset</span>
+                      <span className="font-semibold text-brand-600">{selectedDetail.kondisi || '-'}</span>
                     </div>
                     <div>
-                      <span className="text-[11px] text-text-muted block">Tahun Perolehan</span>
-                      <span className="font-semibold text-text-high">{selectedDetail.tahun || '-'}</span>
+                      <span className="text-[11px] text-ink-tertiary block">Tahun Perolehan</span>
+                      <span className="font-semibold text-ink-primary">{selectedDetail.tahun || '-'}</span>
                     </div>
-                    {selectedDetail.raw?.no_polisi && (
-                      <div>
-                        <span className="text-[11px] text-text-muted block">Nomor Polisi</span>
-                        <span className="font-mono font-bold text-brand-primary">
-                          {selectedDetail.raw.no_polisi}
-                        </span>
-                      </div>
-                    )}
-                    {selectedDetail.raw?.tgl_pajak && (
-                      <div>
-                        <span className="text-[11px] text-text-muted block">Jatuh Tempo Pajak</span>
-                        <span className="font-medium text-text-high">{selectedDetail.raw.tgl_pajak}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Keterangan */}
-                {selectedDetail.keterangan && (
-                  <div className="p-3 bg-surface-sunken rounded-xl border border-border-subtle">
-                    <span className="text-[11px] text-text-muted font-semibold block mb-0.5">Keterangan / Batas:</span>
-                    <p className="text-xs text-text-high leading-relaxed">{selectedDetail.keterangan}</p>
                   </div>
                 )}
               </div>
 
-              {/* Section 3: Lampiran Dokumen & Sertifikat PDF */}
-              {(() => {
-                const docFiles = (selectedDetail.lampiran || []).filter(
-                  (f: any) => !(f.tipe_file?.startsWith('image/') || f.file_path?.match(/\.(jpg|jpeg|png|webp)$/i))
-                );
-
-                return (
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-text-high uppercase tracking-wider flex items-center justify-between">
-                      <span>Dokumen & Sertifikat (PDF)</span>
-                      <span className="text-[11px] font-normal text-text-muted">
-                        {docFiles.length} Dokumen
-                      </span>
-                    </h4>
-
-                    {docFiles.length > 0 ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {docFiles.map((file: any) => (
-                          <div key={file.id_lampiran} className="p-3 rounded-xl bg-surface-sunken border border-border-subtle flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-2.5 overflow-hidden">
-                              <FileText size={24} className="text-brand-primary shrink-0" />
-                              <div className="overflow-hidden">
-                                <p className="text-xs font-semibold text-text-high truncate">{file.keterangan || file.nama_file}</p>
-                                <p className="text-[10px] text-text-muted truncate">{file.nama_file}</p>
-                              </div>
-                            </div>
-                            <a
-                              href={file.file_path}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="px-2.5 py-1.5 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary text-xs font-semibold rounded-lg shrink-0 flex items-center gap-1 transition-colors"
-                            >
-                              <span>Buka PDF</span>
-                              <ExternalLink size={12} />
-                            </a>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-text-muted italic bg-surface-sunken p-3 rounded-xl border border-border-subtle text-center">
-                        Tidak ada berkas PDF dokumen tambahan. Foto fisik sudah ditampilkan pada galeri di atas.
-                      </p>
-                    )}
-                  </div>
-                );
-              })()}
-
-              {/* Audit Metadata: Tanggal Terakhir Diperbarui & User Peng-Update */}
+              {/* Audit Metadata */}
               <div className="space-y-1.5 p-3 rounded-xl bg-surface-sunken/60 border border-border-subtle/50 text-xs">
-                <div className="flex items-center justify-between text-text-muted">
+                <div className="flex items-center justify-between text-ink-tertiary">
                   <span className="flex items-center gap-1.5 font-medium">
-                    <Clock size={14} className="text-brand-primary shrink-0" />
+                    <Clock size={14} className="text-brand-600 shrink-0" />
                     Terakhir Diperbarui:
                   </span>
-                  <span className="font-semibold text-text-high tabular-nums">
+                  <span className="font-semibold text-ink-primary tabular-nums">
                     {formatDateTimeIndonesian(selectedDetail.updated_at || selectedDetail.raw?.updated_at || selectedDetail.raw?.created_at)}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-text-muted border-t border-border-subtle/30 pt-1.5">
+                <div className="flex items-center justify-between text-ink-tertiary border-t border-border-subtle/30 pt-1.5">
                   <span className="flex items-center gap-1.5 font-medium">
                     <UserCheck size={14} className="text-emerald-500 shrink-0" />
                     Diperbarui Oleh:
                   </span>
-                  <span className="font-bold text-text-high font-mono text-[11px]">
+                  <span className="font-bold text-ink-primary font-mono text-[11px]">
                     {selectedDetail.updated_by || selectedDetail.raw?.updated_by || currentUserEmail || 'Pengguna System'}
                   </span>
                 </div>
@@ -542,7 +505,7 @@ export default function LaporanAsetPage() {
               <button
                 type="button"
                 onClick={() => shareAsetWA(selectedDetail)}
-                className="py-2.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all min-h-[44px] flex items-center justify-center gap-1.5 shadow-soft shrink-0"
+                className="py-2.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all min-h-[44px] flex items-center justify-center gap-1.5 shadow-xs shrink-0"
                 title="Bagikan Laporan Aset ke WhatsApp"
               >
                 <Share2 size={16} />
@@ -566,7 +529,7 @@ export default function LaporanAsetPage() {
                   setSelectedDetail(null);
                   setSelectedEdit(itemToEdit);
                 }}
-                className="flex-1 py-2.5 px-3.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark active:scale-95 transition-all shadow-soft min-h-[44px] flex items-center justify-center gap-2"
+                className="flex-1 py-2.5 px-3.5 rounded-xl bg-brand-600 text-white text-xs font-bold hover:bg-brand-700 active:scale-95 transition-all shadow-xs min-h-[44px] flex items-center justify-center gap-2"
               >
                 <Edit2 size={16} />
                 <span>Edit</span>
@@ -576,26 +539,24 @@ export default function LaporanAsetPage() {
         </div>
       )}
 
-      {/* EDIT MODAL WITH HIERARCHY SELECTOR */}
+      {/* EDIT MODAL */}
       {selectedEdit && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-surface-elevated w-full max-w-3xl rounded-2xl border border-border-subtle shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
-            {/* Edit Modal Header */}
+          <div className="bg-surface-1 w-full max-w-3xl rounded-2xl border border-border-subtle shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
             <div className="p-4 sm:p-5 border-b border-border-subtle flex items-center justify-between bg-surface-sunken/40">
               <div>
-                <h3 className="font-bold text-text-high text-lg">Edit Inventaris Aset</h3>
-                <p className="text-xs text-text-muted mt-0.5">Ubah spesifikasi, foto, dan lokasi hierarki aset</p>
+                <h3 className="font-bold text-ink-primary text-lg">Edit Inventaris Aset</h3>
+                <p className="text-xs text-ink-tertiary mt-0.5">Ubah spesifikasi, foto, dan lokasi hierarki aset</p>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedEdit(null)}
-                className="w-9 h-9 rounded-xl bg-surface-sunken hover:bg-gray-200 dark:hover:bg-gray-800 text-text-muted flex items-center justify-center transition-colors"
+                className="w-9 h-9 rounded-xl bg-surface-sunken hover:bg-surface-sunken/80 text-ink-tertiary flex items-center justify-center transition-colors"
               >
                 <X size={18} />
               </button>
             </div>
 
-            {/* Edit Form Body */}
             <div className="p-4 sm:p-6 overflow-y-auto">
               <AsetForm
                 id_pos={selectedEdit.id_pos}
@@ -614,7 +575,7 @@ export default function LaporanAsetPage() {
 
       {/* FULL PHOTO PREVIEW MODAL */}
       {activePreviewImage && (
-        <div 
+        <div
           onClick={() => setActivePreviewImage(null)}
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 cursor-zoom-out animate-fade-in"
         >

@@ -14,7 +14,7 @@ import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
 import { detectPosType } from '@/lib/utils/pos-type';
 import { usePosPelkes, PosPelkesItem } from '@/hooks/use-pos-pelkes';
 import { ListRow } from '@/components/list/ListRow';
-import { FilterChips, FilterChipOption } from '@/components/list/FilterChips';
+import { FilterChips, FilterChip } from '@/components/list/FilterChips';
 import { SummaryStrip } from '@/components/list/SummaryStrip';
 import { EmptyState } from '@/components/list/EmptyState';
 import { ListSkeleton } from '@/components/list/ListSkeleton';
@@ -147,17 +147,18 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkesItem[] })
   const activeFilteredBajemCount = filteredData.filter((p) => detectPosType(p) === 'bajem').length;
 
   // Filter Chips Config
-  const filterChips: FilterChipOption[] = useMemo(() => {
-    const chips: FilterChipOption[] = [
-      { id: 'all', label: 'Semua', count: dataList.length },
-      { id: 'pos_pelkes', label: 'Pos Pelkes', count: posPelkesCount },
-      { id: 'bajem', label: 'Bajem', count: bajemCount },
+  // Filter Chips Config
+  const filterChips: FilterChip[] = useMemo(() => {
+    const chips: FilterChip[] = [
+      { key: 'all', label: 'Semua', count: dataList.length },
+      { key: 'pos_pelkes', label: 'Pos Pelkes', count: posPelkesCount },
+      { key: 'bajem', label: 'Bajem', count: bajemCount },
     ];
 
     if (jemaatOptions.length > 1) {
       jemaatOptions.forEach((j) => {
         chips.push({
-          id: `jemaat_${j.id}`,
+          key: `jemaat_${j.id}`,
           label: j.name,
         });
       });
@@ -166,14 +167,14 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkesItem[] })
     return chips;
   }, [dataList.length, posPelkesCount, bajemCount, jemaatOptions]);
 
-  const handleChipSelect = (id: string) => {
+  const handleChipSelect = (key: string) => {
     setCurrentPage(1);
-    if (id.startsWith('jemaat_')) {
-      const jId = id.replace('jemaat_', '');
+    if (key.startsWith('jemaat_')) {
+      const jId = key.replace('jemaat_', '');
       setSelectedJemaat(jId);
     } else {
       setSelectedJemaat('');
-      setSelectedCategoryFilter(id);
+      setSelectedCategoryFilter(key);
     }
   };
 
@@ -268,14 +269,14 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkesItem[] })
 
         {/* 3. Horizontal Filter Chips (Height 44px) */}
         <FilterChips
-          options={filterChips}
-          selectedId={selectedChipId}
-          onSelect={handleChipSelect}
+          items={filterChips}
+          active={selectedChipId}
+          onChange={handleChipSelect}
         />
 
         {/* 4. Fraunces Summary Strip */}
         <SummaryStrip
-          items={[
+          metrics={[
             { label: 'Pos Pelkes', value: activeFilteredPosCount },
             { label: 'Bajem', value: activeFilteredBajemCount },
             { label: 'Total Scoped', value: filteredData.length },
