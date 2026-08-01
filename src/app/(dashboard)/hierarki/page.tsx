@@ -127,7 +127,7 @@ export default function HierarkiEntryPage() {
               icon={<Layers className="h-5 w-5 text-purple-600 dark:text-purple-400" />}
               iconClassName="bg-purple-500/10 text-purple-600 dark:text-purple-400"
               title={mupel.nama_mupel}
-              subtitle={mupel.keterangan || `Kode Mupel: ${mupel.id_mupel}`}
+              subtitle={mupel.keterangan || mupel.id_mupel}
               meta={
                 <span className="flex items-center gap-2 flex-wrap text-xs font-bold">
                   <span className="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-400" title="Jemaat Induk">

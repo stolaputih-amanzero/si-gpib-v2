@@ -40,14 +40,12 @@ export function HierarchyTree({ mupelList, searchQuery }: HierarchyTreeProps) {
                 </span>
 
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400">
-                      {mupel.id_mupel}
-                    </span>
-                  </div>
                   <h3 className="font-extrabold text-text-high text-sm sm:text-base truncate leading-snug">
                     {mupel.nama_mupel}
                   </h3>
+                  <p className="text-xs text-text-muted truncate">
+                    {mupel.keterangan || mupel.id_mupel}
+                  </p>
                   <div className="flex items-center gap-2 flex-wrap text-xs font-bold mt-0.5">
                     <span className="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-400" title="Jemaat Induk">
                       <Church size={13} />
