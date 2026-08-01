@@ -4,7 +4,7 @@ import { useWilayahMapData, useJemaatMapData, useMapSummaryStats } from '@/hooks
 import { WilayahMap } from '@/components/wilayah/WilayahMap';
 import { StatCards } from '@/components/dashboard/StatCards';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Map, Church, Sprout, RefreshCw, MapPin } from 'lucide-react';
+import { Map, RefreshCw, MapPin } from 'lucide-react';
 import { formatNumber } from '@/lib/utils';
 
 export default function PetaPage() {
@@ -30,24 +30,8 @@ export default function PetaPage() {
           </div>
           <div>
             <h1 className="text-xl font-serif font-bold text-brand-primary">
-              Peta Sebaran Terpadu
+              Peta Pelayanan Terpadu
             </h1>
-            <p className="text-xs text-text-muted flex items-center gap-2 flex-wrap mt-0.5">
-              <span className="inline-flex items-center gap-1 font-medium text-indigo-700 dark:text-indigo-300">
-                <Church size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
-                <span>Jemaat Induk</span>
-              </span>
-              <span>•</span>
-              <span className="inline-flex items-center gap-1 font-medium text-accent-700 dark:text-accent-300">
-                <Church size={14} className="text-accent-600 dark:text-accent-400 shrink-0" />
-                <span>Bajem</span>
-              </span>
-              <span>•</span>
-              <span className="inline-flex items-center gap-1 font-medium text-brand-700 dark:text-brand-300">
-                <Sprout size={14} className="text-brand-600 dark:text-brand-400 shrink-0" />
-                <span>Pos Pelkes</span>
-              </span>
-            </p>
           </div>
         </div>
 
