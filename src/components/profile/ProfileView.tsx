@@ -47,11 +47,21 @@ export function ProfileView({
 
   // Strict Read Only Lock for new sign ups
   const isReadOnlyUser = (currentUser?.role || '').toLowerCase() === 'read_only';
-  const isOwnerOrSuperUser = (isSelf || isSuperUser) && !isReadOnlyUser;
-  const canEditDimensions = (isSelf || isSuperUser || isAdminMupel) && !isReadOnlyUser;
 
-  const effectiveOnEditProfile = isReadOnlyUser ? undefined : onEditProfile;
-  const effectiveOnEditPelayanan = isReadOnlyUser ? undefined : onEditPelayanan;
+  // If user is read_only, ONLY render the ProfileHero card (no stat strips, tabs, or sub-sections)
+  if (isReadOnlyUser) {
+    return (
+      <div className="space-y-6 max-w-4xl mx-auto pb-24 px-2.5 sm:px-4 md:px-6">
+        <ProfileHero
+          userId={targetUserId}
+          mode={mode}
+        />
+      </div>
+    );
+  }
+
+  const isOwnerOrSuperUser = isSelf || isSuperUser;
+  const canEditDimensions = isSelf || isSuperUser || isAdminMupel;
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-24 px-2.5 sm:px-4 md:px-6">
@@ -59,7 +69,7 @@ export function ProfileView({
       <ProfileHero
         userId={targetUserId}
         mode={mode}
-        onEditProfile={effectiveOnEditProfile}
+        onEditProfile={onEditProfile}
         onChangeRole={onChangeRole}
       />
 
@@ -80,7 +90,7 @@ export function ProfileView({
           <IdentitasPelayananSection
             idPendeta={idPendeta}
             canEdit={canEditDimensions}
-            onEditPelayanan={effectiveOnEditPelayanan}
+            onEditPelayanan={onEditPelayanan}
           />
         )}
 
