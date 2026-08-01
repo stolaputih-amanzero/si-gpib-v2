@@ -44,6 +44,7 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
+  // Unauthenticated redirect to /login
   if (
     !user &&
     !request.nextUrl.pathname.startsWith('/login') &&
@@ -62,14 +63,43 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Ensure logged-in users don't access auth pages again
+  // Strict Restriction for New Sign Ups with 'read_only' role: ONLY ALLOW /settings/profile
+  if (user) {
+    const userRole = (user.user_metadata?.role || user.role || '').toLowerCase()
+
+    if (userRole === 'read_only') {
+      const pathname = request.nextUrl.pathname
+      const allowedPrefixes = [
+        '/settings/profile',
+        '/api/',
+        '/_next',
+        '/favicon.ico',
+        '/manifest.json',
+        '/sw.js',
+        '/workbox-',
+        '/fallback-',
+        '/offline',
+      ]
+
+      const isAllowed = allowedPrefixes.some((prefix) => pathname.startsWith(prefix))
+
+      if (!isAllowed) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/settings/profile'
+        return NextResponse.redirect(url)
+      }
+    }
+  }
+
+  // Ensure logged-in users (non read_only) don't access auth pages again
   if (user && (
     request.nextUrl.pathname.startsWith('/login') || 
     request.nextUrl.pathname.startsWith('/register') || 
     request.nextUrl.pathname.startsWith('/forgot-password')
   )) {
+      const userRole = (user.user_metadata?.role || user.role || '').toLowerCase()
       const url = request.nextUrl.clone()
-      url.pathname = '/dashboard'
+      url.pathname = userRole === 'read_only' ? '/settings/profile' : '/dashboard'
       return NextResponse.redirect(url)
   }
 
