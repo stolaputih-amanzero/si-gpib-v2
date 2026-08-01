@@ -8,7 +8,9 @@ export type UserRoleType =
   | 'pj'
   | 'pendeta'
   | 'pelayan'
-  | 'relawan';
+  | 'relawan'
+  | 'read_only'
+  | 'user';
 
 export interface ProfileAkun {
   id: string;

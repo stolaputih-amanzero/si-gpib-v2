@@ -4,12 +4,17 @@ import { createUserAction, deleteUserAction, updateUserRoleAction } from '@/app/
 
 export type UserRole =
   | 'superadmin'
+  | 'super_user'
   | 'admin_mupel'
   | 'admin_jemaat'
+  | 'kmj'
   | 'pj_pos'
+  | 'pj'
   | 'pendeta'
   | 'pelayan'
-  | 'relawan';
+  | 'relawan'
+  | 'read_only'
+  | 'user';
 
 export interface UserManagementItem {
   id: string;

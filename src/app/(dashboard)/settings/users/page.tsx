@@ -33,12 +33,17 @@ import { cn } from '@/lib/utils';
 
 const ROLE_LABELS: Record<UserRole, { label: string; bg: string; text: string }> = {
   superadmin: { label: 'Superadmin (Sinode)', bg: 'bg-purple-500/10', text: 'text-purple-600 dark:text-purple-400' },
+  super_user: { label: 'Super User', bg: 'bg-purple-500/10', text: 'text-purple-600 dark:text-purple-400' },
   admin_mupel: { label: 'Admin Mupel', bg: 'bg-amber-500/10', text: 'text-amber-600 dark:text-amber-400' },
-  admin_jemaat: { label: 'Admin Jemaat (KMJ)', bg: 'bg-blue-500/10', text: 'text-blue-600 dark:text-blue-400' },
+  admin_jemaat: { label: 'Admin Jemaat', bg: 'bg-blue-500/10', text: 'text-blue-600 dark:text-blue-400' },
+  kmj: { label: 'KMJ', bg: 'bg-blue-500/10', text: 'text-blue-600 dark:text-blue-400' },
   pj_pos: { label: 'PJ Pos Pelkes', bg: 'bg-emerald-500/10', text: 'text-emerald-600 dark:text-emerald-400' },
+  pj: { label: 'PJ Pos Pelkes', bg: 'bg-emerald-500/10', text: 'text-emerald-600 dark:text-emerald-400' },
   pendeta: { label: 'Pendeta GPIB', bg: 'bg-indigo-500/10', text: 'text-indigo-600 dark:text-indigo-400' },
   pelayan: { label: 'Pelayan Field', bg: 'bg-cyan-500/10', text: 'text-cyan-600 dark:text-cyan-400' },
   relawan: { label: 'Relawan', bg: 'bg-rose-500/10', text: 'text-rose-600 dark:text-rose-400' },
+  read_only: { label: 'Read Only (Pending Role)', bg: 'bg-amber-500/10', text: 'text-amber-600 dark:text-amber-400' },
+  user: { label: 'User Biasa', bg: 'bg-slate-500/10', text: 'text-slate-600 dark:text-slate-400' },
 };
 
 import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';

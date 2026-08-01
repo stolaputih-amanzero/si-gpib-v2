@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { registerUser } from './actions';
-import { Sparkles, Mail, Phone, Lock, UserCheck, ArrowLeft, UserPlus } from 'lucide-react';
+import { Sparkles, Mail, Phone, Lock, ArrowLeft, UserPlus, ShieldAlert } from 'lucide-react';
 
 const registerSchema = z.object({
   email: z.string().email('Format email tidak valid'),
@@ -18,7 +18,6 @@ const registerSchema = z.object({
     .min(8, 'Minimal 8 karakter')
     .regex(/[A-Z]/, 'Harus mengandung minimal 1 huruf besar')
     .regex(/[0-9]/, 'Harus mengandung minimal 1 angka'),
-  role: z.enum(['super_user', 'admin_mupel', 'kmj', 'pj', 'user']),
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -33,9 +32,6 @@ export default function RegisterPage() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: {
-      role: 'user',
-    },
   });
 
   const onSubmit = async (data: RegisterFormValues) => {
@@ -44,7 +40,6 @@ export default function RegisterPage() {
     formData.append('email', data.email);
     formData.append('phone', data.phone);
     formData.append('password', data.password);
-    formData.append('role', data.role);
 
     const result = await registerUser(formData);
 
@@ -89,6 +84,17 @@ export default function RegisterPage() {
           <p className="text-text-muted mt-1 text-xs sm:text-sm font-medium">
             Lengkapi data di bawah ini untuk mendaftar akun pengguna
           </p>
+        </div>
+
+        {/* Temporary Role Notice */}
+        <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-2.5">
+          <ShieldAlert size={18} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div>
+            <span className="font-extrabold block mb-0.5">Peran Akses Temporer (Read Only)</span>
+            <span>
+              Semua pendaftaran baru akan mendapatkan role temporer <strong>Read Only</strong>. Penetapan role definitif dilakukan oleh Super User / Super Admin.
+            </span>
+          </div>
         </div>
 
         {/* Register Form */}
@@ -148,27 +154,6 @@ export default function RegisterPage() {
               />
             </div>
             {errors.password && <p className="mt-1 text-xs font-medium text-red-500">{errors.password.message}</p>}
-          </div>
-
-          <div>
-            <label htmlFor="role" className="block text-xs font-bold uppercase tracking-wider text-text-high mb-1">
-              Peran (Role)
-            </label>
-            <div className="relative">
-              <UserCheck size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
-              <select
-                {...register('role')}
-                id="role"
-                className="w-full pl-10 pr-4 py-3 border border-border-subtle rounded-xl bg-surface-base text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary/40 text-xs sm:text-sm min-h-[46px] transition-all appearance-none cursor-pointer"
-              >
-                <option value="user">User Biasa</option>
-                <option value="pj">Penanggung Jawab (PJ)</option>
-                <option value="kmj">Ketua Majelis Jemaat (KMJ)</option>
-                <option value="admin_mupel">Admin Mupel</option>
-                <option value="super_user">Super User</option>
-              </select>
-            </div>
-            {errors.role && <p className="mt-1 text-xs font-medium text-red-500">{errors.role.message}</p>}
           </div>
 
           <button

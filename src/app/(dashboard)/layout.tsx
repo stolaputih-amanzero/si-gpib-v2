@@ -5,6 +5,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import MobileHeader from '@/components/layout/MobileHeader';
 import BottomNavigation from '@/components/mobile/BottomNavigation';
 import QuickActionSheet from '@/components/mobile/QuickActionSheet';
+import { ReadOnlyNoticeBanner } from '@/components/auth/ReadOnlyNoticeBanner';
 
 export default function DashboardLayout({
   children,
@@ -26,6 +27,7 @@ export default function DashboardLayout({
         {/* Scrollable Main Content */}
         <main className="flex-1 overflow-y-auto pb-24 md:pb-8 px-4 sm:px-6 md:px-8 pt-4 sm:pt-6">
           <div className="max-w-7xl mx-auto min-h-full">
+            <ReadOnlyNoticeBanner />
             {children}
           </div>
         </main>
