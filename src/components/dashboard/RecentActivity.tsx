@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, ArrowRight, User } from 'lucide-react';
+import { Activity, ArrowRight, User, Sprout, Church } from 'lucide-react';
 import Link from 'next/link';
 
 interface LogData {
@@ -8,6 +8,7 @@ interface LogData {
   kegiatan: string;
   pos_pelkes: { nama_pos: string } | null;
   pendeta: { nama_lengkap: string } | null;
+  tipe?: string;
 }
 
 export function RecentActivity({ logs }: { logs: LogData[] }) {
@@ -29,24 +30,34 @@ export function RecentActivity({ logs }: { logs: LogData[] }) {
           </div>
         ) : (
           <div className="space-y-4">
-            {logs.map((log) => (
-              <div key={log.id_log} className="flex gap-3">
-                <div className="flex flex-col items-center mt-1">
-                  <div className="w-2 h-2 rounded-full bg-brand-primary"></div>
-                  <div className="w-px h-full bg-border-strong mt-1"></div>
-                </div>
-                <div className="pb-2">
-                  <p className="text-sm font-semibold text-text-high leading-tight">{log.kegiatan}</p>
-                  <p className="text-xs text-text-muted mt-1">
-                    {log.pos_pelkes?.nama_pos || 'Pos tidak diketahui'}
-                  </p>
-                  <div className="flex items-center gap-1 mt-1 text-[11px] text-text-muted bg-surface-sunken px-2 py-0.5 rounded-sm inline-flex">
-                    <User className="w-3 h-3" />
-                    {log.pendeta?.nama_lengkap || 'Pendeta'} • {new Date(log.tgl).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+            {logs.map((log) => {
+              const posName = log.pos_pelkes?.nama_pos || '';
+              const isBajem = (posName.toLowerCase().includes('bajem'));
+
+              return (
+                <div key={log.id_log} className="flex gap-3">
+                  <div className="flex flex-col items-center mt-1">
+                    <div className="w-2 h-2 rounded-full bg-brand-primary"></div>
+                    <div className="w-px h-full bg-border-strong mt-1"></div>
+                  </div>
+                  <div className="pb-2">
+                    <p className="text-sm font-semibold text-text-high leading-tight">{log.kegiatan}</p>
+                    <div className="flex items-center gap-1.5 text-xs text-text-muted mt-1">
+                      {isBajem ? (
+                        <Church size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      ) : (
+                        <Sprout size={13} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                      )}
+                      <span>{posName || 'Pos Pelkes'}</span>
+                    </div>
+                    <div className="flex items-center gap-1 mt-1 text-[11px] text-text-muted bg-surface-sunken px-2 py-0.5 rounded-sm inline-flex">
+                      <User className="w-3 h-3" />
+                      {log.pendeta?.nama_lengkap || 'Pendeta'} • {new Date(log.tgl).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </CardContent>

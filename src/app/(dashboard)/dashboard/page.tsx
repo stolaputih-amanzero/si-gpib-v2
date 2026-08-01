@@ -20,16 +20,18 @@ export default async function Dashboard() {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-  let posCount: number | null = 0;
-  let jemaatCount: number | null = 0;
-  let logCount: number | null = 0;
+  let mupelCount = 0;
+  let jemaatCount = 0;
+  let bajemCount = 0;
+  let posPelkesCount = 0;
+  let logCount = 0;
   let demografiData: any[] | null = [];
   let posPelkesSumData: any[] | null = [];
   let recentLogs: any[] | null = [];
 
   try {
-    const [resPos, resJemaat, resLog, resDemo, resSum, resPastoral, resHistori] = await Promise.all([
-      supabaseAdmin.from('m_pos_pelkes').select('*', { count: 'exact', head: true }),
+    const [resMupel, resJemaat, resLog, resDemo, resSum, resPastoral, resHistori] = await Promise.all([
+      supabaseAdmin.from('m_mupel').select('*', { count: 'exact', head: true }),
       supabaseAdmin.from('m_jemaat_induk').select('*', { count: 'exact', head: true }),
       supabaseAdmin
         .from('t_log_pastoral')
@@ -41,7 +43,7 @@ export default async function Dashboard() {
         .select('kategori_pelkat, laki, perempuan'),
       supabaseAdmin
         .from('m_pos_pelkes')
-        .select('jumlah_jiwa'),
+        .select('id_pos, nama_pos, kategori, jumlah_jiwa'),
       supabaseAdmin
         .from('t_log_pastoral')
         .select(`
@@ -62,11 +64,22 @@ export default async function Dashboard() {
         .limit(5)
     ]);
 
-    posCount = resPos.count;
-    jemaatCount = resJemaat.count;
-    logCount = resLog.count;
+    mupelCount = resMupel.count || 0;
+    jemaatCount = resJemaat.count || 0;
+    logCount = resLog.count || 0;
     demografiData = resDemo.data;
     posPelkesSumData = resSum.data;
+
+    if (posPelkesSumData) {
+      posPelkesSumData.forEach((item: any) => {
+        const isBajem = item.kategori === 'Bajem' || (item.nama_pos || '').toLowerCase().includes('bajem');
+        if (isBajem) {
+          bajemCount++;
+        } else {
+          posPelkesCount++;
+        }
+      });
+    }
 
     // Combine Pastoral Activity Logs + Histori Status Elevasi Logs
     const pastoralLogs = (resPastoral.data || []).map((p: any) => ({
@@ -147,10 +160,12 @@ export default async function Dashboard() {
       <main className="max-w-6xl mx-auto px-4 py-5 md:px-6 space-y-6">
         <section className="ambient-glow">
           <StatCards 
-            posCount={posCount || 0}
-            jemaatCount={jemaatCount || 0}
+            mupelCount={mupelCount}
+            jemaatCount={jemaatCount}
+            bajemCount={bajemCount}
+            posCount={posPelkesCount}
             totalJiwa={totalJiwa}
-            logCount={logCount || 0}
+            logCount={logCount}
           />
         </section>
 
