@@ -10,7 +10,7 @@ import { StatusElevationModal } from '@/components/hierarki/StatusElevationModal
 import { SecureDeleteModal } from '@/components/ui/SecureDeleteModal';
 import { useToast } from '@/components/ui/toast';
 import { calculateDistanceKm } from '@/lib/utils/distance';
-import { MapPin, Church, HeartHandshake, ArrowLeft, FileText, AlertTriangle, Home, Users, Compass, ExternalLink, Phone, Edit3, Trash2, TrendingUp, Navigation } from 'lucide-react';
+import { Church, Sprout, HeartHandshake, ArrowLeft, FileText, AlertTriangle, Home, Users, Compass, ExternalLink, Phone, Edit3, Trash2, TrendingUp, Navigation } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ShareButton } from '@/components/mobile/ShareButton';
 import { StatusHistoryTimeline } from '@/components/hierarki/StatusHistoryTimeline';
@@ -113,8 +113,11 @@ export function PosDetailClient({ id_mupel, id_induk, id_pos }: PosDetailClientP
         <div className="bg-surface-elevated p-5 rounded-2xl border border-border-subtle shadow-soft space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
-              <div className="p-3.5 rounded-2xl bg-brand-primary/10 text-brand-primary shrink-0 flex items-center justify-center">
-                <MapPin className="w-6 h-6" />
+              <div className={cn(
+                "p-3.5 rounded-2xl shrink-0 flex items-center justify-center border",
+                isBajem ? "bg-surface-accent text-accent-600 border-accent-300/40" : "bg-surface-brand text-brand-600 border-brand-500/20"
+              )}>
+                {isBajem ? <Sprout className="w-6 h-6" /> : <Church className="w-6 h-6" />}
               </div>
               <div className="flex flex-col justify-center space-y-0.5 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">

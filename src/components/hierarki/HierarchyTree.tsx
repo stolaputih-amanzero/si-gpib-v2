@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { MupelItem, useJemaatByMupel, usePosByJemaat } from '@/hooks/use-hierarki';
-import { Layers, Church, MapPin, ChevronRight, ChevronDown, ExternalLink } from 'lucide-react';
+import { Layers, Church, Sprout, ChevronRight, ChevronDown, ExternalLink } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 import { PosName } from '@/components/ui/PosName';
+import { detectPosType } from '@/lib/utils/pos-type';
 
 interface HierarchyTreeProps {
   mupelList: MupelItem[];
@@ -182,23 +183,30 @@ function PosTreeLeaf({ id_induk, id_mupel, searchQuery }: { id_induk: string; id
 
   return (
     <div className="space-y-1">
-      {posList.map((pos) => (
-        <Link
-          key={pos.id_pos}
-          href={`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(id_induk)}/${encodeURIComponent(pos.id_pos)}`}
-          className="flex items-center justify-between p-2 rounded-lg bg-surface-elevated border border-border-subtle hover:border-emerald-500/50 hover:bg-emerald-50/30 transition-colors min-h-[40px]"
-        >
-          <div className="flex items-center gap-2">
-            <MapPin size={14} className="text-emerald-600 shrink-0" />
-            <span className="font-semibold text-xs text-text-high"><PosName name={pos.nama_pos} /></span>
-          </div>
+      {posList.map((pos) => {
+        const isBajem = detectPosType(pos) === 'bajem';
+        return (
+          <Link
+            key={pos.id_pos}
+            href={`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(id_induk)}/${encodeURIComponent(pos.id_pos)}`}
+            className="flex items-center justify-between p-2 rounded-lg bg-surface-elevated border border-border-subtle hover:border-brand-500/50 hover:bg-surface-brand transition-colors min-h-[40px]"
+          >
+            <div className="flex items-center gap-2">
+              {isBajem ? (
+                <Sprout size={14} className="text-accent-600 dark:text-accent-400 shrink-0" />
+              ) : (
+                <Church size={14} className="text-brand-600 dark:text-brand-400 shrink-0" />
+              )}
+              <span className="font-semibold text-xs text-text-high"><PosName name={pos.nama_pos} /></span>
+            </div>
 
-          <div className="flex items-center gap-2 text-[10px] text-text-muted">
-            <span>{pos.pj ? `PJ: ${pos.pj.nama_lengkap}` : 'Belum ada PJ'}</span>
-            <ChevronRight size={12} />
-          </div>
-        </Link>
-      ))}
+            <div className="flex items-center gap-2 text-[10px] text-text-muted">
+              <span>{pos.pj ? `PJ: ${pos.pj.nama_lengkap}` : 'Belum ada PJ'}</span>
+              <ChevronRight size={12} />
+            </div>
+          </Link>
+        );
+      })}
     </div>
   );
 }

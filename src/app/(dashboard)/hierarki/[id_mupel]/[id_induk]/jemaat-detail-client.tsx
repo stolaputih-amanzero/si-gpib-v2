@@ -442,7 +442,7 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Sprout className="w-5 h-5 text-purple-600" />
+                <Sprout className="w-5 h-5 text-accent-600 dark:text-accent-400" />
                 <h2 className="text-lg font-black text-text-high">
                   Bakal Jemaat / Bajem ({bajemList.length})
                 </h2>
@@ -451,7 +451,7 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
 
             {bajemList.length === 0 ? (
               <div className="p-4 rounded-xl bg-surface-elevated border border-border-subtle text-xs text-text-muted flex items-center gap-2">
-                <Sprout size={16} className="text-purple-500 opacity-60" />
+                <Sprout size={16} className="text-accent-500 opacity-60" />
                 <span>Belum ada Bajem terdaftar di bawah Jemaat Induk ini.</span>
               </div>
             ) : (
@@ -462,12 +462,12 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
                   return (
                     <div
                       key={bajem.id_pos}
-                      className="bg-surface-elevated p-4 rounded-2xl border border-purple-200 dark:border-purple-900/40 shadow-soft hover:border-purple-400 transition-all space-y-3"
+                      className="bg-surface-elevated p-4 rounded-2xl border border-border-subtle shadow-soft hover:border-accent-400 transition-all space-y-3"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-1">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300">
+                            <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-surface-accent text-accent-600 border border-accent-300/40">
                               {bajem.id_pos} • Bajem
                             </span>
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
@@ -481,7 +481,10 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
                             )}
                           </div>
 
-                          <h3 className="font-extrabold text-base text-text-high">{bajem.nama_pos}</h3>
+                          <h3 className="font-extrabold text-base text-text-high flex items-center gap-1.5">
+                            <Sprout className="w-4 h-4 text-accent-600 dark:text-accent-400 shrink-0" />
+                            <span>{bajem.nama_pos}</span>
+                          </h3>
                           {bajem.alamat && <p className="text-xs text-text-muted line-clamp-1">{bajem.alamat}</p>}
                         </div>
 
@@ -523,7 +526,7 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
                         <span>PJ: {bajem.pj?.nama_lengkap || 'Belum ada'}</span>
                         <Link
                           href={`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(id_induk)}/${encodeURIComponent(bajem.id_pos)}`}
-                          className="font-bold text-purple-600 hover:underline flex items-center gap-1"
+                          className="font-bold text-accent-600 hover:underline flex items-center gap-1"
                         >
                           <span>Detail</span>
                           <ChevronRight size={14} />
@@ -540,7 +543,7 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Building className="w-5 h-5 text-emerald-600" />
+                <Church className="w-5 h-5 text-brand-600 dark:text-brand-400" />
                 <h2 className="text-lg font-black text-text-high">
                   Pos Pelayanan & Kesaksian / Pos Pelkes ({posPelkesOnly.length})
                 </h2>
@@ -585,7 +588,10 @@ export function JemaatDetailClient({ id_mupel, id_induk }: JemaatDetailClientPro
                             )}
                           </div>
 
-                          <h3 className="font-extrabold text-base text-text-high">{pos.nama_pos}</h3>
+                          <h3 className="font-extrabold text-base text-text-high flex items-center gap-1.5">
+                            <Church className="w-4 h-4 text-brand-600 dark:text-brand-400 shrink-0" />
+                            <span>{pos.nama_pos}</span>
+                          </h3>
                           {pos.alamat && <p className="text-xs text-text-muted line-clamp-1">{pos.alamat}</p>}
                         </div>
 
