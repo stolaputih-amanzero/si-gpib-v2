@@ -173,11 +173,11 @@ export function ProfileHero({ userId, mode = 'self', onEditProfile, onChangeRole
 
         {/* Bottom Row: Copyable Contacts */}
         <div
-          className="flex items-center gap-2.5 flex-wrap pt-4 mt-4 border-t border-line-hairline"
+          className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-4 mt-4 border-t border-line-hairline"
           onClick={(e) => e.stopPropagation()}
         >
-          <CopyableContact icon={Mail} value={email} label="Email" />
-          <CopyableContact icon={Phone} value={phone} label="No. Telepon / WA" />
+          <CopyableContact icon={Mail} value={email} label="Email" className="w-full sm:w-auto" />
+          <CopyableContact icon={Phone} value={phone} label="No. Telepon / WA" className="w-full sm:w-auto" />
         </div>
       </div>
 

@@ -31,7 +31,6 @@ function useCountUp(target: number, duration: number = 600) {
     const step = (timestamp: number) => {
       if (!startTimestamp) startTimestamp = timestamp;
       const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-      // Ease out quad formula
       const easeProgress = progress * (2 - progress);
       setCount(Math.floor(easeProgress * target));
 
@@ -61,16 +60,16 @@ function StatCell({ label, value, isNumeric = true, rawNumber = 0, icon: Icon, c
   const displayVal = isNumeric ? animatedNumber.toLocaleString('id-ID') : value;
 
   return (
-    <div className="card-flat p-4 relative overflow-hidden flex flex-col justify-between hover:border-brand-500/30 transition-all">
-      <div className="flex items-start justify-between gap-2">
-        <span className="text-[11px] font-bold text-ink-tertiary uppercase tracking-wider line-clamp-1">
+    <div className="bg-surface-1 p-3.5 rounded-2xl border border-line-subtle shadow-2xs relative overflow-hidden flex flex-col justify-between hover:border-brand-500/30 transition-all">
+      <div className="flex items-start justify-between gap-1.5">
+        <span className="text-[11px] font-semibold text-ink-tertiary leading-tight">
           {label}
         </span>
         <div className={cn('p-1.5 rounded-lg shrink-0', colorClass)}>
-          <Icon size={16} />
+          <Icon size={15} />
         </div>
       </div>
-      <div className="font-display tnum text-xl sm:text-2xl font-bold text-ink-primary mt-2 truncate">
+      <div className="font-display tnum text-xl sm:text-2xl font-semibold text-ink-primary mt-2 truncate">
         {displayVal}
       </div>
     </div>
@@ -89,15 +88,14 @@ export function ProfileStatStrip({ userId, idPendeta }: ProfileStatStripProps) {
 
   if (isStatsLoading || isAkunLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="card-flat p-4 h-24 skeleton" />
+          <div key={i} className="bg-surface-1 p-4 rounded-2xl border border-line-subtle h-24 skeleton" />
         ))}
       </div>
     );
   }
 
-  // Format lama melayani "X thn Y bln"
   const totalMonths = stats?.lama_melayani_bulan || 0;
   const years = Math.floor(totalMonths / 12);
   const months = totalMonths % 12;
@@ -110,7 +108,7 @@ export function ProfileStatStrip({ userId, idPendeta }: ProfileStatStripProps) {
     <div
       ref={containerRef}
       className={cn(
-        'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 reveal-stagger transition-all',
+        'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 reveal-stagger transition-all',
         inView && 'in'
       )}
     >
@@ -140,7 +138,7 @@ export function ProfileStatStrip({ userId, idPendeta }: ProfileStatStripProps) {
         value={lamaMelayaniStr}
         isNumeric={false}
         icon={Clock}
-        colorClass="bg-accent-50 text-accent-600 dark:bg-amber-950/20"
+        colorClass="bg-amber-500/10 text-amber-600 dark:text-amber-400"
       />
       <StatCell
         label="Log Bulan Ini"

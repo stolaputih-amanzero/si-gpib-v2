@@ -19,14 +19,14 @@ export function IdentitasPelayananSection({ idPendeta, canEdit = false, onEditPe
 
   if (!idPendeta) {
     return (
-      <div className="card-flat p-8 text-center space-y-3 bg-surface-1 border border-line-subtle animate-rise">
-        <div className="w-12 h-12 rounded-2xl bg-surface-accent text-accent-600 mx-auto flex items-center justify-center border border-accent-500/20">
+      <div className="card-flat p-6 text-center space-y-3 bg-surface-1 border border-line-subtle rounded-3xl shadow-2xs animate-rise">
+        <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 mx-auto flex items-center justify-center border border-amber-500/20 shadow-inner">
           <UserCheck size={24} />
         </div>
         <div className="max-w-md mx-auto space-y-1">
           <h3 className="font-display font-semibold text-base text-ink-primary">Identitas Pelayanan Khusus Pendeta</h3>
           <p className="text-xs sm:text-sm text-ink-secondary leading-relaxed">
-            Pengguna ini terdaftar sebagai **Pelayan Field / Administrator non-Pendeta**. Data penugasan Pendeta GPIB tidak terikat secara struktural pada akun ini.
+            Pengguna ini terdaftar sebagai <strong className="font-semibold text-ink-primary">Pelayan Field / Administrator non-Pendeta</strong>. Data penugasan Pendeta GPIB tidak terikat secara struktural pada akun ini.
           </p>
         </div>
       </div>
@@ -34,11 +34,11 @@ export function IdentitasPelayananSection({ idPendeta, canEdit = false, onEditPe
   }
 
   if (isLoading) {
-    return <div className="card-flat p-6 h-64 skeleton" />;
+    return <div className="card-flat p-6 h-64 skeleton rounded-3xl" />;
   }
 
   return (
-    <div className="card-flat p-5 space-y-5 bg-surface-1 animate-rise">
+    <div className="card-flat p-5 sm:p-6 space-y-5 bg-surface-1 border border-line-subtle rounded-3xl shadow-2xs animate-rise">
       <div className="flex items-center justify-between border-b border-line-hairline pb-3">
         <h3 className="font-display font-semibold text-base text-ink-primary flex items-center gap-2">
           <Award size={18} className="text-brand-600" />
