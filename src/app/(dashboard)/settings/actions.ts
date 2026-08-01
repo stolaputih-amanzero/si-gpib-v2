@@ -129,25 +129,31 @@ export async function updateOwnProfileAction(payload: {
     const dbClient = createAdminClient() || supabase;
 
     let targetRowId = currentUserId;
+    let existingRole: string | null = null;
+
     const { data: rowById } = await dbClient
       .from('users')
-      .select('id, email')
+      .select('id, email, role')
       .eq('id', currentUserId)
       .maybeSingle();
 
     if (rowById) {
       targetRowId = rowById.id;
+      existingRole = rowById.role;
     } else if (currentUserEmail) {
       const { data: rowByEmail } = await dbClient
         .from('users')
-        .select('id')
+        .select('id, role')
         .eq('email', currentUserEmail)
         .maybeSingle();
 
       if (rowByEmail) {
         targetRowId = rowByEmail.id;
+        existingRole = rowByEmail.role;
       }
     }
+
+    const finalRole = existingRole || 'super_user';
 
     const { error: dbError } = await dbClient
       .from('users')
@@ -155,6 +161,7 @@ export async function updateOwnProfileAction(payload: {
         id: targetRowId,
         email: finalEmail,
         nama_lengkap: payload.nama_lengkap,
+        role: finalRole,
         no_hp: payload.no_hp || null,
         no_telepon: payload.no_hp || null,
         avatar_url: finalAvatarUrl || null,
