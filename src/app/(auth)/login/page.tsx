@@ -1,16 +1,21 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState, useActionState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { login } from './actions';
 import { BiometricLogin } from '@/components/biometric/BiometricLogin';
-import { Sparkles, Lock, Mail } from 'lucide-react';
+import { Sparkles, Lock, Mail, UserPlus, CheckCircle2 } from 'lucide-react';
 
 const initialState = {
   error: '',
 };
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const isRegistered = searchParams.get('registered') === 'true';
+
   const [state, formAction, isPending] = useActionState(login, initialState);
   const [email, setEmail] = useState('');
 
@@ -20,7 +25,7 @@ export default function LoginPage() {
       <div className="absolute top-10 left-1/2 -translate-x-1/2 w-96 h-96 bg-brand-primary/10 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-80 h-80 bg-amber-500/10 rounded-full blur-[90px] pointer-events-none" />
 
-      <div className="max-w-md w-full mx-auto space-y-7 bg-surface-elevated/95 backdrop-blur-xl p-7 sm:p-9 rounded-3xl shadow-2xl border border-border-subtle relative z-10 animate-in fade-in zoom-in-95 duration-500">
+      <div className="max-w-md w-full mx-auto space-y-6 bg-surface-elevated/95 backdrop-blur-xl p-7 sm:p-9 rounded-3xl shadow-2xl border border-border-subtle relative z-10 animate-in fade-in zoom-in-95 duration-500">
         {/* Header Branding */}
         <div className="text-center flex flex-col items-center">
           <div className="relative group mb-3">
@@ -49,6 +54,14 @@ export default function LoginPage() {
             Masuk ke Sistem Informasi Pos Pelayanan Kesaksian
           </p>
         </div>
+
+        {/* Success Banner on Registration */}
+        {isRegistered && (
+          <div className="p-3.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/40 rounded-xl flex items-center gap-2 animate-in fade-in duration-300">
+            <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span>Pendaftaran akun berhasil! Silakan masuk dengan email & kata sandi Anda.</span>
+          </div>
+        )}
 
         {/* Login Form */}
         <form className="space-y-4" action={formAction}>
@@ -79,9 +92,17 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-xs font-bold uppercase tracking-wider text-text-high mb-1">
-              Kata Sandi
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label htmlFor="password" className="block text-xs font-bold uppercase tracking-wider text-text-high">
+                Kata Sandi
+              </label>
+              <Link 
+                href="/forgot-password" 
+                className="text-[11px] font-semibold text-brand-primary hover:underline"
+              >
+                Lupa Kata Sandi?
+              </Link>
+            </div>
             <div className="relative">
               <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
               <input 
@@ -118,6 +139,20 @@ export default function LoginPage() {
 
         {/* Biometric Login */}
         <BiometricLogin email={email} />
+
+        {/* Sign Up / Register Navigation Footer */}
+        <div className="pt-4 text-center border-t border-border-subtle">
+          <p className="text-xs text-text-muted flex items-center justify-center gap-1.5 flex-wrap">
+            <span>Belum memiliki akun?</span>
+            <Link 
+              href="/register" 
+              className="inline-flex items-center gap-1 text-brand-primary font-extrabold hover:underline active:scale-95 transition-transform"
+            >
+              <UserPlus size={14} />
+              <span>Daftar Akun Baru (Sign Up)</span>
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
