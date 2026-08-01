@@ -12,7 +12,7 @@ import { KPICard } from '@/components/analitik/KPICard';
 import { AnalitikFilterComponent } from '@/components/analitik/AnalitikFilter';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
-  MapPin, 
+  Sprout, 
   Users, 
   UserCheck, 
   Box, 
@@ -116,7 +116,7 @@ export default function DashboardAnalitikPage() {
                 title="Total Pos Pelkes"
                 value={kpiData?.totalPos || 0}
                 subtitle="Pos Pelkes & Bajem"
-                icon={<MapPin size={20} />}
+                icon={<Sprout size={20} />}
                 badgeColor="bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400"
               />
               <KPICard
@@ -124,7 +124,7 @@ export default function DashboardAnalitikPage() {
                 value={kpiData?.totalJiwa || 0}
                 subtitle="Anggota 6 Pelkat"
                 icon={<Users size={20} />}
-                badgeColor="bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400"
+                badgeColor="bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400"
               />
               <KPICard
                 title="Pendeta Aktif"
@@ -138,14 +138,14 @@ export default function DashboardAnalitikPage() {
                 value={kpiData?.totalAset || 0}
                 subtitle="Tanah, Bangunan, Item"
                 icon={<Box size={20} />}
-                badgeColor="bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400"
+                badgeColor="bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400"
               />
               <KPICard
                 title="Bantuan Pending"
                 value={kpiData?.totalBantuanPending || 0}
                 subtitle="Dalam Review Approval"
                 icon={<HandHeart size={20} />}
-                badgeColor="bg-orange-50 text-orange-600 dark:bg-orange-950/60 dark:text-orange-400"
+                badgeColor="bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400"
               />
             </>
           )}
