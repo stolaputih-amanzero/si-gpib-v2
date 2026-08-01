@@ -4,13 +4,19 @@ import { Layers, Church, Sprout, Users, CalendarCheck } from 'lucide-react';
 import { formatNumber } from '@/lib/utils';
 import { useReveal } from '@/hooks/useReveal';
 
-interface StatCardsProps {
+export interface StatCardsProps {
   mupelCount: number;
   jemaatCount: number;
   bajemCount: number;
   posCount: number;
   totalJiwa: number;
-  logCount: number;
+  logCount?: number;
+  sixthStat?: {
+    title: string;
+    value: number | string;
+    icon: any;
+    iconBg: string;
+  };
 }
 
 export function StatCards({
@@ -19,7 +25,8 @@ export function StatCards({
   bajemCount,
   posCount,
   totalJiwa,
-  logCount,
+  logCount = 0,
+  sixthStat,
 }: StatCardsProps) {
   const revealRef = useReveal<HTMLDivElement>();
 
@@ -54,7 +61,7 @@ export function StatCards({
       icon: Users,
       iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
     },
-    {
+    sixthStat || {
       title: 'Giat Bulan Ini',
       value: formatNumber(logCount),
       icon: CalendarCheck,
@@ -82,3 +89,5 @@ export function StatCards({
     </div>
   );
 }
+
+export default StatCards;

@@ -770,3 +770,51 @@ export function useJemaatMapData() {
   });
 }
 
+/**
+ * Hook Agregat Statistik Summary Card untuk Peta Sebaran Terpadu
+ */
+export function useMapSummaryStats() {
+  const supabase = createClient();
+
+  return useQuery({
+    queryKey: ['map-summary-stats'],
+    queryFn: async () => {
+      const [resMupel, resJemaat, resPos, resDemo] = await Promise.all([
+        supabase.from('m_mupel').select('*', { count: 'exact', head: true }),
+        supabase.from('m_jemaat_induk').select('*', { count: 'exact', head: true }),
+        supabase.from('m_pos_pelkes').select('id_pos, nama_pos, kategori'),
+        supabase.from('t_demografi_pelkat').select('laki, perempuan'),
+      ]);
+
+      const mupelCount = resMupel.count || 0;
+      const jemaatCount = resJemaat.count || 0;
+      let bajemCount = 0;
+      let posCount = 0;
+
+      (resPos.data || []).forEach((item: any) => {
+        const isBajem = item.kategori === 'Bajem' || (item.nama_pos || '').toLowerCase().includes('bajem');
+        if (isBajem) {
+          bajemCount++;
+        } else {
+          posCount++;
+        }
+      });
+
+      const totalJiwa = (resDemo.data || []).reduce(
+        (acc: number, curr: any) => acc + (curr.laki || 0) + (curr.perempuan || 0),
+        0
+      );
+
+      return {
+        mupelCount,
+        jemaatCount,
+        bajemCount,
+        posCount,
+        totalJiwa,
+      };
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+
