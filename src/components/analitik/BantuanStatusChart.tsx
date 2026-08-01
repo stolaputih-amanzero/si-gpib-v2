@@ -20,6 +20,22 @@ const COLORS: Record<string, string> = {
   Ditolak: '#EF4444',
 };
 
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0];
+    return (
+      <div className="bg-surface-elevated p-3 rounded-xl border border-border-subtle shadow-medium text-xs space-y-1 min-w-[140px]">
+        <p className="font-extrabold text-text-high text-sm">{data.name}</p>
+        <div className="flex items-center justify-between gap-2 pt-1 border-t border-border-subtle">
+          <span className="text-text-muted font-medium">Jumlah:</span>
+          <span className="tabular-nums font-black text-brand-primary text-sm">{data.value} Ajuan</span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export function BantuanStatusChart({ data = [] }: BantuanStatusChartProps) {
   return (
     <div className="w-full bg-surface-elevated rounded-2xl p-4 sm:p-5 border border-border-subtle shadow-soft space-y-3">
@@ -30,7 +46,7 @@ export function BantuanStatusChart({ data = [] }: BantuanStatusChartProps) {
 
       <div className="w-full h-[260px] sm:h-[300px]">
         {data.length === 0 ? (
-          <div className="w-full h-full flex items-center justify-center text-xs text-text-muted">
+          <div className="w-full h-full flex items-center justify-center text-xs text-text-muted italic">
             Belum ada data pengajuan bantuan
           </div>
         ) : (
@@ -49,15 +65,7 @@ export function BantuanStatusChart({ data = [] }: BantuanStatusChartProps) {
                   <Cell key={`cell-${index}`} fill={COLORS[entry.name] || '#6B7280'} />
                 ))}
               </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'var(--color-surface-elevated, #ffffff)',
-                  borderRadius: '12px',
-                  border: '1px solid var(--color-border-subtle, #e5e7eb)',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  fontSize: '12px',
-                }}
-              />
+              <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} />
             </PieChart>
           </ResponsiveContainer>
