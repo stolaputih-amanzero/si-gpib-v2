@@ -21,16 +21,16 @@ export interface AsetKondisiChartProps {
 }
 
 const KONDISI_COLORS: Record<string, string> = {
-  Baik: '#10B981',         // Emerald Green
-  'Rusak Ringan': '#F59E0B', // Amber
-  'Rusak Berat': '#EF4444',  // Rose Red
+  Baik: '#22C55E',           // Hijau Muda (matching PA color)
+  'Rusak Ringan': '#EAB308', // Kuning (matching PT color)
+  'Rusak Berat': '#EF4444',  // Red
 };
 
 export function AsetKondisiChart({ data, height = 280 }: AsetKondisiChartProps) {
   if (!data || data.length === 0 || data.every((d) => d.value === 0)) {
     return (
-      <div className="p-5 rounded-2xl bg-surface-1 border border-border-subtle shadow-2xs">
-        <h2 className="text-sm font-extrabold text-text-primary mb-3">Kondisi Fisik Aset Pos</h2>
+      <div className="card-flat p-5">
+        <h2 className="text-base font-display font-bold text-ink-primary mb-3">Kondisi Fisik Aset Pos</h2>
         <EmptyState
           icon={Box}
           title="Belum ada data aset"
@@ -46,11 +46,11 @@ export function AsetKondisiChart({ data, height = 280 }: AsetKondisiChartProps) 
     <div
       role="img"
       aria-label="Pie chart menunjukkan distribusi kondisi fisik aset pos"
-      className="p-5 rounded-2xl bg-surface-1 border border-border-subtle shadow-2xs space-y-3 relative select-none"
+      className="card-flat p-5 space-y-3 relative select-none"
     >
-      <div className="pb-2.5 border-b border-border-subtle">
-        <h2 className="text-base font-extrabold text-text-primary">Distribusi Kondisi Fisik Aset Pos</h2>
-        <p className="text-[11px] text-text-secondary font-medium">Persentase kondisi Baik, Rusak Ringan, Rusak Berat</p>
+      <div className="pb-2.5 border-b border-border-subtle/50">
+        <h2 className="text-base font-display font-bold text-ink-primary tracking-tightish">Distribusi Kondisi Fisik Aset Pos</h2>
+        <p className="text-xs text-ink-secondary font-medium">Persentase kondisi Baik, Rusak Ringan, Rusak Berat</p>
       </div>
 
       <div className="relative">
@@ -61,8 +61,8 @@ export function AsetKondisiChart({ data, height = 280 }: AsetKondisiChartProps) 
                 if (active && payload && payload.length) {
                   const item = payload[0].payload;
                   return (
-                    <div className="bg-surface-1 dark:bg-slate-900 border border-border-subtle dark:border-slate-800 shadow-xl p-3.5 rounded-2xl text-xs space-y-1 select-none z-50">
-                      <p className="font-extrabold text-text-primary text-sm">{item.name}</p>
+                    <div className="bg-surface-elevated p-3.5 rounded-xl border border-border-subtle shadow-medium text-xs space-y-1 select-none z-50">
+                      <p className="font-extrabold text-ink-primary text-sm">{item.name}</p>
                       <p className="text-brand-primary font-bold text-sm">{item.value} item aset</p>
                     </div>
                   );
@@ -72,7 +72,7 @@ export function AsetKondisiChart({ data, height = 280 }: AsetKondisiChartProps) 
             />
             <Legend
               wrapperStyle={{ fontSize: 11, paddingTop: 12 }}
-              formatter={(value) => <span className="text-text-primary text-xs font-bold px-1">{value}</span>}
+              formatter={(value) => <span className="text-ink-primary text-xs font-bold px-1">{value}</span>}
             />
             <Pie
               data={data}
@@ -94,8 +94,8 @@ export function AsetKondisiChart({ data, height = 280 }: AsetKondisiChartProps) 
 
         {/* Center Text Overlay */}
         <div className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-          <span className="text-2xl font-black text-text-primary block leading-none tabular-nums">{totalAset}</span>
-          <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider">Aset</span>
+          <span className="text-2xl font-black font-display tnum text-ink-primary block leading-none">{totalAset}</span>
+          <span className="text-[10px] text-ink-tertiary font-bold uppercase tracking-wider">Aset</span>
         </div>
       </div>
 

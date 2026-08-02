@@ -21,7 +21,6 @@ import {
   UserCheck,
   Box,
   HandHeart,
-  BarChart2,
   RefreshCw,
   Download,
   X,
@@ -35,7 +34,7 @@ const DemografiChart = dynamic(
   () => import('@/components/analitik/DemografiChart').then((mod) => mod.DemografiChart),
   {
     ssr: false,
-    loading: () => <Skeleton className="w-full h-[280px] rounded-2xl" />,
+    loading: () => <Skeleton className="w-full h-[300px] rounded-2xl" />,
   }
 );
 
@@ -106,35 +105,30 @@ export default function DashboardAnalitikPage() {
   const { exportPDF, exportExcel, shareWhatsApp, isExporting } = useExportAnalitik(selectedMupel, selectedJemaat);
 
   return (
-    <div className="w-full min-h-full bg-surface-base pb-32 md:pb-12 select-none">
-      {/* 1. Context Header */}
-      <div className="sticky top-0 z-40 bg-surface-1/85 backdrop-blur-md border-b border-border-subtle pt-safe">
-        <div className="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center text-brand-primary shrink-0">
-              <BarChart2 size={20} />
-            </div>
-            <div>
-              <h1 className="text-xl font-display font-bold text-text-primary leading-tight">
-                Dashboard Analitik
-              </h1>
-              <p className="text-xs text-text-secondary font-medium">Metrik Ringkasan & Visualisasi Pos Pelkes GPIB</p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => refetchKPI()}
-            disabled={isFetchingKPI}
-            className="p-2.5 rounded-xl bg-surface-1 hover:bg-surface-sunken border border-border-subtle text-text-primary transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
-            title="Refresh Data"
-          >
-            <RefreshCw size={16} className={isFetchingKPI ? 'animate-spin text-brand-primary' : ''} />
-          </button>
+    <div className="w-full min-h-full bg-surface-base pb-32 md:pb-24 select-none">
+      {/* 1. Context Header - Matching Dashboard Utama */}
+      <div className="sticky top-0 z-40 bg-surface-1/85 backdrop-blur-md hairline-b px-4 py-3.5 md:px-6 pt-safe flex items-center justify-between">
+        <div>
+          <h1 className="text-xl md:text-2xl font-display font-semibold tracking-tightish text-ink-primary">
+            Dashboard Analitik
+          </h1>
+          <p className="text-xs md:text-sm text-ink-secondary mt-0.5">
+            Metrik Ringkasan &amp; Visualisasi Pos Pelkes GPIB
+          </p>
         </div>
+
+        <button
+          type="button"
+          onClick={() => refetchKPI()}
+          disabled={isFetchingKPI}
+          className="p-2.5 rounded-xl bg-surface-1 hover:bg-surface-sunken border border-border-subtle text-ink-primary transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer shadow-xs"
+          title="Refresh Data"
+        >
+          <RefreshCw size={16} className={isFetchingKPI ? 'animate-spin text-brand-primary' : ''} />
+        </button>
       </div>
 
-      <main className="max-w-6xl mx-auto px-4 py-5 space-y-6">
+      <main className="max-w-6xl mx-auto px-4 py-5 md:px-6 space-y-6">
         {/* 2. Role-Adaptive Hierarchical Filter Section */}
         <AnalitikFilterComponent
           selectedMupel={selectedMupel}
@@ -144,68 +138,70 @@ export default function DashboardAnalitikPage() {
           onReset={handleReset}
         />
 
-        {/* 3. 5 KPI Cards Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-          {isLoadingKPI ? (
-            [...Array(5)].map((_, i) => <Skeleton key={i} className="h-[88px] rounded-2xl w-full" />)
-          ) : (
-            <>
-              <KPICard
-                title="Total Pos Pelkes"
-                value={kpiData?.totalPos || 0}
-                subtitle="Pos Pelkes & Bajem"
-                icon={<Sprout size={20} />}
-                badgeColor="bg-blue-500/15 text-blue-700 dark:text-blue-300 dark:bg-blue-950/80"
-              />
-              <KPICard
-                title="Total Jiwa"
-                value={kpiData?.totalJiwa || 0}
-                subtitle="Anggota 6 Pelkat"
-                icon={<Users size={20} />}
-                badgeColor="bg-amber-500/15 text-amber-700 dark:text-amber-300 dark:bg-amber-950/80"
-              />
-              <KPICard
-                title="Pendeta Aktif"
-                value={kpiData?.totalPendeta || 0}
-                subtitle="Organik & Non-Organik"
-                icon={<UserCheck size={20} />}
-                badgeColor="bg-purple-500/15 text-purple-700 dark:text-purple-300 dark:bg-purple-950/80"
-              />
-              <KPICard
-                title="Total Aset Pos"
-                value={kpiData?.totalAset || 0}
-                subtitle="Tanah, Bangunan, Item"
-                icon={<Box size={20} />}
-                badgeColor="bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 dark:bg-indigo-950/80"
-              />
-              <KPICard
-                title="Bantuan Pending"
-                value={kpiData?.totalBantuanPending || 0}
-                subtitle="Dalam Review Approval"
-                icon={<HandHeart size={20} />}
-                badgeColor="bg-rose-500/15 text-rose-700 dark:text-rose-300 dark:bg-rose-950/80"
-              />
-            </>
-          )}
-        </div>
+        {/* 3. 5 KPI Cards Grid - Ambient Glow */}
+        <section className="ambient-glow">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
+            {isLoadingKPI ? (
+              [...Array(5)].map((_, i) => <Skeleton key={i} className="h-[104px] rounded-xl w-full" />)
+            ) : (
+              <>
+                <KPICard
+                  title="Pos Pelkes"
+                  value={kpiData?.totalPos || 0}
+                  subtitle="Pos Pelkes & Bajem"
+                  icon={<Sprout className="h-5 w-5" />}
+                  badgeColor="bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                />
+                <KPICard
+                  title="Total Jiwa"
+                  value={kpiData?.totalJiwa || 0}
+                  subtitle="Anggota 6 Pelkat"
+                  icon={<Users className="h-5 w-5" />}
+                  badgeColor="bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                />
+                <KPICard
+                  title="Pendeta Aktif"
+                  value={kpiData?.totalPendeta || 0}
+                  subtitle="Organik & Non-Organik"
+                  icon={<UserCheck className="h-5 w-5" />}
+                  badgeColor="bg-purple-500/10 text-purple-600 dark:text-purple-400"
+                />
+                <KPICard
+                  title="Total Aset"
+                  value={kpiData?.totalAset || 0}
+                  subtitle="Tanah, Bangunan, Item"
+                  icon={<Box className="h-5 w-5" />}
+                  badgeColor="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+                />
+                <KPICard
+                  title="Bantuan Pending"
+                  value={kpiData?.totalBantuanPending || 0}
+                  subtitle="Dalam Review Approval"
+                  icon={<HandHeart className="h-5 w-5" />}
+                  badgeColor="bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                />
+              </>
+            )}
+          </div>
+        </section>
 
         {/* 4. Visualisasi Demografi BarChart */}
         {isLoadingDemo ? (
-          <Skeleton className="w-full h-[280px] rounded-2xl" />
+          <Skeleton className="w-full h-[300px] rounded-xl" />
         ) : (
           <DemografiChart data={demografiData || []} idMupel={selectedMupel} />
         )}
 
         {/* 5. Grid Charts: Status Bantuan & Kondisi Aset */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {isLoadingBantuan ? (
-            <Skeleton className="w-full h-[280px] rounded-2xl" />
+            <Skeleton className="w-full h-[280px] rounded-xl" />
           ) : (
             <BantuanStatusChart data={bantuanData || []} />
           )}
 
           {isLoadingAset ? (
-            <Skeleton className="w-full h-[280px] rounded-2xl" />
+            <Skeleton className="w-full h-[280px] rounded-xl" />
           ) : (
             <AsetKondisiChart data={asetData || []} />
           )}
@@ -227,13 +223,13 @@ export default function DashboardAnalitikPage() {
       {/* Export Options Modal */}
       {showExportModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-surface-1 w-full max-w-sm rounded-2xl p-5 border border-border-subtle shadow-2xl space-y-4">
+          <div className="card-flat w-full max-w-sm p-5 space-y-4 shadow-xl">
             <div className="flex items-center justify-between border-b border-border-subtle pb-3">
-              <h3 className="text-sm font-extrabold text-text-primary">Export Laporan Analitik</h3>
+              <h3 className="text-sm font-extrabold text-ink-primary">Export Laporan Analitik</h3>
               <button
                 type="button"
                 onClick={() => setShowExportModal(false)}
-                className="p-1 rounded-lg text-text-secondary hover:text-text-primary"
+                className="p-1 rounded-lg text-ink-secondary hover:text-ink-primary"
               >
                 <X size={18} />
               </button>
@@ -247,7 +243,7 @@ export default function DashboardAnalitikPage() {
                   exportPDF();
                 }}
                 disabled={isExporting}
-                className="w-full p-3 rounded-xl bg-surface-sunken hover:bg-surface-sunken/80 border border-border-subtle text-text-primary text-xs font-bold flex items-center gap-3 transition-colors min-h-[44px] cursor-pointer"
+                className="w-full p-3 rounded-xl bg-surface-sunken hover:bg-surface-sunken/80 border border-border-subtle text-ink-primary text-xs font-bold flex items-center gap-3 transition-colors min-h-[44px] cursor-pointer"
               >
                 <Printer size={18} className="text-brand-primary" />
                 <span>Cetak / Save sebagai PDF</span>
@@ -260,7 +256,7 @@ export default function DashboardAnalitikPage() {
                   exportExcel(kpiData);
                 }}
                 disabled={isExporting}
-                className="w-full p-3 rounded-xl bg-surface-sunken hover:bg-surface-sunken/80 border border-border-subtle text-text-primary text-xs font-bold flex items-center gap-3 transition-colors min-h-[44px] cursor-pointer"
+                className="w-full p-3 rounded-xl bg-surface-sunken hover:bg-surface-sunken/80 border border-border-subtle text-ink-primary text-xs font-bold flex items-center gap-3 transition-colors min-h-[44px] cursor-pointer"
               >
                 <FileSpreadsheet size={18} className="text-emerald-600" />
                 <span>Unduh File Excel / CSV</span>
@@ -272,7 +268,7 @@ export default function DashboardAnalitikPage() {
                   setShowExportModal(false);
                   shareWhatsApp(kpiData);
                 }}
-                className="w-full p-3 rounded-xl bg-surface-sunken hover:bg-surface-sunken/80 border border-border-subtle text-text-primary text-xs font-bold flex items-center gap-3 transition-colors min-h-[44px] cursor-pointer"
+                className="w-full p-3 rounded-xl bg-surface-sunken hover:bg-surface-sunken/80 border border-border-subtle text-ink-primary text-xs font-bold flex items-center gap-3 transition-colors min-h-[44px] cursor-pointer"
               >
                 <Share2 size={18} className="text-emerald-500" />
                 <span>Kirim Ringkasan ke WhatsApp</span>

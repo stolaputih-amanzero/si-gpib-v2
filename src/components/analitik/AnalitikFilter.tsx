@@ -32,14 +32,13 @@ export function AnalitikFilterComponent({
     return <div className="h-20 bg-surface-sunken rounded-2xl animate-pulse" />;
   }
 
-  // KMJ Role: Scoped info banner without dropdowns
   if (isKmj) {
     return (
-      <div className="bg-surface-1 p-4 rounded-2xl border border-border-subtle shadow-2xs flex items-center gap-3 text-xs text-text-high">
+      <div className="card-flat p-4 flex items-center gap-3 text-xs text-ink-primary">
         <ShieldCheck size={18} className="text-brand-primary shrink-0" />
         <div>
-          <p className="font-extrabold">Lingkup Pelayanan KMJ</p>
-          <p className="text-text-tertiary">Menampilkan metrik analitik khusus Jemaat Induk & Pos Pelkes yang Anda pimpin.</p>
+          <p className="font-extrabold text-ink-primary">Lingkup Pelayanan KMJ</p>
+          <p className="text-ink-secondary">Menampilkan metrik analitik khusus Jemaat Induk & Pos Pelkes yang Anda pimpin.</p>
         </div>
       </div>
     );
@@ -48,13 +47,13 @@ export function AnalitikFilterComponent({
   const effectiveMupel = isAdminMupel && userAuth?.id_mupel ? userAuth.id_mupel : selectedMupel;
 
   return (
-    <div className="bg-surface-1 p-4 rounded-2xl border border-border-subtle shadow-2xs space-y-3">
+    <div className="card-flat p-4 sm:p-5 space-y-3.5 select-none">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-text-high">
+        <div className="flex items-center gap-2 text-ink-primary">
           <Filter size={16} className="text-brand-primary" />
-          <h3 className="text-xs font-extrabold uppercase tracking-wider">Filter Analitik Wilayah</h3>
+          <h3 className="text-xs font-extrabold uppercase tracking-wide text-ink-tertiary">Filter Analitik Wilayah</h3>
           {isAdminMupel && (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-primary/10 text-brand-primary flex items-center gap-1">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center gap-1">
               <Building size={10} />
               <span>Admin Mupel</span>
             </span>

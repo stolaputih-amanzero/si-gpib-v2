@@ -15,7 +15,7 @@ export function KPICard({
   value,
   subtitle,
   icon,
-  badgeColor = 'bg-brand-primary/10 text-brand-primary',
+  badgeColor = 'bg-brand-500/10 text-brand-primary',
   className,
 }: KPICardProps) {
   const formatNumber = (val: string | number) => {
@@ -28,23 +28,25 @@ export function KPICard({
   return (
     <div
       className={cn(
-        'bg-surface-1 p-4 rounded-2xl border border-border-subtle shadow-2xs flex items-center justify-between min-h-[56px] transition-all hover:border-brand-primary/40 select-none',
+        'card-flat tap p-4 flex flex-col justify-between select-none min-h-[104px]',
         className
       )}
     >
-      <div className="space-y-0.5 min-w-0 flex-1">
-        <p className="text-xs text-text-secondary font-bold truncate">{title}</p>
-        <p className="text-2xl font-display font-extrabold text-text-primary tabular-nums leading-tight">
-          {formatNumber(value)}
-        </p>
-        {subtitle && <p className="text-[11px] text-text-secondary font-medium truncate">{subtitle}</p>}
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs font-bold uppercase tracking-wide text-ink-tertiary truncate">{title}</p>
+        {icon && (
+          <span className={cn('grid h-10 w-10 shrink-0 place-items-center rounded-xl ml-2', badgeColor)}>
+            {icon}
+          </span>
+        )}
       </div>
 
-      {icon && (
-        <div className={cn('w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ml-3 shadow-2xs', badgeColor)}>
-          {icon}
-        </div>
-      )}
+      <div>
+        <p className="font-display tnum text-2xl sm:text-3xl font-black tracking-tighter2 text-ink-primary leading-tight">
+          {formatNumber(value)}
+        </p>
+        {subtitle && <p className="text-[11px] text-ink-secondary font-medium truncate mt-0.5">{subtitle}</p>}
+      </div>
     </div>
   );
 }
