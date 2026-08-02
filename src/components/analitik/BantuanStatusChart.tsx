@@ -1,19 +1,9 @@
 'use client';
 
-import dynamic from 'next/dynamic';
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { ChartPieData } from '@/hooks/use-analitik';
 import { EmptyState } from '@/components/list/EmptyState';
 import { FileText } from 'lucide-react';
-
-const ResponsiveContainer = dynamic(
-  () => import('recharts').then((mod) => mod.ResponsiveContainer),
-  { ssr: false, loading: () => <div className="w-full h-64 bg-surface-sunken rounded-2xl animate-pulse" /> }
-);
-const PieChart = dynamic(() => import('recharts').then((mod) => mod.PieChart), { ssr: false });
-const Pie = dynamic(() => import('recharts').then((mod) => mod.Pie), { ssr: false });
-const Cell = dynamic(() => import('recharts').then((mod) => mod.Cell), { ssr: false });
-const Tooltip = dynamic(() => import('recharts').then((mod) => mod.Tooltip), { ssr: false });
-const Legend = dynamic(() => import('recharts').then((mod) => mod.Legend), { ssr: false });
 
 export interface BantuanStatusChartProps {
   data: ChartPieData[];
@@ -22,7 +12,7 @@ export interface BantuanStatusChartProps {
 
 const STATUS_COLOR_MAP: Record<string, string> = {
   'Draft': '#64748B',            // Slate
-  'Review KMJ': '#F59E0B',        // Amber
+  'Review KMJ': '#EAB308',        // Kuning (matching PT color)
   'Review Mupel': '#1D4ED8',      // Biru Benhur (matching GP color)
   'Review Sinode': '#9333EA',     // Ungu (matching PKP color)
   'Disetujui': '#22C55E',         // Hijau (matching PA color)

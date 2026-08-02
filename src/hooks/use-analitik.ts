@@ -131,11 +131,18 @@ export function useAnalitikDemografi(filter?: AnalitikFilter) {
       });
 
       filteredData.forEach((curr: any) => {
-        const kat = curr.kategori_pelkat;
-        if (aggregatedMap[kat]) {
-          aggregatedMap[kat].laki += curr.laki || 0;
-          aggregatedMap[kat].perempuan += curr.perempuan || 0;
-          aggregatedMap[kat].total += (curr.laki || 0) + (curr.perempuan || 0);
+        let cat = (curr.kategori_pelkat || '').trim().toUpperCase();
+        if (cat.includes('ANAK') || cat === 'PA') cat = 'PA';
+        else if (cat.includes('TERUNA') || cat === 'PT') cat = 'PT';
+        else if (cat.includes('PEMUDA') || cat === 'GP') cat = 'GP';
+        else if (cat.includes('PEREMPUAN') || cat === 'PKP') cat = 'PKP';
+        else if (cat.includes('BAPAK') || cat.includes('BAPA') || cat === 'PKB') cat = 'PKB';
+        else if (cat.includes('LANJUT') || cat.includes('LANSIA') || cat === 'PKLU') cat = 'PKLU';
+
+        if (aggregatedMap[cat]) {
+          aggregatedMap[cat].laki += curr.laki || 0;
+          aggregatedMap[cat].perempuan += curr.perempuan || 0;
+          aggregatedMap[cat].total += (curr.laki || 0) + (curr.perempuan || 0);
         }
       });
 
