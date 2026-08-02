@@ -29,21 +29,21 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const item = payload[0].payload;
     return (
-      <div className="bg-surface-elevated p-3 rounded-xl border border-border-subtle shadow-medium text-xs space-y-1.5 min-w-[170px]">
-        <p className="font-extrabold text-text-high text-sm flex items-center gap-1.5">
-          <span>{item.icon || '👥'}</span>
+      <div className="bg-surface-1 dark:bg-slate-900 border border-border-subtle dark:border-slate-800 shadow-xl p-3.5 rounded-2xl text-xs space-y-2 min-w-[180px] select-none">
+        <p className="font-extrabold text-text-primary text-sm flex items-center gap-1.5">
+          <span className="text-base">{item.icon || '👥'}</span>
           <span>{item.fullName || label}</span>
-          <span className="text-text-muted font-semibold text-xs">({item.name || label})</span>
+          <span className="text-text-secondary font-semibold text-xs">({item.name || label})</span>
         </p>
-        <div className="pt-1 border-t border-border-subtle space-y-1">
+        <div className="pt-1.5 border-t border-border-subtle dark:border-slate-800 space-y-1">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-text-muted font-medium">Total Jiwa:</span>
+            <span className="text-text-secondary font-medium">Total Jiwa:</span>
             <span className="tabular-nums font-black text-brand-primary text-sm">{item.total} Jiwa</span>
           </div>
           {(item.laki > 0 || item.perempuan > 0) && (
-            <div className="text-[11px] text-text-tertiary flex justify-between gap-2 pt-0.5">
-              <span className="text-blue-500 font-medium">Laki-Laki: {item.laki}</span>
-              <span className="text-pink-500 font-medium">Perempuan: {item.perempuan}</span>
+            <div className="text-[11px] flex justify-between gap-2 pt-0.5 font-semibold">
+              <span className="text-blue-600 dark:text-blue-400">Laki-Laki: {item.laki}</span>
+              <span className="text-pink-600 dark:text-pink-400">Perempuan: {item.perempuan}</span>
             </div>
           )}
         </div>
@@ -75,7 +75,7 @@ export function DemografiChart({ data, height = 300, idMupel }: DemografiChartPr
   if (isEmpty) {
     return (
       <div className="p-5 rounded-2xl bg-surface-1 border border-border-subtle shadow-2xs">
-        <div className="flex items-center gap-2 text-text-high mb-3">
+        <div className="flex items-center gap-2 text-text-primary mb-3">
           <Users className="w-5 h-5 text-brand-primary" />
           <h2 className="text-sm font-extrabold">Komposisi Warga Jemaat (Pelkat)</h2>
         </div>
@@ -98,12 +98,12 @@ export function DemografiChart({ data, height = 300, idMupel }: DemografiChartPr
       aria-label="Bar chart vertikal menunjukkan komposisi warga jemaat 6 kategori Pelkat"
       className="p-5 rounded-2xl bg-surface-1 border border-border-subtle shadow-2xs space-y-3 select-none"
     >
-      <div className="flex items-center justify-between pb-2 border-b border-border-subtle/50">
+      <div className="flex items-center justify-between pb-2.5 border-b border-border-subtle">
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5 text-brand-primary" />
-          <h2 className="text-base font-extrabold text-text-high">Komposisi Warga Jemaat (Pelkat)</h2>
+          <h2 className="text-base font-extrabold text-text-primary">Komposisi Warga Jemaat (Pelkat)</h2>
         </div>
-        <p className="text-[11px] text-text-tertiary hidden sm:block font-medium">
+        <p className="text-[11px] text-text-secondary hidden sm:block font-semibold">
           Tap bar untuk filter detail
         </p>
       </div>
@@ -111,18 +111,20 @@ export function DemografiChart({ data, height = 300, idMupel }: DemografiChartPr
       <div className="w-full">
         <ResponsiveContainer width="100%" height={height}>
           <BarChart data={formattedData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(128, 128, 128, 0.15)" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-border-subtle opacity-50" />
             <XAxis
               dataKey="name"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: 'var(--text-muted, #94a3b8)', fontSize: 12, fontWeight: 700 }}
+              tick={{ fill: 'currentColor', fontSize: 12, fontWeight: 700 }}
+              className="text-text-secondary"
               dy={10}
             />
             <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fill: 'var(--text-muted, #94a3b8)', fontSize: 12 }}
+              tick={{ fill: 'currentColor', fontSize: 12, fontWeight: 600 }}
+              className="text-text-secondary"
             />
             <Tooltip
               cursor={{ fill: 'rgba(128, 128, 128, 0.12)' }}

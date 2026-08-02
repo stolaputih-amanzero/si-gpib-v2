@@ -115,10 +115,10 @@ export default function DashboardAnalitikPage() {
               <BarChart2 size={20} />
             </div>
             <div>
-              <h1 className="text-xl font-display font-bold text-text-high leading-tight">
+              <h1 className="text-xl font-display font-bold text-text-primary leading-tight">
                 Dashboard Analitik
               </h1>
-              <p className="text-xs text-text-tertiary">Metrik Ringkasan & Visualisasi Pos Pelkes GPIB</p>
+              <p className="text-xs text-text-secondary font-medium">Metrik Ringkasan & Visualisasi Pos Pelkes GPIB</p>
             </div>
           </div>
 
@@ -126,7 +126,7 @@ export default function DashboardAnalitikPage() {
             type="button"
             onClick={() => refetchKPI()}
             disabled={isFetchingKPI}
-            className="p-2.5 rounded-xl bg-surface-1 hover:bg-surface-sunken border border-border-subtle text-text-high transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
+            className="p-2.5 rounded-xl bg-surface-1 hover:bg-surface-sunken border border-border-subtle text-text-primary transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
             title="Refresh Data"
           >
             <RefreshCw size={16} className={isFetchingKPI ? 'animate-spin text-brand-primary' : ''} />
@@ -155,35 +155,35 @@ export default function DashboardAnalitikPage() {
                 value={kpiData?.totalPos || 0}
                 subtitle="Pos Pelkes & Bajem"
                 icon={<Sprout size={20} />}
-                badgeColor="bg-blue-500/10 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400"
+                badgeColor="bg-blue-500/15 text-blue-700 dark:text-blue-300 dark:bg-blue-950/80"
               />
               <KPICard
                 title="Total Jiwa"
                 value={kpiData?.totalJiwa || 0}
                 subtitle="Anggota 6 Pelkat"
                 icon={<Users size={20} />}
-                badgeColor="bg-amber-500/10 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400"
+                badgeColor="bg-amber-500/15 text-amber-700 dark:text-amber-300 dark:bg-amber-950/80"
               />
               <KPICard
                 title="Pendeta Aktif"
                 value={kpiData?.totalPendeta || 0}
                 subtitle="Organik & Non-Organik"
                 icon={<UserCheck size={20} />}
-                badgeColor="bg-purple-500/10 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400"
+                badgeColor="bg-purple-500/15 text-purple-700 dark:text-purple-300 dark:bg-purple-950/80"
               />
               <KPICard
                 title="Total Aset Pos"
                 value={kpiData?.totalAset || 0}
                 subtitle="Tanah, Bangunan, Item"
                 icon={<Box size={20} />}
-                badgeColor="bg-indigo-500/10 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400"
+                badgeColor="bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 dark:bg-indigo-950/80"
               />
               <KPICard
                 title="Bantuan Pending"
                 value={kpiData?.totalBantuanPending || 0}
                 subtitle="Dalam Review Approval"
                 icon={<HandHeart size={20} />}
-                badgeColor="bg-rose-500/10 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400"
+                badgeColor="bg-rose-500/15 text-rose-700 dark:text-rose-300 dark:bg-rose-950/80"
               />
             </>
           )}
@@ -229,11 +229,11 @@ export default function DashboardAnalitikPage() {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-surface-1 w-full max-w-sm rounded-2xl p-5 border border-border-subtle shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-border-subtle pb-3">
-              <h3 className="text-sm font-extrabold text-text-high">Export Laporan Analitik</h3>
+              <h3 className="text-sm font-extrabold text-text-primary">Export Laporan Analitik</h3>
               <button
                 type="button"
                 onClick={() => setShowExportModal(false)}
-                className="p-1 rounded-lg text-text-tertiary hover:text-text-high"
+                className="p-1 rounded-lg text-text-secondary hover:text-text-primary"
               >
                 <X size={18} />
               </button>
@@ -247,7 +247,7 @@ export default function DashboardAnalitikPage() {
                   exportPDF();
                 }}
                 disabled={isExporting}
-                className="w-full p-3 rounded-xl bg-surface-sunken hover:bg-surface-sunken/80 border border-border-subtle text-text-high text-xs font-bold flex items-center gap-3 transition-colors min-h-[44px] cursor-pointer"
+                className="w-full p-3 rounded-xl bg-surface-sunken hover:bg-surface-sunken/80 border border-border-subtle text-text-primary text-xs font-bold flex items-center gap-3 transition-colors min-h-[44px] cursor-pointer"
               >
                 <Printer size={18} className="text-brand-primary" />
                 <span>Cetak / Save sebagai PDF</span>
@@ -260,7 +260,7 @@ export default function DashboardAnalitikPage() {
                   exportExcel(kpiData);
                 }}
                 disabled={isExporting}
-                className="w-full p-3 rounded-xl bg-surface-sunken hover:bg-surface-sunken/80 border border-border-subtle text-text-high text-xs font-bold flex items-center gap-3 transition-colors min-h-[44px] cursor-pointer"
+                className="w-full p-3 rounded-xl bg-surface-sunken hover:bg-surface-sunken/80 border border-border-subtle text-text-primary text-xs font-bold flex items-center gap-3 transition-colors min-h-[44px] cursor-pointer"
               >
                 <FileSpreadsheet size={18} className="text-emerald-600" />
                 <span>Unduh File Excel / CSV</span>
@@ -272,7 +272,7 @@ export default function DashboardAnalitikPage() {
                   setShowExportModal(false);
                   shareWhatsApp(kpiData);
                 }}
-                className="w-full p-3 rounded-xl bg-surface-sunken hover:bg-surface-sunken/80 border border-border-subtle text-text-high text-xs font-bold flex items-center gap-3 transition-colors min-h-[44px] cursor-pointer"
+                className="w-full p-3 rounded-xl bg-surface-sunken hover:bg-surface-sunken/80 border border-border-subtle text-text-primary text-xs font-bold flex items-center gap-3 transition-colors min-h-[44px] cursor-pointer"
               >
                 <Share2 size={18} className="text-emerald-500" />
                 <span>Kirim Ringkasan ke WhatsApp</span>

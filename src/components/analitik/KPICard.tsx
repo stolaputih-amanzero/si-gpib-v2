@@ -33,11 +33,11 @@ export function KPICard({
       )}
     >
       <div className="space-y-0.5 min-w-0 flex-1">
-        <p className="text-xs text-text-tertiary font-bold truncate">{title}</p>
-        <p className="text-2xl font-display font-extrabold text-text-high tabular-nums leading-tight">
+        <p className="text-xs text-text-secondary font-bold truncate">{title}</p>
+        <p className="text-2xl font-display font-extrabold text-text-primary tabular-nums leading-tight">
           {formatNumber(value)}
         </p>
-        {subtitle && <p className="text-[11px] text-text-tertiary truncate">{subtitle}</p>}
+        {subtitle && <p className="text-[11px] text-text-secondary font-medium truncate">{subtitle}</p>}
       </div>
 
       {icon && (
