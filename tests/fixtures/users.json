@@ -1,0 +1,32 @@
+[
+  {
+    "role": "super_user",
+    "email": "stolaputih@gmail.com",
+    "phone": "+62 811 123 4567",
+    "nama": "Super Admin Sinode",
+    "password": "password123"
+  },
+  {
+    "role": "admin_mupel",
+    "email": "admin-mupel-23@gpib.org",
+    "phone": "+62 812 987 6543",
+    "nama": "Admin Mupel KALTIM II",
+    "id_mupel": "MUPEL-KALTIM-2",
+    "password": "password123"
+  },
+  {
+    "role": "kmj",
+    "id_pendeta": "PDT-19060024",
+    "phone": "+62 878 5513 7387",
+    "nama": "Pdt. Anita (KMJ)",
+    "password": "password123"
+  },
+  {
+    "role": "user",
+    "id_pendeta": "PDT-41915346",
+    "phone": "+62 815 4682 6865",
+    "nama": "Pdt. Otniel",
+    "id_pos": "POS-81917",
+    "password": "password123"
+  }
+]

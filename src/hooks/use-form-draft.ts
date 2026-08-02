@@ -1,18 +1,14 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  saveFormDraft, 
-  getFormDraft, 
-  clearFormDraft, 
+import {
+  saveFormDraft,
+  getFormDraft,
+  clearFormDraft,
   getDraftRelativeTime,
-  cleanExpiredDrafts 
+  cleanExpiredDrafts,
 } from '@/lib/utils/draft-storage';
 
-/**
- * Enhanced hook to auto-save and restore form drafts in localStorage.
- * Discards drafts older than 7 days and formats relative time using date-fns.
- */
 export function useFormDraft<T extends Record<string, any>>(
   storageKey: string,
   initialValues: T
@@ -20,6 +16,7 @@ export function useFormDraft<T extends Record<string, any>>(
   const [draft, setDraft] = useState<T>(initialValues);
   const [hasRestoredDraft, setHasRestoredDraft] = useState<boolean>(false);
   const [lastSavedTimestamp, setLastSavedTimestamp] = useState<string | null>(null);
+  const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
   // Restore draft on mount & clean expired drafts
   useEffect(() => {
@@ -31,6 +28,7 @@ export function useFormDraft<T extends Record<string, any>>(
       setDraft(existingDraft.data as T);
       setLastSavedTimestamp(existingDraft.timestamp);
       setHasRestoredDraft(true);
+      setStatus('saved');
     }
   }, [storageKey]);
 
@@ -38,8 +36,11 @@ export function useFormDraft<T extends Record<string, any>>(
   const saveDraft = useCallback(
     (data: Partial<T>) => {
       if (!storageKey) return;
+      setStatus('saving');
       saveFormDraft(storageKey, data);
-      setLastSavedTimestamp(new Date().toISOString());
+      const now = new Date().toISOString();
+      setLastSavedTimestamp(now);
+      setStatus('saved');
     },
     [storageKey]
   );
@@ -50,6 +51,7 @@ export function useFormDraft<T extends Record<string, any>>(
     clearFormDraft(storageKey);
     setLastSavedTimestamp(null);
     setHasRestoredDraft(false);
+    setStatus('idle');
   }, [storageKey]);
 
   const relativeSavedTime = lastSavedTimestamp
@@ -63,5 +65,6 @@ export function useFormDraft<T extends Record<string, any>>(
     hasRestoredDraft,
     lastSavedTimestamp,
     relativeSavedTime,
+    status,
   };
 }

@@ -389,6 +389,6 @@ For questions or issues:
 
 ---
 
-**📅 Last Updated:** 20 July 2026  
+**📅 Last Updated:** 3 August 2026  
 **✍️ Maintained by:** SI GPIB v2.0 Development Team  
-**🔗 Version:** 2.2 (Mobile First PWA + Biometric)
+**🔗 Version:** 2.2.2 (Mobile First PWA + Biometric + Updated ERD & Status Elevation)

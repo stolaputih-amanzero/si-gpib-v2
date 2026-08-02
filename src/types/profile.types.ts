@@ -25,9 +25,29 @@ export interface ProfileAkun {
   last_login_at?: string | null;
   created_at?: string | null;
   no_hp?: string | null;
+  no_telepon?: string | null;
   avatar_url?: string | null;
   foto_url?: string | null;
   biometric_enabled?: boolean;
+  pendeta?: {
+    id_pendeta?: string;
+    jabatan?: string | null;
+    tgl_lahir?: string | null;
+    no_wa?: string | null;
+    foto_url?: string | null;
+  } | null;
+  jemaat?: {
+    id_induk?: string;
+    nama_induk?: string;
+  } | null;
+  mupel?: {
+    id_mupel?: string;
+    nama_mupel?: string;
+  } | null;
+  mutasi?: any[];
+  keluarga?: any[];
+  kompetensi?: any[];
+  keterlibatan?: any[];
 }
 
 export interface ProfilePelayanan {

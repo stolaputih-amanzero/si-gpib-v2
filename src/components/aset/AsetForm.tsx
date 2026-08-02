@@ -100,14 +100,12 @@ export function AsetForm({
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Unique Draft Storage Key as requested in note #2
   const draftKey = `draft:aset:${currentPosId || 'unknown'}:${kategori.toLowerCase()}:${initialData?.id_tanah || initialData?.id_bangunan || initialData?.id_aset_b || 'new'}`;
   const { draft, saveDraft, clearDraft, hasRestoredDraft, relativeSavedTime } = useFormDraft(
     draftKey,
     initialData || {}
   );
 
-  // Mutations
   const createTanahMutation = useCreateAsetTanah();
   const updateTanahMutation = useUpdateAsetTanah();
   const createBangunanMutation = useCreateAsetBangunan();
@@ -115,9 +113,8 @@ export function AsetForm({
   const createBergerakMutation = useCreateAsetBergerak();
   const updateBergerakMutation = useUpdateAsetBergerak();
 
-  // --- FORM TANAH ---
   const formTanah = useForm<AsetTanahInput>({
-    resolver: zodResolver(asetTanahSchema),
+    resolver: zodResolver(asetTanahSchema) as any,
     defaultValues: {
       id_pos: currentPosId,
       luas_m2: draft?.luas_m2 || initialData?.luas_m2 || 100,
@@ -126,14 +123,13 @@ export function AsetForm({
       kondisi: draft?.kondisi || initialData?.kondisi || KONDISI_ASET_OPTIONS[1].value,
       potensi_sda: draft?.potensi_sda || initialData?.potensi_sda || '',
       keterangan: draft?.keterangan || initialData?.keterangan || '',
-      latitude: draft?.latitude || initialData?.latitude || null,
-      longitude: draft?.longitude || initialData?.longitude || null,
+      latitude: draft?.latitude || initialData?.latitude || 0,
+      longitude: draft?.longitude || initialData?.longitude || 0,
     },
   });
 
-  // --- FORM BANGUNAN ---
   const formBangunan = useForm<AsetBangunanInput>({
-    resolver: zodResolver(asetBangunanSchema),
+    resolver: zodResolver(asetBangunanSchema) as any,
     defaultValues: {
       id_pos: currentPosId,
       nama_bangunan: draft?.nama_bangunan || initialData?.nama_bangunan || '',
@@ -141,29 +137,27 @@ export function AsetForm({
       kondisi: draft?.kondisi || initialData?.kondisi || KONDISI_ASET_OPTIONS[1].value,
       thn_berdiri: draft?.thn_berdiri || initialData?.thn_berdiri || new Date().getFullYear(),
       keterangan: draft?.keterangan || initialData?.keterangan || '',
-      latitude: draft?.latitude || initialData?.latitude || null,
-      longitude: draft?.longitude || initialData?.longitude || null,
+      latitude: draft?.latitude || initialData?.latitude || 0,
+      longitude: draft?.longitude || initialData?.longitude || 0,
     },
   });
 
-  // --- FORM BERGERAK ---
   const formBergerak = useForm<AsetBergerakInput>({
-    resolver: zodResolver(asetBergerakSchema),
+    resolver: zodResolver(asetBergerakSchema) as any,
     defaultValues: {
       id_pos: currentPosId,
       jenis: draft?.jenis || initialData?.jenis || 'Sepeda Motor Dinas',
       merk_tipe: draft?.merk_tipe || initialData?.merk_tipe || '',
-      kondisi: draft?.kondisi || initialData?.kondisi || KONDISI_ASET_OPTIONS[1].value,
+      kondisi: draft?.kondisi || initialData?.kondisi || 'Baik',
       thn_perolehan: draft?.thn_perolehan || initialData?.thn_perolehan || new Date().getFullYear(),
       no_polisi: draft?.no_polisi || initialData?.no_polisi || '',
       tgl_pajak: draft?.tgl_pajak || initialData?.tgl_pajak || '',
       keterangan: draft?.keterangan || initialData?.keterangan || '',
-      latitude: draft?.latitude || initialData?.latitude || null,
-      longitude: draft?.longitude || initialData?.longitude || null,
+      latitude: draft?.latitude || initialData?.latitude || 0,
+      longitude: draft?.longitude || initialData?.longitude || 0,
     },
   });
 
-  // Keep id_pos in sync when currentPosId changes
   useEffect(() => {
     if (currentPosId) {
       formTanah.setValue('id_pos', currentPosId);
@@ -172,7 +166,6 @@ export function AsetForm({
     }
   }, [currentPosId, formTanah, formBangunan, formBergerak]);
 
-  // Sync initialData when passed for editing
   useEffect(() => {
     if (initialData) {
       if (initialData.id_pos) setCurrentPosId(initialData.id_pos);
@@ -182,7 +175,6 @@ export function AsetForm({
     }
   }, [initialData, formTanah, formBangunan, formBergerak]);
 
-  // Auto-save form draft on change
   useEffect(() => {
     let subscription: any;
     if (kategori === 'TANAH') {
@@ -203,7 +195,6 @@ export function AsetForm({
     createBergerakMutation.isPending ||
     updateBergerakMutation.isPending;
 
-  // Submit Handler Tanah
   const onSubmitTanah = async (data: AsetTanahInput) => {
     setSuccessMsg(null);
     setErrorMsg(null);
@@ -231,7 +222,6 @@ export function AsetForm({
     }
   };
 
-  // Submit Handler Bangunan
   const onSubmitBangunan = async (data: AsetBangunanInput) => {
     setSuccessMsg(null);
     setErrorMsg(null);
@@ -259,7 +249,6 @@ export function AsetForm({
     }
   };
 
-  // Submit Handler Bergerak
   const onSubmitBergerak = async (data: AsetBergerakInput) => {
     setSuccessMsg(null);
     setErrorMsg(null);
@@ -289,7 +278,6 @@ export function AsetForm({
 
   return (
     <div className="space-y-6">
-      {/* Target Scope & Cascading Hierarchy Selector */}
       {showHierarchySelector && (
         <div className="bg-surface-elevated p-4 sm:p-5 rounded-2xl border border-border-subtle shadow-soft space-y-4">
           <div className="space-y-1.5">
@@ -334,7 +322,6 @@ export function AsetForm({
         </div>
       )}
 
-      {/* Category Selector Tabs */}
       <div className="flex items-center gap-2 p-1 bg-surface-sunken rounded-xl border border-border-subtle">
         {KATEGORI_ASET.map((k) => {
           const isActive = kategori === k.kode;
@@ -357,7 +344,6 @@ export function AsetForm({
         })}
       </div>
 
-      {/* Offline Draft Indicator */}
       {relativeSavedTime && (
         <div className="flex items-center justify-between p-3 rounded-xl bg-blue-50/60 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 text-xs text-blue-800 dark:text-blue-300">
           <div className="flex items-center gap-1.5">
@@ -376,7 +362,6 @@ export function AsetForm({
         </div>
       )}
 
-      {/* Success Notification */}
       {successMsg && (
         <div className="flex items-center gap-2 p-3.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-medium">
           <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
@@ -384,7 +369,6 @@ export function AsetForm({
         </div>
       )}
 
-      {/* Error Notification */}
       {errorMsg && (
         <div className="flex items-center gap-2 p-3.5 rounded-xl bg-red-50 text-red-800 border border-red-200 text-xs font-medium">
           <AlertCircle size={18} className="text-red-600 shrink-0" />
@@ -392,9 +376,8 @@ export function AsetForm({
         </div>
       )}
 
-      {/* --- FORM ASET TANAH --- */}
       {kategori === 'TANAH' && (
-        <form onSubmit={formTanah.handleSubmit(onSubmitTanah)} className="space-y-4">
+        <form onSubmit={formTanah.handleSubmit(onSubmitTanah as any)} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-text-high">Luas Tanah (m²) *</label>
@@ -462,17 +445,16 @@ export function AsetForm({
             />
           </div>
 
-          {/* Camera Capture + GPS Auto-Fill + Manual Override Inputs */}
           <CameraCapture
             files={files}
             onFilesChange={setFiles}
             existingAttachments={existingLampiran}
             onDeleteExistingAttachment={handleDeleteExistingAttachment}
             onUpdateExistingAttachmentCaption={handleUpdateExistingAttachmentCaption}
-            lat={formTanah.watch('latitude')}
-            lng={formTanah.watch('longitude')}
-            onLatChange={(val) => formTanah.setValue('latitude', val)}
-            onLngChange={(val) => formTanah.setValue('longitude', val)}
+            lat={Number(formTanah.watch('latitude')) || 0}
+            lng={Number(formTanah.watch('longitude')) || 0}
+            onLatChange={(val) => formTanah.setValue('latitude', val ?? 0)}
+            onLngChange={(val) => formTanah.setValue('longitude', val ?? 0)}
             hierarchyMeta={hierarchyMeta}
             label="Foto Lahan Tanah & Sertifikat"
           />
@@ -507,9 +489,8 @@ export function AsetForm({
         </form>
       )}
 
-      {/* --- FORM ASET BANGUNAN --- */}
       {kategori === 'BANGUNAN' && (
-        <form onSubmit={formBangunan.handleSubmit(onSubmitBangunan)} className="space-y-4">
+        <form onSubmit={formBangunan.handleSubmit(onSubmitBangunan as any)} className="space-y-4">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-text-high">Nama Bangunan / Gedung *</label>
             <input
@@ -561,17 +542,16 @@ export function AsetForm({
             </select>
           </div>
 
-          {/* Camera Capture + GPS Auto-Fill + Manual Override Inputs */}
           <CameraCapture
             files={files}
             onFilesChange={setFiles}
             existingAttachments={existingLampiran}
             onDeleteExistingAttachment={handleDeleteExistingAttachment}
             onUpdateExistingAttachmentCaption={handleUpdateExistingAttachmentCaption}
-            lat={formBangunan.watch('latitude')}
-            lng={formBangunan.watch('longitude')}
-            onLatChange={(val) => formBangunan.setValue('latitude', val)}
-            onLngChange={(val) => formBangunan.setValue('longitude', val)}
+            lat={Number(formBangunan.watch('latitude')) || 0}
+            lng={Number(formBangunan.watch('longitude')) || 0}
+            onLatChange={(val) => formBangunan.setValue('latitude', val ?? 0)}
+            onLngChange={(val) => formBangunan.setValue('longitude', val ?? 0)}
             hierarchyMeta={hierarchyMeta}
             label="Foto Bangunan & IMB"
           />
@@ -606,9 +586,8 @@ export function AsetForm({
         </form>
       )}
 
-      {/* --- FORM ASET BERGERAK --- */}
       {kategori === 'BERGERAK' && (
-        <form onSubmit={formBergerak.handleSubmit(onSubmitBergerak)} className="space-y-4">
+        <form onSubmit={formBergerak.handleSubmit(onSubmitBergerak as any)} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-text-high">Jenis Aset *</label>
@@ -681,17 +660,16 @@ export function AsetForm({
             </div>
           </div>
 
-          {/* Camera Capture + Photo/STNK Upload */}
           <CameraCapture
             files={files}
             onFilesChange={setFiles}
             existingAttachments={existingLampiran}
             onDeleteExistingAttachment={handleDeleteExistingAttachment}
             onUpdateExistingAttachmentCaption={handleUpdateExistingAttachmentCaption}
-            lat={formBergerak.watch('latitude')}
-            lng={formBergerak.watch('longitude')}
-            onLatChange={(val) => formBergerak.setValue('latitude', val)}
-            onLngChange={(val) => formBergerak.setValue('longitude', val)}
+            lat={Number(formBergerak.watch('latitude')) || 0}
+            lng={Number(formBergerak.watch('longitude')) || 0}
+            onLatChange={(val) => formBergerak.setValue('latitude', val ?? 0)}
+            onLngChange={(val) => formBergerak.setValue('longitude', val ?? 0)}
             hierarchyMeta={hierarchyMeta}
             label="Foto Unit Kendaraan & STNK/BPKB"
           />

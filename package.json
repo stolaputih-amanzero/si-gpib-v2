@@ -11,6 +11,8 @@
     "lint": "next lint",
     "pre-deploy-check": "tsx scripts/pre-deploy-check.ts",
     "test:e2e": "playwright test",
+    "test:e2e:mobile": "playwright test --project=\"Mobile Chrome (Android mid-range)\"",
+    "test:e2e:offline": "playwright test tests/e2e/offline/",
     "lighthouse:ci": "lhci autorun"
   },
   "dependencies": {

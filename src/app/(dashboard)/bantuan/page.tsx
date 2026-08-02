@@ -19,7 +19,7 @@ export default function PengajuanBantuanOverviewPage() {
 
   const { data: pengajuanList, isLoading } = usePengajuanList({
     status: selectedStatus || undefined,
-    urgensi: selectedUrgensi || undefined,
+    urgensi: (selectedUrgensi || undefined) as any,
     search: searchQuery || undefined,
   });
 

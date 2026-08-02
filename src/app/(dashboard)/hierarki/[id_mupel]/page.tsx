@@ -1,31 +1,20 @@
-import { Suspense } from 'react';
-import { MupelDetailClient } from './mupel-detail-client';
-import { Skeleton } from '@/components/ui/skeleton';
+import { MupelDetailClient } from '@/app/(dashboard)/mupel/[id_mupel]/mupel-detail-client';
 
-interface PageProps {
+export default async function HierarkiMupelDetailPage({
+  params,
+  searchParams,
+}: {
   params: Promise<{ id_mupel: string }>;
-}
-
-export default async function MupelDetailPage({ params }: PageProps) {
-  const resolvedParams = await params;
-  const id_mupel = decodeURIComponent(resolvedParams.id_mupel);
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const { id_mupel } = await params;
+  const resolvedSearchParams = await searchParams;
+  const activeTab = resolvedSearchParams?.tab || 'profil';
 
   return (
-    <Suspense fallback={<MupelSkeleton />}>
-      <MupelDetailClient id_mupel={id_mupel} />
-    </Suspense>
-  );
-}
-
-function MupelSkeleton() {
-  return (
-    <div className="space-y-6 pb-12">
-      <Skeleton className="h-10 w-48 rounded-xl" />
-      <Skeleton className="h-32 w-full rounded-2xl" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Skeleton className="h-28 rounded-2xl" />
-        <Skeleton className="h-28 rounded-2xl" />
-      </div>
-    </div>
+    <MupelDetailClient
+      id_mupel={decodeURIComponent(id_mupel)}
+      initialTab={activeTab}
+    />
   );
 }

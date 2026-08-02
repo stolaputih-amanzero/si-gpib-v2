@@ -1,79 +1,119 @@
 'use client';
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import dynamic from 'next/dynamic';
+import { ChartPieData } from '@/hooks/use-analitik';
+import { EmptyState } from '@/components/list/EmptyState';
+import { Box } from 'lucide-react';
 
-interface ChartPieData {
-  name: string;
-  value: number;
+const ResponsiveContainer = dynamic(
+  () => import('recharts').then((mod) => mod.ResponsiveContainer),
+  { ssr: false, loading: () => <div className="w-full h-64 bg-surface-sunken rounded-2xl animate-pulse" /> }
+);
+const PieChart = dynamic(() => import('recharts').then((mod) => mod.PieChart), { ssr: false });
+const Pie = dynamic(() => import('recharts').then((mod) => mod.Pie), { ssr: false });
+const Cell = dynamic(() => import('recharts').then((mod) => mod.Cell), { ssr: false });
+const Tooltip = dynamic(() => import('recharts').then((mod) => mod.Tooltip), { ssr: false });
+const Legend = dynamic(() => import('recharts').then((mod) => mod.Legend), { ssr: false });
+
+export interface AsetKondisiChartProps {
+  data: ChartPieData[];
+  height?: number;
 }
 
-interface AsetKondisiChartProps {
-  data?: ChartPieData[];
-}
-
-const COLORS: Record<string, string> = {
-  Baik: '#10B981',         // Emerald Green
-  'Rusak Ringan': '#F59E0B', // Amber Gold
-  'Rusak Berat': '#EF4444',  // Rose Red
+const KONDISI_COLORS: Record<string, string> = {
+  Baik: '#10B981',
+  'Rusak Ringan': '#F59E0B',
+  'Rusak Berat': '#EF4444',
 };
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
+export function AsetKondisiChart({ data, height = 280 }: AsetKondisiChartProps) {
+  if (!data || data.length === 0 || data.every((d) => d.value === 0)) {
     return (
-      <div className="bg-surface-elevated p-3 rounded-xl border border-border-subtle shadow-medium text-xs space-y-1 min-w-[140px]">
-        <p className="font-extrabold text-text-high text-sm">{label}</p>
-        <div className="flex items-center justify-between gap-2 pt-1 border-t border-border-subtle">
-          <span className="text-text-muted font-medium">Jumlah Aset:</span>
-          <span className="tabular-nums font-black text-brand-primary text-sm">{payload[0].value} Unit</span>
-        </div>
+      <div className="p-5 rounded-2xl bg-surface-1 border border-border-subtle shadow-2xs">
+        <h2 className="text-sm font-extrabold text-text-high mb-3">Kondisi Fisik Aset Pos</h2>
+        <EmptyState
+          icon={Box}
+          title="Belum ada data aset"
+          description="Tidak ada data kondisi aset untuk filter yang dipilih."
+        />
       </div>
     );
   }
-  return null;
-};
 
-export function AsetKondisiChart({ data = [] }: AsetKondisiChartProps) {
+  const totalAset = data.reduce((sum, item) => sum + item.value, 0);
+
   return (
-    <div className="w-full bg-surface-elevated rounded-2xl p-4 sm:p-5 border border-border-subtle shadow-soft space-y-3">
+    <div
+      role="img"
+      aria-label="Pie chart menunjukkan distribusi kondisi fisik aset pos"
+      className="p-5 rounded-2xl bg-surface-1 border border-border-subtle shadow-2xs space-y-3 relative select-none"
+    >
       <div>
-        <h3 className="text-sm font-bold text-text-high">Kondisi Fisik Aset Pos Pelkes</h3>
-        <p className="text-xs text-text-muted">Aset Tanah, Bangunan, &amp; Aset Bergerak (Baik, Rusak)</p>
+        <h2 className="text-sm font-extrabold text-text-high">Distribusi Kondisi Fisik Aset Pos</h2>
+        <p className="text-[11px] text-text-tertiary">Persentase kondisi Baik, Rusak Ringan, Rusak Berat</p>
       </div>
 
-      <div className="w-full h-[240px] sm:h-[280px]">
-        {data.length === 0 ? (
-          <div className="w-full h-full flex items-center justify-center text-xs text-text-muted italic">
-            Belum ada data kondisi aset
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(128, 128, 128, 0.15)" />
-              <XAxis 
-                dataKey="name" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: 'var(--text-muted, #94a3b8)', fontSize: 12, fontWeight: 600 }} 
-                dy={10}
-              />
-              <YAxis 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: 'var(--text-muted, #94a3b8)', fontSize: 12 }} 
-              />
-              <Tooltip
-                cursor={{ fill: 'rgba(128, 128, 128, 0.12)' }}
-                content={<CustomTooltip />}
-              />
-              <Bar dataKey="value" name="Jumlah Aset" radius={[6, 6, 0, 0]} maxBarSize={48}>
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[entry.name] || '#3B82F6'} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        )}
+      <div className="relative">
+        <ResponsiveContainer width="100%" height={height}>
+          <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+            <Tooltip
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  const item = payload[0].payload;
+                  return (
+                    <div className="p-3 rounded-xl bg-surface-elevated border border-border-subtle shadow-xl text-xs space-y-0.5">
+                      <p className="font-extrabold text-brand-primary">{item.name}</p>
+                      <p className="text-text-high font-bold">{item.value} item aset</p>
+                    </div>
+                  );
+                }
+                return null;
+              }}
+            />
+            <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
+            <Pie
+              data={data}
+              cx="50%"
+              cy="42%"
+              innerRadius={45}
+              outerRadius={75}
+              paddingAngle={4}
+              dataKey="value"
+            >
+              {data.map((entry) => (
+                <Cell key={entry.name} fill={KONDISI_COLORS[entry.name] || '#3B82F6'} />
+              ))}
+            </Pie>
+          </PieChart>
+        </ResponsiveContainer>
+
+        {/* Center Text Overlay */}
+        <div className="absolute top-[36%] left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
+          <span className="text-lg font-black text-brand-primary block leading-none">{totalAset}</span>
+          <span className="text-[10px] text-text-tertiary font-bold uppercase">Aset</span>
+        </div>
       </div>
+
+      {/* Screen Reader Fallback Table */}
+      <table className="sr-only">
+        <caption>Kondisi Fisik Aset Pos</caption>
+        <thead>
+          <tr>
+            <th>Kondisi</th>
+            <th>Jumlah Item</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((row) => (
+            <tr key={row.name}>
+              <td>{row.name}</td>
+              <td>{row.value}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
+
+export default AsetKondisiChart;

@@ -1,32 +1,21 @@
-import { Suspense } from 'react';
-import { JemaatDetailClient } from './jemaat-detail-client';
-import { Skeleton } from '@/components/ui/skeleton';
+import { JemaatDetailClient } from '@/app/(dashboard)/jemaat/[id_induk]/jemaat-detail-client';
 
-interface PageProps {
+export default async function HierarkiJemaatDetailPage({
+  params,
+  searchParams,
+}: {
   params: Promise<{ id_mupel: string; id_induk: string }>;
-}
-
-export default async function JemaatDetailPage({ params }: PageProps) {
-  const resolvedParams = await params;
-  const id_mupel = decodeURIComponent(resolvedParams.id_mupel);
-  const id_induk = decodeURIComponent(resolvedParams.id_induk);
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const { id_mupel, id_induk } = await params;
+  const resolvedSearchParams = await searchParams;
+  const activeTab = resolvedSearchParams?.tab || 'profil';
 
   return (
-    <Suspense fallback={<JemaatSkeleton />}>
-      <JemaatDetailClient id_mupel={id_mupel} id_induk={id_induk} />
-    </Suspense>
-  );
-}
-
-function JemaatSkeleton() {
-  return (
-    <div className="space-y-6 pb-12">
-      <Skeleton className="h-10 w-64 rounded-xl" />
-      <Skeleton className="h-36 w-full rounded-2xl" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Skeleton className="h-32 rounded-2xl" />
-        <Skeleton className="h-32 rounded-2xl" />
-      </div>
-    </div>
+    <JemaatDetailClient
+      id_induk={decodeURIComponent(id_induk)}
+      id_mupel={decodeURIComponent(id_mupel)}
+      initialTab={activeTab}
+    />
   );
 }

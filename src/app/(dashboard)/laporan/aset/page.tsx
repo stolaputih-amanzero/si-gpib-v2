@@ -95,7 +95,7 @@ export default function LaporanAsetPage() {
   }, [supabase]);
 
   const { data: asetList, isLoading } = useAsetList({
-    kategori: activeCategory || undefined,
+    kategori: (activeCategory || undefined) as any,
     search: searchQuery || undefined,
     id_pos: selectedPos || undefined,
   });

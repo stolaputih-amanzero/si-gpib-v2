@@ -1,8 +1,8 @@
 # 📊 SI GPIB v2.2 — New Entity Relationship Diagram (ERD)
 
-> **Versi Dokumen:** 2.2 | **Tanggal:** 20 Juli 2026
-> **Referensi:** Blueprint v2.2, PRD v2.2, DB_SCHEMA.html
-> **Status:** Ready for Implementation
+> **Versi Dokumen:** 2.2.2 | **Tanggal:** 3 Agustus 2026
+> **Referensi:** Blueprint v2.2, PRD v2.2, DB_SCHEMA.html, Supabase Migrations (20260720–20260830)
+> **Status:** Synchronized & Up-to-Date
 > **Penanda:** 🆕 = Tabel baru di v2.2 | 🔄 = Kolom baru/dimodifikasi di v2.2
 
 ---
@@ -10,15 +10,17 @@
 ## 📑 Daftar Isi
 
 1. [ERD Diagram (Mermaid)](#1-erd-diagram-mermaid)
-2. [Ringkasan Perubahan dari v1.0](#2-ringkasan-perubahan-dari-v10)
+2. [Ringkasan Perubahan Skema Database](#2-ringkasan-perubahan-skema-database)
 3. [Master Tables (m_*)](#3-master-tables-m_)
-4. [Auth & Security Tables 🆕](#4-auth--security-tables-)
-5. [KMJ & PJ Assignment Tables 🆕](#5-kmj--pj-assignment-tables-)
-6. [Transaction Tables (t_*)](#6-transaction-tables-t_)
-7. [Audit & Workflow Tables 🆕](#7-audit--workflow-tables-)
-8. [Business Rules](#8-business-rules)
-9. [Indexes](#9-indexes)
-10. [RLS Policies Overview](#10-rls-policies-overview)
+4. [Auth & Security Tables](#4-auth--security-tables)
+5. [KMJ & PJ Assignment Tables](#5-kmj--pj-assignment-tables)
+6. [Transaction & Dimension Tables (t_*)](#6-transaction--dimension-tables-t_)
+7. [Audit, Workflow & Status History Tables](#7-audit-workflow--status-history-tables)
+8. [Unified Identity Model & Business Rules](#8-unified-identity-model--business-rules)
+9. [Atomic Database Functions (RPC)](#9-atomic-database-functions-rpc)
+10. [Storage Buckets & Policies](#10-storage-buckets--policies)
+11. [Performance Indexes](#11-performance-indexes)
+12. [Row Level Security (RLS) Policies](#12-row-level-security-rls-policies)
 
 ---
 
@@ -34,19 +36,27 @@ erDiagram
     m_jemaat_induk ||--o{ m_pendeta : "memiliki (1:N)"
     
     %% ========================================
-    %% KMJ & PJ ASSIGNMENT (NEW in v2.2)
+    %% KMJ & PJ ASSIGNMENT
     %% ========================================
     m_jemaat_induk ||--o| m_pendeta : "1 KMJ (id_kmj)"
     m_jemaat_induk ||--o{ t_pj_jemaat : "memiliki PJ (0:N)"
     m_pendeta ||--o{ t_pj_jemaat : "ditugaskan sebagai PJ"
     
     %% ========================================
-    %% PENUGASAN PENDETA
+    %% PENUGASAN, JABATAN & MUTASI PENDETA
     %% ========================================
     m_pendeta ||--o{ t_penugasan_pendeta : "ditugaskan ke"
     m_pos_pelkes ||--o{ t_penugasan_pendeta : "menerima tugas"
     m_pendeta ||--o{ t_riwayat_mutasi_pendeta : "riwayat mutasi"
     m_jemaat_induk ||--o{ t_riwayat_mutasi_pendeta : "asal/tujuan"
+    m_pendeta ||--o{ t_jabatan_struktural : "memiliki jabatan (🆕)"
+    
+    %% ========================================
+    %% PROFILE 360° DIMENSI PENDETA
+    %% ========================================
+    m_pendeta ||--o{ t_keluarga_pendeta : "anggota keluarga"
+    m_pendeta ||--o{ t_kompetensi_pendeta : "kompetensi/karunia"
+    m_pendeta ||--o{ t_keterlibatan_pendeta : "keterlibatan organisasi"
     
     %% ========================================
     %% SDM & KEGIATAN
@@ -83,17 +93,30 @@ erDiagram
     m_pos_pelkes ||--o{ t_demografi_pelkat : "profil demografi"
     m_pos_pelkes ||--o{ t_kerawanan_wilayah : "identifikasi risiko"
     m_pos_pelkes ||--o{ t_potensi_wilayah : "identifikasi potensi"
+    t_kerawanan_wilayah ||--o{ t_lampiran_kerawanan : "memiliki lampiran (🆕)"
+    t_potensi_wilayah ||--o{ t_lampiran_potensi : "memiliki lampiran (🆕)"
     
     %% ========================================
-    %% AUTH & SECURITY (NEW in v2.2)
+    %% ELEVASI & HISTORI STATUS (NEW)
+    %% ========================================
+    m_pos_pelkes ||--o{ t_histori_perubahan_status : "histori elevasi (🆕)"
+    m_jemaat_induk ||--o{ t_histori_perubahan_status : "tujuan elevasi (🆕)"
+    users ||--o{ t_histori_perubahan_status : "diubah oleh (🆕)"
+
+    %% ========================================
+    %% AUTH & SECURITY
     %% ========================================
     users ||--o{ m_webauthn_credentials : "memiliki (max 5)"
     users ||--o{ m_push_subscription : "berlangganan"
     users ||--o{ t_log_aktivitas : "melakukan aksi"
     users ||--o{ t_form_draft : "menyimpan draft"
-    
+    m_pendeta ||--o| users : "link akun pengguna"
+    m_mupel ||--o{ users : "scope admin mupel"
+    m_jemaat_induk ||--o{ users : "scope admin jemaat"
+    m_pos_pelkes ||--o{ users : "scope admin pos"
+
     %% ========================================
-    %% STRUKTUR TABEL
+    %% STRUKTUR DETAIL ENTITAS
     %% ========================================
     m_mupel {
         VARCHAR id_mupel PK
@@ -108,9 +131,11 @@ erDiagram
         VARCHAR id_mupel FK
         VARCHAR nama_induk
         TEXT alamat
-        DECIMAL latitude
-        DECIMAL longitude
-        VARCHAR id_kmj FK "🔄 NEW: KMJ (Pendeta)"
+        DECIMAL latitude "🔄 Nullable (opsional saat draft/legacy)"
+        DECIMAL longitude "🔄 Nullable (opsional saat draft/legacy)"
+        VARCHAR id_kmj FK "KMJ (Pendeta)"
+        INT jemaat_ke "🔄 Urutan jemaat di GPIB"
+        TEXT foto_url "🔄 Foto gereja induk"
         TEXT keterangan
         TIMESTAMPTZ created_at
         TIMESTAMPTZ updated_at
@@ -120,6 +145,7 @@ erDiagram
         VARCHAR id_pos PK
         VARCHAR id_induk FK
         VARCHAR nama_pos
+        VARCHAR kategori "🔄 'Pos Pelkes' | 'Bajem'"
         TEXT alamat
         DECIMAL latitude
         DECIMAL longitude
@@ -134,355 +160,134 @@ erDiagram
         VARCHAR id_induk FK
         VARCHAR nama_lengkap
         VARCHAR no_wa
+        VARCHAR email "🔄 Email pendeta"
+        VARCHAR nip "🔄 Nomor Induk Pegawai"
+        VARCHAR nik "🔄 Nomor Induk Kependudukan"
+        VARCHAR jenis_pendeta "🔄 'Organik' | 'Non-Organik'"
+        DATE tgl_mulai_kontrak "🔄 Untuk non-organik"
+        DATE tgl_akhir_kontrak "🔄 Untuk non-organik"
+        VARCHAR sumber_pembiayaan "🔄 Sumber dana"
+        BOOLEAN eligible_rotasi "🔄 Status kelayakan rotasi"
+        VARCHAR gereja_asal "🔄 Afiliasi pendeta non-organik"
         VARCHAR jabatan
         VARCHAR status
         DATE tgl_lahir
         VARCHAR gender
         DATE tgl_tugas
-        BOOLEAN is_kmj "🔄 NEW: Flag KMJ"
-        BOOLEAN is_pj "🔄 NEW: Flag PJ"
+        BOOLEAN is_kmj
+        BOOLEAN is_pj
+        TEXT foto_url "🔄 URL foto profil pendeta"
         TEXT keterangan
         TIMESTAMPTZ created_at
         TIMESTAMPTZ updated_at
     }
     
-    %% ========================================
-    %% NEW TABLES in v2.2
-    %% ========================================
     users {
-        UUID id PK "🆕 Supabase auth.users"
+        UUID id PK "Supabase auth.users"
         VARCHAR no_telepon UK
         VARCHAR email UK
         VARCHAR password_hash
-        VARCHAR id_pendeta FK "nullable"
-        VARCHAR id_mupel FK "nullable: Admin Mupel"
+        VARCHAR nama_lengkap "🔄 Display name pengguna"
+        VARCHAR no_hp "🔄 Nomor WhatsApp/HP aktif"
+        TEXT avatar_url "🔄 Avatar URL"
+        TEXT foto_url "🔄 Foto profil URL"
+        VARCHAR id_pendeta FK "nullable: Link ke pendeta"
+        VARCHAR id_mupel FK "nullable: Scope Admin Mupel"
+        VARCHAR id_induk FK "🔄 nullable: Scope Admin Jemaat"
+        VARCHAR id_pos FK "🔄 nullable: Scope Admin Pos"
         VARCHAR role "super_user|admin_mupel|kmj|pj|user"
         VARCHAR status "Aktif|Nonaktif"
-        BOOLEAN biometric_enabled "🆕"
+        BOOLEAN biometric_enabled
         TIMESTAMPTZ last_login_at
         TIMESTAMPTZ created_at
         TIMESTAMPTZ updated_at
     }
-    
-    m_webauthn_credentials {
-        UUID id PK "🆕"
-        UUID id_user FK
-        TEXT credential_id UK
-        TEXT public_key
-        BIGINT counter
-        VARCHAR device_type "platform|cross-platform"
-        BOOLEAN backed_up
-        TEXT transports[]
-        VARCHAR display_name
-        TIMESTAMPTZ last_used_at
-        TIMESTAMPTZ created_at
-    }
-    
-    m_push_subscription {
-        UUID id PK "🆕"
-        UUID id_user FK
-        TEXT endpoint UK
-        TEXT p256dh_key
-        TEXT auth_key
-        VARCHAR user_agent
-        TIMESTAMPTZ created_at
-    }
-    
-    t_pj_jemaat {
-        SERIAL id PK "🆕"
-        VARCHAR id_induk FK
-        VARCHAR id_pendeta FK
-        DATE tanggal_mulai
-        DATE tanggal_selesai "nullable"
-        VARCHAR status "Aktif|Selesai"
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
-    }
-    
-    t_penugasan_pendeta {
-        VARCHAR id_tugas PK
-        VARCHAR id_pendeta FK
-        VARCHAR id_pos FK
+
+    t_jabatan_struktural {
+        VARCHAR id_jabatan PK "🆕 JBT-{timestamp}-{random}"
+        VARCHAR id_pendeta FK "m_pendeta"
+        VARCHAR kategori "BP Mupel|Kepanitiaan Sinode|Kepanitiaan Mupel|Kepanitiaan Jemaat|Unit Misioner|Pokja|Lainnya"
+        VARCHAR nama_jabatan
+        VARCHAR tingkat "Sinode|Mupel|Jemaat"
         DATE tgl_mulai
         DATE tgl_selesai "nullable"
-        VARCHAR status_tugas "Aktif|Selesai"
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
-    }
-
-    t_keluarga_pendeta {
-        VARCHAR id_keluarga PK "🆕 KLG-XXXXXXXX"
-        VARCHAR id_pendeta FK
-        VARCHAR hubungan
-        VARCHAR nama_lengkap
-        VARCHAR gender
-        DATE tgl_lahir
-        VARCHAR no_wa
-        VARCHAR pendidikan
-        VARCHAR pekerjaan
-        VARCHAR status_hidup
-        BOOLEAN is_tanggungan
+        VARCHAR no_sk
+        DATE tgl_sk
+        VARCHAR status "Aktif|Selesai|Nonaktif"
         TEXT keterangan
         TIMESTAMPTZ created_at
         TIMESTAMPTZ updated_at
     }
 
-    t_kompetensi_pendeta {
-        VARCHAR id_kompetensi PK "🆕 KMP-XXXXXXXX"
-        VARCHAR id_pendeta FK
-        VARCHAR kategori
-        VARCHAR nama_kompetensi
-        VARCHAR jenis "Kompetensi|Passion|Karunia"
-        VARCHAR tingkat
-        INT tahun_mulai
-        TEXT keterangan
+    t_histori_perubahan_status {
+        VARCHAR id_histori PK "🆕 HIS-{timestamp}-{random}"
+        VARCHAR id_pos FK "m_pos_pelkes"
+        VARCHAR id_induk_baru FK "m_jemaat_induk (nullable)"
+        VARCHAR status_lama "Pos Pelkes|Bajem"
+        VARCHAR status_baru "Bajem|Jemaat Induk"
+        DATE tanggal_perubahan
+        TEXT keterangan_perubahan
+        INT jemaat_ke "nullable"
+        TEXT catatan "nullable"
+        UUID diubah_oleh FK "users.id"
         TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
     }
 
-    t_keterlibatan_pendeta {
-        VARCHAR id_keterlibatan PK "🆕 KTL-XXXXXXXX"
-        VARCHAR id_pendeta FK
-        VARCHAR tingkat "Jemaat|Mupel|Sinodal|Eksternal"
-        VARCHAR id_mupel FK "nullable"
-        VARCHAR jenis
-        VARCHAR nama_kegiatan
-        VARCHAR jabatan
-        DATE tgl_mulai
-        DATE tgl_selesai
-        VARCHAR status
-        TEXT keterangan
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
-    }
-    
-    t_riwayat_mutasi_pendeta {
-        VARCHAR id_riwayat PK
-        VARCHAR id_pendeta FK
-        VARCHAR id_induk_lama FK "nullable"
-        VARCHAR id_induk_baru FK
-        DATE tgl_mutasi
-        VARCHAR jenis_mutasi "🆕 MUTASI|PENGANGKATAN_KMJ|PENGANGKATAN_PJ"
-        TEXT alasan
-        TIMESTAMPTZ created_at
-    }
-    
-    t_log_pastoral {
-        VARCHAR id_log PK
-        VARCHAR id_pos FK
-        VARCHAR id_pendeta FK
-        DATE tgl
-        VARCHAR kegiatan
-        INT jml_jiwa
-        TEXT catatan
-        TEXT keterangan
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
-    }
-    
-    t_pelayan {
-        VARCHAR id_pelayan PK
-        VARCHAR id_pos FK
-        VARCHAR nama
-        VARCHAR no_wa
-        VARCHAR jabatan
-        DATE tgl_lahir
-        VARCHAR gender
-        VARCHAR status
-        TEXT keterangan
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
-    }
-    
-    t_jadwal_ibadah {
-        VARCHAR id_ibadah PK
-        VARCHAR id_pos FK
-        VARCHAR jenis
-        VARCHAR hari
-        TIME jam
-        TEXT keterangan
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
-    }
-    
-    t_relawan {
-        VARCHAR id_relawan PK
-        VARCHAR id_pos FK
-        VARCHAR nama
-        VARCHAR no_wa
-        DATE tgl_lahir
-        VARCHAR gender
-        VARCHAR kategori
-        VARCHAR pelatihan
-        TEXT keterangan
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
-    }
-    
-    t_aset_tanah {
-        VARCHAR id_tanah PK
-        VARCHAR id_pos FK
-        DECIMAL luas_m2
-        INT thn_perolehan
-        VARCHAR status_hukum
-        VARCHAR kondisi
-        VARCHAR potensi_sda
-        TEXT keterangan
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
-    }
-    
-    t_aset_bangunan {
-        VARCHAR id_bangunan PK
-        VARCHAR id_pos FK
-        VARCHAR fungsi
-        VARCHAR kondisi
-        INT thn_berdiri
-        TEXT keterangan
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
-    }
-    
-    t_aset_bergerak {
-        VARCHAR id_aset_b PK
-        VARCHAR id_pos FK
-        VARCHAR jenis
-        VARCHAR merk_tipe
-        INT thn_perolehan
-        VARCHAR no_polisi
-        DATE tgl_pajak
-        TEXT keterangan
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
-    }
-    
-    t_lampiran_aset {
-        VARCHAR id_lampiran PK
-        VARCHAR id_tanah FK "nullable"
-        VARCHAR id_bangunan FK "nullable"
-        VARCHAR id_aset_b FK "nullable"
+    t_lampiran_kerawanan {
+        VARCHAR id_lampiran PK "🆕"
+        VARCHAR id_risiko FK "t_kerawanan_wilayah"
         VARCHAR nama_file
-        VARCHAR file_path
+        TEXT file_path
         VARCHAR tipe_file
-        DECIMAL ukuran_file
+        NUMERIC ukuran_file
         TEXT keterangan
         TIMESTAMPTZ created_at
     }
-    
-    t_pengajuan_bantuan {
-        VARCHAR id_ajuan PK
-        VARCHAR id_pos FK
-        VARCHAR jenis_bantuan
-        VARCHAR id_tanah FK "nullable"
-        VARCHAR id_bangunan FK "nullable"
-        VARCHAR id_aset_b FK "nullable"
-        DECIMAL biaya
-        VARCHAR urgensi
-        VARCHAR status "Draft|Pending|Approved|Rejected"
+
+    t_lampiran_potensi {
+        VARCHAR id_lampiran PK "🆕"
+        VARCHAR id_potensi FK "t_potensi_wilayah"
+        VARCHAR nama_file
+        TEXT file_path
+        VARCHAR tipe_file
+        NUMERIC ukuran_file
         TEXT keterangan
         TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
-    }
-    
-    t_approval_bantuan {
-        SERIAL id PK "🆕"
-        VARCHAR id_ajuan FK
-        VARCHAR approver_id FK "users.id"
-        VARCHAR role_approver "kmj|admin_mupel|super_user"
-        VARCHAR aksi "approve|reject|revision"
-        TEXT catatan
-        TIMESTAMPTZ created_at
-    }
-    
-    t_demografi_pelkat {
-        VARCHAR id_pos PK,FK
-        VARCHAR kategori_pelkat PK
-        INT jml_kk
-        INT laki
-        INT perempuan
-        VARCHAR profesi
-        VARCHAR pendidikan
-        TEXT keterangan
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
-    }
-    
-    t_kerawanan_wilayah {
-        VARCHAR id_risiko PK
-        VARCHAR id_pos FK
-        VARCHAR kategori
-        VARCHAR jenis_risiko
-        VARCHAR frekuensi
-        TEXT keterangan
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
-    }
-    
-    t_potensi_wilayah {
-        VARCHAR id_potensi PK
-        VARCHAR id_pos FK
-        VARCHAR nama_potensi
-        VARCHAR kategori
-        TEXT deskripsi
-        TEXT keterangan
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
-    }
-    
-    t_log_aktivitas {
-        VARCHAR id_log PK "🆕 LOG-{timestamp}-{random}"
-        UUID id_user FK "🆕 nullable untuk sistem"
-        TIMESTAMPTZ waktu
-        VARCHAR aktor "🆕 no_telepon atau 'Sistem'"
-        VARCHAR aksi "🆕 LOGIN|CREATE|EDIT|DELETE|APPROVE"
-        VARCHAR objek_type "🆕 jemaat|pos|pendeta|aset|bantuan"
-        VARCHAR objek_id "🆕 ID objek yang diaksi"
-        TEXT keterangan
-    }
-    
-    t_form_draft {
-        UUID id PK "🆕"
-        UUID id_user FK
-        VARCHAR form_type "log_pastoral|aset|bantuan|demografi"
-        VARCHAR objek_id "nullable: untuk edit"
-        JSONB data
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
-        TIMESTAMPTZ expires_at "🆕 auto-delete 30 hari"
     }
 ```
 
 ---
 
-## 2. Ringkasan Perubahan dari v1.0
+## 2. Ringkasan Perubahan Skema Database
 
 ### 🔄 Tabel yang Dimodifikasi
-
-| Tabel | Perubahan | Alasan |
-|-------|-----------|--------|
-| `m_jemaat_induk` | 🔄 Tambah kolom `id_kmj` | Relasi 1 Jemaat = 1 KMJ (Pendeta) |
-| `m_pendeta` | 🔄 Tambah kolom `is_kmj`, `is_pj` | Flag untuk query cepat & validasi |
-| `t_riwayat_mutasi_pendeta` | 🔄 Tambah kolom `jenis_mutasi` | Bedakan mutasi vs pengangkatan KMJ/PJ |
-| `t_pengajuan_bantuan` | 🔄 Tambah status `Draft` | Support form draft |
+| Tabel | Perubahan Kolom / Constraints | Alasan & Deskripsi |
+|-------|-------------------------------|--------------------|
+| `m_pendeta` | 🔄 Tambah `jenis_pendeta`, `tgl_mulai_kontrak`, `tgl_akhir_kontrak`, `sumber_pembiayaan`, `eligible_rotasi`, `gereja_asal`, `foto_url`, `email`, `nip`, `nik` | Pemisahan Pendeta Organik vs Non-Organik, identifikasi resmi (NIP/NIK), foto profil & 360° |
+| `users` | 🔄 Tambah `nama_lengkap`, `no_hp`, `avatar_url`, `foto_url`, `id_induk`, `id_pos` | Profiling pengguna universal (non-pendeta/pendeta) & scoping hierarki bertingkat |
+| `m_pos_pelkes` | 🔄 Tambah `kategori` ('Pos Pelkes' / 'Bajem') | Formalisasi status pos pelayanan vs bakal jemaat |
+| `m_jemaat_induk` | 🔄 Tambah `jemaat_ke`, `foto_url`, drop NOT NULL pada `latitude`/`longitude` | Penomoran urutan jemaat GPIB, dokumentasi visual, flexibilitas data legacy/draft |
+| `t_log_pastoral` | 🔄 Tambah `foto_url` | Dokumentasi foto bukti pelayanan pastoral |
+| `t_jadwal_ibadah` | 🔄 Tambah `zona_waktu` (DEFAULT 'WIB') | Penanganan zona waktu ibadah di seluruh wilayah GPIB (WIB/WITA/WIT) |
+| `t_pelayan` & `t_relawan` | 🔄 Tambah `foto_url` | Foto profil pelayan & relawan |
+| `t_aset_tanah`, `t_aset_bangunan`, `t_aset_bergerak` | 🔄 Tambah `latitude`, `longitude`, `nama_bangunan`, `kondisi` | Geospasial spesifik aset & detail fisik |
+| `t_keluarga_pendeta` | 🔄 Tambah `foto_url` | Foto anggota keluarga pendeta |
+| `t_kompetensi_pendeta` | 🔄 Tambah `dokumen_url` | URL bukti sertifikat/dokumen kompetensi |
+| `t_kerawanan_wilayah` & `t_potensi_wilayah` | 🔄 Tambah `latitude`, `longitude`, `updated_by` | Koordinat titik rawan/potensi & jejak pengubah |
 
 ### 🆕 Tabel Baru
-
-| Tabel | Kategori | Fungsi |
-|-------|----------|--------|
-| `users` | Auth | Extended user profile (Supabase Auth) |
-| `m_webauthn_credentials` | Auth | Biometric credentials (WebAuthn) |
-| `m_push_subscription` | Notification | Push notification subscriptions |
-| `t_pj_jemaat` | Assignment | Penugasan PJ ke Jemaat Induk (0:N) |
-| `t_approval_bantuan` | Workflow | Multi-level approval pengajuan bantuan |
-| `t_log_aktivitas` | Audit | Audit trail semua aktivitas user |
-| `t_form_draft` | Offline | Cross-device form draft sync |
+| Tabel | Kategori | Fungsi Utama |
+|-------|----------|--------------|
+| `t_jabatan_struktural` | Organisasi | Mencatat penugasan jabatan pendeta di BP Mupel, Sinode, Mupel, Kepanitiaan & Pokja |
+| `t_histori_perubahan_status` | Status & Workflow | Audit trail perubahan status Pos Pelkes $\rightarrow$ Bajem $\rightarrow$ Jemaat Induk Mandiri |
+| `t_lampiran_kerawanan` | Media & Lampiran | Menyimpan file foto & dokumen pendukung titik kerawanan wilayah |
+| `t_lampiran_potensi` | Media & Lampiran | Menyimpan file foto & dokumen pendukung potensi wilayah |
 
 ---
 
 ## 3. Master Tables (m_*)
 
 ### 📋 `m_mupel` — Musyawarah Pelayanan
-
 | Column | Type | Constraint | Description |
 |--------|------|------------|-------------|
 | `id_mupel` | VARCHAR(20) | **PK** | ID Mupel (contoh: `M - 01`) |
@@ -491,267 +296,162 @@ erDiagram
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | Timestamp pembuatan |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | Timestamp update |
 
-**Data Awal:** 25 Mupel (dari `GPIB.xlsx`)
-
 ---
 
 ### 📋 `m_jemaat_induk` — Gereja Induk
-
 | Column | Type | Constraint | Description |
 |--------|------|------------|-------------|
 | `id_induk` | VARCHAR(20) | **PK** | ID Jemaat Induk (contoh: `02-01-BM`) |
 | `id_mupel` | VARCHAR(20) | **FK** → `m_mupel` | Mupel induk |
 | `nama_induk` | VARCHAR(150) | NOT NULL | Nama Jemaat |
 | `alamat` | TEXT | | Alamat lengkap |
-| `latitude` | DECIMAL(10,7) | NOT NULL | Koordinat GPS |
-| `longitude` | DECIMAL(10,7) | NOT NULL | Koordinat GPS |
-| `id_kmj` | VARCHAR(20) | **FK** → `m_pendeta`, UNIQUE | 🔄 **NEW:** KMJ yang memimpin |
+| `latitude` | DECIMAL(10,7) | 🔄 Nullable | Koordinat GPS (opsional saat draf/legacy) |
+| `longitude` | DECIMAL(10,7) | 🔄 Nullable | Koordinat GPS (opsional saat draf/legacy) |
+| `id_kmj` | VARCHAR(20) | **FK** → `m_pendeta`, UNIQUE | KMJ yang memimpin |
+| `jemaat_ke` | INTEGER | 🔄 Nullable | Nomor urut Jemaat GPIB (contoh: 325) |
+| `foto_url` | TEXT | 🔄 Nullable | URL foto gedung gereja |
 | `keterangan` | TEXT | | Keterangan tambahan |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 
-**Business Rules:**
-- 1 Jemaat = tepat 1 KMJ (atau NULL jika belum ada)
-- KMJ harus seorang Pendeta yang terdaftar di Jemaat tersebut
-- `id_kmj` harus UNIQUE (1 Jemaat tidak boleh punya 2 KMJ)
-
 ---
 
-### 📋 `m_pos_pelkes` — Pos Pelayanan Kesaksian
-
+### 📋 `m_pos_pelkes` — Pos Pelayanan Kesaksian & Bajem
 | Column | Type | Constraint | Description |
 |--------|------|------------|-------------|
 | `id_pos` | VARCHAR(20) | **PK** | ID Pos Pelkes (contoh: `POS-13055`) |
-| `id_induk` | VARCHAR(20) | **FK** → `m_jemaat_induk` | Jemaat Induk |
-| `nama_pos` | VARCHAR(150) | NOT NULL | Nama Pos Pelkes |
+| `id_induk` | VARCHAR(20) | **FK** → `m_jemaat_induk` | Jemaat Induk Pengampu |
+| `nama_pos` | VARCHAR(150) | NOT NULL | Nama Pos Pelkes / Bajem |
+| `kategori` | VARCHAR(50) | 🔄 DEFAULT 'Pos Pelkes' | `'Pos Pelkes'` / `'Bajem'` |
 | `alamat` | TEXT | | Alamat lengkap |
 | `latitude` | DECIMAL(10,7) | | Koordinat GPS |
 | `longitude` | DECIMAL(10,7) | | Koordinat GPS |
 | `tgl_berdiri` | DATE | | Tanggal berdiri |
-| `keterangan` | TEXT | | |
+| `keterangan` | TEXT | | Keterangan tambahan |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 
-**Data Awal:** 500+ Pos Pelkes (dari `GPIB.xlsx`)
-
 ---
 
-### 📋 `m_pendeta` — Data Pendeta
-
+### 📋 `m_pendeta` — Data Pendeta GPIB
 | Column | Type | Constraint | Description |
 |--------|------|------------|-------------|
 | `id_pendeta` | VARCHAR(20) | **PK** | ID Pendeta (contoh: `PDT-19060024`) |
 | `id_induk` | VARCHAR(20) | **FK** → `m_jemaat_induk` | Jemaat Induk tempat terdaftar |
-| `nama_lengkap` | VARCHAR(150) | NOT NULL | Nama lengkap |
+| `nama_lengkap` | VARCHAR(150) | NOT NULL | SSOT Nama resmi Pendeta beserta gelar |
+| `nip` | TEXT | 🔄 Nullable | Nomor Induk Pegawai Sinode |
+| `nik` | TEXT | 🔄 Nullable | Nomor Induk Kependudukan |
+| `jenis_pendeta` | VARCHAR(20) | 🔄 DEFAULT 'Organik' | CHECK (`'Organik'`, `'Non-Organik'`) |
+| `tgl_mulai_kontrak` | DATE | 🔄 Nullable | Mulai kontrak (Non-Organik) |
+| `tgl_akhir_kontrak` | DATE | 🔄 Nullable | Akhir kontrak (Non-Organik) |
+| `sumber_pembiayaan` | VARCHAR(100) | 🔄 Nullable | Sumber dana gaji/pelayanan |
+| `eligible_rotasi` | BOOLEAN | 🔄 DEFAULT TRUE | Status kelayakan rotasi/mutasi |
+| `gereja_asal` | VARCHAR(150) | 🔄 Nullable | Gereja asal pendeta non-organik |
 | `no_wa` | VARCHAR(20) | | Nomor WhatsApp |
-| `jabatan` | VARCHAR(100) | | Jabatan |
-| `status` | VARCHAR(50) | DEFAULT 'Aktif' | Status (Aktif/Non-aktif) |
+| `email` | VARCHAR(150) | 🔄 Nullable | Email resmi pendeta |
+| `foto_url` | TEXT | 🔄 Nullable | Foto profil pendeta |
+| `jabatan` | VARCHAR(100) | | Jabatan struktural/fungsional |
+| `status` | VARCHAR(50) | DEFAULT 'Aktif' | Status (`Aktif` / `Non-aktif` / `Emeritus`) |
 | `tgl_lahir` | DATE | | Tanggal lahir |
-| `gender` | VARCHAR(10) | | Gender |
+| `gender` | VARCHAR(10) | | Gender (`L` / `P`) |
 | `tgl_tugas` | DATE | | Tanggal mulai bertugas |
-| `is_kmj` | BOOLEAN | 🔄 **NEW:** DEFAULT FALSE | Flag: sedang jadi KMJ |
-| `is_pj` | BOOLEAN | 🔄 **NEW:** DEFAULT FALSE | Flag: sedang jadi PJ |
-| `keterangan` | TEXT | | |
+| `is_kmj` | BOOLEAN | DEFAULT FALSE | Flag: sedang menjabat KMJ |
+| `is_pj` | BOOLEAN | DEFAULT FALSE | Flag: sedang menjabat PJ |
+| `keterangan` | TEXT | | Keterangan tambahan |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 
-**Business Rules:**
-- `is_kmj = TRUE` → hanya 1 pendeta per Jemaat (partial unique index)
-- `is_pj = TRUE` → bisa >1 pendeta per Jemaat (via `t_pj_jemaat`)
-- Saat mutasi, flag `is_kmj` dan `is_pj` harus di-reset
-
 ---
 
-## 4. Auth & Security Tables 🆕
+## 4. Auth & Security Tables
 
-### 📋 `users` — Extended User Profile
-
-> *Extend dari `auth.users` Supabase*
-
+### 📋 `users` — Extended User Profile (Supabase Auth Link)
 | Column | Type | Constraint | Description |
 |--------|------|------------|-------------|
-| `id` | UUID | **PK** | Supabase auth user ID |
-| `no_telepon` | VARCHAR(20) | UNIQUE | Nomor telepon/WhatsApp |
-| `email` | VARCHAR(150) | UNIQUE | Email |
-| `password_hash` | TEXT | | Hash password |
-| `id_pendeta` | VARCHAR(20) | **FK** → `m_pendeta`, nullable | Link ke pendeta |
-| `id_mupel` | VARCHAR(20) | **FK** → `m_mupel`, nullable | Scope untuk Admin Mupel |
+| `id` | UUID | **PK** | Linked ke `auth.users.id` |
+| `no_telepon` | VARCHAR(20) | UNIQUE, nullable | Nomor telepon login |
+| `email` | VARCHAR(150) | UNIQUE, nullable | Email login |
+| `password_hash` | TEXT | nullable | Hash password (jika menggunakan custom auth) |
+| `nama_lengkap` | VARCHAR(150) | 🔄 Nullable | Display name pengguna (Non-Pendeta / Cache Pendeta) |
+| `no_hp` | VARCHAR(30) | 🔄 Nullable | Nomor HP kontak aktif |
+| `avatar_url` | TEXT | 🔄 Nullable | Avatar thumbnail URL |
+| `foto_url` | TEXT | 🔄 Nullable | Foto profil penuh URL |
+| `id_pendeta` | VARCHAR(20) | **FK** → `m_pendeta`, nullable | FK jika pengguna adalah Pendeta |
+| `id_mupel` | VARCHAR(20) | **FK** → `m_mupel`, nullable | Scope Admin Mupel |
+| `id_induk` | VARCHAR(20) | **FK** → `m_jemaat_induk`, nullable | Scope Admin Jemaat |
+| `id_pos` | VARCHAR(20) | **FK** → `m_pos_pelkes`, nullable | Scope Admin Pos Pelkes |
 | `role` | VARCHAR(20) | NOT NULL | `super_user` / `admin_mupel` / `kmj` / `pj` / `user` |
-| `status` | VARCHAR(20) | DEFAULT 'Aktif' | Status akun |
-| `biometric_enabled` | BOOLEAN | 🆕 DEFAULT FALSE | Flag biometric aktif |
-| `last_login_at` | TIMESTAMPTZ | | Login terakhir |
-| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
-| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
-
-**Data Awal:** 100+ users (dari `GPIB.xlsx`)
-
----
-
-### 📋 `m_webauthn_credentials` — Biometric Credentials 🆕
-
-| Column | Type | Constraint | Description |
-|--------|------|------------|-------------|
-| `id` | UUID | **PK** DEFAULT gen_random_uuid() | |
-| `id_user` | UUID | **FK** → `users.id` ON DELETE CASCADE | User pemilik |
-| `credential_id` | TEXT | UNIQUE, NOT NULL | WebAuthn credential ID |
-| `public_key` | TEXT | NOT NULL | Public key |
-| `counter` | BIGINT | DEFAULT 0 | Anti-replay counter |
-| `device_type` | VARCHAR(50) | | `platform` / `cross-platform` |
-| `backed_up` | BOOLEAN | DEFAULT FALSE | |
-| `transports` | TEXT[] | | `['internal', 'ble', 'nfc']` |
-| `display_name` | VARCHAR(100) | | "iPhone 15 Pro" / "Laptop Kantor" |
-| `last_used_at` | TIMESTAMPTZ | | Terakhir dipakai |
-| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
-
-**Business Rules:**
-- 1 user = max 5 credentials
-- Auto-expire setelah 90 hari tidak dipakai (`last_used_at`)
-- Counter increment setiap login (anti-replay)
-
----
-
-### 📋 `m_push_subscription` — Push Notification Subscriptions 🆕
-
-| Column | Type | Constraint | Description |
-|--------|------|------------|-------------|
-| `id` | UUID | **PK** DEFAULT gen_random_uuid() | |
-| `id_user` | UUID | **FK** → `users.id` ON DELETE CASCADE | |
-| `endpoint` | TEXT | UNIQUE, NOT NULL | Push endpoint |
-| `p256dh_key` | TEXT | NOT NULL | Encryption key |
-| `auth_key` | TEXT | NOT NULL | Auth key |
-| `user_agent` | VARCHAR(200) | | Browser/device info |
-| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
-
----
-
-## 5. KMJ & PJ Assignment Tables 🆕
-
-### 📋 `t_pj_jemaat` — Penugasan PJ ke Jemaat 🆕
-
-| Column | Type | Constraint | Description |
-|--------|------|------------|-------------|
-| `id` | SERIAL | **PK** | Auto-increment |
-| `id_induk` | VARCHAR(20) | **FK** → `m_jemaat_induk` ON DELETE CASCADE | Jemaat Induk |
-| `id_pendeta` | VARCHAR(20) | **FK** → `m_pendeta` ON DELETE CASCADE | Pendeta yang jadi PJ |
-| `tanggal_mulai` | DATE | NOT NULL, DEFAULT CURRENT_DATE | |
-| `tanggal_selesai` | DATE | nullable | NULL = masih aktif |
-| `status` | VARCHAR(20) | DEFAULT 'Aktif' | |
-| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
-| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
-
-**Business Rules:**
-- 1 Jemaat bisa punya **0 atau lebih PJ**
-- 1 Pendeta bisa jadi PJ di **1 Jemaat aktif** (partial unique index)
-- Riwayat penugasan tercatat via `tanggal_selesai`
-
-**Indexes:**
-```sql
--- 1 pendeta hanya bisa jadi PJ aktif di 1 jemaat
-CREATE UNIQUE INDEX idx_pj_aktif_unik 
-ON t_pj_jemaat(id_induk, id_pendeta) 
-WHERE tanggal_selesai IS NULL;
-
--- Query cepat PJ aktif per jemaat
-CREATE INDEX idx_pj_aktif ON t_pj_jemaat(id_induk) 
-WHERE tanggal_selesai IS NULL;
-```
-
----
-
-## 6. Transaction Tables (t_*)
-
-### 📋 `t_penugasan_pendeta` — Penugasan ke Pos Pelkes
-
-| Column | Type | Constraint | Description |
-|--------|------|------------|-------------|
-| `id_tugas` | VARCHAR(30) | **PK** | |
-| `id_pendeta` | VARCHAR(20) | **FK** → `m_pendeta` | |
-| `id_pos` | VARCHAR(20) | **FK** → `m_pos_pelkes` | |
-| `tgl_mulai` | DATE | NOT NULL | |
-| `tgl_selesai` | DATE | nullable | NULL = aktif |
-| `status_tugas` | VARCHAR(20) | DEFAULT 'Aktif' | |
+| `status` | VARCHAR(20) | DEFAULT 'Aktif' | Status akun (`Aktif` / `Nonaktif`) |
+| `biometric_enabled` | BOOLEAN | DEFAULT FALSE | Status keaktifan login biometrik |
+| `last_login_at` | TIMESTAMPTZ | | Timestamp login terakhir |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 
 ---
 
-### 📋 `t_riwayat_mutasi_pendeta` — Riwayat Mutasi
+## 5. KMJ & PJ Assignment Tables
 
+### 📋 `t_pj_jemaat` — Penugasan Pendeta Jemaat (PJ)
 | Column | Type | Constraint | Description |
 |--------|------|------------|-------------|
-| `id_riwayat` | VARCHAR(30) | **PK** | |
-| `id_pendeta` | VARCHAR(20) | **FK** → `m_pendeta` ON DELETE CASCADE | |
-| `id_induk_lama` | VARCHAR(20) | **FK** → `m_jemaat_induk`, nullable | NULL untuk pendeta baru |
-| `id_induk_baru` | VARCHAR(20) | **FK** → `m_jemaat_induk` | |
-| `tgl_mutasi` | DATE | NOT NULL | |
-| `jenis_mutasi` | VARCHAR(30) | 🔄 **NEW:** DEFAULT 'MUTASI' | `MUTASI` / `PENGANGKATAN_KMJ` / `PENGANGKATAN_PJ` |
-| `alasan` | TEXT | | |
+| `id` | SERIAL | **PK** | Auto-increment ID |
+| `id_induk` | VARCHAR(20) | **FK** → `m_jemaat_induk` ON DELETE CASCADE | Jemaat Induk tempat penugasan |
+| `id_pendeta` | VARCHAR(20) | **FK** → `m_pendeta` ON DELETE CASCADE | Pendeta yang ditugaskan sebagai PJ |
+| `tanggal_mulai` | DATE | NOT NULL, DEFAULT CURRENT_DATE | Tanggal awal penugasan |
+| `tanggal_selesai` | DATE | nullable | NULL = Masih aktif bertugas |
+| `status` | VARCHAR(20) | DEFAULT 'Aktif' | Status penugasan |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
+| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
+
+---
+
+## 6. Transaction & Dimension Tables (t_*)
+
+### 📋 `t_jabatan_struktural` — Jabatan Organisasi Pendeta 🆕
+| Column | Type | Constraint | Description |
+|--------|------|------------|-------------|
+| `id_jabatan` | VARCHAR(30) | **PK** | Format: `JBT-{timestamp}-{random}` |
+| `id_pendeta` | VARCHAR(20) | **FK** → `m_pendeta` ON DELETE CASCADE | Pendeta yang memegang jabatan |
+| `kategori` | VARCHAR(50) | NOT NULL | CHECK (`BP Mupel`, `Kepanitiaan Sinode`, `Kepanitiaan Mupel`, `Kepanitiaan Jemaat`, `Unit Misioner`, `Pokja`, `Lainnya`) |
+| `nama_jabatan` | VARCHAR(100) | NOT NULL | Nama spesifik posisi/jabatan |
+| `tingkat` | VARCHAR(20) | NOT NULL | CHECK (`Sinode`, `Mupel`, `Jemaat`) |
+| `tgl_mulai` | DATE | NOT NULL, DEFAULT CURRENT_DATE | Tanggal mulai menjabat |
+| `tgl_selesai` | DATE | nullable | NULL = Masih aktif |
+| `no_sk` | VARCHAR(100) | | Nomor Surat Keputusan |
+| `tgl_sk` | DATE | | Tanggal Surat Keputusan |
+| `status` | VARCHAR(20) | DEFAULT 'Aktif' | CHECK (`Aktif`, `Selesai`, `Nonaktif`) |
+| `keterangan` | TEXT | | Catatan tambahan |
+| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
+| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 
 ---
 
 ### 📋 `t_log_pastoral` — Log Kegiatan Pastoral
-
 | Column | Type | Constraint | Description |
 |--------|------|------------|-------------|
-| `id_log` | VARCHAR(30) | **PK** | |
-| `id_pos` | VARCHAR(20) | **FK** → `m_pos_pelkes` | |
-| `id_pendeta` | VARCHAR(20) | **FK** → `m_pendeta` | |
-| `tgl` | DATE | NOT NULL | |
-| `kegiatan` | VARCHAR(200) | NOT NULL | Jenis kegiatan |
-| `jml_jiwa` | INT | | Jumlah jiwa dilayani |
-| `catatan` | TEXT | | |
-| `keterangan` | TEXT | | |
+| `id_log` | VARCHAR(30) | **PK** | ID Log Pastoral |
+| `id_pos` | VARCHAR(20) | **FK** → `m_pos_pelkes` | Pos Pelkes terkait |
+| `id_pendeta` | VARCHAR(20) | **FK** → `m_pendeta` | Pendeta pelaksana |
+| `tgl` | DATE | NOT NULL | Tanggal pelayanan |
+| `kegiatan` | VARCHAR(200) | NOT NULL | Jenis kegiatan pelayanan |
+| `jml_jiwa` | INT | | Jumlah jiwa yang dilayani |
+| `catatan` | TEXT | | Detail catatan pelayanan |
+| `foto_url` | TEXT | 🔄 Nullable | URL foto dokumentasi kegiatan |
+| `keterangan` | TEXT | | Keterangan tambahan |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 
 ---
 
-### 📋 `t_pelayan` — Data Pelayan di Pos Pelkes
-
-| Column | Type | Constraint | Description |
-|--------|------|------------|-------------|
-| `id_pelayan` | VARCHAR(30) | **PK** | |
-| `id_pos` | VARCHAR(20) | **FK** → `m_pos_pelkes` | |
-| `nama` | VARCHAR(150) | NOT NULL | |
-| `no_wa` | VARCHAR(20) | | |
-| `jabatan` | VARCHAR(100) | | |
-| `tgl_lahir` | DATE | | |
-| `gender` | VARCHAR(10) | | |
-| `status` | VARCHAR(50) | DEFAULT 'Aktif' | |
-| `keterangan` | TEXT | | |
-| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
-| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
-
----
-
-### 📋 `t_jadwal_ibadah` — Jadwal Ibadah Rutin
-
+### 📋 `t_jadwal_ibadah` — Jadwal Ibadah Pos Pelkes
 | Column | Type | Constraint | Description |
 |--------|------|------------|-------------|
 | `id_ibadah` | VARCHAR(30) | **PK** | |
 | `id_pos` | VARCHAR(20) | **FK** → `m_pos_pelkes` | |
-| `jenis` | VARCHAR(100) | NOT NULL | Jenis ibadah |
+| `jenis` | VARCHAR(100) | NOT NULL | Jenis ibadah (Hari Minggu/Keluarga/dll) |
 | `hari` | VARCHAR(20) | NOT NULL | Hari pelaksanaan |
 | `jam` | TIME | NOT NULL | Jam pelaksanaan |
-| `keterangan` | TEXT | | |
-| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
-| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
-
----
-
-### 📋 `t_relawan` — Data Relawan
-
-| Column | Type | Constraint | Description |
-|--------|------|------------|-------------|
-| `id_relawan` | VARCHAR(30) | **PK** | |
-| `id_pos` | VARCHAR(20) | **FK** → `m_pos_pelkes` | |
-| `nama` | VARCHAR(150) | NOT NULL | |
-| `no_wa` | VARCHAR(20) | | |
-| `tgl_lahir` | DATE | | |
-| `gender` | VARCHAR(10) | | |
-| `kategori` | VARCHAR(100) | | |
-| `pelatihan` | VARCHAR(200) | | |
+| `zona_waktu` | VARCHAR(10) | 🔄 DEFAULT 'WIB' | Zona waktu (`WIB`, `WITA`, `WIT`) |
 | `keterangan` | TEXT | | |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
@@ -759,16 +459,17 @@ WHERE tanggal_selesai IS NULL;
 ---
 
 ### 📋 `t_aset_tanah` — Aset Tanah
-
 | Column | Type | Constraint | Description |
 |--------|------|------------|-------------|
 | `id_tanah` | VARCHAR(30) | **PK** | |
 | `id_pos` | VARCHAR(20) | **FK** → `m_pos_pelkes` | |
-| `luas_m2` | DECIMAL(12,2) | | Luas dalam m² |
-| `thn_perolehan` | INT | | |
-| `status_hukum` | VARCHAR(100) | | SHM/HGB/dll |
-| `kondisi` | VARCHAR(50) | | |
-| `potensi_sda` | VARCHAR(200) | | |
+| `luas_m2` | DECIMAL(12,2) | | Luas tanah ($m^2$) |
+| `thn_perolehan` | INT | | Tahun perolehan |
+| `status_hukum` | VARCHAR(100) | | Status sertifikat (SHM/HGB/dll) |
+| `kondisi` | VARCHAR(50) | | Kondisi fisik |
+| `potensi_sda` | VARCHAR(200) | | Potensi sumber daya alam |
+| `latitude` | NUMERIC(10,7) | 🔄 Nullable | Koordinat lokasi fisik tanah |
+| `longitude` | NUMERIC(10,7) | 🔄 Nullable | Koordinat lokasi fisik tanah |
 | `keterangan` | TEXT | | |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
@@ -776,383 +477,171 @@ WHERE tanggal_selesai IS NULL;
 ---
 
 ### 📋 `t_aset_bangunan` — Aset Bangunan
-
 | Column | Type | Constraint | Description |
 |--------|------|------------|-------------|
 | `id_bangunan` | VARCHAR(30) | **PK** | |
 | `id_pos` | VARCHAR(20) | **FK** → `m_pos_pelkes` | |
-| `fungsi` | VARCHAR(100) | | Fungsi bangunan |
-| `kondisi` | VARCHAR(50) | | |
-| `thn_berdiri` | INT | | |
+| `nama_bangunan` | VARCHAR(150) | 🔄 Nullable | Nama spesifik bangunan |
+| `fungsi` | VARCHAR(100) | | Peruntukan/fungsi bangunan |
+| `kondisi` | VARCHAR(50) | | Kondisi fisik bangunan |
+| `thn_berdiri` | INT | | Tahun pembangunan |
+| `latitude` | NUMERIC(10,7) | 🔄 Nullable | Koordinat fisik bangunan |
+| `longitude` | NUMERIC(10,7) | 🔄 Nullable | Koordinat fisik bangunan |
 | `keterangan` | TEXT | | |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 
 ---
 
-### 📋 `t_aset_bergerak` — Aset Bergerak
-
+### 📋 `t_aset_bergerak` — Aset Bergerak (Kendaraan/Peralatan)
 | Column | Type | Constraint | Description |
 |--------|------|------------|-------------|
 | `id_aset_b` | VARCHAR(30) | **PK** | |
 | `id_pos` | VARCHAR(20) | **FK** → `m_pos_pelkes` | |
-| `jenis` | VARCHAR(100) | | Jenis aset |
-| `merk_tipe` | VARCHAR(100) | | |
-| `thn_perolehan` | INT | | |
-| `no_polisi` | VARCHAR(20) | | |
-| `tgl_pajak` | DATE | | |
+| `jenis` | VARCHAR(100) | | Jenis aset bergerak |
+| `merk_tipe` | VARCHAR(100) | | Merk dan tipe |
+| `kondisi` | VARCHAR(50) | 🔄 DEFAULT 'Baik' | Kondisi fisik aset |
+| `thn_perolehan` | INT | | Tahun perolehan |
+| `no_polisi` | VARCHAR(20) | | Nomor polisi (jika kendaraan) |
+| `tgl_pajak` | DATE | | Jatuh tempo pajak |
+| `latitude` | NUMERIC(10,7) | 🔄 Nullable | Koordinat lokasi fisik aset |
+| `longitude` | NUMERIC(10,7) | 🔄 Nullable | Koordinat lokasi fisik aset |
 | `keterangan` | TEXT | | |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 
 ---
 
-### 📋 `t_lampiran_aset` — Lampiran Dokumen Aset
+### 📋 `t_kerawanan_wilayah` & `t_potensi_wilayah`
+- **`t_kerawanan_wilayah`**: `id_risiko` (PK), `id_pos` (FK), `kategori`, `jenis_risiko`, `frekuensi`, `latitude` (NUMERIC 10,8), `longitude` (NUMERIC 11,8), `updated_by` (VARCHAR 150), `keterangan`, timestamps.
+- **`t_potensi_wilayah`**: `id_potensi` (PK), `id_pos` (FK), `nama_potensi`, `kategori`, `deskripsi`, `latitude` (NUMERIC 10,8), `longitude` (NUMERIC 11,8), `updated_by` (VARCHAR 150), `keterangan`, timestamps.
 
+### 📋 `t_lampiran_kerawanan` & `t_lampiran_potensi` 🆕
+- **`t_lampiran_kerawanan`**: `id_lampiran` (PK), `id_risiko` (FK → `t_kerawanan_wilayah` ON DELETE CASCADE), `nama_file`, `file_path`, `tipe_file`, `ukuran_file`, `keterangan`, `created_at`.
+- **`t_lampiran_potensi`**: `id_lampiran` (PK), `id_potensi` (FK → `t_potensi_wilayah` ON DELETE CASCADE), `nama_file`, `file_path`, `tipe_file`, `ukuran_file`, `keterangan`, `created_at`.
+
+---
+
+## 7. Audit, Workflow & Status History Tables
+
+### 📋 `t_histori_perubahan_status` — Log Perubahan Status Elevasi 🆕
 | Column | Type | Constraint | Description |
 |--------|------|------------|-------------|
-| `id_lampiran` | VARCHAR(30) | **PK** | |
-| `id_tanah` | VARCHAR(30) | **FK** → `t_aset_tanah` ON DELETE CASCADE, nullable | |
-| `id_bangunan` | VARCHAR(30) | **FK** → `t_aset_bangunan` ON DELETE CASCADE, nullable | |
-| `id_aset_b` | VARCHAR(30) | **FK** → `t_aset_bergerak` ON DELETE CASCADE, nullable | |
-| `nama_file` | VARCHAR(200) | NOT NULL | |
-| `file_path` | VARCHAR(500) | NOT NULL | Path di Supabase Storage |
-| `tipe_file` | VARCHAR(100) | | MIME type |
-| `ukuran_file` | DECIMAL(10,2) | | Dalam KB |
-| `keterangan` | TEXT | | |
+| `id_histori` | VARCHAR(30) | **PK** | Format: `HIS-{timestamp}-{random}` |
+| `id_pos` | VARCHAR(20) | **FK** → `m_pos_pelkes` ON DELETE CASCADE | Pos Pelkes yang ditingkatkan statusnya |
+| `id_induk_baru` | VARCHAR(20) | **FK** → `m_jemaat_induk`, nullable | ID Jemaat Induk baru (jika elevasi ke Jemaat Induk) |
+| `status_lama` | VARCHAR(50) | NOT NULL | Status sebelum elevasi (`Pos Pelkes` / `Bajem`) |
+| `status_baru` | VARCHAR(50) | NOT NULL | Status target (`Bajem` / `Jemaat Induk`) |
+| `tanggal_perubahan` | DATE | NOT NULL | Tanggal resmi penetapan status |
+| `keterangan_perubahan` | TEXT | NOT NULL | Alasan / Nomor SK Penetapan |
+| `jemaat_ke` | INTEGER | 🔄 Nullable | Urutan nomor Jemaat GPIB baru |
+| `catatan` | TEXT | 🔄 Nullable | Catatan teknis histori |
+| `diubah_oleh` | UUID | **FK** → `auth.users.id` | User mengeksekusi elevasi |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 
-**Business Rules:**
-- 1 lampiran terkait **salah satu** jenis aset (tanah/bangunan/bergerak)
-- Aset dihapus → lampiran CASCADE terhapus
-- CHECK constraint: minimal 1 FK harus NOT NULL
+---
+
+## 8. Unified Identity Model & Business Rules
+
+### 🔗 Clarification 1: Redundansi `users.nama_lengkap` vs `m_pendeta.nama_lengkap`
+- **SSOT Resmi Ecclesiastical**: `m_pendeta.nama_lengkap` adalah Single Source of Truth untuk nama Pendeta beserta gelar resmi gerejawi.
+- **Display Name Universal User**: `users.nama_lengkap` berfungsi sebagai nama tampilan profil akun aplikasi untuk seluruh tipe pengguna (Super User, Admin Mupel, Admin Jemaat, Admin Pos) dan secara otomatis disinkronkan saat pendaftaran/tautan akun pendeta.
+
+### 🗺️ Clarification 2: Geospasial `m_jemaat_induk` (Nullable)
+- **Business Rule #11 (Updated)**: Geospasial (`latitude`/`longitude`) sangat direkomendasikan untuk seluruh Jemaat Induk dan secara otomatis diwarisi dari koordinat Pos Pelkes pengampu saat elevasi status.
+- **Penyebab Nullable**: Dibuat nullable di database PostgreSQL untuk menjamin kelancaran import data historis legacy GPIB dan draf awal pembentukan Jemaat Induk baru sebelum verifikasi survei lokasi.
+
+### 📜 Aturan Inti Sistem (Business Rules 1–16)
+1. **Hierarki**: Mupel (1) $\rightarrow$ (N) Jemaat Induk (1) $\rightarrow$ (N) Pos Pelkes / Bajem.
+2. **KMJ Rule**: 1 Jemaat Induk = Tepat 1 KMJ (`m_jemaat_induk.id_kmj` UNIQUE). KMJ harus seorang Pendeta aktif.
+3. **PJ Rule**: 1 Jemaat Induk = 0 atau lebih PJ (`t_pj_jemaat`). 1 Pendeta hanya bisa menjabat PJ aktif di 1 Jemaat Induk.
+4. **Pendeta Organik vs Non-Organik**: Pendeta Non-Organik memiliki batasan masa kontrak (`tgl_mulai_kontrak` & `tgl_akhir_kontrak`) dan mencatat `gereja_asal`.
+5. **Elevasi Status Pos**: Elevasi Pos Pelkes $\rightarrow$ Bajem $\rightarrow$ Jemaat Induk **WAJIB** mengeksekusi RPC `process_status_elevation()` secara atomik.
 
 ---
 
-### 📋 `t_pengajuan_bantuan` — Pengajuan Bantuan
+## 9. Atomic Database Functions (RPC)
 
-| Column | Type | Constraint | Description |
-|--------|------|------------|-------------|
-| `id_ajuan` | VARCHAR(30) | **PK** | |
-| `id_pos` | VARCHAR(20) | **FK** → `m_pos_pelkes` | |
-| `jenis_bantuan` | VARCHAR(150) | NOT NULL | |
-| `id_tanah` | VARCHAR(30) | **FK** → `t_aset_tanah` ON DELETE SET NULL, nullable | |
-| `id_bangunan` | VARCHAR(30) | **FK** → `t_aset_bangunan` ON DELETE SET NULL, nullable | |
-| `id_aset_b` | VARCHAR(30) | **FK** → `t_aset_bergerak` ON DELETE SET NULL, nullable | |
-| `biaya` | DECIMAL(15,2) | | Estimasi biaya |
-| `urgensi` | VARCHAR(50) | | Rendah/Sedang/Tinggi/Kritis |
-| `status` | VARCHAR(50) | 🔄 DEFAULT 'Draft' | `Draft` / `Pending_KMJ` / `Pending_Mupel` / `Pending_Sinode` / `Approved` / `Rejected` |
-| `keterangan` | TEXT | | |
-| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
-| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
+### ⚙️ `process_status_elevation(...)`
+Fungsi atomik untuk mengubah status Pos Pelkes menjadi Bajem atau meningkatkan status Bajem menjadi Jemaat Induk Mandiri Baru.
 
----
-
-### 📋 `t_demografi_pelkat` — Demografi per Kategori Pelkat
-
-| Column | Type | Constraint | Description |
-|--------|------|------------|-------------|
-| `id_pos` | VARCHAR(20) | **PK, FK** → `m_pos_pelkes` | Composite PK |
-| `kategori_pelkat` | VARCHAR(50) | **PK** | Composite PK (Pemuda/Wanita/Anak/dll) |
-| `jml_kk` | INT | | Jumlah KK |
-| `laki` | INT | | |
-| `perempuan` | INT | | |
-| `profesi` | VARCHAR(200) | | Profesi dominan |
-| `pendidikan` | VARCHAR(200) | | Pendidikan dominan |
-| `keterangan` | TEXT | | |
-| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
-| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
-
----
-
-### 📋 `t_kerawanan_wilayah` — Kerawanan Wilayah
-
-| Column | Type | Constraint | Description |
-|--------|------|------------|-------------|
-| `id_risiko` | VARCHAR(30) | **PK** | |
-| `id_pos` | VARCHAR(20) | **FK** → `m_pos_pelkes` | |
-| `kategori` | VARCHAR(100) | | |
-| `jenis_risiko` | VARCHAR(150) | | |
-| `frekuensi` | VARCHAR(50) | | |
-| `keterangan` | TEXT | | |
-| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
-| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
-
----
-
-### 📋 `t_potensi_wilayah` — Potensi Wilayah
-
-| Column | Type | Constraint | Description |
-|--------|------|------------|-------------|
-| `id_potensi` | VARCHAR(30) | **PK** | |
-| `id_pos` | VARCHAR(20) | **FK** → `m_pos_pelkes` | |
-| `nama_potensi` | VARCHAR(150) | | |
-| `kategori` | VARCHAR(100) | | |
-| `deskripsi` | TEXT | | |
-| `keterangan` | TEXT | | |
-| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
-| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
-
----
-
-## 7. Audit & Workflow Tables 🆕
-
-### 📋 `t_log_aktivitas` — Audit Trail 🆕
-
-| Column | Type | Constraint | Description |
-|--------|------|------------|-------------|
-| `id_log` | VARCHAR(50) | **PK** | Format: `LOG-{timestamp}-{random}` |
-| `id_user` | UUID | **FK** → `users.id`, nullable | NULL = aksi sistem |
-| `waktu` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | |
-| `aktor` | VARCHAR(50) | NOT NULL | No telepon atau 'Sistem' |
-| `aksi` | VARCHAR(30) | NOT NULL | `LOGIN` / `CREATE` / `EDIT` / `DELETE` / `APPROVE` / `REJECT` |
-| `objek_type` | VARCHAR(30) | | `jemaat` / `pos` / `pendeta` / `aset` / `bantuan` / `pastoral` |
-| `objek_id` | VARCHAR(30) | | ID objek yang diaksi |
-| `keterangan` | TEXT | | Deskripsi aksi |
-
-**Data Awal:** 500+ log (dari `GPIB.xlsx`)
-
----
-
-### 📋 `t_approval_bantuan` — Workflow Approval 🆕
-
-| Column | Type | Constraint | Description |
-|--------|------|------------|-------------|
-| `id` | SERIAL | **PK** | |
-| `id_ajuan` | VARCHAR(30) | **FK** → `t_pengajuan_bantuan` ON DELETE CASCADE | |
-| `approver_id` | UUID | **FK** → `users.id` | User yang approve |
-| `role_approver` | VARCHAR(20) | NOT NULL | `kmj` / `admin_mupel` / `super_user` |
-| `aksi` | VARCHAR(20) | NOT NULL | `approve` / `reject` / `revision` |
-| `catatan` | TEXT | | Catatan approval |
-| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
-
-**Workflow:**
-```
-Pos Pelkes → KMJ → Admin Mupel → Super User Sinode
-   ↓          ↓         ↓              ↓
- Draft    Pending_KMJ  Pending_Mupel  Pending_Sinode → Approved/Rejected
-```
-
----
-
-### 📋 `t_form_draft` — Cross-Device Form Draft 🆕
-
-| Column | Type | Constraint | Description |
-|--------|------|------------|-------------|
-| `id` | UUID | **PK** DEFAULT gen_random_uuid() | |
-| `id_user` | UUID | **FK** → `users.id` ON DELETE CASCADE | |
-| `form_type` | VARCHAR(30) | NOT NULL | `log_pastoral` / `aset` / `bantuan` / `demografi` |
-| `objek_id` | VARCHAR(30) | nullable | ID objek (untuk edit) |
-| `data` | JSONB | NOT NULL | Data form |
-| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
-| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
-| `expires_at` | TIMESTAMPTZ | 🆕 NOT NULL | Auto-delete setelah 30 hari |
-
-**Business Rules:**
-- Auto-delete via cron job setiap hari
-- Max 50 draft per user
-- Data di-encrypt sebelum disimpan
-
----
-
-## 8. Business Rules
-
-### 📜 Aturan Inti
-
-| # | Rule | Enforcement |
-|---|------|-------------|
-| 1 | **Hierarki**: Mupel (1) → (N) Jemaat Induk (1) → (N) Pos Pelkes | Foreign Key |
-| 2 | **1 Jemaat = tepat 1 KMJ** (atau NULL) | `id_kmj` UNIQUE di `m_jemaat_induk` |
-| 3 | **KMJ harus Pendeta** | FK ke `m_pendeta` |
-| 4 | **1 Pendeta = max 1 KMJ** | Partial unique index `WHERE is_kmj = TRUE` |
-| 5 | **1 Jemaat = 0+ PJ** | Tabel `t_pj_jemaat` |
-| 6 | **PJ harus Pendeta** | FK ke `m_pendeta` |
-| 7 | **Mutasi Pendeta** tercatat di `t_riwayat_mutasi_pendeta` | Database Function (RPC) |
-| 8 | **Aset dihapus** → lampiran CASCADE terhapus | `ON DELETE CASCADE` |
-| 9 | **Pengajuan bantuan** bisa terkait aset atau tidak | Nullable FK + `ON DELETE SET NULL` |
-| 10 | **Demografi Pelkat** per kategori (Composite PK) | `(id_pos, kategori_pelkat)` |
-| 11 | **Geospasial** wajib untuk Jemaat Induk | NOT NULL |
-| 12 | **Biometric** max 5 device per user | Database constraint |
-| 13 | **Biometric** auto-expire 90 hari | Cron job |
-| 14 | **Form draft** auto-delete 30 hari | Cron job + `expires_at` |
-| 15 | **Workflow bantuan**: Pos → KMJ → Mupel → Sinode | Status enum + `t_approval_bantuan` |
-
-### 🆕 Catatan: Profile 360° (Read-Only Aggregation)
-
-Profile 360° TIDAK membuat tabel baru. Ia mengagregasi data dari tabel existing:
-
-| Sumbu | Tabel yang Dibaca | Via |
-|---|---|---|
-| **Akun** | `users`, `m_webauthn_credentials`, `m_push_subscription`, `t_log_aktivitas`, `t_form_draft` | `users.id` |
-| **Pelayanan** | `m_pendeta`, `m_jemaat_induk`, `m_mupel`, `t_penugasan_pendeta`, `t_pj_jemaat`, `t_riwayat_mutasi_pendeta`, `t_log_pastoral` | `users.id_pendeta` → `m_pendeta.id_pendeta` |
-
-**RPC Agregat:** `get_profile_stats(p_id_pendeta)` — STABLE, SECURITY DEFINER
-**RLS Asimetri:**
-- `t_log_aktivitas`, `m_webauthn_credentials`: diri sendiri + super_user SAJA
-- Tabel pelayanan: sesuai scope role (super_user global, admin_mupel per mupel, kmj per jemaat)
-
-### 🔄 Atomic Operations (Database Functions)
-
+**Signatur Parameter**:
 ```sql
--- 1. Set KMJ (atomic)
-CREATE FUNCTION set_kmj(p_id_induk VARCHAR, p_id_pendeta VARCHAR) RETURNS VOID
-
--- 2. Assign PJ (atomic)
-CREATE FUNCTION assign_pj(p_id_induk VARCHAR, p_id_pendeta VARCHAR) RETURNS VOID
-
--- 3. Mutasi Pendeta (atomic)
-CREATE FUNCTION mutasi_pendeta(
-    p_id_pendeta VARCHAR,
-    p_id_induk_baru VARCHAR,
-    p_alasan TEXT
+FUNCTION process_status_elevation(
+  p_id_pos VARCHAR,
+  p_target_status VARCHAR,        -- 'BAJEM' atau 'JEMAAT_INDUK'
+  p_tanggal_perubahan DATE,
+  p_keterangan TEXT,
+  p_id_induk_baru VARCHAR DEFAULT NULL,
+  p_nama_induk_baru VARCHAR DEFAULT NULL,
+  p_id_mupel_baru VARCHAR DEFAULT NULL,
+  p_jemaat_ke INTEGER DEFAULT NULL,
+  p_catatan TEXT DEFAULT NULL
 ) RETURNS VOID
-
--- 4. Submit Bantuan (start workflow)
-CREATE FUNCTION submit_bantuan(p_id_ajuan VARCHAR) RETURNS VOID
 ```
 
----
-
-## 9. Indexes
-
-### 🚀 Performance Indexes
-
-| Index | Table | Column(s) | Purpose |
-|-------|-------|-----------|---------|
-| `idx_jemaat_induk_mupel` | `m_jemaat_induk` | `id_mupel` | Query by Mupel |
-| `idx_jemaat_kmj` | `m_jemaat_induk` | `id_kmj` | Query KMJ |
-| `idx_pos_pelkes_induk` | `m_pos_pelkes` | `id_induk` | Query by Jemaat |
-| `idx_pos_pelkes_geo` | `m_pos_pelkes` | `latitude, longitude` | Geospasial query |
-| `idx_pendeta_induk` | `m_pendeta` | `id_induk` | Query by Jemaat |
-| `idx_pendeta_kmj_unik` | `m_pendeta` | `id_induk` | `WHERE is_kmj = TRUE` |
-| `idx_penugasan_pendeta` | `t_penugasan_pendeta` | `id_pendeta` | Query by Pendeta |
-| `idx_penugasan_pos` | `t_penugasan_pendeta` | `id_pos` | Query by Pos |
-| `idx_pj_aktif_unik` | `t_pj_jemaat` | `(id_induk, id_pendeta)` | `WHERE tanggal_selesai IS NULL` |
-| `idx_pj_aktif` | `t_pj_jemaat` | `id_induk` | `WHERE tanggal_selesai IS NULL` |
-| `idx_log_pastoral_pos` | `t_log_pastoral` | `id_pos` | Query by Pos |
-| `idx_log_pastoral_pendeta` | `t_log_pastoral` | `id_pendeta` | Query by Pendeta |
-| `idx_log_pastoral_tgl` | `t_log_pastoral` | `tgl` | Query by Tanggal |
-| `idx_riwayat_mutasi_pendeta` | `t_riwayat_mutasi_pendeta` | `id_pendeta` | Query by Pendeta |
-| `idx_riwayat_mutasi_tgl` | `t_riwayat_mutasi_pendeta` | `tgl_mutasi` | Query by Tanggal |
-| `idx_webauthn_user` | `m_webauthn_credentials` | `id_user` | Query by User |
-| `idx_push_user` | `m_push_subscription` | `id_user` | Query by User |
-| `idx_log_aktivitas_user` | `t_log_aktivitas` | `id_user` | Query by User |
-| `idx_log_aktivitas_waktu` | `t_log_aktivitas` | `waktu` | Query by Time |
-| `idx_form_draft_user` | `t_form_draft` | `id_user` | Query by User |
-| `idx_form_draft_expires` | `t_form_draft` | `expires_at` | Cleanup job |
-| `idx_approval_ajuan` | `t_approval_bantuan` | `id_ajuan` | Query by Ajuan |
+**Langkah Kerja Atomik**:
+1. Memeriksa keberadaan Pos Pelkes & mengambil data alamat serta lat/long saat ini.
+2. Jika `target_status = 'BAJEM'`: Mengubah `m_pos_pelkes.kategori = 'Bajem'`, serta mencatat log di `t_histori_perubahan_status`.
+3. Jika `target_status = 'JEMAAT_INDUK'`:
+   - Membikin record baru di `m_jemaat_induk` (mewarisi alamat, koordinat GPS lat/long, dan menetapkan `jemaat_ke`).
+   - Mengubah `m_pos_pelkes.id_induk` ke Jemaat Induk baru tersebut & men-set `kategori = 'Bajem'`.
+   - Mencatat audit log di `t_histori_perubahan_status`.
 
 ---
 
-## 10. RLS Policies Overview
+## 10. Storage Buckets & Policies
 
-### 🔐 Row Level Security per Role
+| Bucket Name | Accessibility | Allowed File Types | Purpose |
+|-------------|---------------|-------------------|---------|
+| `log-pastoral-images` | Public Read / Authenticated Write | JPG, PNG, WEBP | Foto bukti kegiatan pelayanan pastoral |
+| `assets` | Public Read / Authenticated Write | JPG, PNG, WEBP, PDF | Foto & dokumen lampiran aset gereja |
+| `avatars` / `profile-images` | Public Read / Authenticated Write | JPG, PNG, WEBP | Foto profil pengguna, pendeta & pelayan |
 
-| Role | Scope | Implementasi |
-|------|-------|--------------|
-| **Super User** | Global | `auth.jwt() ->> 'role' = 'super_user'` |
-| **Admin Mupel** | Mupel tertentu | `id_mupel = auth.jwt() ->> 'id_mupel'` |
-| **KMJ** | Jemaat yang dipimpin + semua Pos di bawahnya | `id_induk IN (SELECT id_induk FROM m_jemaat_induk WHERE id_kmj = ...)` |
-| **PJ** | Jemaat + Pos yang ditugaskan | Via `t_pj_jemaat` atau `t_penugasan_pendeta` |
-| **User** | Hanya Pos yang ditugaskan | Via `t_penugasan_pendeta` |
-| **Anonymous** | Read-only data publik | Dashboard publik |
+---
 
-### 📝 Contoh RLS Policy
+## 11. Performance Indexes
+
+Seluruh indeks performa telah disetup di Supabase untuk navigasi cepat & query berskala besar:
 
 ```sql
--- KMJ bisa akses Jemaat yang dipimpinnya
-CREATE POLICY "KMJ akses jemaat yang dipimpinnya"
-ON m_jemaat_induk FOR ALL
-USING (
-    id_induk IN (
-        SELECT id_induk FROM m_jemaat_induk 
-        WHERE id_kmj = (SELECT id_pendeta FROM users WHERE id = auth.uid())
-    )
-);
+-- Indeks Hierarki & Master
+CREATE INDEX IF NOT EXISTS idx_m_pos_pelkes_id_induk ON public.m_pos_pelkes(id_induk);
+CREATE INDEX IF NOT EXISTS idx_m_pos_pelkes_kategori ON public.m_pos_pelkes(kategori);
+CREATE INDEX IF NOT EXISTS idx_m_jemaat_induk_id_mupel ON public.m_jemaat_induk(id_mupel);
+CREATE INDEX IF NOT EXISTS idx_m_jemaat_induk_id_kmj ON public.m_jemaat_induk(id_kmj);
 
--- PJ bisa akses Jemaat tempatnya melayani
-CREATE POLICY "PJ akses jemaat tempatnya melayani"
-ON m_jemaat_induk FOR ALL
-USING (
-    id_induk IN (
-        SELECT id_induk FROM t_pj_jemaat 
-        WHERE id_pendeta = (SELECT id_pendeta FROM users WHERE id = auth.uid())
-        AND tanggal_selesai IS NULL
-    )
-);
+-- Indeks Pengguna & Auth Hierarchy
+CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
+CREATE INDEX IF NOT EXISTS idx_users_id_mupel ON public.users(id_mupel);
+CREATE INDEX IF NOT EXISTS idx_users_id_induk ON public.users(id_induk);
+CREATE INDEX IF NOT EXISTS idx_users_id_pos ON public.users(id_pos);
+CREATE INDEX IF NOT EXISTS idx_users_role ON public.users(role);
 
--- User hanya bisa akses Pos yang ditugaskan
-CREATE POLICY "User akses pos yang ditugaskan"
-ON m_pos_pelkes FOR ALL
-USING (
-    id_pos IN (
-        SELECT id_pos FROM t_penugasan_pendeta 
-        WHERE id_pendeta = (SELECT id_pendeta FROM users WHERE id = auth.uid())
-        AND tgl_selesai IS NULL
-    )
-);
+-- Indeks Histori & Transaksi
+CREATE INDEX IF NOT EXISTS idx_t_histori_id_pos ON public.t_histori_perubahan_status(id_pos);
+CREATE INDEX IF NOT EXISTS idx_t_histori_id_induk_baru ON public.t_histori_perubahan_status(id_induk_baru);
+CREATE INDEX IF NOT EXISTS idx_jabatan_pendeta ON public.t_jabatan_struktural(id_pendeta);
+CREATE INDEX IF NOT EXISTS idx_jabatan_aktif ON public.t_jabatan_struktural(id_pendeta, kategori) WHERE status = 'Aktif';
 ```
 
 ---
 
-## 📊 Statistik ERD
+## 12. Row Level Security (RLS) Policies
 
-| Kategori | Jumlah |
-|----------|--------|
-| **Master Tables** | 4 |
-| **Auth & Security Tables** 🆕 | 3 |
-| **KMJ/PJ Assignment Tables** 🆕 | 1 |
-| **Transaction Tables** | 14 |
-| **Audit & Workflow Tables** 🆕 | 3 |
-| **TOTAL TABEL** | **25** |
-| **Tabel Baru di v2.2** 🆕 | **7** |
-| **Tabel Dimodifikasi di v2.2** 🔄 | **3** |
+Setiap tabel baru maupun yang dimodifikasi telah dilindungi dengan kebijakan RLS berlapis:
 
----
-
-## 📝 Penutup
-
-ERD v2.2 ini merupakan evolusi dari skema v1.0 dengan penambahan fokus pada:
-
-✅ **KMJ & PJ Management** — Relasi yang jelas antara Jemaat dan Pendeta
-✅ **Biometric Auth** — WebAuthn credentials untuk login cepat
-✅ **Workflow Approval** — Multi-level approval pengajuan bantuan
-✅ **Audit Trail** — Log aktivitas lengkap untuk compliance
-✅ **Form Draft** — Cross-device sync untuk offline scenario
-✅ **Push Notifications** — Subscription untuk notifikasi real-time
-
-### ✅ Next Steps
-
-1. **Review ERD** oleh Tech Lead & Stakeholder
-2. **Generate SQL Migration** dari ERD ini
-3. **Setup Supabase** dengan skema baru
-4. **Generate TypeScript types** via `supabase gen types`
-5. **Implementasi RLS policies** sesuai role hierarchy
+- **`t_jabatan_struktural`**:
+  - `SELECT`: Bebas dibaca oleh pengguna terautentikasi (transparansi organisasi).
+  - `ALL`: `super_user` penuh, `admin_mupel` untuk pendeta di wilayah Mupel-nya.
+- **`t_histori_perubahan_status`**:
+  - `SELECT`: Dibaca publik/pengguna terautentikasi.
+  - `INSERT/UPDATE`: Pengguna terautentikasi dengan hak akses elevasi.
+- **`t_lampiran_kerawanan` & `t_lampiran_potensi`**:
+  - Mengikuti kebijakan akses tabel parent (`t_kerawanan_wilayah` & `t_potensi_wilayah`).
 
 ---
 
-## 11. Unified Identity Model & Jabatan Struktural 🆕
-
-### 🔗 Model Identitas Terpadu (Satu Orang, Dua Wajah, Satu Jembatan)
-
-```
-[ users.id (UUID auth) ]  <---- JEMBATAN ---->  [ m_pendeta.id_pendeta (PDT-XXXXXXXX) ]
-                                (users.id_pendeta)
-```
-
-**Kontrak Integritas Database & Keamanan:**
-1. **`m_pendeta.id_pendeta` bersifat IMMUTABLE** — tidak pernah berubah setelah dibuat.
-2. **1 Pendeta = Max 1 Akun Aktif** (`uq_users_pendeta_aktif` partial unique index pada `users(id_pendeta) WHERE id_pendeta IS NOT NULL`).
-3. **Single Source of Truth Nama**: Nama pendeta bersumber utama dari `m_pendeta.nama_lengkap`.
-4. **Penghapusan Pendeta ≠ Penghapusan Akun**: Penghapusan row `m_pendeta` di-set `ON DELETE SET NULL` pada `users.id_pendeta` dan memicu trigger `BEFORE DELETE` untuk men-set `users.status = 'Nonaktif'`.
-5. **Integritas History Pelayanan**: Tabel histori (`t_pj_jemaat`, `t_penugasan_pendeta`, `t_riwayat_mutasi_pendeta`, `t_log_pastoral`, `t_jabatan_struktural`) bersifat `ON DELETE RESTRICT` untuk menjamin jejak pelayanan tidak pernah terhapus.
-6. **Data Personal 360°**: Data dimensi (`t_keluarga_pendeta`, `t_kompetensi_pendeta`, `t_keterlibatan_pendeta`) bersifat `ON DELETE CASCADE`.
-7. **RLS Real-Time Lookup**: RLS memeriksa hak akses langsung ke database `(SELECT id_pendeta FROM users WHERE id = auth.uid())` bukan dari claims JWT yang bisa basi.
-8. **Privasi Asimetris RPC `get_pendeta_360`**: Fungsi `SECURITY DEFINER` memproteksi blok `keluarga` hanya untuk Pemilik Data & Super User. Admin Mupel tidak diperkenankan melihat data keluarga.
-
----
-
-📅 *Tanggal Update Terbaru:* 30 Juli 2026
-✍️ *Disusun oleh:* Senior Database & Backend Architect SI GPIB v2.2
-🔗 *Versi:* 2.2.1 (Unified Identity Architecture Enabled)
-
+📅 *Tanggal Update Terbaru:* 3 Agustus 2026  
+✍️ *Disusun & Diselaraskan oleh:* Team Leader & Senior Database Architect SI GPIB v2.2  
+🔗 *Status Operasional:* Fully Synchronized with Supabase Production Database Schema

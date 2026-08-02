@@ -1,7 +1,7 @@
-import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { PosPelkesDetailClient } from './pos-pelkes-detail-client';
+import { PosNotFound } from '@/components/detail/PosNotFound';
 
 // --- Types ---
 interface PosDetail {
@@ -109,7 +109,7 @@ async function getPosDetail(id_pos: string): Promise<PosDetail | null> {
       jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, latitude, longitude, keterangan, mupel:m_mupel(id_mupel, nama_mupel))
     `)
     .eq('id_pos', id_pos)
-    .single();
+    .maybeSingle();
 
   if (error || !data) return null;
   return data as unknown as PosDetail;
@@ -254,8 +254,9 @@ export default async function PosPelkesDetailPage({
     getHistoriStatus(id_pos),
   ]);
 
+  // Graceful 404 handling if Pos Pelkes is missing/deleted
   if (!pos) {
-    notFound();
+    return <PosNotFound id_pos={id_pos} />;
   }
 
   // Determine RBAC permissions

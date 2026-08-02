@@ -1,18 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { CollapsingMapHeader } from '@/components/detail/CollapsingMapHeader';
 import { GlideTabs, TabOption } from '@/components/detail/GlideTabs';
-import { InfoBlock } from '@/components/detail/InfoBlock';
-import { SummaryStrip } from '@/components/list/SummaryStrip';
+import { ProfilTab } from '@/components/detail/ProfilTab';
 import { PastoralTab } from '@/components/detail/PastoralTab';
 import { AsetTab } from '@/components/detail/AsetTab';
-import { DemografiTab } from '@/components/detail/DemografiTab';
 import { PelayanTab } from '@/components/detail/PelayanTab';
 import { WilayahTab } from '@/components/detail/WilayahTab';
 import { ContextualFab } from '@/components/detail/ContextualFab';
 import { JadwalTabContent } from './jadwal-tab-content';
+import { ListSkeleton } from '@/components/list/ListSkeleton';
 import {
   Home,
   Calendar,
@@ -21,11 +20,16 @@ import {
   Building2,
   Compass,
   Activity,
-  MapPin,
-  Phone,
-  Navigation,
-  ExternalLink,
 } from 'lucide-react';
+
+// Lazy-load DemografiTab (containing Recharts bundle) to keep initial JS payload < 100KB
+const DemografiTabLazy = dynamic(
+  () => import('@/components/detail/DemografiTab').then((mod) => mod.DemografiTab),
+  {
+    ssr: false,
+    loading: () => <ListSkeleton count={3} />,
+  }
+);
 
 interface PosPelkesDetailClientProps {
   pos: any;
@@ -72,17 +76,8 @@ export function PosPelkesDetailClient({
 }: PosPelkesDetailClientProps) {
   const [activeTab, setActiveTab] = useState<string>(initialTab);
 
-  // Demografi Totals
-  const demoKK = demografi?.reduce((acc: number, curr: any) => acc + (curr.jml_kk || 0), 0) || 0;
-  const demoLaki = demografi?.reduce((acc: number, curr: any) => acc + (curr.laki || 0), 0) || 0;
-  const demoPerempuan = demografi?.reduce((acc: number, curr: any) => acc + (curr.perempuan || 0), 0) || 0;
-  const demoJiwa = demoLaki + demoPerempuan;
-
-  const totalKK = demoKK || pos.jumlah_kk || 0;
-  const totalJiwa = demoJiwa || pos.jumlah_jiwa || 0;
-
   return (
-    <div className="space-y-4 pb-24 max-w-4xl mx-auto px-3 sm:px-6">
+    <div className="space-y-4 pb-28 max-w-4xl mx-auto px-3 sm:px-6">
       {/* 1. Collapsing Map Identity Header */}
       <CollapsingMapHeader
         pos={pos}
@@ -102,130 +97,11 @@ export function PosPelkesDetailClient({
         className="rounded-2xl shadow-xs"
       />
 
-      {/* 3. Tab Contents */}
+      {/* 3. Lazy Tab Contents */}
       <div className="pt-2">
         {/* TAB 1: PROFIL */}
         {activeTab === 'profil' && (
-          <div className="space-y-4 animate-tab-fade">
-            {/* StatStrip Demografi */}
-            <SummaryStrip
-              metrics={[
-                { label: 'Jumlah KK', value: totalKK, icon: <Home size={16} className="text-emerald-600 dark:text-emerald-400" /> },
-                { label: 'Total Jiwa', value: totalJiwa, icon: <Users size={16} className="text-brand-primary" /> },
-                { label: 'Laki-Laki', value: demoLaki, icon: <User size={16} className="text-blue-600 dark:text-blue-400" /> },
-                { label: 'Perempuan', value: demoPerempuan, icon: <User size={16} className="text-pink-600 dark:text-pink-400" /> },
-              ]}
-              className="bg-surface-1/50 rounded-xl py-2 px-3 hairline-b"
-            />
-
-            {/* Quick Pendeta PJ Card (If assigned) */}
-            {pj && (
-              <div className="bg-surface-1 p-3.5 rounded-2xl border border-border-subtle shadow-xs flex items-center justify-between gap-3">
-                <Link
-                  href={`/pendeta/${pj.id_pendeta}`}
-                  className="flex items-center gap-3 min-w-0 flex-1 group"
-                >
-                  {pj.foto_url ? (
-                    <img
-                      src={pj.foto_url}
-                      alt={pj.nama_lengkap}
-                      className="w-10 h-10 rounded-xl object-cover border border-border-subtle shrink-0 shadow-2xs group-hover:scale-105 transition-transform"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-xl bg-brand-primary text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs">
-                      {pj.nama_lengkap.charAt(0)}
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <span className="text-[10px] font-black text-brand-primary uppercase tracking-wider block">
-                      Pendeta Jemaat (PJ)
-                    </span>
-                    <h4 className="font-extrabold text-sm text-text-high truncate group-hover:text-brand-primary transition-colors">
-                      {pj.nama_lengkap}
-                    </h4>
-                    <p className="text-[11px] text-text-muted mt-0.5">
-                      Status: {pj.status_tugas || 'Aktif'}
-                    </p>
-                  </div>
-                </Link>
-
-                {pj.no_wa && (
-                  <a
-                    href={`https://wa.me/${pj.no_wa.replace(/[^0-9]/g, '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center transition-all min-h-[40px] min-w-[40px] shrink-0"
-                    title={`Chat WA ${pj.nama_lengkap}`}
-                  >
-                    <Phone size={16} />
-                  </a>
-                )}
-              </div>
-            )}
-
-            {/* Information Blocks Container (Hairline Cardless List) */}
-            <div className="bg-surface-1 rounded-2xl border border-border-subtle shadow-xs overflow-hidden divide-y divide-line-hairline">
-              <InfoBlock
-                icon={<MapPin className="w-4 h-4 text-brand-primary" />}
-                label="Alamat Pos Pelkes"
-                value={pos.alamat}
-              />
-
-              <InfoBlock
-                icon={<Building2 className="w-4 h-4 text-brand-primary" />}
-                label="Jemaat Induk Pengampu"
-                value={pos.jemaat_induk?.nama_induk}
-                href={
-                  pos.jemaat_induk
-                    ? `/hierarki/${encodeURIComponent(pos.jemaat_induk.id_mupel)}/${encodeURIComponent(pos.jemaat_induk.id_induk)}`
-                    : undefined
-                }
-              />
-
-              <InfoBlock
-                icon={<Calendar className="w-4 h-4 text-brand-primary" />}
-                label="Tanggal Berdiri"
-                value={
-                  pos.tgl_berdiri
-                    ? new Date(pos.tgl_berdiri).toLocaleDateString('id-ID', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      })
-                    : null
-                }
-              />
-
-              {pos.latitude && pos.longitude && (
-                <InfoBlock
-                  icon={<Navigation className="w-4 h-4 text-brand-primary" />}
-                  label="Koordinat Lokasi GPS"
-                  value={`Lat: ${pos.latitude}, Lng: ${pos.longitude}`}
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${pos.latitude},${pos.longitude}`}
-                  trailing={<ExternalLink size={14} className="text-text-tertiary" />}
-                />
-              )}
-
-              <InfoBlock
-                icon={<Compass className="w-4 h-4 text-brand-primary" />}
-                label="Catatan Keterangan"
-                value={pos.keterangan}
-              />
-
-              <InfoBlock
-                icon={<Activity className="w-4 h-4 text-brand-primary" />}
-                label="Terakhir Diperbarui"
-                value={
-                  pos.updated_at
-                    ? `${new Date(pos.updated_at).toLocaleString('id-ID', {
-                        dateStyle: 'medium',
-                        timeStyle: 'short',
-                      })} ${pos.updated_by ? `oleh ${pos.updated_by}` : ''}`
-                    : null
-                }
-              />
-            </div>
-          </div>
+          <ProfilTab pos={pos} demografi={demografi} pj={pj} />
         )}
 
         {/* TAB 2: JADWAL */}
@@ -248,10 +124,10 @@ export function PosPelkesDetailClient({
           </div>
         )}
 
-        {/* TAB 4: DEMOGRAFI */}
+        {/* TAB 4: DEMOGRAFI (Lazy Loaded Recharts) */}
         {activeTab === 'demografi' && (
           <div className="animate-tab-fade">
-            <DemografiTab id_pos={pos.id_pos} canWrite={canWrite} />
+            <DemografiTabLazy id_pos={pos.id_pos} canWrite={canWrite} />
           </div>
         )}
 
