@@ -1,10 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import Sidebar from '@/components/layout/Sidebar';
 import MobileHeader from '@/components/layout/MobileHeader';
-import BottomNavigation from '@/components/mobile/BottomNavigation';
-import QuickActionSheet from '@/components/mobile/QuickActionSheet';
+import { SuperBottomNav } from '@/components/mobile/SuperBottomNav/SuperBottomNav';
 import { ReadOnlyNoticeBanner } from '@/components/auth/ReadOnlyNoticeBanner';
 
 export default function DashboardLayout({
@@ -12,8 +10,6 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
-
   return (
     <div className="flex h-screen bg-surface-base overflow-hidden">
       {/* Desktop Sidebar (Collapsible with grouped navigation) */}
@@ -32,14 +28,8 @@ export default function DashboardLayout({
           </div>
         </main>
 
-        {/* Mobile Bottom Navigation (5 items: Peta, Struktur, FAB, Pos & Bajem, Pengaturan) */}
-        <BottomNavigation onFabClick={() => setIsQuickActionOpen(true)} />
-
-        {/* FAB Quick Action Sheet (Mobile Bottom Sheet Modal) */}
-        <QuickActionSheet
-          isOpen={isQuickActionOpen}
-          onClose={() => setIsQuickActionOpen(false)}
-        />
+        {/* Super Bottom Navigation */}
+        <SuperBottomNav />
       </div>
     </div>
   );
