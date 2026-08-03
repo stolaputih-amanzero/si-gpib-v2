@@ -65,6 +65,7 @@ export interface ProfilePelayanan {
   email?: string | null;
   tgl_tugas_awal?: string | null;
   jenis_pendeta?: string | null;
+  jabatan?: string | null;
   status_aktif: boolean;
   id_induk?: string | null;
   id_mupel?: string | null;
@@ -72,7 +73,9 @@ export interface ProfilePelayanan {
   is_kmj: boolean;
   is_pj: boolean;
   jemaat_induk_nama?: string | null;
+  nama_induk?: string | null;
   mupel_nama?: string | null;
+  nama_mupel?: string | null;
   pos_pelkes_nama?: string | null;
 }
 

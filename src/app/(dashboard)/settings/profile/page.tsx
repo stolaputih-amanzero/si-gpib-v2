@@ -19,6 +19,19 @@ export default function MyProfilePage() {
   const { data: akun } = useProfileAkun(user?.id);
   const { data: pelayanan } = useProfilePelayanan(akun?.id_pendeta);
 
+  React.useEffect(() => {
+    try {
+      localStorage.removeItem('si_gpib_cached_current_user');
+    } catch {}
+    queryClient.invalidateQueries({ queryKey: ['current-user-auth'] });
+    queryClient.invalidateQueries({ queryKey: ['profile-akun'] });
+    queryClient.invalidateQueries({ queryKey: ['profile-pelayanan'] });
+    queryClient.invalidateQueries({ queryKey: ['profile-mutasi'] });
+    queryClient.invalidateQueries({ queryKey: ['profile-keluarga'] });
+    queryClient.invalidateQueries({ queryKey: ['profile-kompetensi'] });
+    queryClient.invalidateQueries({ queryKey: ['profile-keterlibatan'] });
+  }, [queryClient]);
+
   // Password Modal State
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
@@ -132,7 +145,7 @@ export default function MyProfilePage() {
   };
 
   return (
-    <div className="pt-4">
+    <div className="pt-4 w-full max-w-full overflow-x-hidden">
       <ProfileView
         userId={user?.id || akun?.id}
         mode="self"

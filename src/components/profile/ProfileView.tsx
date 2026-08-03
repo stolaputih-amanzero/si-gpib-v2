@@ -1,6 +1,7 @@
 'use client';
 
-import { useProfileAkun, useProfileStats } from '@/hooks/use-profile';
+import { useProfileAkun, useProfileStats, useProfilePelayanan, useRiwayatMutasi } from '@/hooks/use-profile';
+import { useKompetensiPendeta, useKeterlibatanPendeta } from '@/hooks/use-pendeta-360';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { ProfileHeader } from './ProfileHeader';
 import { SummaryStrip } from '@/components/list/SummaryStrip';
@@ -11,10 +12,11 @@ import { GracefulFallback } from './GracefulFallback';
 import { VerticalTimeline } from './VerticalTimeline';
 import { getProfileMetrics } from '@/lib/utils/profile-metrics';
 import { calculateViewerContext } from '@/lib/utils/privacy-guard';
-import { mapMutasiToTimeline, mapKeterlibatanToTimeline } from '@/lib/utils/timeline-adapters';
-import { calculateAge } from '@/lib/utils/age-calculator';
-import { ContextualFab } from '@/components/detail/ContextualFab';
+import { mapMutasiToTimeline } from '@/lib/utils/timeline-adapters';
 import { ListSkeleton } from '@/components/list/ListSkeleton';
+import { KeluargaSection } from './sections/KeluargaSection';
+import { KompetensiSection } from './sections/KompetensiSection';
+import { KeterlibatanSection } from './sections/KeterlibatanSection';
 import {
   User,
   Shield,
@@ -26,11 +28,10 @@ import {
   Calendar,
   Phone,
   Mail,
-  Heart,
-  Users,
-  Briefcase,
   Activity,
   UserCheck,
+  FileText,
+  BadgeCheck,
 } from 'lucide-react';
 
 export interface ProfileViewProps {
@@ -52,13 +53,17 @@ export function ProfileView({
   const { data: akun, isLoading: isAkunLoading } = useProfileAkun(targetUserId);
   const idPendeta = akun?.id_pendeta || null;
   const { data: statsData } = useProfileStats(idPendeta, targetUserId);
+  const { data: pelayanan } = useProfilePelayanan(idPendeta);
+  const { data: mutasiList = [] } = useRiwayatMutasi(idPendeta);
+  const { data: keterlibatanList = [] } = useKeterlibatanPendeta(idPendeta || undefined);
+  const { data: kompetensiList = [] } = useKompetensiPendeta(idPendeta || undefined);
 
   if (isUserLoading || isAkunLoading) {
     return <ListSkeleton count={4} />;
   }
 
   if (!akun) {
-    return null;
+    return <ListSkeleton count={4} />;
   }
 
   // Calculate ViewerContext (Hybrid Server/Client Context)
@@ -78,8 +83,8 @@ export function ProfileView({
     posAktif: statsData?.pos_aktif || 1,
     logBulanIni: statsData?.log_bulan_ini || 0,
     jiwaDilayani: statsData?.total_jiwa || 0,
-    keterlibatan: (akun.keterlibatan || []).length,
-    kompetensi: (akun.kompetensi || []).length,
+    keterlibatan: keterlibatanList.length,
+    kompetensi: kompetensiList.length,
     hariBergabung: 365,
     aktivitasBulanIni: 12,
     draftAktif: 0,
@@ -87,18 +92,18 @@ export function ProfileView({
 
   const formattedUser = {
     id: akun.id,
-    nama_lengkap: akun.nama_lengkap || 'Pengguna GPIB',
+    nama_lengkap: pelayanan?.nama_pendeta || akun.nama_lengkap || 'Pengguna GPIB',
     email: akun.email || '',
     role: akun.role,
     status: akun.status,
-    foto_url: akun.foto_url,
+    foto_url: pelayanan?.foto_url || akun.foto_url,
     id_pendeta: akun.id_pendeta,
     no_hp: akun.no_hp || akun.no_telepon,
   };
 
   return (
-    <div className="space-y-6 pb-28 max-w-4xl mx-auto px-3 sm:px-6 select-none">
-      {/* 1. ProfileHeader (100% Without Map) */}
+    <div className="space-y-6 pb-28 max-w-4xl mx-auto px-3 sm:px-6 select-none w-full max-w-full overflow-x-hidden">
+      {/* 1. ProfileHeader */}
       <ProfileHeader
         user={formattedUser}
         viewerContext={viewerContext}
@@ -106,13 +111,13 @@ export function ProfileView({
         onChangeRole={onChangeRole}
       />
 
-      {/* 2. StatStrip (6/3 Conditional SummaryStrip Metrics - 100% REUSE) */}
+      {/* 2. StatStrip */}
       <SummaryStrip
         metrics={metrics}
-        className="bg-surface-1/60 rounded-2xl py-2 px-3 border border-border-subtle shadow-2xs flex-wrap"
+        className="bg-surface-1/60 rounded-2xl py-2 px-3 border border-border-subtle shadow-2xs w-full max-w-full overflow-x-auto no-scrollbar"
       />
 
-      {/* 3. Section: Akun & Keamanan (Hairline InfoBlocks - 100% REUSE) */}
+      {/* 3. Section: Akun & Keamanan */}
       <section className="bg-surface-1 rounded-2xl border border-border-subtle shadow-2xs overflow-hidden divide-y divide-line-hairline">
         <div className="px-4 py-3 bg-surface-sunken/40">
           <h2 className="text-xs font-black uppercase tracking-wider text-text-muted flex items-center gap-1.5">
@@ -137,11 +142,11 @@ export function ProfileView({
         <InfoBlock
           icon={<Shield className="w-4 h-4 text-brand-primary" />}
           label="Role Hak Akses (RBAC)"
-          value={akun.role || 'Pelayan Field'}
+          value={(akun.role || 'Pelayan').toUpperCase()}
         />
       </section>
 
-      {/* 4. Section: Perangkat Biometrik (PrivacyGuard Ketat) */}
+      {/* 4. Section: Perangkat Biometrik */}
       <section className="space-y-2">
         <h2 className="text-xs font-black uppercase tracking-wider text-text-muted px-1 flex items-center gap-1.5">
           <Fingerprint className="w-4 h-4 text-brand-primary" />
@@ -180,20 +185,30 @@ export function ProfileView({
             <InfoBlock
               icon={<Crown className="w-4 h-4 text-brand-primary" />}
               label="ID Pendeta GPIB"
-              value={akun.id_pendeta}
+              value={idPendeta}
             />
 
             <InfoBlock
               icon={<User className="w-4 h-4 text-brand-primary" />}
               label="Jabatan Pelayanan"
-              value={akun.pendeta?.jabatan || 'Pendeta GPIB'}
+              value={pelayanan?.jabatan || (pelayanan?.is_pj ? 'Pendeta Jemaat (PJ)' : pelayanan?.is_kmj ? 'Ketua Majelis Jemaat (KMJ)' : 'Pendeta Organik GPIB')}
             />
 
-            <InfoBlock
-              icon={<Calendar className="w-4 h-4 text-brand-primary" />}
-              label="Tanggal Lahir"
-              value={akun.pendeta?.tgl_lahir}
-            />
+            {pelayanan?.tgl_lahir && (
+              <InfoBlock
+                icon={<Calendar className="w-4 h-4 text-brand-primary" />}
+                label="Tanggal Lahir"
+                value={pelayanan.tgl_lahir}
+              />
+            )}
+
+            {(pelayanan?.nip || pelayanan?.nik) && (
+              <InfoBlock
+                icon={<FileText className="w-4 h-4 text-brand-primary" />}
+                label="NIP / NIK Pendeta"
+                value={pelayanan.nip || pelayanan.nik}
+              />
+            )}
           </section>
 
           {/* Section: Hierarki Pelayanan */}
@@ -208,16 +223,25 @@ export function ProfileView({
             <InfoBlock
               icon={<Church className="w-4 h-4 text-brand-primary" />}
               label="Jemaat Induk Pengampu"
-              value={akun.jemaat?.nama_induk}
-              href={akun.id_induk ? `/jemaat/${encodeURIComponent(akun.id_induk)}` : undefined}
+              value={pelayanan?.nama_induk || 'GPIB Jemaat Induk'}
+              href={pelayanan?.id_induk ? `/jemaat/${encodeURIComponent(pelayanan.id_induk)}` : undefined}
             />
 
             <InfoBlock
               icon={<Building2 className="w-4 h-4 text-brand-primary" />}
               label="Musyawarah Pelayanan (Mupel)"
-              value={akun.mupel?.nama_mupel}
-              href={akun.id_mupel ? `/mupel/${encodeURIComponent(akun.id_mupel)}` : undefined}
+              value={pelayanan?.nama_mupel || 'Mupel GPIB'}
+              href={pelayanan?.id_mupel ? `/mupel/${encodeURIComponent(pelayanan.id_mupel)}` : undefined}
             />
+
+            {pelayanan?.pos_pelkes_nama && (
+              <InfoBlock
+                icon={<BadgeCheck className="w-4 h-4 text-brand-primary" />}
+                label="Pos Pelkes Tugas"
+                value={pelayanan.pos_pelkes_nama}
+                href={pelayanan?.id_pos ? `/dashboard/pos-pelkes/${encodeURIComponent(pelayanan.id_pos)}` : undefined}
+              />
+            )}
           </section>
 
           {/* Section: Riwayat Mutasi (VerticalTimeline) */}
@@ -226,58 +250,29 @@ export function ProfileView({
               <Activity className="w-4 h-4 text-brand-primary" />
               <span>Riwayat Mutasi & Penugasan</span>
             </h2>
-            <VerticalTimeline events={mapMutasiToTimeline(akun.mutasi || [])} />
+            <VerticalTimeline events={mapMutasiToTimeline(mutasiList)} emptyMessage="Belum ada riwayat mutasi tercatat" />
           </section>
 
           {/* Section: Data Keluarga (PrivacyGuard Ketat) */}
-          <section className="space-y-3">
-            <h2 className="text-xs font-black uppercase tracking-wider text-text-muted px-1 flex items-center gap-1.5">
-              <Heart className="w-4 h-4 text-brand-primary" />
-              <span>Anggota Keluarga Pendeta</span>
-            </h2>
-            <PrivacyGuard canAccess={viewerContext.canViewPrivate} sectionName="keluarga">
-              {!akun.keluarga || akun.keluarga.length === 0 ? (
-                <div className="p-4 rounded-2xl bg-surface-sunken/40 text-xs text-text-tertiary italic text-center border border-border-subtle">
-                  Belum ada data anggota keluarga tercatat.
-                </div>
-              ) : (
-                <div className="divide-y divide-line-hairline bg-surface-1 border border-border-subtle rounded-2xl overflow-hidden shadow-2xs">
-                  {akun.keluarga.map((k: any) => {
-                    const age = calculateAge(k.tgl_lahir);
-                    return (
-                      <ListRow
-                        key={k.id_keluarga || String(Math.random())}
-                        icon={<Users className="w-5 h-5 text-brand-primary" />}
-                        iconVariant="brand"
-                        title={k.nama}
-                        subtitle={`Hubungan: ${k.hubungan || 'Keluarga'}`}
-                        meta={age ? `Umur: ${age} Tahun` : undefined}
-                        badge={
-                          k.is_tanggungan ? (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
-                              Tanggungan
-                            </span>
-                          ) : undefined
-                        }
-                      />
-                    );
-                  })}
-                </div>
-              )}
-            </PrivacyGuard>
-          </section>
+          <KeluargaSection
+            idPendeta={idPendeta}
+            isOwnerOrSuperUser={viewerContext.canViewPrivate}
+          />
 
-          {/* Section: Keterlibatan Sinodal (VerticalTimeline) */}
-          <section className="space-y-3">
-            <h2 className="text-xs font-black uppercase tracking-wider text-text-muted px-1 flex items-center gap-1.5">
-              <Briefcase className="w-4 h-4 text-brand-primary" />
-              <span>Keterlibatan Pelayanan & Sinodal</span>
-            </h2>
-            <VerticalTimeline events={mapKeterlibatanToTimeline(akun.keterlibatan || [])} />
-          </section>
+          {/* Section: Keterlibatan Sinodal & Pelayanan */}
+          <KeterlibatanSection
+            idPendeta={idPendeta}
+            canEdit={viewerContext.canViewPrivate}
+          />
+
+          {/* Section: Kompetensi & Karunia */}
+          <KompetensiSection
+            idPendeta={idPendeta}
+            canEdit={viewerContext.canViewPrivate}
+          />
         </>
       ) : (
-        /* Graceful Fallback for Non-Pendeta (Business Rule #21) */
+        /* Graceful Fallback for Non-Pendeta */
         <GracefulFallback />
       )}
 
@@ -294,14 +289,11 @@ export function ProfileView({
               iconVariant="accent"
               title="Sesi Login Berhasil"
               subtitle="Mengakses SI GPIB v2.2 Dashboard"
-              meta="Hari ini, 02:29 WIB"
+              meta="Sesi Aktif"
             />
           </div>
         </PrivacyGuard>
       </section>
-
-      {/* 7. Contextual Floating Action Button */}
-      <ContextualFab id_pos={akun.id} activeTab="profil" canWrite={viewerContext.isSelf} />
     </div>
   );
 }

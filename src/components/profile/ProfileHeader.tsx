@@ -84,32 +84,32 @@ export function ProfileHeader({
   }
 
   return (
-    <div className={cn('bg-surface-1 rounded-2xl border border-border-subtle p-5 sm:p-6 shadow-2xs space-y-4 select-none', className)}>
+    <div className={cn('bg-surface-1 rounded-2xl border border-border-subtle p-4 sm:p-6 shadow-2xs space-y-4 select-none w-full max-w-full overflow-hidden', className)}>
       {/* Breadcrumb Header */}
-      <div className="flex items-center justify-between gap-2 border-b border-border-subtle pb-3">
-        <nav aria-label="Breadcrumb Profil" className="flex items-center gap-1.5 text-xs text-text-muted font-medium">
-          <Link href="/settings" className="hover:text-brand-primary transition-colors">
+      <div className="flex items-center justify-between gap-2 border-b border-border-subtle pb-3 w-full max-w-full min-w-0">
+        <nav aria-label="Breadcrumb Profil" className="flex items-center gap-1 sm:gap-1.5 text-xs text-text-muted font-medium min-w-0 flex-1 overflow-x-auto no-scrollbar py-0.5">
+          <Link href="/settings" className="hover:text-brand-primary transition-colors shrink-0">
             Settings
           </Link>
-          <ChevronRight size={12} className="text-text-tertiary" />
-          <Link href="/settings/users" className="hover:text-brand-primary transition-colors">
+          <ChevronRight size={12} className="text-text-tertiary shrink-0" />
+          <Link href="/settings/users" className="hover:text-brand-primary transition-colors shrink-0">
             Users
           </Link>
-          <ChevronRight size={12} className="text-text-tertiary" />
-          <span className="font-extrabold text-text-high truncate max-w-[140px] sm:max-w-[200px]">
+          <ChevronRight size={12} className="text-text-tertiary shrink-0" />
+          <span className="font-extrabold text-text-high truncate max-w-[90px] xs:max-w-[130px] sm:max-w-[200px] shrink-0">
             {user.nama_lengkap}
           </span>
         </nav>
 
-        {/* Top Right Action Buttons */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        {/* Top Right Action Buttons (Ghost Style on Mobile View) */}
+        <div className="flex items-center gap-1 shrink-0">
           <button
             type="button"
             onClick={handleShare}
-            className="h-10 w-10 rounded-xl bg-surface-sunken hover:bg-surface-elevated text-text-high flex items-center justify-center transition-all border border-border-subtle shrink-0 min-h-[44px] min-w-[44px] cursor-pointer"
+            className="p-2 sm:h-10 sm:w-10 rounded-xl text-text-muted hover:text-brand-primary hover:bg-surface-sunken/80 transition-all border border-transparent sm:border-border-subtle shrink-0 cursor-pointer active:scale-95"
             title={copied ? 'URL Disalin!' : 'Bagikan Profil'}
           >
-            {copied ? <Check size={16} className="text-emerald-500" /> : <Share2 size={16} />}
+            {copied ? <Check size={18} className="text-emerald-500" /> : <Share2 size={18} />}
           </button>
 
           {viewerContext.isSelf && onEditProfile && (
@@ -119,10 +119,11 @@ export function ProfileHeader({
                 haptic.medium();
                 onEditProfile();
               }}
-              className="h-10 px-3.5 rounded-xl bg-brand-primary text-white text-xs font-bold transition-all flex items-center gap-1.5 hover:bg-brand-primary/90 active:scale-95 shadow-2xs shrink-0 min-h-[44px] cursor-pointer"
+              className="px-2.5 py-1.5 sm:h-10 sm:px-3.5 rounded-xl text-brand-primary hover:bg-brand-primary/10 sm:bg-brand-primary sm:text-white sm:hover:bg-brand-primary/90 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 sm:shadow-2xs shrink-0 cursor-pointer border border-transparent sm:border-brand-primary"
             >
-              <Edit3 size={15} />
-              <span>Edit Profil</span>
+              <Edit3 size={16} />
+              <span className="hidden xs:inline sm:inline">Edit Profil</span>
+              <span className="xs:hidden">Edit</span>
             </button>
           )}
 
@@ -133,27 +134,28 @@ export function ProfileHeader({
                 haptic.medium();
                 onChangeRole();
               }}
-              className="h-10 px-3.5 rounded-xl bg-purple-600 text-white text-xs font-bold transition-all flex items-center gap-1.5 hover:bg-purple-700 active:scale-95 shadow-2xs shrink-0 min-h-[44px] cursor-pointer"
+              className="px-2.5 py-1.5 sm:h-10 sm:px-3.5 rounded-xl text-purple-600 hover:bg-purple-500/10 sm:bg-purple-600 sm:text-white sm:hover:bg-purple-700 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 sm:shadow-2xs shrink-0 cursor-pointer border border-transparent sm:border-purple-600"
             >
-              <ShieldCheck size={15} />
-              <span>Edit Organisasional</span>
+              <ShieldCheck size={16} />
+              <span className="hidden xs:inline sm:inline">Edit Organisasional</span>
+              <span className="xs:hidden">Edit</span>
             </button>
           )}
         </div>
       </div>
 
       {/* Main Identity Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 w-full max-w-full min-w-0">
         {/* Avatar 80x80px */}
         <div className="relative shrink-0 self-start sm:self-center">
           {user.foto_url ? (
             <img
               src={user.foto_url}
               alt={user.nama_lengkap}
-              className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl object-cover border-2 border-border-subtle shadow-md"
+              className="w-18 h-18 sm:w-22 sm:h-22 rounded-2xl object-cover border-2 border-border-subtle shadow-md"
             />
           ) : (
-            <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-brand-primary text-white flex items-center justify-center font-black text-3xl shadow-md border-2 border-white/20">
+            <div className="w-18 h-18 sm:w-22 sm:h-22 rounded-2xl bg-brand-primary text-white flex items-center justify-center font-black text-2xl sm:text-3xl shadow-md border-2 border-white/20">
               {initialLetter}
             </div>
           )}
@@ -165,28 +167,28 @@ export function ProfileHeader({
         </div>
 
         {/* Identity Info */}
-        <div className="space-y-1.5 min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className={cn('px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-2xs', roleBadgeClass)}>
+        <div className="space-y-1.5 min-w-0 flex-1 max-w-full overflow-hidden">
+          <div className="flex items-center gap-2 flex-wrap max-w-full">
+            <span className={cn('px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-2xs shrink-0', roleBadgeClass)}>
               {roleLabel}
             </span>
 
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
               {user.status || 'Aktif'}
             </span>
 
             {user.id_pendeta && (
-              <span className="text-xs font-mono font-semibold text-text-tertiary">
+              <span className="text-xs font-mono font-semibold text-text-tertiary shrink-0">
                 ID: {user.id_pendeta}
               </span>
             )}
           </div>
 
-          <h1 className="font-display text-2xl sm:text-3xl font-semibold text-text-high tracking-tight leading-tight">
+          <h1 className="font-display text-xl sm:text-3xl font-semibold text-text-high tracking-tight leading-tight break-words max-w-full">
             {user.nama_lengkap}
           </h1>
 
-          <p className="text-xs sm:text-sm text-text-muted font-medium truncate">
+          <p className="text-xs sm:text-sm text-text-muted font-medium truncate max-w-full">
             {user.email}
           </p>
         </div>

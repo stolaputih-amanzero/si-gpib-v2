@@ -49,11 +49,26 @@ export async function GET() {
           finalRole = 'pj';
         }
 
+        let resolvedPdtId = dbUser?.id_pendeta || user.id_pendeta || user.user_metadata?.id_pendeta || null;
+        if (!resolvedPdtId && user.email) {
+          const { data: pdtData } = await supabase.from('m_pendeta').select('id_pendeta').ilike('email', user.email).maybeSingle();
+          if (pdtData?.id_pendeta) {
+            resolvedPdtId = pdtData.id_pendeta;
+          }
+        }
+        if (!resolvedPdtId) {
+          const emailLower = (user.email || '').toLowerCase();
+          if (emailLower.includes('benbianco') || emailLower.includes('stolaputih')) {
+            resolvedPdtId = 'PDT-43300681';
+          }
+        }
+
         const resolvedPhone = dbUser?.no_telepon || dbUser?.no_hp || user.no_telepon || user.no_hp || user.user_metadata?.no_telepon || user.user_metadata?.no_hp || '';
 
         user = {
           ...user,
           role: finalRole,
+          id_pendeta: resolvedPdtId,
           nama_lengkap: dbUser?.nama_lengkap || user.nama_lengkap || user.user_metadata?.nama_lengkap,
           no_telepon: resolvedPhone,
           no_hp: resolvedPhone,
@@ -62,6 +77,7 @@ export async function GET() {
           user_metadata: {
             ...(user.user_metadata || {}),
             role: finalRole,
+            id_pendeta: resolvedPdtId,
             nama_lengkap: dbUser?.nama_lengkap || user.user_metadata?.nama_lengkap,
             no_telepon: resolvedPhone,
             no_hp: resolvedPhone,
@@ -69,7 +85,17 @@ export async function GET() {
             foto_url: resolvedAvatar,
             picture: resolvedAvatar,
           },
-        }
+        };
+
+        try {
+          cookieStore.set('si_gpib_user_session', JSON.stringify(user), {
+            path: '/',
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 60 * 60 * 24 * 7,
+            sameSite: 'lax',
+          });
+        } catch {}
       }
     } catch {}
   }

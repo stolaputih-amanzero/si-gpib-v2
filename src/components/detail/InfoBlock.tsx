@@ -61,7 +61,7 @@ export function InfoBlock({
           <span className="text-xs font-semibold text-text-muted block leading-tight">
             {label}
           </span>
-          <div className="text-sm font-semibold text-text-high leading-snug break-words">
+          <div className="text-sm font-semibold text-text-high leading-snug break-words break-all">
             {value}
           </div>
         </div>

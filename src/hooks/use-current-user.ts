@@ -107,7 +107,6 @@ export function useCurrentUser() {
 
       return currentUserObj;
     },
-    staleTime: 10 * 60 * 1000,
-    gcTime: 60 * 60 * 1000,
+    staleTime: 0,
   });
 }
