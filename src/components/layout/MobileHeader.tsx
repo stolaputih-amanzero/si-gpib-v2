@@ -180,7 +180,7 @@ export function MobileHeader() {
 
         {/* Kanan Atas: NetworkStatus + Theme Toggle */}
         <div className="flex items-center shrink-0 gap-1.5">
-          <NetworkStatusBadge />
+          <NetworkStatusBadge showText={false} />
 
           <button
             type="button"
