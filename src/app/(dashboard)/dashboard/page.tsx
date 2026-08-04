@@ -283,21 +283,23 @@ export default async function Dashboard() {
 
   // Option A - Precise Personal Click Targets
   const mupelHref = userMupelId ? `/hierarki/${encodeURIComponent(userMupelId)}` : '/hierarki';
-  const jemaatHref = userIndukId
-    ? `/hierarki/${encodeURIComponent(userMupelId || '')}/${encodeURIComponent(userIndukId)}`
+  const jemaatHref = (userMupelId && userIndukId)
+    ? `/hierarki/${encodeURIComponent(userMupelId)}/${encodeURIComponent(userIndukId)}`
     : userMupelId
       ? `/hierarki/${encodeURIComponent(userMupelId)}`
       : '/hierarki?view=jemaat';
-  const bajemHref = userIndukId
-    ? `/hierarki/${encodeURIComponent(userMupelId || '')}/${encodeURIComponent(userIndukId)}?kategori=bajem`
+  const bajemHref = (userMupelId && userIndukId)
+    ? `/hierarki/${encodeURIComponent(userMupelId)}/${encodeURIComponent(userIndukId)}?tab=bajem`
     : userMupelId
       ? `/hierarki/${encodeURIComponent(userMupelId)}?kategori=bajem`
       : '/hierarki?kategori=bajem';
-  const posHref = userIndukId
-    ? `/hierarki/${encodeURIComponent(userMupelId || '')}/${encodeURIComponent(userIndukId)}`
-    : userMupelId
-      ? `/hierarki/${encodeURIComponent(userMupelId)}`
-      : '/hierarki?kategori=pos';
+  const posHref = (userMupelId && userIndukId && userPosId)
+    ? `/hierarki/${encodeURIComponent(userMupelId)}/${encodeURIComponent(userIndukId)}/${encodeURIComponent(userPosId)}`
+    : (userMupelId && userIndukId)
+      ? `/hierarki/${encodeURIComponent(userMupelId)}/${encodeURIComponent(userIndukId)}`
+      : userMupelId
+        ? `/hierarki/${encodeURIComponent(userMupelId)}`
+        : '/hierarki?kategori=pos';
 
   const customStats = [
     {
