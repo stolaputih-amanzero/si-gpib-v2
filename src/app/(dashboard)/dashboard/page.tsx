@@ -281,24 +281,29 @@ export default async function Dashboard() {
     total: chartDataMap[pelkat.kode] || 0,
   }));
 
-  // Option A - Precise Personal Click Targets
-  const mupelHref = userMupelId ? `/hierarki/${encodeURIComponent(userMupelId)}` : '/hierarki';
-  const jemaatHref = (userMupelId && userIndukId)
-    ? `/hierarki/${encodeURIComponent(userMupelId)}/${encodeURIComponent(userIndukId)}`
+  // Canonical 1-Click Route Targets
+  const mupelHref = userMupelId
+    ? `/mupel/${encodeURIComponent(userMupelId)}`
+    : '/hierarki';
+
+  const jemaatHref = userIndukId
+    ? `/jemaat/${encodeURIComponent(userIndukId)}`
     : userMupelId
-      ? `/hierarki/${encodeURIComponent(userMupelId)}`
+      ? `/mupel/${encodeURIComponent(userMupelId)}?tab=jemaat`
       : '/hierarki?view=jemaat';
-  const bajemHref = (userMupelId && userIndukId)
-    ? `/hierarki/${encodeURIComponent(userMupelId)}/${encodeURIComponent(userIndukId)}?tab=bajem`
+
+  const bajemHref = userIndukId
+    ? `/jemaat/${encodeURIComponent(userIndukId)}?tab=bajem`
     : userMupelId
-      ? `/hierarki/${encodeURIComponent(userMupelId)}?kategori=bajem`
+      ? `/mupel/${encodeURIComponent(userMupelId)}?tab=jemaat`
       : '/hierarki?kategori=bajem';
+
   const posHref = (userMupelId && userIndukId && userPosId)
     ? `/hierarki/${encodeURIComponent(userMupelId)}/${encodeURIComponent(userIndukId)}/${encodeURIComponent(userPosId)}`
-    : (userMupelId && userIndukId)
-      ? `/hierarki/${encodeURIComponent(userMupelId)}/${encodeURIComponent(userIndukId)}`
+    : userIndukId
+      ? `/jemaat/${encodeURIComponent(userIndukId)}`
       : userMupelId
-        ? `/hierarki/${encodeURIComponent(userMupelId)}`
+        ? `/mupel/${encodeURIComponent(userMupelId)}`
         : '/hierarki?kategori=pos';
 
   const customStats = [
