@@ -120,35 +120,74 @@ export default function HierarkiEntryPage() {
       ) : viewMode === 'tree' ? (
         <HierarchyTree mupelList={mupelList} />
       ) : (
-        <div data-testid="mupel-list" className="bg-surface-1 hairline-t hairline-b rounded-2xl overflow-hidden shadow-xs">
-          {mupelList.map((mupel) => (
-            <ListRow
-              key={mupel.id_mupel}
-              icon={<Layers className="h-5 w-5 text-purple-600 dark:text-purple-400" />}
-              iconClassName="bg-purple-500/10 text-purple-600 dark:text-purple-400"
-              title={mupel.nama_mupel}
-              subtitle={mupel.keterangan || mupel.id_mupel}
-              meta={
-                <span className="flex items-center gap-2 flex-wrap text-xs font-bold">
-                  <span className="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-400" title="Jemaat Induk">
-                    <Church size={13} />
-                    <span>{mupel.jemaat_count ?? 0}</span>
-                  </span>
-                  <span className="text-text-muted/40">•</span>
-                  <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400" title="Bakal Jemaat (Bajem)">
-                    <Church size={13} />
-                    <span>{mupel.bajem_count ?? 0}</span>
-                  </span>
-                  <span className="text-text-muted/40">•</span>
-                  <span className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400" title="Pos Pelkes">
-                    <Sprout size={13} />
-                    <span>{mupel.pos_count ?? 0}</span>
-                  </span>
-                </span>
-              }
-              href={`/hierarki/${encodeURIComponent(mupel.id_mupel)}`}
-            />
-          ))}
+        <div data-testid="mupel-list" className="space-y-3">
+          <div className="bg-surface-1 border border-border-subtle rounded-2xl overflow-hidden shadow-xs divide-y divide-line-hairline">
+            {mupelList.map((mupel) => (
+              <div key={mupel.id_mupel} className="divide-y divide-line-hairline">
+                {/* 1. Mupel Row */}
+                <ListRow
+                  icon={<Layers className="h-5 w-5 text-purple-600 dark:text-purple-400" />}
+                  iconClassName="bg-purple-500/10 text-purple-600 dark:text-purple-400"
+                  title={mupel.nama_mupel}
+                  subtitle={mupel.keterangan || mupel.id_mupel}
+                  badge={
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-300">
+                      Mupel Induk
+                    </span>
+                  }
+                  meta={
+                    <span className="flex items-center gap-2 flex-wrap text-xs font-bold">
+                      <span className="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-400" title="Jemaat Induk">
+                        <Church size={13} />
+                        <span>{mupel.jemaat_count ?? 0} Jemaat</span>
+                      </span>
+                      <span className="text-text-muted/40">•</span>
+                      <span className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400" title="Pos Pelkes">
+                        <Sprout size={13} />
+                        <span>{mupel.pos_count ?? 0} Pos</span>
+                      </span>
+                    </span>
+                  }
+                  href={`/mupel/${encodeURIComponent(mupel.id_mupel)}`}
+                />
+
+                {/* 2. Direct Sub-items for Scoped Users (Jemaat Induk & Pos Pelkes) */}
+                {scope && scope.isLocked && (
+                  <>
+                    {scope.id_induk && (
+                      <ListRow
+                        icon={<Church className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />}
+                        iconClassName="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+                        title="Jemaat Induk PAMA JUBATA"
+                        subtitle={`ID: ${scope.id_induk} • Jemaat Induk Mandiri`}
+                        badge={
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300">
+                            Jemaat Induk Anda
+                          </span>
+                        }
+                        href={`/jemaat/${encodeURIComponent(scope.id_induk)}`}
+                      />
+                    )}
+
+                    {scope.id_pos && (
+                      <ListRow
+                        icon={<Sprout className="h-5 w-5 text-blue-600 dark:text-blue-400" />}
+                        iconClassName="bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                        title="Pos Pelkes PT. GAN"
+                        subtitle={`ID: ${scope.id_pos} • Pos Pelkes Penugasan Active`}
+                        badge={
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300">
+                            Pos Pelkes Penugasan Anda
+                          </span>
+                        }
+                        href={`/dashboard/pos-pelkes/${encodeURIComponent(scope.id_pos)}`}
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

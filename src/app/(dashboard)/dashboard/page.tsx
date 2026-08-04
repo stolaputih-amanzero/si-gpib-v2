@@ -293,18 +293,18 @@ export default async function Dashboard() {
       : '/hierarki?view=jemaat';
 
   const bajemHref = userIndukId
-    ? `/jemaat/${encodeURIComponent(userIndukId)}?tab=bajem`
+    ? `/jemaat/${encodeURIComponent(userIndukId)}?tab=pos-pelkes`
     : userMupelId
       ? `/mupel/${encodeURIComponent(userMupelId)}?tab=jemaat`
       : '/hierarki?kategori=bajem';
 
-  const posHref = (userMupelId && userIndukId && userPosId)
-    ? `/hierarki/${encodeURIComponent(userMupelId)}/${encodeURIComponent(userIndukId)}/${encodeURIComponent(userPosId)}`
+  const posHref = userPosId
+    ? `/dashboard/pos-pelkes/${encodeURIComponent(userPosId)}`
     : userIndukId
-      ? `/jemaat/${encodeURIComponent(userIndukId)}`
+      ? `/jemaat/${encodeURIComponent(userIndukId)}?tab=pos-pelkes`
       : userMupelId
         ? `/mupel/${encodeURIComponent(userMupelId)}`
-        : '/hierarki?kategori=pos';
+        : '/dashboard/pos-pelkes';
 
   const customStats = [
     {
