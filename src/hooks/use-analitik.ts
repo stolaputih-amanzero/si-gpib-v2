@@ -1,9 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
+import { useUserMupelAuth } from './use-hierarki-selector';
+import { useMemo } from 'react';
+import type { UserRoleScope } from '@/components/analitik/ScopeIndicator';
 
 export interface AnalitikFilter {
   id_mupel?: string;
   id_induk?: string;
+  id_pos?: string;
 }
 
 export interface KPIStats {
@@ -27,30 +31,94 @@ export interface ChartPieData {
   color?: string;
 }
 
-// 1. Fetch KPI Utama
-export function useAnalitikKPI(filter?: AnalitikFilter) {
-  const supabase = createClient();
+// ===== HELPER: Helper Hook for User Role Scope =====
+export function useUserRoleScope(): { scope: UserRoleScope | null; isLoading: boolean } {
+  const { data: auth, isLoading } = useUserMupelAuth();
 
-  return useQuery({
-    queryKey: ['analitik-kpi', filter],
+  const scope = useMemo(() => {
+    if (!auth) return null;
+
+    const role = auth.role || 'guest';
+    const isLocked = role !== 'super_user';
+
+    let scopeLabel = 'Anda';
+    if (role === 'super_user') scopeLabel = 'Seluruh Indonesia';
+    else if (role === 'admin_mupel') scopeLabel = 'Mupel Anda';
+    else if (role === 'kmj') scopeLabel = 'Jemaat Anda';
+    else if (role === 'pj' || role === 'user') scopeLabel = 'Pos Pelkes Anda';
+
+    return {
+      role,
+      id_mupel: auth.id_mupel || null,
+      id_induk: auth.id_induk || null,
+      id_pos: auth.id_pos || null,
+      isLocked,
+      scopeLabel,
+    } as UserRoleScope;
+  }, [auth]);
+
+  return { scope, isLoading };
+}
+
+// ===== HELPER: Merge user filter with auto-scope =====
+function mergeWithAutoScope(
+  filter: AnalitikFilter,
+  scope: UserRoleScope | null
+): AnalitikFilter {
+  if (!scope || scope.role === 'super_user') {
+    return filter;
+  }
+
+  const merged: AnalitikFilter = { ...filter };
+
+  if (scope.role === 'admin_mupel' && scope.id_mupel) {
+    merged.id_mupel = scope.id_mupel;
+    delete merged.id_induk;
+    delete merged.id_pos;
+  } else if (scope.role === 'kmj' && scope.id_induk) {
+    merged.id_induk = scope.id_induk;
+    delete merged.id_pos;
+  } else if ((scope.role === 'pj' || scope.role === 'user') && scope.id_pos) {
+    merged.id_pos = scope.id_pos;
+  }
+
+  return merged;
+}
+
+// ===== 1. Fetch KPI Utama (Auto Role-Scoped) =====
+export function useAnalitikKPI(filter: AnalitikFilter = {}) {
+  const supabase = createClient();
+  const { scope, isLoading: isScopeLoading } = useUserRoleScope();
+
+  const effectiveFilter = useMemo(
+    () => mergeWithAutoScope(filter, scope),
+    [filter, scope]
+  );
+
+  const query = useQuery({
+    queryKey: ['analitik-kpi', effectiveFilter],
     queryFn: async (): Promise<KPIStats> => {
       // 1a. Query Pos Pelkes Count
       let posQuery = supabase.from('m_pos_pelkes').select('id_pos, id_induk', { count: 'exact' });
-      if (filter?.id_induk) {
-        posQuery = posQuery.eq('id_induk', filter.id_induk);
-      } else if (filter?.id_mupel) {
-        const { data: jemaat } = await supabase.from('m_jemaat_induk').select('id_induk').eq('id_mupel', filter.id_mupel);
+      if (effectiveFilter.id_pos) {
+        posQuery = posQuery.eq('id_pos', effectiveFilter.id_pos);
+      } else if (effectiveFilter.id_induk) {
+        posQuery = posQuery.eq('id_induk', effectiveFilter.id_induk);
+      } else if (effectiveFilter.id_mupel) {
+        const { data: jemaat } = await supabase.from('m_jemaat_induk').select('id_induk').eq('id_mupel', effectiveFilter.id_mupel);
         const idInduks = jemaat?.map((j) => j.id_induk) || [];
         posQuery = posQuery.in('id_induk', idInduks);
       }
       const { count: totalPos } = await posQuery;
 
-      // 1b. Query Total Jiwa (m_pos_pelkes jumlah_jiwa & t_demografi_pelkat fallback)
+      // 1b. Query Total Jiwa
       let posJiwaQuery = supabase.from('m_pos_pelkes').select('jumlah_jiwa, id_induk');
-      if (filter?.id_induk) {
-        posJiwaQuery = posJiwaQuery.eq('id_induk', filter.id_induk);
-      } else if (filter?.id_mupel) {
-        const { data: jemaat } = await supabase.from('m_jemaat_induk').select('id_induk').eq('id_mupel', filter.id_mupel);
+      if (effectiveFilter.id_pos) {
+        posJiwaQuery = posJiwaQuery.eq('id_pos', effectiveFilter.id_pos);
+      } else if (effectiveFilter.id_induk) {
+        posJiwaQuery = posJiwaQuery.eq('id_induk', effectiveFilter.id_induk);
+      } else if (effectiveFilter.id_mupel) {
+        const { data: jemaat } = await supabase.from('m_jemaat_induk').select('id_induk').eq('id_mupel', effectiveFilter.id_mupel);
         const idInduks = jemaat?.map((j) => j.id_induk) || [];
         posJiwaQuery = posJiwaQuery.in('id_induk', idInduks);
       }
@@ -61,10 +129,10 @@ export function useAnalitikKPI(filter?: AnalitikFilter) {
       const { data: demoData } = await demoQuery;
 
       let filteredDemo = demoData || [];
-      if (filter?.id_induk) {
-        filteredDemo = filteredDemo.filter((d: any) => d.id_pos?.id_induk === filter.id_induk);
-      } else if (filter?.id_mupel) {
-        const { data: jemaat } = await supabase.from('m_jemaat_induk').select('id_induk').eq('id_mupel', filter.id_mupel);
+      if (effectiveFilter.id_induk) {
+        filteredDemo = filteredDemo.filter((d: any) => d.id_pos?.id_induk === effectiveFilter.id_induk);
+      } else if (effectiveFilter.id_mupel) {
+        const { data: jemaat } = await supabase.from('m_jemaat_induk').select('id_induk').eq('id_mupel', effectiveFilter.id_mupel);
         const idInduks = new Set(jemaat?.map((j) => j.id_induk) || []);
         filteredDemo = filteredDemo.filter((d: any) => idInduks.has(d.id_pos?.id_induk));
       }
@@ -74,8 +142,8 @@ export function useAnalitikKPI(filter?: AnalitikFilter) {
 
       // 1c. Query Total Pendeta Aktif
       let pendetaQuery = supabase.from('m_pendeta').select('id_pendeta', { count: 'exact' }).eq('status', 'Aktif');
-      if (filter?.id_induk) {
-        pendetaQuery = pendetaQuery.eq('id_induk', filter.id_induk);
+      if (effectiveFilter.id_induk) {
+        pendetaQuery = pendetaQuery.eq('id_induk', effectiveFilter.id_induk);
       }
       const { count: totalPendeta } = await pendetaQuery;
 
@@ -97,16 +165,29 @@ export function useAnalitikKPI(filter?: AnalitikFilter) {
         totalBantuanPending: totalBantuanPending || 0,
       };
     },
-    staleTime: 1000 * 60 * 5, // 5 mins
+    enabled: !isScopeLoading,
+    staleTime: 1000 * 60 * 5,
   });
+
+  return {
+    ...query,
+    scope,
+    isScopeLocked: scope?.isLocked ?? false,
+  };
 }
 
-// 2. Fetch Data Demografi per Pelkat
-export function useAnalitikDemografi(filter?: AnalitikFilter) {
+// ===== 2. Fetch Data Demografi per Pelkat (Auto Role-Scoped) =====
+export function useAnalitikDemografi(filter: AnalitikFilter = {}) {
   const supabase = createClient();
+  const { scope, isLoading: isScopeLoading } = useUserRoleScope();
 
-  return useQuery({
-    queryKey: ['analitik-demografi', filter],
+  const effectiveFilter = useMemo(
+    () => mergeWithAutoScope(filter, scope),
+    [filter, scope]
+  );
+
+  const query = useQuery({
+    queryKey: ['analitik-demografi', effectiveFilter],
     queryFn: async (): Promise<DemografiPelkatData[]> => {
       const { data, error } = await supabase
         .from('t_demografi_pelkat')
@@ -115,10 +196,10 @@ export function useAnalitikDemografi(filter?: AnalitikFilter) {
       if (error) throw error;
 
       let filteredData = data || [];
-      if (filter?.id_induk) {
-        filteredData = filteredData.filter((d: any) => d.id_pos?.id_induk === filter.id_induk);
-      } else if (filter?.id_mupel) {
-        const { data: jemaat } = await supabase.from('m_jemaat_induk').select('id_induk').eq('id_mupel', filter.id_mupel);
+      if (effectiveFilter.id_induk) {
+        filteredData = filteredData.filter((d: any) => d.id_pos?.id_induk === effectiveFilter.id_induk);
+      } else if (effectiveFilter.id_mupel) {
+        const { data: jemaat } = await supabase.from('m_jemaat_induk').select('id_induk').eq('id_mupel', effectiveFilter.id_mupel);
         const idInduks = new Set(jemaat?.map((j) => j.id_induk) || []);
         filteredData = filteredData.filter((d: any) => idInduks.has(d.id_pos?.id_induk));
       }
@@ -148,16 +229,29 @@ export function useAnalitikDemografi(filter?: AnalitikFilter) {
 
       return Object.values(aggregatedMap);
     },
+    enabled: !isScopeLoading,
     staleTime: 1000 * 60 * 5,
   });
+
+  return {
+    ...query,
+    scope,
+    isScopeLocked: scope?.isLocked ?? false,
+  };
 }
 
-// 3. Fetch Status Pengajuan Bantuan (Donut Chart)
-export function useAnalitikBantuan(filter?: AnalitikFilter) {
+// ===== 3. Fetch Status Pengajuan Bantuan (Donut Chart - Auto Role-Scoped) =====
+export function useAnalitikBantuan(filter: AnalitikFilter = {}) {
   const supabase = createClient();
+  const { scope, isLoading: isScopeLoading } = useUserRoleScope();
 
-  return useQuery({
-    queryKey: ['analitik-bantuan', filter],
+  const effectiveFilter = useMemo(
+    () => mergeWithAutoScope(filter, scope),
+    [filter, scope]
+  );
+
+  const query = useQuery({
+    queryKey: ['analitik-bantuan', effectiveFilter],
     queryFn: async (): Promise<ChartPieData[]> => {
       const { data, error } = await supabase
         .from('t_pengajuan_bantuan')
@@ -166,10 +260,10 @@ export function useAnalitikBantuan(filter?: AnalitikFilter) {
       if (error) throw error;
 
       let filteredData = data || [];
-      if (filter?.id_induk) {
-        filteredData = filteredData.filter((d: any) => d.id_pos?.id_induk === filter.id_induk);
-      } else if (filter?.id_mupel) {
-        const { data: jemaat } = await supabase.from('m_jemaat_induk').select('id_induk').eq('id_mupel', filter.id_mupel);
+      if (effectiveFilter.id_induk) {
+        filteredData = filteredData.filter((d: any) => d.id_pos?.id_induk === effectiveFilter.id_induk);
+      } else if (effectiveFilter.id_mupel) {
+        const { data: jemaat } = await supabase.from('m_jemaat_induk').select('id_induk').eq('id_mupel', effectiveFilter.id_mupel);
         const idInduks = new Set(jemaat?.map((j) => j.id_induk) || []);
         filteredData = filteredData.filter((d: any) => idInduks.has(d.id_pos?.id_induk));
       }
@@ -207,16 +301,29 @@ export function useAnalitikBantuan(filter?: AnalitikFilter) {
           value,
         }));
     },
+    enabled: !isScopeLoading,
     staleTime: 1000 * 60 * 5,
   });
+
+  return {
+    ...query,
+    scope,
+    isScopeLocked: scope?.isLocked ?? false,
+  };
 }
 
-// 4. Fetch Kondisi Aset (Pie Chart)
-export function useAnalitikAsetKondisi(filter?: AnalitikFilter) {
+// ===== 4. Fetch Kondisi Aset (Pie Chart - Auto Role-Scoped) =====
+export function useAnalitikAsetKondisi(filter: AnalitikFilter = {}) {
   const supabase = createClient();
+  const { scope, isLoading: isScopeLoading } = useUserRoleScope();
 
-  return useQuery({
-    queryKey: ['analitik-aset-kondisi', filter],
+  const effectiveFilter = useMemo(
+    () => mergeWithAutoScope(filter, scope),
+    [filter, scope]
+  );
+
+  const query = useQuery({
+    queryKey: ['analitik-aset-kondisi', effectiveFilter],
     queryFn: async (): Promise<ChartPieData[]> => {
       const [tanahRes, bangunanRes, bergerakRes] = await Promise.all([
         supabase.from('t_aset_tanah').select('kondisi'),
@@ -247,6 +354,13 @@ export function useAnalitikAsetKondisi(filter?: AnalitikFilter) {
         value,
       }));
     },
+    enabled: !isScopeLoading,
     staleTime: 1000 * 60 * 5,
   });
+
+  return {
+    ...query,
+    scope,
+    isScopeLocked: scope?.isLocked ?? false,
+  };
 }
