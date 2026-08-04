@@ -112,3 +112,48 @@ export async function submitBantuanAction(id_ajuan: string) {
 
   return data;
 }
+
+export async function processApprovalAction(payload: {
+  id_ajuan: string;
+  aksi: 'approve' | 'reject' | 'revision';
+  catatan: string;
+  role_approver?: string;
+}) {
+  const supabase = await createClient();
+  const db = getDbClient(supabase);
+
+  // 1. Get authenticated user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('Autentikasi diperlukan untuk memproses persetujuan.');
+  }
+
+  // 2. Lookup user profile role
+  const { data: profile } = await db
+    .from('users')
+    .select('role, nama_lengkap')
+    .eq('id', user.id)
+    .single();
+
+  const userRole = payload.role_approver || profile?.role || 'super_user';
+
+  // 3. Execute atomic RPC
+  const { error: rpcError } = await db.rpc('process_pengajuan_bantuan', {
+    p_id_ajuan: payload.id_ajuan,
+    p_aksi: payload.aksi,
+    p_catatan: payload.catatan,
+    p_role_approver: userRole,
+  });
+
+  if (rpcError) {
+    console.error('processApprovalAction RPC error:', rpcError);
+    throw new Error(rpcError.message || 'Gagal memproses aksi persetujuan.');
+  }
+
+  revalidatePath('/bantuan');
+  revalidatePath(`/bantuan/${payload.id_ajuan}`);
+  revalidatePath('/dashboard');
+
+  return { success: true };
+}
+

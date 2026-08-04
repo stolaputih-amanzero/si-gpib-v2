@@ -12,11 +12,13 @@ import {
   MapPin, 
   Loader2, 
   Trash2,
-  AlertCircle
+  AlertCircle,
+  Send
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ShareButton } from '@/components/mobile/ShareButton';
+import { shareBantuanWA } from '@/lib/share/share-bantuan-wa';
 
 export default function PengajuanDetailPage({ params }: { params: Promise<{ id_ajuan: string }> }) {
   const resolvedParams = use(params);
@@ -127,6 +129,26 @@ export default function PengajuanDetailPage({ params }: { params: Promise<{ id_a
           </div>
 
           <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => {
+                shareBantuanWA({
+                  id_ajuan: item.id_ajuan,
+                  jenis_bantuan: item.jenis_bantuan,
+                  id_pos: item.id_pos,
+                  nama_pos: item.pos?.nama_pos,
+                  nama_induk: item.pos?.jemaat_induk?.nama_induk,
+                  biaya: item.biaya,
+                  urgensi: item.urgensi,
+                  status: item.status,
+                  keterangan: item.keterangan,
+                });
+              }}
+              className="p-2 rounded-xl text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+              title="Kirim Notifikasi WhatsApp"
+            >
+              <Send size={18} />
+            </button>
             <ShareButton
               title={`Permohonan Bantuan: ${item.jenis_bantuan}`}
               text={`Pos Pelkes: ${item.pos?.nama_pos || item.id_pos}\nStatus: ${item.status}\nUrgensi: ${item.urgensi}\nEstimasi Biaya: Rp ${item.biaya?.toLocaleString('id-ID')}`}

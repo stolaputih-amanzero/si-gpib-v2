@@ -20,6 +20,7 @@ import { usePendingSubmissions } from '@/hooks/use-pending-submissions';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 
 import { createPengajuanBantuanAction } from '@/app/actions/bantuan';
+import { shareBantuanWA } from '@/lib/share/share-bantuan-wa';
 import { cn } from '@/lib/utils';
 
 export function BantuanFormClient() {
@@ -127,11 +128,29 @@ export function BantuanFormClient() {
         return;
       }
 
-      await createPengajuanBantuanAction(payload);
+      const created = await createPengajuanBantuanAction(payload);
 
       clearDraft();
       toast.success('Pengajuan Bantuan Dikirim', 'Status pengajuan: Pending Review KMJ.');
-      router.push('/bantuan');
+      
+      // Trigger WhatsApp Notification
+      try {
+        await shareBantuanWA({
+          id_ajuan: created?.id_ajuan || 'AJU-NEW',
+          jenis_bantuan: formValues.jenis_bantuan,
+          id_pos: posId,
+          nama_pos: hierarchyMeta?.posName,
+          nama_induk: hierarchyMeta?.jemaatName,
+          biaya: biayaNumeric,
+          urgensi: formValues.urgensi || 'Sedang',
+          status: 'Pending_KMJ',
+          keterangan: formValues.keterangan || null,
+        });
+      } catch (err) {
+        console.warn('Share WA error:', err);
+      }
+
+      router.push(`/bantuan/${created?.id_ajuan || ''}`);
     } catch (err: any) {
       console.error('Failed to create assistance request:', err);
       setHasSubmitError(true);
