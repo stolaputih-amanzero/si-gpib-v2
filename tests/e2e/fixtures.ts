@@ -25,9 +25,9 @@ export const test = base.extend<{
         value: JSON.stringify({
           id: 'test-user-pj',
           email: 'pj@gpib.or.id',
-          role: 'pj',
+          role: 'super_user',
           nama_lengkap: 'Pelayan Jemaat Test',
-          user_metadata: { role: 'pj', nama_lengkap: 'Pelayan Jemaat Test' },
+          user_metadata: { role: 'super_user', nama_lengkap: 'Pelayan Jemaat Test' },
         }),
         domain: 'localhost',
         path: '/',

@@ -39,6 +39,7 @@ export default function OfflinePage() {
 
         <button
           type="button"
+          data-testid="button-dashboard"
           onClick={() => {
             if (typeof window !== 'undefined') {
               window.location.href = '/dashboard';

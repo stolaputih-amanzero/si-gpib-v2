@@ -42,20 +42,28 @@ export function usePendingSubmissions() {
       attempts: 0,
     };
 
-    setPendingQueue((prev) => {
-      const updated = [...prev, newSubmission];
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const prevQueue: PendingSubmission[] = raw ? JSON.parse(raw) : [];
+      const updated = [...prevQueue, newSubmission];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      return updated;
-    });
+      setPendingQueue(updated);
+    } catch {
+      setPendingQueue((prev) => [...prev, newSubmission]);
+    }
   }, []);
 
   const removePendingSubmission = useCallback((id: string) => {
     if (typeof window === 'undefined') return;
-    setPendingQueue((prev) => {
-      const updated = prev.filter((item) => item.id !== id);
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const prevQueue: PendingSubmission[] = raw ? JSON.parse(raw) : [];
+      const updated = prevQueue.filter((item) => item.id !== id);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      return updated;
-    });
+      setPendingQueue(updated);
+    } catch {
+      setPendingQueue((prev) => prev.filter((item) => item.id !== id));
+    }
   }, []);
 
   const clearPendingQueue = useCallback(() => {

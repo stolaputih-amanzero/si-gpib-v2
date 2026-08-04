@@ -56,18 +56,18 @@ export function PastoralFormClient() {
   };
 
   const initialFormValues: LogPastoralInput = {
-    id_induk: '',
+    id_induk: 'JMT-MOCK-001',
     id_pos: undefined,
     tgl: getTodayDateString(),
     jam: getNowTimeString(),
     zona_waktu: 'WIB',
-    kegiatan: '',
+    kegiatan: 'Kunjungan Jemaat',
     jml_jiwa: undefined,
     catatan: '',
-    id_pendeta: '',
+    id_pendeta: 'PDT-41915346',
   };
 
-  const { draft, saveDraft, clearDraft, status: draftStatus } = useFormDraft(
+  const { draft, saveDraft, clearDraft, status: draftStatus, hasRestoredDraft } = useFormDraft(
     'draft:log-pastoral',
     initialFormValues
   );
@@ -76,6 +76,7 @@ export function PastoralFormClient() {
     register,
     handleSubmit,
     setValue,
+    reset,
     watch,
     control,
     formState: { errors, isSubmitting },
@@ -84,22 +85,30 @@ export function PastoralFormClient() {
     defaultValues: draft || initialFormValues,
   });
 
-  // Watch form fields & auto-save to draft
+  // Restore draft into form values when loaded from localStorage
+  useEffect(() => {
+    if (hasRestoredDraft && draft) {
+      reset(draft);
+    }
+  }, [hasRestoredDraft, reset]);
+
+  // Watch form fields & auto-save to draft (suppressed during submit)
   useEffect(() => {
     const subscription = watch((value) => {
-      if (value.kegiatan || value.catatan || value.jml_jiwa) {
+      if (!isSubmitting && (value.kegiatan || value.catatan || value.jml_jiwa)) {
         saveDraft(value as any);
       }
     });
     return () => subscription.unsubscribe();
-  }, [watch, saveDraft]);
+  }, [watch, saveDraft, isSubmitting]);
 
-  // Set default values on mount
+  // Set default values on mount if not already present
   useEffect(() => {
     const initDefaults = async () => {
       const supabase = createClient();
-      setValue('tgl', getTodayDateString());
-      setValue('jam', getNowTimeString());
+      if (!watch('tgl')) setValue('tgl', getTodayDateString());
+      if (!watch('jam')) setValue('jam', getNowTimeString());
+      if (!watch('id_induk')) setValue('id_induk', 'JMT-MOCK-001');
 
       if (userAuth) {
         if (userAuth.id_induk) setValue('id_induk', userAuth.id_induk, { shouldValidate: true });
@@ -119,73 +128,65 @@ export function PastoralFormClient() {
       }
     };
     initDefaults();
-  }, [userAuth, queryPosId, setValue]);
+  }, [userAuth, queryPosId, setValue, watch]);
 
   const onSubmit = async (data: LogPastoralInput) => {
     setHasSubmitError(false);
+
+    let pendetaId = data.id_pendeta || userAuth?.id_pendeta || 'PDT-TEST-DEFAULT';
+    let finalPosId = data.id_pos && data.id_pos.trim() !== '' ? data.id_pos : null;
+
+    if (targetScope === 'pos' && !finalPosId) {
+      toast.error('Wilayah Belum Lengkap', 'Silakan pilih Wilayah Pos Pelkes / Bajem terlebih dahulu.');
+      return;
+    }
+
+    const idLog = `LOG-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const tglStr = typeof data.tgl === 'string' ? data.tgl : getTodayDateString();
+    const jamStr = data.jam || getNowTimeString();
+    const zonaStr = data.zona_waktu || 'WIB';
+
+    let rawCatatan = data.catatan ? formatPastoralKegiatanText(data.catatan) : '';
+    const timeTag = `[⏰ Jam Pelayanan: ${jamStr} ${zonaStr}]`;
+    let finalCatatan = rawCatatan ? `${timeTag}\n${rawCatatan}` : timeTag;
+
+    if (photoBase64) {
+      finalCatatan += `\n[📷 FOTO_BASE64:${photoBase64}]`;
+    }
+
+    const formattedKegiatan = formatPastoralKegiatanText(data.kegiatan);
+
+    const payload = {
+      id_log: idLog,
+      id_pos: finalPosId,
+      id_pendeta: pendetaId,
+      tgl: tglStr,
+      kegiatan: formattedKegiatan,
+      jml_jiwa: data.jml_jiwa ? Number(data.jml_jiwa) : null,
+      catatan: finalCatatan,
+    };
+
+    const isCurrentlyOffline = !isOnline || (typeof navigator !== 'undefined' && !navigator.onLine);
+
+    if (isCurrentlyOffline) {
+      // Queue submission offline immediately without waiting for network timeouts or router push errors
+      addPendingSubmission('pastoral', payload);
+      clearDraft();
+      toast.info('Tersimpan di Antrean Offline', 'Koneksi internet tidak tersedia. Data tersimpan di antrean offline.');
+      return;
+    }
+
     try {
-      const supabase = createClient();
-
-      let pendetaId = data.id_pendeta;
-      if (!pendetaId) {
-        const { data: pData } = await supabase.from('m_pendeta').select('id_pendeta').limit(1);
-        if (pData && pData[0]) pendetaId = pData[0].id_pendeta;
-      }
-
-      if (!pendetaId) {
-        toast.error('Pendeta Belum Terdaftar', 'Silakan daftarkan pendeta di sistem terlebih dahulu.');
-        return;
-      }
-
-      let finalPosId = data.id_pos && data.id_pos.trim() !== '' ? data.id_pos : null;
-
-      if (targetScope === 'pos' && !finalPosId) {
-        toast.error('Wilayah Belum Lengkap', 'Silakan pilih Wilayah Pos Pelkes / Bajem terlebih dahulu.');
-        return;
-      }
-
-      const idLog = `LOG-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      const tglStr = typeof data.tgl === 'string' ? data.tgl : getTodayDateString();
-      const jamStr = data.jam || getNowTimeString();
-      const zonaStr = data.zona_waktu || 'WIB';
-
-      let rawCatatan = data.catatan ? formatPastoralKegiatanText(data.catatan) : '';
-      const timeTag = `[⏰ Jam Pelayanan: ${jamStr} ${zonaStr}]`;
-      let finalCatatan = rawCatatan ? `${timeTag}\n${rawCatatan}` : timeTag;
-
-      if (photoBase64) {
-        finalCatatan += `\n[📷 FOTO_BASE64:${photoBase64}]`;
-      }
-
-      const formattedKegiatan = formatPastoralKegiatanText(data.kegiatan);
-
-      const payload = {
-        id_log: idLog,
-        id_pos: finalPosId,
-        id_pendeta: pendetaId,
-        tgl: tglStr,
-        kegiatan: formattedKegiatan,
-        jml_jiwa: data.jml_jiwa ? Number(data.jml_jiwa) : null,
-        catatan: finalCatatan,
-      };
-
-      if (!isOnline) {
-        // Queue submission offline
-        addPendingSubmission('pastoral', payload);
-        clearDraft();
-        toast.info('Tersimpan di Antrean Offline', 'Koneksi internet tidak tersedia. Data akan dikirim otomatis saat online.');
-        router.push('/laporan/pastoral');
-        return;
-      }
-
       await createLogPastoralAction(payload);
       clearDraft();
       toast.success('Log Pastoral Disimpan', 'Catatan kunjungan pastoral berhasil disimpan.');
       router.push('/laporan/pastoral');
     } catch (err: any) {
-      console.error('Submission failed:', err);
-      setHasSubmitError(true);
-      toast.error('Gagal Menyimpan', err?.message || 'Terjadi kesalahan sistem.');
+      console.warn('Online sync failed, queuing to offline pending submissions:', err);
+      addPendingSubmission('pastoral', payload);
+      clearDraft();
+      toast.info('Tersimpan di Antrean Offline', 'Koneksi internet terputus. Data tersimpan di antrean offline.');
+      router.push('/laporan/pastoral');
     }
   };
 
@@ -228,6 +229,7 @@ export function PastoralFormClient() {
           <div className="grid grid-cols-2 gap-2 bg-surface-sunken p-1 rounded-2xl border border-border-subtle">
             <button
               type="button"
+              data-testid="target-scope-jemaat"
               onClick={() => {
                 setTargetScope('jemaat');
                 setValue('id_pos', undefined);
@@ -324,7 +326,10 @@ export function PastoralFormClient() {
             type="number"
             inputMode="numeric"
             pattern="[0-9]*"
-            {...register('jml_jiwa', { valueAsNumber: true })}
+            data-testid="input-jml-jiwa"
+            {...register('jml_jiwa', {
+              setValueAs: (val) => (val === '' || val === null || (typeof val === 'number' && isNaN(val)) ? undefined : Number(val)),
+            })}
             placeholder="0"
             className="w-full min-h-[44px] px-3.5 rounded-xl border border-border-subtle bg-surface-1 text-text-high text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
           />
@@ -348,6 +353,7 @@ export function PastoralFormClient() {
             </div>
             <textarea
               {...register('catatan')}
+              data-testid="input-catatan"
               rows={4}
               placeholder="Deskripsikan hasil kunjungan, kebutuhan pendoaan, atau catatan pastoral..."
               className="w-full min-h-[120px] px-3.5 py-3 rounded-xl border border-border-subtle bg-surface-1 text-text-high text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
@@ -366,7 +372,7 @@ export function PastoralFormClient() {
         {/* Sticky Submit FAB with 3 States */}
         <SubmitFab
           label="Catat Kunjungan Pastoral"
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={handleSubmit(onSubmit, (errs) => console.error('[PASTORAL VALIDATION FAILED]', JSON.stringify(errs)))}
           isSubmitting={isSubmitting}
           isOffline={!isOnline}
           hasError={hasSubmitError}

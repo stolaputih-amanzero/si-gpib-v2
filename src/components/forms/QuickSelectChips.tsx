@@ -67,6 +67,7 @@ export function QuickSelectChips({
             <button
               key={chip}
               type="button"
+              data-testid={`chip-${chip.toLowerCase().replace(/\s+/g, '-')}`}
               onClick={() => handleChipClick(chip)}
               className={cn(
                 'px-4 py-2 rounded-full text-xs font-extrabold transition-all shrink-0 min-h-[44px] flex items-center justify-center border cursor-pointer active:scale-95',
@@ -86,6 +87,7 @@ export function QuickSelectChips({
         <div className="animate-fade-in">
           <input
             type="text"
+            data-testid="input-kegiatan"
             value={customText}
             onChange={(e) => handleCustomTextChange(e.target.value)}
             placeholder="Tuliskan jenis kegiatan lainnya..."
