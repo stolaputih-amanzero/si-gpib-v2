@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 export interface SubmitFabProps {
   label?: string;
   icon?: React.ReactNode;
-  onSubmit: () => void;
+  onSubmit?: (e?: React.MouseEvent<HTMLButtonElement>) => void;
   isSubmitting?: boolean;
   isOffline?: boolean;
   hasError?: boolean;
@@ -36,7 +36,7 @@ export function SubmitFab({
     // Only call onSubmit prop if button is not naturally submitting a parent form
     const form = e.currentTarget.closest('form');
     if (!form && onSubmit) {
-      onSubmit(e as any);
+      onSubmit(e);
     }
   };
 
