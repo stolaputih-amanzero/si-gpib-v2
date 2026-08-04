@@ -104,7 +104,7 @@ export default async function Dashboard() {
   let scopeLabel = 'Seluruh Indonesia';
   if (userRole === 'admin_mupel') scopeLabel = 'Mupel Anda';
   else if (userRole === 'kmj') scopeLabel = 'Jemaat Anda';
-  else if (userRole === 'pj' || userRole === 'user') scopeLabel = 'Pos Pelkes / Mupel Anda';
+  else if (userRole === 'pj' || userRole === 'user') scopeLabel = 'Pos Pelkes Penugasan Anda';
 
   const roleScopeObj: UserRoleScope = {
     role: userRole as any,
@@ -115,7 +115,7 @@ export default async function Dashboard() {
     scopeLabel,
   };
 
-  // 2. Resolve Jemaat IDs inside user's Mupel for clean 1-Mupel aggregation
+  // 2. Resolve Jemaat IDs inside user's Mupel
   let jemaatIdsInMupel: string[] = [];
   if (isLocked && userMupelId) {
     const { data: jemaatListInMupel } = await supabaseAdmin
@@ -125,7 +125,7 @@ export default async function Dashboard() {
     jemaatIdsInMupel = jemaatListInMupel?.map((j) => j.id_induk) || [];
   }
 
-  // 3. Fetch scoped data
+  // 3. Fetch scoped data (Option A - Strict Personal Scope for PJ/KMJ/Mupel)
   let mupelCount = 0;
   let jemaatCount = 0;
   let bajemCount = 0;
@@ -136,16 +136,29 @@ export default async function Dashboard() {
   let recentLogs: any[] | null = [];
 
   try {
-    // Build queries scoped to Mupel level for reliable 25 Jemaat & Pos count
     let mupelQuery = supabaseAdmin.from('m_mupel').select('*', { count: 'exact', head: true });
     let jemaatQuery = supabaseAdmin.from('m_jemaat_induk').select('*', { count: 'exact', head: true });
     let posQuery = supabaseAdmin.from('m_pos_pelkes').select('id_pos, nama_pos, kategori, jumlah_jiwa, id_induk');
 
-    if (isLocked && userMupelId) {
-      mupelQuery = mupelQuery.eq('id_mupel', userMupelId);
-      jemaatQuery = jemaatQuery.eq('id_mupel', userMupelId);
-      if (jemaatIdsInMupel.length > 0) {
-        posQuery = posQuery.in('id_induk', jemaatIdsInMupel);
+    if (isLocked) {
+      if (userRole === 'admin_mupel' && userMupelId) {
+        mupelQuery = mupelQuery.eq('id_mupel', userMupelId);
+        jemaatQuery = jemaatQuery.eq('id_mupel', userMupelId);
+        if (jemaatIdsInMupel.length > 0) {
+          posQuery = posQuery.in('id_induk', jemaatIdsInMupel);
+        }
+      } else if (userRole === 'kmj' && userIndukId) {
+        if (userMupelId) mupelQuery = mupelQuery.eq('id_mupel', userMupelId);
+        jemaatQuery = jemaatQuery.eq('id_induk', userIndukId);
+        posQuery = posQuery.eq('id_induk', userIndukId);
+      } else if ((userRole === 'pj' || userRole === 'user')) {
+        if (userMupelId) mupelQuery = mupelQuery.eq('id_mupel', userMupelId);
+        if (userIndukId) jemaatQuery = jemaatQuery.eq('id_induk', userIndukId);
+        if (userPosId) {
+          posQuery = posQuery.eq('id_pos', userPosId);
+        } else if (userIndukId) {
+          posQuery = posQuery.eq('id_induk', userIndukId);
+        }
       }
     }
 
@@ -182,7 +195,7 @@ export default async function Dashboard() {
     ]);
 
     mupelCount = resMupel.count || (userMupelId ? 1 : 0);
-    jemaatCount = resJemaat.count || 0;
+    jemaatCount = resJemaat.count || (userIndukId ? 1 : 0);
     logCount = resLog.count || 0;
     demografiData = resDemo.data;
     posPelkesSumData = resSum.data;
@@ -268,11 +281,23 @@ export default async function Dashboard() {
     total: chartDataMap[pelkat.kode] || 0,
   }));
 
-  // Build Role-Adaptive Click Targets
+  // Option A - Precise Personal Click Targets
   const mupelHref = userMupelId ? `/hierarki/${encodeURIComponent(userMupelId)}` : '/hierarki';
-  const jemaatHref = userMupelId ? `/hierarki/${encodeURIComponent(userMupelId)}` : '/hierarki?view=jemaat';
-  const bajemHref = userMupelId ? `/hierarki/${encodeURIComponent(userMupelId)}?kategori=bajem` : '/hierarki?kategori=bajem';
-  const posHref = userMupelId ? `/hierarki/${encodeURIComponent(userMupelId)}?kategori=pos` : '/hierarki?kategori=pos';
+  const jemaatHref = userIndukId
+    ? `/hierarki/${encodeURIComponent(userMupelId || '')}/${encodeURIComponent(userIndukId)}`
+    : userMupelId
+      ? `/hierarki/${encodeURIComponent(userMupelId)}`
+      : '/hierarki?view=jemaat';
+  const bajemHref = userIndukId
+    ? `/hierarki/${encodeURIComponent(userMupelId || '')}/${encodeURIComponent(userIndukId)}?kategori=bajem`
+    : userMupelId
+      ? `/hierarki/${encodeURIComponent(userMupelId)}?kategori=bajem`
+      : '/hierarki?kategori=bajem';
+  const posHref = userIndukId
+    ? `/hierarki/${encodeURIComponent(userMupelId || '')}/${encodeURIComponent(userIndukId)}`
+    : userMupelId
+      ? `/hierarki/${encodeURIComponent(userMupelId)}`
+      : '/hierarki?kategori=pos';
 
   const customStats = [
     {
