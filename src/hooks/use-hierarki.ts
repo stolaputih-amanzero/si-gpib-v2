@@ -106,29 +106,18 @@ export function useMupelList(search?: string) {
       let jemaatList = jemaatRes.data || [];
       let posList = posRes.data || [];
 
-      // Apply role-based scoping filter
+      // Apply role-based scoping filter (Scoped at Mupel level for Mupel users)
       if (scope && scope.isLocked) {
-        if (scope.role === 'admin_mupel' && scope.id_mupel) {
+        if (scope.id_mupel) {
           mupelData = mupelData.filter((m) => m.id_mupel === scope.id_mupel);
           jemaatList = jemaatList.filter((j) => j.id_mupel === scope.id_mupel);
-        } else if (scope.role === 'kmj' && scope.id_induk) {
+          const mupelJemaatIds = new Set(jemaatList.map((j) => j.id_induk));
+          posList = posList.filter((p) => mupelJemaatIds.has(p.id_induk));
+        } else if (scope.id_induk) {
           jemaatList = jemaatList.filter((j) => j.id_induk === scope.id_induk);
           const allowedMupelIds = new Set(jemaatList.map((j) => j.id_mupel));
           mupelData = mupelData.filter((m) => allowedMupelIds.has(m.id_mupel));
           posList = posList.filter((p) => p.id_induk === scope.id_induk);
-        } else if ((scope.role === 'pj' || scope.role === 'user')) {
-          if (scope.id_pos) {
-            posList = posList.filter((p) => p.id_pos === scope.id_pos);
-            const parentIndukIds = new Set(posList.map((p) => p.id_induk));
-            jemaatList = jemaatList.filter((j) => parentIndukIds.has(j.id_induk));
-            const parentMupelIds = new Set(jemaatList.map((j) => j.id_mupel));
-            mupelData = mupelData.filter((m) => parentMupelIds.has(m.id_mupel));
-          } else if (scope.id_induk) {
-            jemaatList = jemaatList.filter((j) => j.id_induk === scope.id_induk);
-            const allowedMupelIds = new Set(jemaatList.map((j) => j.id_mupel));
-            mupelData = mupelData.filter((m) => allowedMupelIds.has(m.id_mupel));
-            posList = posList.filter((p) => p.id_induk === scope.id_induk);
-          }
         }
       }
 
