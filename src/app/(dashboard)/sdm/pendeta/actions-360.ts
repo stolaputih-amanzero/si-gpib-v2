@@ -373,3 +373,36 @@ export async function deleteKompetensiAction(id_kompetensi: string) {
   if (error) throw new Error(error.message || 'Gagal menghapus kompetensi');
   return true;
 }
+
+// --- MUTASI PENDETA ---
+export async function mutasiPendetaAction(payload: {
+  id_pendeta: string;
+  id_induk_baru: string;
+  alasan: string;
+  jenis_mutasi?: string;
+  file_sk?: string | null;
+}) {
+  const supabase = await createClient();
+  const dbClient = createAdminClient() || supabase;
+
+  // 1. Validasi Autentikasi
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Otentikasi diperlukan.');
+
+  // 2. Panggil RPC mutasi_pendeta dengan sinkronisasi identitas
+  const { error } = await dbClient.rpc('mutasi_pendeta', {
+    p_id_pendeta: payload.id_pendeta,
+    p_id_induk_baru: payload.id_induk_baru,
+    p_alasan: payload.alasan,
+    p_jenis_mutasi: payload.jenis_mutasi || 'MUTASI',
+    p_file_sk: payload.file_sk || null,
+  });
+
+  if (error) {
+    console.error('mutasiPendetaAction RPC error:', error);
+    throw new Error(error.message || 'Gagal memproses mutasi pendeta.');
+  }
+
+  return { success: true };
+}
+
