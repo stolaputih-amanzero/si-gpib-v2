@@ -219,6 +219,16 @@ export function useJemaatReverseLookup(id_induk?: string | null) {
   });
 }
 
+export function normalizeRole(roleStr?: string | null): 'super_user' | 'admin_mupel' | 'kmj' | 'pj' | 'user' {
+  if (!roleStr) return 'user';
+  const r = roleStr.trim().toLowerCase();
+  if (r === 'super_user' || r === 'admin' || r === 'superadmin' || r === 'sinode') return 'super_user';
+  if (r.includes('mupel')) return 'admin_mupel';
+  if (r === 'kmj' || r.includes('kmj')) return 'kmj';
+  if (r.includes('pj') || r.includes('pos') || r.includes('pendeta')) return 'pj';
+  return 'user';
+}
+
 /**
  * Poka-Yoke RBAC Hook: Fetch user role & assigned hierarchy IDs (Mupel, Jemaat Induk, Pos Pelkes)
  */
@@ -264,10 +274,11 @@ export function useUserMupelAuth() {
         dbUser = data;
       }
 
-      const role = dbUser?.role || user.role || user.user_metadata?.role || 'guest';
+      const rawRole = dbUser?.role || user.role || user.user_metadata?.role || 'guest';
+      const role = normalizeRole(rawRole);
       let id_mupel = dbUser?.id_mupel || user.id_mupel || user.user_metadata?.id_mupel || null;
       let id_induk = dbUser?.id_induk || user.id_induk || user.user_metadata?.id_induk || null;
-      const id_pos = dbUser?.id_pos || user.id_pos || user.user_metadata?.id_pos || null;
+      let id_pos = dbUser?.id_pos || user.id_pos || user.user_metadata?.id_pos || null;
       let id_pendeta = dbUser?.id_pendeta || user.id_pendeta || user.user_metadata?.id_pendeta || null;
 
       if (!id_pendeta && user.email) {
@@ -279,6 +290,17 @@ export function useUserMupelAuth() {
         if (pData) {
           id_pendeta = pData.id_pendeta;
           if (!id_induk) id_induk = pData.id_induk;
+        }
+      }
+
+      if (id_pendeta && !id_pos) {
+        const { data: penugasan } = await supabase
+          .from('t_penugasan_pendeta')
+          .select('id_pos')
+          .eq('id_pendeta', id_pendeta)
+          .maybeSingle();
+        if (penugasan?.id_pos) {
+          id_pos = penugasan.id_pos;
         }
       }
 

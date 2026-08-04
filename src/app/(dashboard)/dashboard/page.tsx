@@ -1,4 +1,5 @@
 import { createClient as createServerClient } from '@/lib/supabase/server';
+import { normalizeRole } from '@/hooks/use-hierarki-selector';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { StatCards } from '@/components/dashboard/StatCards';
 import { DemografiChart } from '@/components/dashboard/DemografiChart';
@@ -50,7 +51,7 @@ export default async function Dashboard() {
     }
 
     if (profile) {
-      userRole = profile.role || 'guest';
+      userRole = normalizeRole(profile.role);
       userMupelId = profile.id_mupel || null;
       userIndukId = profile.id_induk || null;
       userPosId = profile.id_pos || null;
