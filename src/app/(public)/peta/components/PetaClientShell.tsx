@@ -1,24 +1,29 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { Search, X } from 'lucide-react';
 import type { PublicPosPelkes, PublicMupel } from '@/app/actions/public';
 import { haptic } from '@/lib/haptic/vibrate';
+import { PublicMapSkeleton } from './PublicMapSkeleton';
+
+// Dynamic import Leaflet di dalam Client Component (Allowed & Recommended di Next.js App Router)
+const PosPelkesMap = dynamic(
+  () => import('./PosPelkesMap').then((mod) => mod.PosPelkesMap),
+  {
+    ssr: false,
+    loading: () => <PublicMapSkeleton />,
+  }
+);
 
 interface PetaClientShellProps {
   posPelkesList: PublicPosPelkes[];
   mupelList: PublicMupel[];
-  MapComponent: React.ComponentType<{
-    posPelkesList: PublicPosPelkes[];
-    selectedPos: PublicPosPelkes | null;
-    onSelectPos: (pos: PublicPosPelkes | null) => void;
-  }>;
 }
 
 export function PetaClientShell({
   posPelkesList,
   mupelList,
-  MapComponent,
 }: PetaClientShellProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMupel, setSelectedMupel] = useState('');
@@ -130,7 +135,7 @@ export function PetaClientShell({
 
       {/* ===== MAP CONTAINER ===== */}
       <div className="relative h-[500px] sm:h-[600px] lg:h-[700px]">
-        <MapComponent
+        <PosPelkesMap
           posPelkesList={filteredPos}
           selectedPos={selectedPos}
           onSelectPos={handleSelectPos}

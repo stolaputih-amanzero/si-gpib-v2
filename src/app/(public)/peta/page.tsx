@@ -1,18 +1,6 @@
-import dynamic from 'next/dynamic';
 import { MapPin, Users, Church, Globe } from 'lucide-react';
 import { getPublicPosPelkes, getMupelList } from '@/app/actions/public';
-import { PublicMapSkeleton } from './components/PublicMapSkeleton';
 import { PetaClientShell } from './components/PetaClientShell';
-
-// Dynamic import Leaflet (WAJIB ssr: false)
-const PosPelkesMap = dynamic(
-  () =>
-    import('./components/PosPelkesMap').then((mod) => mod.PosPelkesMap),
-  {
-    ssr: false,
-    loading: () => <PublicMapSkeleton />,
-  }
-);
 
 export const metadata = {
   title: 'Peta Sebaran Pos Pelkes GPIB',
@@ -89,11 +77,10 @@ export default async function PetaSebaranPage() {
       {/* ===== MAP SECTION ===== */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700">
-          {/* Filter bar akan di-render oleh PetaClientShell */}
+          {/* Filter bar & Map container di-render oleh PetaClientShell */}
           <PetaClientShell
             posPelkesList={posPelkesList}
             mupelList={mupelList}
-            MapComponent={PosPelkesMap}
           />
         </div>
 
