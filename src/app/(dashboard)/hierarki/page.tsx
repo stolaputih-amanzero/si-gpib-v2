@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useMupelList } from '@/hooks/use-hierarki';
+import { useUserRoleScope } from '@/hooks/use-analitik';
+import { ScopeIndicator } from '@/components/analitik/ScopeIndicator';
 import { SearchBar } from '@/components/ui/search-bar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Layers, LayoutList, GitFork, Church, Sprout } from 'lucide-react';
@@ -25,6 +27,7 @@ export default function HierarkiEntryPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const { scope } = useUserRoleScope();
   const { data: mupelList, isLoading, isError } = useMupelList(searchQuery);
 
   const totalMupel = mupelList?.length || 0;
@@ -43,6 +46,7 @@ export default function HierarkiEntryPage() {
             <h1 className="font-display text-xl sm:text-2xl font-semibold text-ink-primary tracking-tight">
               Hierarki Organisasi GPIB
             </h1>
+            <ScopeIndicator scope={scope} />
           </div>
           <p className="text-xs sm:text-sm text-ink-tertiary">
             Struktur Terintegrasi Mupel, Jemaat dan Pos Pelkes GPIB

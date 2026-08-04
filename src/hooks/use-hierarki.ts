@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { cleanQuotes } from '@/lib/utils';
+import { useUserRoleScope } from './use-analitik';
 
 export function isBajemPos(pos: { kategori?: string | null; nama_pos?: string | null }): boolean {
   if (!pos) return false;
@@ -87,9 +88,10 @@ export interface HierarchyStatsData {
  */
 export function useMupelList(search?: string) {
   const supabase = createClient();
+  const { scope, isLoading: isScopeLoading } = useUserRoleScope();
 
   return useQuery<MupelItem[]>({
-    queryKey: ['mupel-list', search || 'all'],
+    queryKey: ['mupel-list', search || 'all', scope],
     queryFn: async () => {
       // Query Mupel
       const [mupelRes, jemaatRes, posRes] = await Promise.all([
@@ -100,9 +102,35 @@ export function useMupelList(search?: string) {
 
       if (mupelRes.error) throw mupelRes.error;
 
-      const mupelData = mupelRes.data || [];
-      const jemaatList = jemaatRes.data || [];
-      const posList = posRes.data || [];
+      let mupelData = mupelRes.data || [];
+      let jemaatList = jemaatRes.data || [];
+      let posList = posRes.data || [];
+
+      // Apply role-based scoping filter
+      if (scope && scope.isLocked) {
+        if (scope.role === 'admin_mupel' && scope.id_mupel) {
+          mupelData = mupelData.filter((m) => m.id_mupel === scope.id_mupel);
+          jemaatList = jemaatList.filter((j) => j.id_mupel === scope.id_mupel);
+        } else if (scope.role === 'kmj' && scope.id_induk) {
+          jemaatList = jemaatList.filter((j) => j.id_induk === scope.id_induk);
+          const allowedMupelIds = new Set(jemaatList.map((j) => j.id_mupel));
+          mupelData = mupelData.filter((m) => allowedMupelIds.has(m.id_mupel));
+          posList = posList.filter((p) => p.id_induk === scope.id_induk);
+        } else if ((scope.role === 'pj' || scope.role === 'user')) {
+          if (scope.id_pos) {
+            posList = posList.filter((p) => p.id_pos === scope.id_pos);
+            const parentIndukIds = new Set(posList.map((p) => p.id_induk));
+            jemaatList = jemaatList.filter((j) => parentIndukIds.has(j.id_induk));
+            const parentMupelIds = new Set(jemaatList.map((j) => j.id_mupel));
+            mupelData = mupelData.filter((m) => parentMupelIds.has(m.id_mupel));
+          } else if (scope.id_induk) {
+            jemaatList = jemaatList.filter((j) => j.id_induk === scope.id_induk);
+            const allowedMupelIds = new Set(jemaatList.map((j) => j.id_mupel));
+            mupelData = mupelData.filter((m) => allowedMupelIds.has(m.id_mupel));
+            posList = posList.filter((p) => p.id_induk === scope.id_induk);
+          }
+        }
+      }
 
       // Map id_induk -> id_mupel for 100% reliable relation resolution
       const jemaatToMupelMap = new Map<string, string>();
@@ -154,6 +182,7 @@ export function useMupelList(search?: string) {
 
       return result;
     },
+    enabled: !isScopeLoading,
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
   });

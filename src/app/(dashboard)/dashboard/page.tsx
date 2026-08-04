@@ -1,9 +1,12 @@
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { StatCards } from "@/components/dashboard/StatCards";
-import { DemografiChart } from "@/components/dashboard/DemografiChart";
-import { RecentActivity } from "@/components/dashboard/RecentActivity";
-import { QuickActions } from "@/components/dashboard/QuickActions";
-import { KATEGORI_PELKAT } from "@/lib/constants/pelkat";
+import { createClient as createServerClient } from '@/lib/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { StatCards } from '@/components/dashboard/StatCards';
+import { DemografiChart } from '@/components/dashboard/DemografiChart';
+import { RecentActivity } from '@/components/dashboard/RecentActivity';
+import { QuickActions } from '@/components/dashboard/QuickActions';
+import { KATEGORI_PELKAT } from '@/lib/constants/pelkat';
+import { formatNumber } from '@/lib/utils';
+import { ScopeIndicator, UserRoleScope } from '@/components/analitik/ScopeIndicator';
 
 interface DemografiRow {
   kategori_pelkat: string;
@@ -12,7 +15,8 @@ interface DemografiRow {
 }
 
 export default async function Dashboard() {
-  const supabaseAdmin = createSupabaseClient(
+  const supabaseServer = await createServerClient();
+  const supabaseAdmin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
@@ -21,6 +25,96 @@ export default async function Dashboard() {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
+  // 1. Resolve logged in user session & role scope
+  const { data: { user } } = await supabaseServer.auth.getUser();
+
+  let userRole: string = 'guest';
+  let userMupelId: string | null = null;
+  let userIndukId: string | null = null;
+  let userPosId: string | null = null;
+
+  if (user) {
+    let { data: profile } = await supabaseAdmin
+      .from('users')
+      .select('role, id_mupel, id_induk, id_pos, email, id_pendeta')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (!profile && user.email) {
+      const { data: profByEmail } = await supabaseAdmin
+        .from('users')
+        .select('role, id_mupel, id_induk, id_pos, email, id_pendeta')
+        .eq('email', user.email)
+        .maybeSingle();
+      profile = profByEmail;
+    }
+
+    if (profile) {
+      userRole = profile.role || 'guest';
+      userMupelId = profile.id_mupel || null;
+      userIndukId = profile.id_induk || null;
+      userPosId = profile.id_pos || null;
+
+      // Lookup pendeta assignment for PJ if id_pos not set directly in users table
+      if ((userRole === 'pj' || userRole === 'user') && !userPosId && profile.id_pendeta) {
+        const { data: penugasan } = await supabaseAdmin
+          .from('t_penugasan_pendeta')
+          .select('id_pos')
+          .eq('id_pendeta', profile.id_pendeta)
+          .eq('status_tugas', 'Aktif')
+          .maybeSingle();
+        if (penugasan?.id_pos) {
+          userPosId = penugasan.id_pos;
+        }
+      }
+
+      // Lookup parent id_induk / id_mupel if userPosId is set
+      if (userPosId && (!userIndukId || !userMupelId)) {
+        const { data: posObj } = await supabaseAdmin
+          .from('m_pos_pelkes')
+          .select('id_induk, jemaat_induk:m_jemaat_induk(id_mupel)')
+          .eq('id_pos', userPosId)
+          .maybeSingle();
+
+        if (posObj) {
+          if (!userIndukId) userIndukId = posObj.id_induk;
+          if (!userMupelId && posObj.jemaat_induk) {
+            userMupelId = (posObj.jemaat_induk as any).id_mupel;
+          }
+        }
+      }
+
+      // Lookup parent id_mupel if userIndukId is set
+      if (userIndukId && !userMupelId) {
+        const { data: jemaatObj } = await supabaseAdmin
+          .from('m_jemaat_induk')
+          .select('id_mupel')
+          .eq('id_induk', userIndukId)
+          .maybeSingle();
+
+        if (jemaatObj?.id_mupel) {
+          userMupelId = jemaatObj.id_mupel;
+        }
+      }
+    }
+  }
+
+  const isLocked = userRole !== 'super_user';
+  let scopeLabel = 'Seluruh Indonesia';
+  if (userRole === 'admin_mupel') scopeLabel = 'Mupel Anda';
+  else if (userRole === 'kmj') scopeLabel = 'Jemaat Anda';
+  else if (userRole === 'pj' || userRole === 'user') scopeLabel = 'Pos Pelkes Anda';
+
+  const roleScopeObj: UserRoleScope = {
+    role: userRole as any,
+    id_mupel: userMupelId,
+    id_induk: userIndukId,
+    id_pos: userPosId,
+    isLocked,
+    scopeLabel,
+  };
+
+  // 2. Fetch scoped data
   let mupelCount = 0;
   let jemaatCount = 0;
   let bajemCount = 0;
@@ -31,9 +125,33 @@ export default async function Dashboard() {
   let recentLogs: any[] | null = [];
 
   try {
+    // Build queries with role scoping
+    let mupelQuery = supabaseAdmin.from('m_mupel').select('*', { count: 'exact', head: true });
+    let jemaatQuery = supabaseAdmin.from('m_jemaat_induk').select('*', { count: 'exact', head: true });
+    let posQuery = supabaseAdmin.from('m_pos_pelkes').select('id_pos, nama_pos, kategori, jumlah_jiwa, id_induk');
+
+    if (isLocked) {
+      if (userRole === 'admin_mupel' && userMupelId) {
+        mupelQuery = mupelQuery.eq('id_mupel', userMupelId);
+        jemaatQuery = jemaatQuery.eq('id_mupel', userMupelId);
+      } else if (userRole === 'kmj' && userIndukId) {
+        if (userMupelId) mupelQuery = mupelQuery.eq('id_mupel', userMupelId);
+        jemaatQuery = jemaatQuery.eq('id_induk', userIndukId);
+        posQuery = posQuery.eq('id_induk', userIndukId);
+      } else if ((userRole === 'pj' || userRole === 'user')) {
+        if (userMupelId) mupelQuery = mupelQuery.eq('id_mupel', userMupelId);
+        if (userIndukId) jemaatQuery = jemaatQuery.eq('id_induk', userIndukId);
+        if (userPosId) {
+          posQuery = posQuery.eq('id_pos', userPosId);
+        } else if (userIndukId) {
+          posQuery = posQuery.eq('id_induk', userIndukId);
+        }
+      }
+    }
+
     const [resMupel, resJemaat, resLog, resDemo, resSum, resPastoral, resHistori] = await Promise.all([
-      supabaseAdmin.from('m_mupel').select('*', { count: 'exact', head: true }),
-      supabaseAdmin.from('m_jemaat_induk').select('*', { count: 'exact', head: true }),
+      mupelQuery,
+      jemaatQuery,
       supabaseAdmin
         .from('t_log_pastoral')
         .select('*', { count: 'exact', head: true })
@@ -42,9 +160,7 @@ export default async function Dashboard() {
       supabaseAdmin
         .from('t_demografi_pelkat')
         .select('kategori_pelkat, laki, perempuan'),
-      supabaseAdmin
-        .from('m_pos_pelkes')
-        .select('id_pos, nama_pos, kategori, jumlah_jiwa'),
+      posQuery,
       supabaseAdmin
         .from('t_log_pastoral')
         .select(`
@@ -65,8 +181,8 @@ export default async function Dashboard() {
         .limit(5)
     ]);
 
-    mupelCount = resMupel.count || 0;
-    jemaatCount = resJemaat.count || 0;
+    mupelCount = resMupel.count || (userMupelId ? 1 : 0);
+    jemaatCount = resJemaat.count || (userIndukId ? 1 : 0);
     logCount = resLog.count || 0;
     demografiData = resDemo.data;
     posPelkesSumData = resSum.data;
@@ -152,27 +268,92 @@ export default async function Dashboard() {
     total: chartDataMap[pelkat.kode] || 0,
   }));
 
+  // Build Role-Adaptive Click Targets
+  const mupelHref = userMupelId ? `/hierarki/${encodeURIComponent(userMupelId)}` : '/hierarki';
+  const jemaatHref = userIndukId
+    ? `/hierarki/${encodeURIComponent(userMupelId || '')}/${encodeURIComponent(userIndukId)}`
+    : userMupelId
+      ? `/hierarki/${encodeURIComponent(userMupelId)}`
+      : '/hierarki?view=jemaat';
+  const bajemHref = userIndukId
+    ? `/hierarki/${encodeURIComponent(userMupelId || '')}/${encodeURIComponent(userIndukId)}`
+    : userMupelId
+      ? `/hierarki/${encodeURIComponent(userMupelId)}?kategori=bajem`
+      : '/hierarki?kategori=bajem';
+  const posHref = userIndukId
+    ? `/hierarki/${encodeURIComponent(userMupelId || '')}/${encodeURIComponent(userIndukId)}`
+    : userMupelId
+      ? `/hierarki/${encodeURIComponent(userMupelId)}`
+      : '/hierarki?kategori=pos';
+
+  const customStats = [
+    {
+      key: 'mupel',
+      label: 'Mupel',
+      value: formatNumber(mupelCount),
+      href: mupelHref,
+      icon: 'mupel' as const,
+      iconKey: 'mupel',
+    },
+    {
+      key: 'jemaat',
+      label: 'Jemaat Induk',
+      value: formatNumber(jemaatCount),
+      href: jemaatHref,
+      icon: 'jemaat' as const,
+      iconKey: 'jemaat',
+    },
+    {
+      key: 'bajem',
+      label: 'Bajem',
+      value: formatNumber(bajemCount),
+      href: bajemHref,
+      icon: 'bajem' as const,
+      iconKey: 'bajem',
+    },
+    {
+      key: 'pos',
+      label: 'Pos Pelkes',
+      value: formatNumber(posPelkesCount),
+      href: posHref,
+      icon: 'pos' as const,
+      iconKey: 'pos',
+    },
+    {
+      key: 'jiwa',
+      label: 'Total Jiwa',
+      value: formatNumber(totalJiwa),
+      href: '/demografi',
+      icon: 'jiwa' as const,
+      iconKey: 'jiwa',
+    },
+    {
+      key: 'giat',
+      label: 'Giat Bulan Ini',
+      value: formatNumber(logCount),
+      href: '/laporan/pastoral',
+      icon: 'giat' as const,
+      iconKey: 'giat',
+    },
+  ];
+
   return (
     <div className="w-full min-h-full bg-surface-base pb-24">
-      <div className="sticky top-0 z-40 bg-surface-1/85 backdrop-blur-md hairline-b px-4 py-3.5 md:px-6 pt-safe">
-        <h1 className="text-xl md:text-2xl font-display font-semibold tracking-tightish text-ink-primary">
-          Dashboard Utama
-        </h1>
-        <p className="text-xs md:text-sm text-ink-secondary mt-0.5">
-          Sistem Informasi Pelayanan &amp; Kesaksian GPIB
-        </p>
+      <div className="sticky top-0 z-40 bg-surface-1/85 backdrop-blur-md hairline-b px-4 py-3.5 md:px-6 pt-safe flex items-center justify-between">
+        <div>
+          <h1 className="text-xl md:text-2xl font-display font-semibold tracking-tightish text-ink-primary">
+            Dashboard Utama
+          </h1>
+          <p className="text-xs md:text-sm text-ink-secondary mt-0.5">
+            Sistem Informasi Pelayanan &amp; Kesaksian GPIB
+          </p>
+        </div>
+        <ScopeIndicator scope={roleScopeObj} />
       </div>
 
       <main className="max-w-6xl mx-auto px-4 py-5 md:px-6 space-y-6">
         <section className="ambient-glow">
-          <StatCards 
-            mupelCount={mupelCount}
-            jemaatCount={jemaatCount}
-            bajemCount={bajemCount}
-            posCount={posPelkesCount}
-            totalJiwa={totalJiwa}
-            logCount={logCount}
-          />
+          <StatCards stats={customStats} />
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
