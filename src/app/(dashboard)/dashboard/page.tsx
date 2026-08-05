@@ -6,8 +6,9 @@ import { DemografiChart } from '@/components/dashboard/DemografiChart';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
 import { QuickActions } from '@/components/dashboard/QuickActions';
 import { KATEGORI_PELKAT } from '@/lib/constants/pelkat';
-import { formatNumber } from '@/lib/utils';
 import { ScopeIndicator, UserRoleScope } from '@/components/analitik/ScopeIndicator';
+import { getStatRoutes } from '@/lib/utils/stat-routes';
+import { formatNumber } from '@/lib/utils';
 
 interface DemografiRow {
   kategori_pelkat: string;
@@ -281,78 +282,53 @@ export default async function Dashboard() {
     total: chartDataMap[pelkat.kode] || 0,
   }));
 
-  // Canonical 1-Click Route Targets
-  const mupelHref = userMupelId
-    ? `/mupel/${encodeURIComponent(userMupelId)}`
-    : '/hierarki';
-
-  const jemaatHref = userIndukId
-    ? `/jemaat/${encodeURIComponent(userIndukId)}`
-    : userMupelId
-      ? `/mupel/${encodeURIComponent(userMupelId)}?tab=jemaat`
-      : '/hierarki?view=jemaat';
-
-  const bajemHref = userIndukId
-    ? `/jemaat/${encodeURIComponent(userIndukId)}?tab=pos-pelkes`
-    : userMupelId
-      ? `/mupel/${encodeURIComponent(userMupelId)}?tab=jemaat`
-      : '/hierarki?kategori=bajem';
-
-  const posHref = userPosId
-    ? `/dashboard/pos-pelkes/${encodeURIComponent(userPosId)}`
-    : userIndukId
-      ? `/jemaat/${encodeURIComponent(userIndukId)}?tab=pos-pelkes`
-      : userMupelId
-        ? `/mupel/${encodeURIComponent(userMupelId)}`
-        : '/dashboard/pos-pelkes';
+  const routes = getStatRoutes({
+    id_mupel: userMupelId,
+    id_induk: userIndukId,
+    id_pos: userPosId,
+  });
 
   const customStats = [
     {
       key: 'mupel',
       label: 'Mupel',
-      value: formatNumber(mupelCount),
-      href: mupelHref,
-      icon: 'mupel' as const,
+      value: formatNumber(mupelCount || 0),
+      href: routes.mupel,
       iconKey: 'mupel',
     },
     {
       key: 'jemaat',
       label: 'Jemaat Induk',
-      value: formatNumber(jemaatCount),
-      href: jemaatHref,
-      icon: 'jemaat' as const,
+      value: formatNumber(jemaatCount || 0),
+      href: routes.jemaat,
       iconKey: 'jemaat',
     },
     {
       key: 'bajem',
       label: 'Bajem',
-      value: formatNumber(bajemCount),
-      href: bajemHref,
-      icon: 'bajem' as const,
+      value: formatNumber(bajemCount || 0),
+      href: routes.bajem,
       iconKey: 'bajem',
     },
     {
       key: 'pos',
       label: 'Pos Pelkes',
-      value: formatNumber(posPelkesCount),
-      href: posHref,
-      icon: 'pos' as const,
+      value: formatNumber(posPelkesCount || 0),
+      href: routes.pos,
       iconKey: 'pos',
     },
     {
       key: 'jiwa',
       label: 'Total Jiwa',
-      value: formatNumber(totalJiwa),
-      href: '/demografi',
-      icon: 'jiwa' as const,
+      value: formatNumber(totalJiwa || 0),
+      href: routes.jiwa,
       iconKey: 'jiwa',
     },
     {
       key: 'giat',
-      label: 'Giat Bulan Ini',
-      value: formatNumber(logCount),
-      href: '/laporan/pastoral',
-      icon: 'giat' as const,
+      label: 'Giat Pastoral',
+      value: formatNumber(logCount || 0),
+      href: routes.giat,
       iconKey: 'giat',
     },
   ];

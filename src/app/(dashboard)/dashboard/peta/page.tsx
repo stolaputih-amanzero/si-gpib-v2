@@ -64,6 +64,7 @@ export default function PetaPage() {
             value: formatNumber(totalMarkers),
             icon: MapPin,
             iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+            href: '/dashboard/peta',
           }}
         />
       )}

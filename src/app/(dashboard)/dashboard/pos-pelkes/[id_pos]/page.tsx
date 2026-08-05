@@ -140,27 +140,73 @@ async function getLogPastoral(id_pos: string): Promise<LogPastoral[]> {
 
 async function getPJDetail(id_pos: string): Promise<PJDetail | null> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  
+  // Get id_induk for fallback
+  const { data: posData } = await supabase.from('m_pos_pelkes').select('id_induk').eq('id_pos', id_pos).maybeSingle();
+  const id_induk = posData?.id_induk;
+
+  // 1. Source 1: t_penugasan_pendeta (Aktif)
+  const { data: penugasan } = await supabase
     .from('t_penugasan_pendeta')
-    .select(`
-      tgl_mulai, status_tugas,
-      pendeta:m_pendeta(id_pendeta, nama_lengkap, no_wa, foto_url)
-    `)
+    .select('tgl_mulai, status_tugas, pendeta:m_pendeta(id_pendeta, nama_lengkap, no_wa, foto_url)')
     .eq('id_pos', id_pos)
     .eq('status_tugas', 'Aktif')
     .maybeSingle();
 
-  if (error || !data) return null;
-  const d = data as any;
-  if (!d.pendeta) return null;
-  return {
-    id_pendeta: d.pendeta.id_pendeta,
-    nama_lengkap: d.pendeta.nama_lengkap,
-    no_wa: d.pendeta.no_wa,
-    status_tugas: d.status_tugas,
-    tgl_mulai: d.tgl_mulai,
-    foto_url: d.pendeta.foto_url,
-  };
+  if (penugasan && (penugasan as any).pendeta) {
+    const d = penugasan as any;
+    return {
+      id_pendeta: d.pendeta.id_pendeta,
+      nama_lengkap: d.pendeta.nama_lengkap,
+      no_wa: d.pendeta.no_wa,
+      status_tugas: d.status_tugas,
+      tgl_mulai: d.tgl_mulai,
+      foto_url: d.pendeta.foto_url,
+    };
+  }
+
+  if (!id_induk) return null;
+
+  // 2. Source 2: t_pj_jemaat
+  const { data: pjJemaat } = await supabase
+    .from('t_pj_jemaat')
+    .select('tgl_mulai, pendeta:m_pendeta(id_pendeta, nama_lengkap, no_wa, foto_url)')
+    .eq('id_induk', id_induk)
+    .is('tanggal_selesai', null)
+    .maybeSingle();
+
+  if (pjJemaat && (pjJemaat as any).pendeta) {
+    const d = pjJemaat as any;
+    return {
+      id_pendeta: d.pendeta.id_pendeta,
+      nama_lengkap: d.pendeta.nama_lengkap,
+      no_wa: d.pendeta.no_wa,
+      status_tugas: 'Aktif',
+      tgl_mulai: d.tgl_mulai || '',
+      foto_url: d.pendeta.foto_url,
+    };
+  }
+
+  // 3. Source 3: m_pendeta (is_pj = true)
+  const { data: masterPj } = await supabase
+    .from('m_pendeta')
+    .select('id_pendeta, nama_lengkap, no_wa, foto_url, tgl_tugas')
+    .eq('id_induk', id_induk)
+    .eq('is_pj', true)
+    .maybeSingle();
+
+  if (masterPj) {
+    return {
+      id_pendeta: masterPj.id_pendeta,
+      nama_lengkap: masterPj.nama_lengkap,
+      no_wa: masterPj.no_wa,
+      status_tugas: 'Aktif',
+      tgl_mulai: masterPj.tgl_tugas || '',
+      foto_url: masterPj.foto_url,
+    };
+  }
+
+  return null;
 }
 
 async function getPelayan(id_pos: string): Promise<Pelayan[]> {

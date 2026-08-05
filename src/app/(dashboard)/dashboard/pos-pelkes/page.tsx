@@ -1,9 +1,17 @@
+import { Suspense } from 'react';
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { normalizeRole } from '@/hooks/use-hierarki-selector';
 import { PosPelkesList } from "./pos-pelkes-list";
 
-export default async function PosPelkesPage() {
+interface PageProps {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function PosPelkesPage({ searchParams }: PageProps) {
+  const resolvedParams = searchParams ? await searchParams : {};
+  const rawFilter = (typeof resolvedParams?.filter === 'string' ? resolvedParams.filter : typeof resolvedParams?.kategori === 'string' ? resolvedParams.kategori : '') || 'all';
+
   const supabaseServer = await createServerClient();
   const supabaseAdmin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -77,11 +85,7 @@ export default async function PosPelkesPage() {
 
     const isLocked = userRole !== 'super_user';
     if (isLocked) {
-      if ((userRole === 'pj' || userRole === 'user') && userPosId) {
-        query = query.eq('id_pos', userPosId);
-      } else if (userIndukId) {
-        query = query.eq('id_induk', userIndukId);
-      } else if (userMupelId) {
+      if (userRole === 'admin_mupel' && userMupelId) {
         const { data: jemaatList } = await supabaseAdmin
           .from('m_jemaat_induk')
           .select('id_induk')
@@ -89,7 +93,25 @@ export default async function PosPelkesPage() {
         const jIds = jemaatList?.map((j) => j.id_induk) || [];
         if (jIds.length > 0) {
           query = query.in('id_induk', jIds);
+        } else {
+          query = query.eq('id_induk', 'NONE');
         }
+      } else if (userRole === 'kmj' && userIndukId) {
+        query = query.eq('id_induk', userIndukId);
+      } else if ((userRole === 'pj' || userRole === 'user')) {
+        if (userPosId) query = query.eq('id_pos', userPosId);
+        else if (userIndukId) query = query.eq('id_induk', userIndukId);
+      } else if (userMupelId) {
+        // Fallback
+        const { data: jemaatList } = await supabaseAdmin
+          .from('m_jemaat_induk')
+          .select('id_induk')
+          .eq('id_mupel', userMupelId);
+        const jIds = jemaatList?.map((j) => j.id_induk) || [];
+        if (jIds.length > 0) query = query.in('id_induk', jIds);
+        else query = query.eq('id_induk', 'NONE');
+      } else if (userIndukId) {
+        query = query.eq('id_induk', userIndukId);
       }
     }
 
@@ -101,7 +123,9 @@ export default async function PosPelkesPage() {
 
   return (
     <div className="min-h-screen bg-surface-base">
-      <PosPelkesList initialData={(posPelkes as any) || []} />
+      <Suspense fallback={<div className="p-4 text-center text-sm text-ink-tertiary">Memuat Pos Pelkes...</div>}>
+        <PosPelkesList initialData={(posPelkes as any) || []} initialFilter={rawFilter} />
+      </Suspense>
     </div>
   );
 }

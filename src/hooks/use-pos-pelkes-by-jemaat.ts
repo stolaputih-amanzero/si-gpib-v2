@@ -51,8 +51,35 @@ export function usePosPelkesByJemaat(id_induk: string, searchQuery: string = '',
       const { data, error } = await query;
       if (error || !data) return [];
 
+      // Fetch PJ assignments from multiple fallback sources to ensure sync
+      const [{ data: pjData }, { data: pendetaData }] = await Promise.all([
+        supabase.from('t_pj_jemaat').select('id_induk, id_pendeta, pendeta:m_pendeta(id_pendeta, nama_lengkap, no_wa)').is('tanggal_selesai', null),
+        supabase.from('m_pendeta').select('id_pendeta, id_induk, nama_lengkap, no_wa, is_pj'),
+      ]);
+
       return data.map((item: any) => {
         const activeTugas = item.t_penugasan_pendeta?.find((t: any) => t.status_tugas === 'Aktif');
+        let posPj: any = activeTugas?.pendeta || null;
+
+        if (!posPj) {
+          posPj = (pjData || []).find((pj: any) => pj.id_induk === item.id_induk)?.pendeta;
+        }
+
+        if (!posPj) {
+          const pPj = (pendetaData || []).find((pend: any) => pend.id_induk === item.id_induk && pend.is_pj);
+          if (pPj) {
+            posPj = {
+              id_pendeta: pPj.id_pendeta,
+              nama_lengkap: pPj.nama_lengkap,
+              no_wa: pPj.no_wa,
+            };
+          }
+        }
+
+        if (Array.isArray(posPj)) {
+          posPj = posPj[0] || null;
+        }
+
         return {
           id_pos: item.id_pos,
           id_induk: item.id_induk,
@@ -66,11 +93,11 @@ export function usePosPelkesByJemaat(id_induk: string, searchQuery: string = '',
           jumlah_kk: item.jumlah_kk,
           jumlah_jiwa: item.jumlah_jiwa,
           foto_url: item.foto_url,
-          pj: activeTugas?.pendeta ? {
-            id_pendeta: activeTugas.pendeta.id_pendeta,
-            nama_lengkap: activeTugas.pendeta.nama_lengkap,
-            no_wa: activeTugas.pendeta.no_wa,
-            foto_url: activeTugas.pendeta.foto_url,
+          pj: posPj ? {
+            id_pendeta: posPj.id_pendeta,
+            nama_lengkap: posPj.nama_lengkap,
+            no_wa: posPj.no_wa,
+            foto_url: posPj.foto_url,
           } : null,
           demografi: item.t_demografi_pelkat || [],
         };

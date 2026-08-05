@@ -6,44 +6,60 @@ import { Sparkles, ShieldCheck } from 'lucide-react';
 import { NetworkStatusBadge } from '@/components/ui/NetworkStatusBadge';
 
 export function MobileSplashScreen() {
-  const [isVisible, setIsVisible] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState('Menyiapkan Layanan Digital...');
 
   useEffect(() => {
+    setMounted(true);
+
     // Check if splash screen was already shown in this session
-    const hasSeenSplash = sessionStorage.getItem('gpib_splash_shown');
-    if (hasSeenSplash === 'true') {
-      setIsVisible(false);
-      return;
+    try {
+      const hasSeenSplash = sessionStorage.getItem('gpib_splash_shown');
+      if (hasSeenSplash === 'true') {
+        setIsVisible(false);
+        return;
+      }
+    } catch (err) {
+      console.warn('sessionStorage access warning:', err);
     }
+
+    setIsVisible(true);
 
     // Step 1: Progress animation
     const timer1 = setTimeout(() => {
       setProgress(45);
       setStatusText('Memuat Pos Pelayanan & Bajem...');
-    }, 400);
+    }, 300);
 
     const timer2 = setTimeout(() => {
       setProgress(85);
       setStatusText('Menyiapkan Sistem Informasi...');
-    }, 900);
+    }, 700);
 
     const timer3 = setTimeout(() => {
       setProgress(100);
       setStatusText('Selamat Datang');
-    }, 1400);
+    }, 1100);
 
     // Fade out and hide
     const fadeTimer = setTimeout(() => {
       setIsFadingOut(true);
-    }, 1700);
+    }, 1400);
 
     const hideTimer = setTimeout(() => {
       setIsVisible(false);
-      sessionStorage.setItem('gpib_splash_shown', 'true');
-    }, 2200);
+      try {
+        sessionStorage.setItem('gpib_splash_shown', 'true');
+      } catch (err) {}
+    }, 1800);
+
+    // Failsafe timer: force hide splash screen after 2.5s maximum no matter what
+    const failsafeTimer = setTimeout(() => {
+      setIsVisible(false);
+    }, 2500);
 
     return () => {
       clearTimeout(timer1);
@@ -51,6 +67,7 @@ export function MobileSplashScreen() {
       clearTimeout(timer3);
       clearTimeout(fadeTimer);
       clearTimeout(hideTimer);
+      clearTimeout(failsafeTimer);
     };
   }, []);
 
@@ -58,11 +75,13 @@ export function MobileSplashScreen() {
     setIsFadingOut(true);
     setTimeout(() => {
       setIsVisible(false);
-      sessionStorage.setItem('gpib_splash_shown', 'true');
-    }, 300);
+      try {
+        sessionStorage.setItem('gpib_splash_shown', 'true');
+      } catch (err) {}
+    }, 200);
   };
 
-  if (!isVisible) return null;
+  if (!mounted || !isVisible) return null;
 
   return (
     <div

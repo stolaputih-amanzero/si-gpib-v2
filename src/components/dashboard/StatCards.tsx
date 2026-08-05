@@ -15,10 +15,13 @@ import { haptic } from '@/lib/haptic/vibrate';
 import { cn, formatNumber } from '@/lib/utils';
 import { useReveal } from '@/hooks/useReveal';
 
+import { getStatRoutes } from '@/lib/utils/stat-routes';
+
 export interface StatCardData {
   label: string;
   value: string | number;
-  icon: 'mupel' | 'jemaat' | 'bajem' | 'pos' | 'jiwa' | 'giat' | string;
+  icon?: any;
+  iconKey?: string;
   trend?: {
     value: number;
     direction: 'up' | 'down';
@@ -91,15 +94,8 @@ const COLOR_MAP: Record<string, { bg: string; text: string; gradient: string }> 
   },
 };
 
-// Mapping rute navigasi berdasarkan tipe kartu
-const ROUTE_MAP: Record<string, string> = {
-  mupel: '/hierarki',
-  jemaat: '/hierarki?view=jemaat',
-  bajem: '/hierarki?kategori=bajem',
-  pos: '/hierarki?kategori=pos',
-  jiwa: '/demografi',
-  giat: '/laporan/pastoral',
-};
+// Mapping rute navigasi terpusat berdasarkan tipe kartu
+const ROUTE_MAP: Record<string, string> = getStatRoutes();
 
 // Label aria untuk aksesibilitas
 const ARIA_LABEL_MAP: Record<string, string> = {

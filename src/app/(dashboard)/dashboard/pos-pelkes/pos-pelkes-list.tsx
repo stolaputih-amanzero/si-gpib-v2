@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, Plus, TrendingUp, Church, Sprout, Layers, SearchX, Map, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { cleanQuotes, cn } from '@/lib/utils';
@@ -21,8 +21,15 @@ import { ListSkeleton } from '@/components/list/ListSkeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-export function PosPelkesList({ initialData }: { initialData: PosPelkesItem[] }) {
+export function PosPelkesList({
+  initialData,
+  initialFilter = 'all',
+}: {
+  initialData: PosPelkesItem[];
+  initialFilter?: string;
+}) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: currentUser } = useCurrentUser();
   const canElevate = isSuperUserRole(currentUser?.role);
 
@@ -35,10 +42,36 @@ export function PosPelkesList({ initialData }: { initialData: PosPelkesItem[] })
     refetch,
   } = usePosPelkes({ initialData });
 
+  const urlFilterParam = searchParams.get('filter') || searchParams.get('kategori') || initialFilter || '';
+  const initialCategoryFilter = useMemo(() => {
+    const norm = (urlFilterParam || initialFilter || '').toLowerCase();
+    if (norm === 'bajem') return 'bajem';
+    if (norm === 'pos_pelkes' || norm === 'pos') return 'pos_pelkes';
+    return 'all';
+  }, [urlFilterParam, initialFilter]);
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState(initialCategoryFilter);
   const [selectedJemaat, setSelectedJemaat] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Synchronize state dynamically whenever URL searchParams change
+  useEffect(() => {
+    const norm = (urlFilterParam || '').toLowerCase();
+    if (norm === 'bajem') {
+      setSelectedCategoryFilter('bajem');
+      setSelectedJemaat('');
+      setCurrentPage(1);
+    } else if (norm === 'pos_pelkes' || norm === 'pos') {
+      setSelectedCategoryFilter('pos_pelkes');
+      setSelectedJemaat('');
+      setCurrentPage(1);
+    } else if (norm === 'all') {
+      setSelectedCategoryFilter('all');
+      setSelectedJemaat('');
+      setCurrentPage(1);
+    }
+  }, [urlFilterParam]);
   const [elevatePosItem, setElevatePosItem] = useState<{
     id_pos: string;
     nama_pos: string;
