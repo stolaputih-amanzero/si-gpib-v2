@@ -33,6 +33,13 @@ interface PosPelkesMapProps {
 
 
 
+export default function PosPelkesMap({ posPelkesData }: PosPelkesMapProps) {
+  // Default center (Indonesia)
+  const defaultCenter: [number, number] = [-0.789275, 113.921327];
+  const defaultZoom = 5;
+
+  const markers = posPelkesData.filter((pos) => pos.latitude && pos.longitude);
+
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
