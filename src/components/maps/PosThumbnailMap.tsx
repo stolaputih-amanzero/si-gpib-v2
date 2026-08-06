@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Navigation } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 const customIcon = L.icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -26,6 +27,14 @@ interface PosThumbnailMapProps {
 export default function PosThumbnailMap({ latitude, longitude, nama_pos, alamat }: PosThumbnailMapProps) {
   const center: [number, number] = [latitude, longitude];
   const zoom = 14;
+  
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setIsMounted(true), 50);
+    return () => { clearTimeout(timer); setIsMounted(false); };
+  }, []);
+
+  if (!isMounted) return <div className="h-full w-full bg-slate-100 dark:bg-slate-800 animate-pulse rounded-xl flex items-center justify-center border border-border-subtle">Memuat peta...</div>;
 
   return (
     <div className="h-full w-full relative z-0 rounded-xl overflow-hidden border border-border-subtle">

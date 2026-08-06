@@ -132,7 +132,17 @@ export default function WilayahMapInner({ data, jemaatData = [], selectedPosId, 
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    // Menunda mounting Leaflet selama 50ms untuk menghindari
+    // StrictMode double-mount yang menyebabkan error:
+    // "Map container is being reused" & "Cannot read properties of undefined (reading 'appendChild')"
+    // pada react-leaflet-cluster.
+    const timer = setTimeout(() => {
+      setIsMounted(true);
+    }, 50);
+    return () => {
+      clearTimeout(timer);
+      setIsMounted(false);
+    };
   }, []);
 
   const displayPosData = useMemo(() => {

@@ -110,7 +110,7 @@ export function DemografiEditFormClient({ id_pos }: { id_pos: string }) {
       };
 
       if (!isOnline) {
-        addPendingSubmission('demografi', payload);
+        addPendingSubmission('rpc', 'upsert_demografi_batch', payload as Record<string, unknown>);
         clearDraft();
         toast.info('Tersimpan di Antrean Offline', 'Data akan di-upsert otomatis saat koneksi pulih.');
         router.push(`/demografi/${id_pos}`);

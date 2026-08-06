@@ -121,7 +121,7 @@ export function BantuanFormClient() {
       };
 
       if (!isOnline) {
-        addPendingSubmission('bantuan', payload);
+        addPendingSubmission('insert', 't_bantuan', payload as Record<string, unknown>);
         clearDraft();
         toast.info('Tersimpan di Antrean Offline', 'Koneksi internet tidak tersedia. Data akan dikirim otomatis saat online.');
         router.push('/bantuan');

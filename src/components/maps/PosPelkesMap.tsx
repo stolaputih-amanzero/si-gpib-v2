@@ -5,6 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import Link from 'next/link';
 import { Navigation } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 
 const customIcon = L.icon({
@@ -32,12 +33,17 @@ interface PosPelkesMapProps {
 
 
 
-export default function PosPelkesMap({ posPelkesData }: PosPelkesMapProps) {
-  // Default center (Indonesia)
-  const defaultCenter: [number, number] = [-0.789275, 113.921327];
-  const defaultZoom = 5;
+  const [isMounted, setIsMounted] = useState(false);
 
-  const markers = posPelkesData.filter((pos) => pos.latitude && pos.longitude);
+  useEffect(() => {
+    const timer = setTimeout(() => setIsMounted(true), 50);
+    return () => {
+      clearTimeout(timer);
+      setIsMounted(false);
+    };
+  }, []);
+
+  if (!isMounted) return <div className="h-full w-full bg-slate-100 dark:bg-slate-800 animate-pulse rounded-xl flex items-center justify-center">Memuat peta...</div>;
 
   return (
     <div className="h-full w-full relative z-0">

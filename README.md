@@ -1,4 +1,4 @@
-# ⛪ SI GPIB v2.2 — Sistem Informasi Pos Pelayanan Kesaksian
+# ⛪ SI GPIB v2.3.1 — Sistem Informasi Pos Pelayanan Kesaksian
 
 [![Mobile-First PWA](https://img.shields.io/badge/PWA-Mobile--First-emerald.svg)](https://sigpib.org)
 [![Next.js 15](https://img.shields.io/badge/Framework-Next.js%2015%20(App%20Router)-black.svg)](https://nextjs.org)
@@ -6,7 +6,7 @@
 [![Supabase Postgres](https://img.shields.io/badge/Database-Supabase%20Postgres%20%26%20RLS-emerald.svg)](https://supabase.com)
 [![Playwright Tests](https://img.shields.io/badge/E2E-Playwright%20v1.62-orange.svg)](https://playwright.dev)
 
-Sistem Informasi Pos Pelayanan Kesaksian (SI GPIB v2.2) adalah platform aplikasi **Mobile-First Progressive Web App (PWA)** yang dibangun khusus untuk **Gereja Protestan di Indonesia bagian Barat (GPIB)**. 
+Sistem Informasi Pos Pelayanan Kesaksian (SI GPIB v2.3.1) adalah platform aplikasi **Mobile-First Progressive Web App (PWA)** yang dibangun khusus untuk **Gereja Protestan di Indonesia bagian Barat (GPIB)**. 
 
 Aplikasi ini mengintegrasikan pemetaan digital Pos Pelkes, pencatatan log pastoral dengan stempel GPS & timestamp, serta ketahanan **Offline Resilience (Online-First dengan Form Draft Auto-Save & Auto-Retry Mutation Queue)** untuk pelayanan pendeta di daerah dengan jaringan internet lemah atau nir-sinyal (*zero signal*).
 

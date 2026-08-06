@@ -1,30 +1,26 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { db, type PendingSubmission } from '@/lib/offline/dexie';
+import { logger } from '@/lib/utils/logger';
+import { uuidv7 } from 'uuidv7';
 
-export interface PendingSubmission {
-  id: string;
-  formType: string;
-  payload: any;
-  timestamp: string;
-  attempts: number;
-}
-
-const STORAGE_KEY = 'si_gpib_pending_submissions';
 export const RETRY_DELAYS = [1000, 5000, 15000, 30000, 60000];
 
 export function usePendingSubmissions() {
   const [pendingQueue, setPendingQueue] = useState<PendingSubmission[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const loadQueue = useCallback(() => {
-    if (typeof window === 'undefined') return;
+  const loadQueue = useCallback(async () => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        setPendingQueue(JSON.parse(raw));
-      }
-    } catch {
+      setIsLoading(true);
+      const items = await db.pendingSubmissions.toArray();
+      setPendingQueue(items);
+    } catch (error) {
+      logger.error('[PendingSubmissions] Failed to load queue', error);
       setPendingQueue([]);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -32,49 +28,50 @@ export function usePendingSubmissions() {
     loadQueue();
   }, [loadQueue]);
 
-  const addPendingSubmission = useCallback((formType: string, payload: any) => {
-    if (typeof window === 'undefined') return;
+  const addPendingSubmission = useCallback(async (operationType: 'rpc' | 'insert' | 'update', targetIdentifier: string, payload: Record<string, unknown>) => {
     const newSubmission: PendingSubmission = {
-      id: `pending-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      formType,
+      requestId: uuidv7(),
+      operationType,
+      targetIdentifier,
       payload,
-      timestamp: new Date().toISOString(),
+      status: 'pending',
       attempts: 0,
+      createdAt: Date.now(),
     };
 
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const prevQueue: PendingSubmission[] = raw ? JSON.parse(raw) : [];
-      const updated = [...prevQueue, newSubmission];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      setPendingQueue(updated);
-    } catch {
+      await db.pendingSubmissions.add(newSubmission);
+      await loadQueue();
+    } catch (error) {
+      logger.error('[PendingSubmissions] Failed to add submission', error);
+      // Optimistic UI update even on Dexie failure
       setPendingQueue((prev) => [...prev, newSubmission]);
     }
-  }, []);
+  }, [loadQueue]);
 
-  const removePendingSubmission = useCallback((id: string) => {
-    if (typeof window === 'undefined') return;
+  const removePendingSubmission = useCallback(async (id: number) => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const prevQueue: PendingSubmission[] = raw ? JSON.parse(raw) : [];
-      const updated = prevQueue.filter((item) => item.id !== id);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      setPendingQueue(updated);
-    } catch {
+      await db.pendingSubmissions.delete(id);
+      await loadQueue();
+    } catch (error) {
+      logger.error('[PendingSubmissions] Failed to remove submission', error);
       setPendingQueue((prev) => prev.filter((item) => item.id !== id));
     }
-  }, []);
+  }, [loadQueue]);
 
-  const clearPendingQueue = useCallback(() => {
-    if (typeof window === 'undefined') return;
-    localStorage.removeItem(STORAGE_KEY);
-    setPendingQueue([]);
+  const clearPendingQueue = useCallback(async () => {
+    try {
+      await db.pendingSubmissions.clear();
+      setPendingQueue([]);
+    } catch (error) {
+      logger.error('[PendingSubmissions] Failed to clear queue', error);
+    }
   }, []);
 
   return {
     pendingQueue,
     pendingCount: pendingQueue.length,
+    isLoading,
     retryDelays: RETRY_DELAYS,
     addPendingSubmission,
     removePendingSubmission,

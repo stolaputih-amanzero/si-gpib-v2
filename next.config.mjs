@@ -1,45 +1,47 @@
-import withPWAInit from 'next-pwa';
+import withSerwist from '@serwist/next';
 
-const withPWA = withPWAInit({
-  dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
-  register: true,
-  skipWaiting: true,
-  cacheOnFrontEndNav: true,
-  reloadOnOnline: false,
-  buildExcludes: [/middleware-manifest\.json$/, /_buildManifest\.js$/, /_ssgManifest\.js$/],
-  fallbacks: {
-    document: '/offline',
-  },
+const isProd = process.env.NODE_ENV === 'production';
+
+const withSerwistConfig = withSerwist({
+  swSrc: 'src/sw.ts',
+  swDest: 'public/sw.js',
+  disable: !isProd,
+  // Jangan cache halaman Next.js secara default — biarkan sw.ts yang atur
+  cacheOnNavigation: true,
+  reloadOnOnline: true,
 });
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  compress: true,
-  poweredByHeader: false,
+
+  // Next.js 16: cacheComponents (formerly PPR)
+  cacheComponents: true,
+
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '*.supabase.co',
+        hostname: '**.supabase.co',
         pathname: '/storage/v1/object/public/**',
       },
     ],
   },
-  experimental: {
-    optimizePackageImports: [
-      'lucide-react',
-      'date-fns',
-      'recharts',
-      'leaflet',
-      '@tanstack/react-query',
-    ],
-    serverActions: {
-      bodySizeLimit: '10mb',
-    },
+
+  // Headers keamanan
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        ],
+      },
+    ];
   },
 };
 
-export default withPWA(nextConfig);
+export default withSerwistConfig(nextConfig);

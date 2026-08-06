@@ -12,6 +12,7 @@ import { CameraCaptureField } from '@/components/forms/CameraCaptureField';
 import { VoiceInputField } from '@/components/forms/VoiceInputField';
 import { DraftIndicator } from '@/components/forms/DraftIndicator';
 import { SubmitFab } from '@/components/forms/SubmitFab';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import { logPastoralSchema, LogPastoralInput } from '@/lib/validations/log-pastoral.schema';
 import { createClient } from '@/lib/supabase/client';
@@ -67,7 +68,7 @@ export function PastoralFormClient() {
     id_pendeta: 'PDT-41915346',
   };
 
-  const { draft, saveDraft, clearDraft, status: draftStatus, hasRestoredDraft } = useFormDraft(
+  const { draft, saveDraft, clearDraft, status: draftStatus, hasRestoredDraft, isLoading } = useFormDraft(
     'draft:log-pastoral',
     initialFormValues
   );
@@ -85,22 +86,25 @@ export function PastoralFormClient() {
     defaultValues: draft || initialFormValues,
   });
 
-  // Restore draft into form values when loaded from localStorage
+  // Restore draft into form values when loaded from Dexie
   useEffect(() => {
-    if (hasRestoredDraft && draft) {
+    if (!isLoading && hasRestoredDraft && draft) {
       reset(draft);
     }
-  }, [hasRestoredDraft, reset]);
+  }, [isLoading, hasRestoredDraft, reset, draft]);
 
-  // Watch form fields & auto-save to draft (suppressed during submit)
+  // Watch form fields & auto-save to draft with Debounce (suppressed during submit)
   useEffect(() => {
     const subscription = watch((value) => {
-      if (!isSubmitting && (value.kegiatan || value.catatan || value.jml_jiwa)) {
-        saveDraft(value as any);
+      if (!isSubmitting && !isLoading && (value.kegiatan || value.catatan || value.jml_jiwa)) {
+        const timeout = setTimeout(() => {
+          saveDraft(value as any);
+        }, 5000);
+        return () => clearTimeout(timeout);
       }
     });
     return () => subscription.unsubscribe();
-  }, [watch, saveDraft, isSubmitting]);
+  }, [watch, saveDraft, isSubmitting, isLoading]);
 
   // Set default values on mount if not already present
   useEffect(() => {
@@ -170,7 +174,7 @@ export function PastoralFormClient() {
 
     if (isCurrentlyOffline) {
       // Queue submission offline immediately without waiting for network timeouts or router push errors
-      addPendingSubmission('pastoral', payload);
+      addPendingSubmission('insert', 't_log_pastoral', payload as Record<string, unknown>);
       clearDraft();
       toast.info('Tersimpan di Antrean Offline', 'Koneksi internet tidak tersedia. Data tersimpan di antrean offline.');
       return;
@@ -183,12 +187,22 @@ export function PastoralFormClient() {
       router.push('/laporan/pastoral');
     } catch (err: any) {
       console.warn('Online sync failed, queuing to offline pending submissions:', err);
-      addPendingSubmission('pastoral', payload);
+      addPendingSubmission('insert', 't_log_pastoral', payload as Record<string, unknown>);
       clearDraft();
       toast.info('Tersimpan di Antrean Offline', 'Koneksi internet terputus. Data tersimpan di antrean offline.');
       router.push('/laporan/pastoral');
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-surface-base p-6 space-y-6">
+        <Skeleton className="w-full h-12 rounded-xl" />
+        <Skeleton className="w-full h-32 rounded-xl" />
+        <Skeleton className="w-full h-48 rounded-xl" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-surface-base pb-32 select-none">

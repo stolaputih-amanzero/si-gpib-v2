@@ -6,15 +6,18 @@ interface PageProps {
   params: Promise<{ id_mupel: string; id_induk: string; id_pos: string }>;
 }
 
-export default async function PosPelkesHierarkiDetailPage({ params }: PageProps) {
+async function PosDetailWrapper({ params }: { params: PageProps['params'] }) {
   const resolvedParams = await params;
   const id_mupel = decodeURIComponent(resolvedParams.id_mupel);
   const id_induk = decodeURIComponent(resolvedParams.id_induk);
   const id_pos = decodeURIComponent(resolvedParams.id_pos);
+  return <PosDetailClient id_mupel={id_mupel} id_induk={id_induk} id_pos={id_pos} />;
+}
 
+export default function PosPelkesHierarkiDetailPage({ params }: PageProps) {
   return (
     <Suspense fallback={<PosSkeleton />}>
-      <PosDetailClient id_mupel={id_mupel} id_induk={id_induk} id_pos={id_pos} />
+      <PosDetailWrapper params={params} />
     </Suspense>
   );
 }
