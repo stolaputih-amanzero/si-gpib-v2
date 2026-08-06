@@ -207,7 +207,7 @@ export function BantuanFormClient() {
         />
 
         {/* 2. Jenis Bantuan */}
-        <FormField label="Jenis Permohonan Bantuan" required error={errors.jenis_bantuan?.message}>
+        <FormField label="Jenis Permohonan Bantuan" required error={errors.jenis_bantuan?.message as string | undefined}>
           <input
             type="text"
             {...register('jenis_bantuan', { required: true })}

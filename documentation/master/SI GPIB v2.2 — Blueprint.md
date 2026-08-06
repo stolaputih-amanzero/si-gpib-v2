@@ -1,12 +1,12 @@
-# 📋 SI GPIB v2.2 — Blueprint Dokumen (Mobile First PWA Edition)
+﻿# ðŸ“‹ SI GPIB v2.2 â€” Blueprint Dokumen (Mobile First PWA Edition)
 
 > **Sistem Informasi Pos Pelayanan Kesaksian (SI Pos Pelkes) GPIB**
-> Versi: 2.2 | Tanggal: 20 Juli 2026 | Status: *Planning Phase*
+> Versi: 2.2.2 | Tanggal: 3 Agustus 2026 | Status: *Planning Phase* (Updated for EIA v0.1.1)
 > **Arsitektur: Online-First + Mobile First PWA + Biometric Auth**
 
 ---
 
-## 📑 Daftar Isi
+## ðŸ“‘ Daftar Isi
 
 1. [Ringkasan Eksekutif](#1-ringkasan-eksekutif)
 2. [Visi, Misi & Tujuan](#2-visi-misi--tujuan)
@@ -18,8 +18,8 @@
 8. [Struktur Folder](#8-struktur-folder)
 9. [Business Rules](#9-business-rules)
 10. [UI/UX Guidelines](#10-uiux-guidelines)
-11. [📱 Mobile First PWA Strategy](#11--mobile-first-pwa-strategy)
-12. [🔐 Biometric Authentication](#12-biometric-authentication)
+11. [ðŸ“± Mobile First PWA Strategy](#11--mobile-first-pwa-strategy)
+12. [ðŸ” Biometric Authentication](#12-biometric-authentication)
 13. [Roadmap Pengembangan](#13-roadmap-pengembangan)
 14. [Deployment & Infrastructure](#14-deployment--infrastructure)
 15. [Testing Strategy](#15-testing-strategy)
@@ -33,87 +33,87 @@
 
 **SI GPIB v2.2** adalah platform digital **Mobile First PWA** terintegrasi untuk mengelola data hierarki gereja GPIB. Sistem ini dirancang sebagai **Single Source of Truth** untuk seluruh Bidang Pelayanan dengan pendekatan **mobile-first** karena 90%+ pendeta GPIB mengakses sistem via HP, termasuk di daerah terpencil dengan sinyal terbatas.
 
-### 🎯 Key Deliverables
+### ðŸŽ¯ Key Deliverables
 
 | Aspek | Target |
 |-------|--------|
 | **Cakupan** | 25 Mupel, 350+ Jemaat Induk, 500+ Pos Pelkes |
 | **Pengguna** | 300+ Pendeta, Admin Mupel, Super User Sinode |
-| **Platform Utama** | 📱 **Mobile PWA** (bukan desktop) |
+| **Platform Utama** | ðŸ“± **Mobile PWA** (bukan desktop) |
 | **Uptime** | 99.9% (SLA) |
 | **Response Time** | < 1.5 detik mobile, < 2 detik desktop (P95) |
 | **Bundle Size** | < 100KB JS (mobile), < 200KB (desktop) |
 | **Konektivitas** | Online-first dengan PWA caching + Form Draft |
-| **Autentikasi** | 🆕 **Biometric (Fingerprint/Face ID) + OTP** |
-| **Lifecycle** | 30–50 tahun (bulletproof architecture) |
+| **Autentikasi** | ðŸ†• **Biometric (Fingerprint/Face ID) + OTP** |
+| **Lifecycle** | 30â€“50 tahun (bulletproof architecture) |
 
-### 🔄 Evolusi Versi
+### ðŸ”„ Evolusi Versi
 
 | Versi | Fokus | Status |
 |-------|-------|--------|
-| v2.0 | Offline-first + Sync Engine | ❌ Dibatalkan (terlalu kompleks) |
-| v2.1 | Online-first + PWA dasar | ✅ Direvisi → v2.2 |
-| **v2.2** | **Mobile First PWA + Biometric** | ✅ **Current** |
+| v2.0 | Offline-first + Sync Engine | âŒ Dibatalkan (terlalu kompleks) |
+| v2.1 | Online-first + PWA dasar | âœ… Direvisi â†’ v2.2 |
+| **v2.2** | **Mobile First PWA + Biometric** | âœ… **Current** |
 
 ---
 
 ## 2. Visi, Misi & Tujuan
 
-### ✝️ Visi
-> *"Menjadi ekosistem digital paripurna yang mendukung pelayanan GPIB berbasis data, transparan, dan berdampak kekal — demi kemuliaan Tuhan (Lux Dei)."*
+### âœï¸ Visi
+> *"Menjadi ekosistem digital paripurna yang mendukung pelayanan GPIB berbasis data, transparan, dan berdampak kekal â€” demi kemuliaan Tuhan (Lux Dei)."*
 
-### 🎯 Misi
+### ðŸŽ¯ Misi
 1. Menyediakan **Single Source of Truth** untuk seluruh data pelayanan GPIB
 2. Memfasilitasi **pengambilan keputusan berbasis data** di setiap level hierarki
-3. Mendukung **paradigma pelayanan missional** — dari internal-focused ke eksternal-focused
+3. Mendukung **paradigma pelayanan missional** â€” dari internal-focused ke eksternal-focused
 4. Membangun **arsitektur mobile-first** yang dapat diakses pendeta di lapangan
 5. Mengimplementasikan **biometric auth** untuk keamanan & kemudahan akses
 
-### 📌 Tujuan Strategis
+### ðŸ“Œ Tujuan Strategis
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│  DATA  →  HIKMAT  →  KEPUTUSAN  →  PELAYANAN NYATA   │
-└─────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚  DATA  â†’  HIKMAT  â†’  KEPUTUSAN  â†’  PELAYANAN NYATA   â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ---
 
 ## 3. Arsitektur Sistem
 
-### 🏗️ High-Level Architecture
+### ðŸ—ï¸ High-Level Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                   CLIENT LAYER (Mobile First)                │
-│  ┌────────────┐  ┌────────────┐  ┌────────────────────────┐ │
-│  │  Mobile    │  │  Web PWA   │  │  Service Worker Cache  │ │
-│  │  PWA App   │  │  (Desktop) │  │  + Form Draft Manager  │ │
-│  │  (Primary) │  │  (Fallback)│  │  + Biometric Auth      │ │
-│  └─────┬──────┘  └─────┬──────┘  └───────────┬────────────┘ │
-└────────┼───────────────┼─────────────────────┼──────────────┘
-         │               │                     │
-         ▼               ▼                     ▼
-┌──────────────────────────────────────────────────────────────┐
-│                      API / BFF LAYER                         │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │  Next.js API Routes + Server Actions + Edge Functions  │ │
-│  │  (TypeScript, Zod, Rate Limiting, WebAuthn)            │ │
-│  └────────────────────────────────────────────────────────┘ │
-└──────────────────────────┬───────────────────────────────────┘
-                           │
-                           ▼
-┌──────────────────────────────────────────────────────────────┐
-│                    DATA & SERVICE LAYER                      │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│  │  Supabase    │  │  Supabase    │  │  Supabase        │  │
-│  │  PostgreSQL  │  │  Auth + RLS  │  │  Storage         │  │
-│  │  + PostGIS   │  │  + WebAuthn  │  │  (Assets/Docs)   │  │
-│  └──────────────┘  └──────────────┘  └──────────────────┘  │
-└──────────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                   CLIENT LAYER (Mobile First)                â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
+â”‚  â”‚  Mobile    â”‚  â”‚  Web PWA   â”‚  â”‚  Service Worker Cache  â”‚ â”‚
+â”‚  â”‚  PWA App   â”‚  â”‚  (Desktop) â”‚  â”‚  + Form Draft Manager  â”‚ â”‚
+â”‚  â”‚  (Primary) â”‚  â”‚  (Fallback)â”‚  â”‚  + Biometric Auth      â”‚ â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+         â”‚               â”‚                     â”‚
+         â–¼               â–¼                     â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                      API / BFF LAYER                         â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
+â”‚  â”‚  Next.js API Routes + Server Actions + Edge Functions  â”‚ â”‚
+â”‚  â”‚  (TypeScript, Zod, Rate Limiting, WebAuthn)            â”‚ â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                           â”‚
+                           â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                    DATA & SERVICE LAYER                      â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚
+â”‚  â”‚  Supabase    â”‚  â”‚  Supabase    â”‚  â”‚  Supabase        â”‚  â”‚
+â”‚  â”‚  PostgreSQL  â”‚  â”‚  Auth + RLS  â”‚  â”‚  Storage         â”‚  â”‚
+â”‚  â”‚  + PostGIS   â”‚  â”‚  + WebAuthn  â”‚  â”‚  (Assets/Docs)   â”‚  â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
-### 🧱 Pilar Arsitektur Bulletproof
+### ðŸ§± Pilar Arsitektur Bulletproof
 
 | Pilar | Implementasi |
 |-------|--------------|
@@ -126,7 +126,7 @@
 
 ## 4. Stack Teknologi
 
-### 🛠️ Core Stack
+### ðŸ› ï¸ Core Stack
 
 | Layer | Teknologi | Versi | Alasan |
 |-------|-----------|-------|--------|
@@ -136,7 +136,7 @@
 | **Language** | TypeScript | 5+ | Type safety, auto-generate dari DB schema |
 | **Backend/BaaS** | Supabase | Latest | PostgreSQL + Auth + Storage + Realtime |
 
-### 📦 Library Pendukung (Mobile First Edition)
+### ðŸ“¦ Library Pendukung (Mobile First Edition)
 
 | Kategori | Library | Fungsi |
 |----------|---------|--------|
@@ -150,22 +150,22 @@
 | **Icons** | Lucide React | Icon set modern |
 | **State Management** | Zustand | Global state ringan |
 | **File Upload** | react-dropzone | Upload lampiran + **camera capture** |
-| **🆕 PWA** | next-pwa + Workbox | Service Worker, offline caching |
-| **🆕 Biometric** | @simplewebauthn/browser + server | WebAuthn API |
-| **🆕 Camera** | react-webcam + exifr | Capture foto + EXIF GPS |
-| **🆕 Geolocation** | Browser Geolocation API | Auto-fill koordinat |
-| **🆕 Haptic** | navigator.vibrate() | Feedback sentuhan |
-| **🆕 Share** | Web Share API | Share native ke WhatsApp |
-| **🆕 Pull Refresh** | @use-gesture | Pull-to-refresh gesture |
-| **🆕 Skeleton** | shadcn/ui Skeleton | UX loading |
+| **ðŸ†• PWA** | next-pwa + Workbox | Service Worker, offline caching |
+| **ðŸ†• Biometric** | @simplewebauthn/browser + server | WebAuthn API |
+| **ðŸ†• Camera** | react-webcam + exifr | Capture foto + EXIF GPS |
+| **ðŸ†• Geolocation** | Browser Geolocation API | Auto-fill koordinat |
+| **ðŸ†• Haptic** | navigator.vibrate() | Feedback sentuhan |
+| **ðŸ†• Share** | Web Share API | Share native ke WhatsApp |
+| **ðŸ†• Pull Refresh** | @use-gesture | Pull-to-refresh gesture |
+| **ðŸ†• Skeleton** | shadcn/ui Skeleton | UX loading |
 
 ---
 
 ## 5. Model Data & Skema Database
 
-*(Tetap sama dengan v2.1 — lihat DB_SCHEMA.html untuk detail lengkap)*
+*(Tetap sama dengan v2.1 â€” lihat DB_SCHEMA.html untuk detail lengkap)*
 
-### 🔑 Modifikasi Khusus (KMJ & PJ)
+### ðŸ”‘ Modifikasi Khusus (KMJ & PJ)
 
 ```sql
 -- Jemaat Induk memiliki 1 KMJ (Ketua Majelis Jemaat)
@@ -187,7 +187,7 @@ CREATE TABLE t_pj_jemaat (
     status VARCHAR(20) DEFAULT 'Aktif'
 );
 
--- 🆕 Tabel untuk WebAuthn credentials (Biometric)
+-- ðŸ†• Tabel untuk WebAuthn credentials (Biometric)
 CREATE TABLE m_webauthn_credentials (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     id_user UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -204,8 +204,8 @@ CREATE TABLE m_webauthn_credentials (
 
 CREATE INDEX idx_webauthn_user ON m_webauthn_credentials(id_user);
 
--- 🆕 RPC: get_profile_stats(p_id_pendeta VARCHAR)
--- Mengembalikan JSONB agregat untuk stat strip Profile 360° dalam 1 round-trip
+-- ðŸ†• RPC: get_profile_stats(p_id_pendeta VARCHAR)
+-- Mengembalikan JSONB agregat untuk stat strip Profile 360Â° dalam 1 round-trip
 -- Field: total_log, total_jiwa, pos_aktif, log_bulan_ini, lama_melayani_bulan
 -- Properties: STABLE, SECURITY DEFINER
 -- Grant: EXECUTE TO authenticated
@@ -217,7 +217,7 @@ CREATE INDEX idx_webauthn_user ON m_webauthn_credentials(id_user);
 
 *(Tetap sama dengan v2.1)*
 
-### 🔐 JWT Custom Claims + Biometric
+### ðŸ” JWT Custom Claims + Biometric
 
 ```json
 {
@@ -228,8 +228,8 @@ CREATE INDEX idx_webauthn_user ON m_webauthn_credentials(id_user);
   "id_mupel": "M - 02",
   "is_kmj": true,
   "is_pj": false,
-  "auth_method": "biometric",  // 🆕 "password" | "biometric" | "otp"
-  "device_id": "iphone-15-pro-abc123"  // 🆕
+  "auth_method": "biometric",  // ðŸ†• "password" | "biometric" | "otp"
+  "device_id": "iphone-15-pro-abc123"  // ðŸ†•
 }
 ```
 
@@ -237,33 +237,33 @@ CREATE INDEX idx_webauthn_user ON m_webauthn_credentials(id_user);
 
 ## 7. Modul Aplikasi
 
-### 📦 Daftar Modul (Mobile First Edition)
+### ðŸ“¦ Daftar Modul (Mobile First Edition)
 
 | # | Modul | Fase | Prioritas | Mobile |
 |---|-------|------|-----------|--------|
-| 1 | Autentikasi + **Biometric** | 1 | 🔴 Critical | ✅ |
-| 2 | Manajemen Mupel & Jemaat Induk | 1 | 🔴 Critical | ✅ |
-| 3 | Manajemen Pos Pelkes + **Geospasial + Kamera** | 1 | 🔴 Critical | ✅ |
-| 4 | Manajemen Pendeta (KMJ/PJ) | 1 | 🔴 Critical | ✅ |
-| 5 | **🆕 Bottom Navigation + App Shell** | 1 | 🔴 Critical | ✅ |
-| 6 | **🆕 PWA Install Prompt (A2HS)** | 1 | 🔴 Critical | ✅ |
-| 7 | Mutasi & Penugasan Pendeta | 2 | 🟠 High | ✅ |
-| 8 | Log Pastoral + **Voice Input** | 2 | 🟠 High | ✅ |
-| 9 | Demografi Pelkat | 2 | 🟠 High | ✅ |
-| 10 | Inventaris Aset + **Kamera + GPS** | 2 | 🟠 High | ✅ |
-| 11 | **🆕 Offline Fallback Page** | 2 | 🟠 High | ✅ |
-| 12 | **🆕 Form Draft Auto-Save** | 2 | 🟠 High | ✅ |
-| 13 | Pengajuan Bantuan (Workflow) | 3 | 🟡 Medium | ✅ |
-| 14 | Pelayan & Relawan | 3 | 🟡 Medium | ✅ |
-| 15 | Jadwal Ibadah | 3 | 🟡 Medium | ✅ |
-| 16 | **🆕 Push Notifications** | 3 | 🟡 Medium | ✅ |
-| 17 | **🆕 Share to WhatsApp** | 3 | 🟡 Medium | ✅ |
-| 18 | Kerawanan & Potensi Wilayah | 3 | 🟡 Medium | ✅ |
-| 19 | Dashboard Analitik | 4 | 🟢 Enhancement | ✅ |
-| 20 | Portal Umat (Public) | 4 | 🟢 Enhancement | ✅ |
-| 21 | **🆕 Badge Counter** | 4 | 🟢 Enhancement | ✅ |
-| 22 | **🆕 Background Sync** | 4 | 🟢 Enhancement | ✅ |
-| 23 | **🆕 Profile 360° & Manajemen Pengguna** | 5 | 🟢 Enhancement | ✅ |
+| 1 | Autentikasi + **Biometric** | 1 | ðŸ”´ Critical | âœ… |
+| 2 | Manajemen Mupel & Jemaat Induk | 1 | ðŸ”´ Critical | âœ… |
+| 3 | Manajemen Pos Pelkes + **Geospasial + Kamera** | 1 | ðŸ”´ Critical | âœ… |
+| 4 | Manajemen Pendeta (KMJ/PJ) | 1 | ðŸ”´ Critical | âœ… |
+| 5 | **ðŸ†• Bottom Navigation + App Shell** | 1 | ðŸ”´ Critical | âœ… |
+| 6 | **ðŸ†• PWA Install Prompt (A2HS)** | 1 | ðŸ”´ Critical | âœ… |
+| 7 | Mutasi & Penugasan Pendeta | 2 | ðŸŸ  High | âœ… |
+| 8 | Log Pastoral + **Voice Input** | 2 | ðŸŸ  High | âœ… |
+| 9 | Demografi Pelkat | 2 | ðŸŸ  High | âœ… |
+| 10 | Inventaris Aset + **Kamera + GPS** | 2 | ðŸŸ  High | âœ… |
+| 11 | **ðŸ†• Offline Fallback Page** | 2 | ðŸŸ  High | âœ… |
+| 12 | **ðŸ†• Form Draft Auto-Save** | 2 | ðŸŸ  High | âœ… |
+| 13 | Pengajuan Bantuan (Workflow) | 3 | ðŸŸ¡ Medium | âœ… |
+| 14 | Pelayan & Relawan | 3 | ðŸŸ¡ Medium | âœ… |
+| 15 | Jadwal Ibadah | 3 | ðŸŸ¡ Medium | âœ… |
+| 16 | **ðŸ†• Push Notifications** | 3 | ðŸŸ¡ Medium | âœ… |
+| 17 | **ðŸ†• Share to WhatsApp** | 3 | ðŸŸ¡ Medium | âœ… |
+| 18 | Kerawanan & Potensi Wilayah | 3 | ðŸŸ¡ Medium | âœ… |
+| 19 | Dashboard Analitik | 4 | ðŸŸ¢ Enhancement | âœ… |
+| 20 | Portal Umat (Public) | 4 | ðŸŸ¢ Enhancement | âœ… |
+| 21 | **ðŸ†• Badge Counter** | 4 | ðŸŸ¢ Enhancement | âœ… |
+| 22 | **ðŸ†• Background Sync** | 4 | ðŸŸ¢ Enhancement | âœ… |
+| 23 | **ðŸ†• Profile 360Â° & Manajemen Pengguna** | 5 | ðŸŸ¢ Enhancement | âœ… |
 
 ---
 
@@ -271,151 +271,151 @@ CREATE INDEX idx_webauthn_user ON m_webauthn_credentials(id_user);
 
 ```
 si-gpib-v2/
-├── src/
-│   ├── app/
-│   │   ├── (auth)/
-│   │   │   ├── login/
-│   │   │   │   ├── page.tsx
-│   │   │   │   └── biometric/page.tsx  # 🆕 Halaman biometric
-│   │   │   ├── register/
-│   │   │   └── forgot-password/
-│   │   ├── (dashboard)/
-│   │   │   ├── layout.tsx              # 🆕 Bottom nav + safe area
-│   │   │   ├── page.tsx                # 🆕 Dashboard mobile-first
-│   │   │   ├── mupel/
-│   │   │   ├── jemaat/
-│   │   │   ├── pos-pelkes/
-│   │   │   │   ├── page.tsx
-│   │   │   │   ├── [id]/
-│   │   │   │   │   ├── page.tsx
-│   │   │   │   │   └── map/page.tsx    # 🆕 Peta fullscreen mobile
-│   │   │   │   └── new/
-│   │   │   │       └── page.tsx        # 🆕 Form + kamera + GPS
-│   │   │   ├── pendeta/
-│   │   │   ├── mutasi/
-│   │   │   ├── pastoral/
-│   │   │   │   ├── page.tsx
-│   │   │   │   └── new/
-│   │   │   │       └── page.tsx        # 🆕 Voice input + draft
-│   │   │   ├── aset/
-│   │   │   │   ├── page.tsx
-│   │   │   │   └── new/
-│   │   │   │       └── page.tsx        # 🆕 Camera capture
-│   │   │   ├── bantuan/
-│   │   │   ├── demografi/
-│   │   │   └── settings/
-│   │   │       ├── page.tsx
-│   │   │       ├── biometric/page.tsx  # 🆕 Manage biometric devices
-│   │   │       └── notifications/page.tsx  # 🆕
-│   │   ├── (public)/
-│   │   │   ├── dashboard/
-│   │   │   └── peta-sebaran/
-│   │   ├── offline/page.tsx            # 🆕 Offline fallback
-│   │   ├── api/
-│   │   │   ├── auth/
-│   │   │   │   ├── webauthn/           # 🆕 WebAuthn endpoints
-│   │   │   │   │   ├── register/options/route.ts
-│   │   │   │   │   ├── register/verify/route.ts
-│   │   │   │   │   ├── login/options/route.ts
-│   │   │   │   │   └── login/verify/route.ts
-│   │   │   ├── webhooks/
-│   │   │   └── upload/
-│   │   └── layout.tsx
-│   ├── components/
-│   │   ├── ui/                         # shadcn/ui
-│   │   ├── mobile/                     # 🆕 Mobile-specific
-│   │   │   ├── BottomNavigation.tsx
-│   │   │   ├── SafeArea.tsx
-│   │   │   ├── PullToRefresh.tsx
-│   │   │   ├── NetworkBanner.tsx
-│   │   │   ├── InstallPrompt.tsx
-│   │   │   ├── SwipeableCard.tsx
-│   │   │   ├── SkeletonList.tsx
-│   │   │   ├── TouchButton.tsx         # 44x44px minimum
-│   │   │   └── BadgeCounter.tsx
-│   │   ├── offline/                    # 🆕 Offline handling
-│   │   │   ├── OfflineFallback.tsx
-│   │   │   ├── FormDraftManager.tsx
-│   │   │   ├── PendingSubmissions.tsx
-│   │   │   └── RetryButton.tsx
-│   │   ├── camera/                     # 🆕 Camera integration
-│   │   │   ├── CameraCapture.tsx
-│   │   │   ├── ImageCompressor.tsx
-│   │   │   └── EXIFExtractor.tsx
-│   │   ├── biometric/                  # 🆕 Biometric
-│   │   │   ├── BiometricLogin.tsx
-│   │   │   ├── BiometricSetup.tsx
-│   │   │   └── BiometricStatus.tsx
-│   │   ├── maps/
-│   │   ├── charts/
-│   │   ├── forms/
-│   │   ├── tables/
-│   │   └── layout/
-│   ├── lib/
-│   │   ├── supabase/
-│   │   │   ├── client.ts
-│   │   │   ├── server.ts
-│   │   │   └── middleware.ts
-│   │   ├── webauthn/                   # 🆕 WebAuthn helpers
-│   │   │   ├── browser.ts
-│   │   │   ├── server.ts
-│   │   │   └── utils.ts
-│   │   ├── db/
-│   │   ├── draft/                      # 🆕 Form draft
-│   │   │   ├── localStorage.ts
-│   │   │   ├── autoSave.ts
-│   │   │   └── conflictResolver.ts
-│   │   ├── camera/                     # 🆕 Camera helpers
-│   │   │   ├── capture.ts
-│   │   │   ├── compress.ts
-│   │   │   └── exif.ts
-│   │   ├── geolocation/                # 🆕
-│   │   │   └── getCurrentPosition.ts
-│   │   ├── share/                      # 🆕 Web Share API
-│   │   │   └── shareToWhatsApp.ts
-│   │   ├── haptic/                     # 🆕 Haptic feedback
-│   │   │   └── vibrate.ts
-│   │   ├── validations/
-│   │   ├── utils/
-│   │   └── constants/
-│   ├── hooks/
-│   │   ├── use-auth.ts
-│   │   ├── use-pos-pelkes.ts
-│   │   ├── use-geolocation.ts
-│   │   ├── use-network-status.ts       # 🆕
-│   │   ├── use-form-draft.ts           # 🆕
-│   │   ├── use-install-prompt.ts       # 🆕
-│   │   ├── use-biometric.ts            # 🆕
-│   │   ├── use-camera.ts               # 🆕
-│   │   ├── use-pull-to-refresh.ts      # 🆕
-│   │   ├── use-share.ts                # 🆕
-│   │   └── use-haptic.ts               # 🆕
-│   ├── stores/
-│   ├── types/
-│   └── styles/
-│       └── globals.css
-├── public/
-│   ├── manifest.json                   # 🆕 PWA manifest
-│   ├── sw.js                           # 🆕 Service Worker
-│   ├── icons/
-│   │   ├── icon-192.png
-│   │   ├── icon-512.png
-│   │   ├── icon-maskable.png
-│   │   └── apple-touch-icon.png
-│   ├── screenshots/                    # 🆕 PWA screenshots
-│   │   ├── mobile-1.png
-│   │   └── mobile-2.png
-│   └── sounds/                         # 🆕 Notification sounds
-├── supabase/
-│   ├── migrations/
-│   ├── functions/
-│   └── seed.sql
-├── docs/
-├── .env.local
-├── next.config.js
-├── tailwind.config.ts
-├── tsconfig.json
-└── package.json
+â”œâ”€â”€ src/
+â”‚   â”œâ”€â”€ app/
+â”‚   â”‚   â”œâ”€â”€ (auth)/
+â”‚   â”‚   â”‚   â”œâ”€â”€ login/
+â”‚   â”‚   â”‚   â”‚   â”œâ”€â”€ page.tsx
+â”‚   â”‚   â”‚   â”‚   â””â”€â”€ biometric/page.tsx  # ðŸ†• Halaman biometric
+â”‚   â”‚   â”‚   â”œâ”€â”€ register/
+â”‚   â”‚   â”‚   â””â”€â”€ forgot-password/
+â”‚   â”‚   â”œâ”€â”€ (dashboard)/
+â”‚   â”‚   â”‚   â”œâ”€â”€ layout.tsx              # ðŸ†• Bottom nav + safe area
+â”‚   â”‚   â”‚   â”œâ”€â”€ page.tsx                # ðŸ†• Dashboard mobile-first
+â”‚   â”‚   â”‚   â”œâ”€â”€ mupel/
+â”‚   â”‚   â”‚   â”œâ”€â”€ jemaat/
+â”‚   â”‚   â”‚   â”œâ”€â”€ pos-pelkes/
+â”‚   â”‚   â”‚   â”‚   â”œâ”€â”€ page.tsx
+â”‚   â”‚   â”‚   â”‚   â”œâ”€â”€ [id]/
+â”‚   â”‚   â”‚   â”‚   â”‚   â”œâ”€â”€ page.tsx
+â”‚   â”‚   â”‚   â”‚   â”‚   â””â”€â”€ map/page.tsx    # ðŸ†• Peta fullscreen mobile
+â”‚   â”‚   â”‚   â”‚   â””â”€â”€ new/
+â”‚   â”‚   â”‚   â”‚       â””â”€â”€ page.tsx        # ðŸ†• Form + kamera + GPS
+â”‚   â”‚   â”‚   â”œâ”€â”€ pendeta/
+â”‚   â”‚   â”‚   â”œâ”€â”€ mutasi/
+â”‚   â”‚   â”‚   â”œâ”€â”€ pastoral/
+â”‚   â”‚   â”‚   â”‚   â”œâ”€â”€ page.tsx
+â”‚   â”‚   â”‚   â”‚   â””â”€â”€ new/
+â”‚   â”‚   â”‚   â”‚       â””â”€â”€ page.tsx        # ðŸ†• Voice input + draft
+â”‚   â”‚   â”‚   â”œâ”€â”€ aset/
+â”‚   â”‚   â”‚   â”‚   â”œâ”€â”€ page.tsx
+â”‚   â”‚   â”‚   â”‚   â””â”€â”€ new/
+â”‚   â”‚   â”‚   â”‚       â””â”€â”€ page.tsx        # ðŸ†• Camera capture
+â”‚   â”‚   â”‚   â”œâ”€â”€ bantuan/
+â”‚   â”‚   â”‚   â”œâ”€â”€ demografi/
+â”‚   â”‚   â”‚   â””â”€â”€ settings/
+â”‚   â”‚   â”‚       â”œâ”€â”€ page.tsx
+â”‚   â”‚   â”‚       â”œâ”€â”€ biometric/page.tsx  # ðŸ†• Manage biometric devices
+â”‚   â”‚   â”‚       â””â”€â”€ notifications/page.tsx  # ðŸ†•
+â”‚   â”‚   â”œâ”€â”€ (public)/
+â”‚   â”‚   â”‚   â”œâ”€â”€ dashboard/
+â”‚   â”‚   â”‚   â””â”€â”€ peta-sebaran/
+â”‚   â”‚   â”œâ”€â”€ offline/page.tsx            # ðŸ†• Offline fallback
+â”‚   â”‚   â”œâ”€â”€ api/
+â”‚   â”‚   â”‚   â”œâ”€â”€ auth/
+â”‚   â”‚   â”‚   â”‚   â”œâ”€â”€ webauthn/           # ðŸ†• WebAuthn endpoints
+â”‚   â”‚   â”‚   â”‚   â”‚   â”œâ”€â”€ register/options/route.ts
+â”‚   â”‚   â”‚   â”‚   â”‚   â”œâ”€â”€ register/verify/route.ts
+â”‚   â”‚   â”‚   â”‚   â”‚   â”œâ”€â”€ login/options/route.ts
+â”‚   â”‚   â”‚   â”‚   â”‚   â””â”€â”€ login/verify/route.ts
+â”‚   â”‚   â”‚   â”œâ”€â”€ webhooks/
+â”‚   â”‚   â”‚   â””â”€â”€ upload/
+â”‚   â”‚   â””â”€â”€ layout.tsx
+â”‚   â”œâ”€â”€ components/
+â”‚   â”‚   â”œâ”€â”€ ui/                         # shadcn/ui
+â”‚   â”‚   â”œâ”€â”€ mobile/                     # ðŸ†• Mobile-specific
+â”‚   â”‚   â”‚   â”œâ”€â”€ BottomNavigation.tsx
+â”‚   â”‚   â”‚   â”œâ”€â”€ SafeArea.tsx
+â”‚   â”‚   â”‚   â”œâ”€â”€ PullToRefresh.tsx
+â”‚   â”‚   â”‚   â”œâ”€â”€ NetworkBanner.tsx
+â”‚   â”‚   â”‚   â”œâ”€â”€ InstallPrompt.tsx
+â”‚   â”‚   â”‚   â”œâ”€â”€ SwipeableCard.tsx
+â”‚   â”‚   â”‚   â”œâ”€â”€ SkeletonList.tsx
+â”‚   â”‚   â”‚   â”œâ”€â”€ TouchButton.tsx         # 44x44px minimum
+â”‚   â”‚   â”‚   â””â”€â”€ BadgeCounter.tsx
+â”‚   â”‚   â”œâ”€â”€ offline/                    # ðŸ†• Offline handling
+â”‚   â”‚   â”‚   â”œâ”€â”€ OfflineFallback.tsx
+â”‚   â”‚   â”‚   â”œâ”€â”€ FormDraftManager.tsx
+â”‚   â”‚   â”‚   â”œâ”€â”€ PendingSubmissions.tsx
+â”‚   â”‚   â”‚   â””â”€â”€ RetryButton.tsx
+â”‚   â”‚   â”œâ”€â”€ camera/                     # ðŸ†• Camera integration
+â”‚   â”‚   â”‚   â”œâ”€â”€ CameraCapture.tsx
+â”‚   â”‚   â”‚   â”œâ”€â”€ ImageCompressor.tsx
+â”‚   â”‚   â”‚   â””â”€â”€ EXIFExtractor.tsx
+â”‚   â”‚   â”œâ”€â”€ biometric/                  # ðŸ†• Biometric
+â”‚   â”‚   â”‚   â”œâ”€â”€ BiometricLogin.tsx
+â”‚   â”‚   â”‚   â”œâ”€â”€ BiometricSetup.tsx
+â”‚   â”‚   â”‚   â””â”€â”€ BiometricStatus.tsx
+â”‚   â”‚   â”œâ”€â”€ maps/
+â”‚   â”‚   â”œâ”€â”€ charts/
+â”‚   â”‚   â”œâ”€â”€ forms/
+â”‚   â”‚   â”œâ”€â”€ tables/
+â”‚   â”‚   â””â”€â”€ layout/
+â”‚   â”œâ”€â”€ lib/
+â”‚   â”‚   â”œâ”€â”€ supabase/
+â”‚   â”‚   â”‚   â”œâ”€â”€ client.ts
+â”‚   â”‚   â”‚   â”œâ”€â”€ server.ts
+â”‚   â”‚   â”‚   â””â”€â”€ middleware.ts
+â”‚   â”‚   â”œâ”€â”€ webauthn/                   # ðŸ†• WebAuthn helpers
+â”‚   â”‚   â”‚   â”œâ”€â”€ browser.ts
+â”‚   â”‚   â”‚   â”œâ”€â”€ server.ts
+â”‚   â”‚   â”‚   â””â”€â”€ utils.ts
+â”‚   â”‚   â”œâ”€â”€ db/
+â”‚   â”‚   â”œâ”€â”€ draft/                      # ðŸ†• Form draft
+â”‚   â”‚   â”‚   â”œâ”€â”€ localStorage.ts
+â”‚   â”‚   â”‚   â”œâ”€â”€ autoSave.ts
+â”‚   â”‚   â”‚   â””â”€â”€ conflictResolver.ts
+â”‚   â”‚   â”œâ”€â”€ camera/                     # ðŸ†• Camera helpers
+â”‚   â”‚   â”‚   â”œâ”€â”€ capture.ts
+â”‚   â”‚   â”‚   â”œâ”€â”€ compress.ts
+â”‚   â”‚   â”‚   â””â”€â”€ exif.ts
+â”‚   â”‚   â”œâ”€â”€ geolocation/                # ðŸ†•
+â”‚   â”‚   â”‚   â””â”€â”€ getCurrentPosition.ts
+â”‚   â”‚   â”œâ”€â”€ share/                      # ðŸ†• Web Share API
+â”‚   â”‚   â”‚   â””â”€â”€ shareToWhatsApp.ts
+â”‚   â”‚   â”œâ”€â”€ haptic/                     # ðŸ†• Haptic feedback
+â”‚   â”‚   â”‚   â””â”€â”€ vibrate.ts
+â”‚   â”‚   â”œâ”€â”€ validations/
+â”‚   â”‚   â”œâ”€â”€ utils/
+â”‚   â”‚   â””â”€â”€ constants/
+â”‚   â”œâ”€â”€ hooks/
+â”‚   â”‚   â”œâ”€â”€ use-auth.ts
+â”‚   â”‚   â”œâ”€â”€ use-pos-pelkes.ts
+â”‚   â”‚   â”œâ”€â”€ use-geolocation.ts
+â”‚   â”‚   â”œâ”€â”€ use-network-status.ts       # ðŸ†•
+â”‚   â”‚   â”œâ”€â”€ use-form-draft.ts           # ðŸ†•
+â”‚   â”‚   â”œâ”€â”€ use-install-prompt.ts       # ðŸ†•
+â”‚   â”‚   â”œâ”€â”€ use-biometric.ts            # ðŸ†•
+â”‚   â”‚   â”œâ”€â”€ use-camera.ts               # ðŸ†•
+â”‚   â”‚   â”œâ”€â”€ use-pull-to-refresh.ts      # ðŸ†•
+â”‚   â”‚   â”œâ”€â”€ use-share.ts                # ðŸ†•
+â”‚   â”‚   â””â”€â”€ use-haptic.ts               # ðŸ†•
+â”‚   â”œâ”€â”€ stores/
+â”‚   â”œâ”€â”€ types/
+â”‚   â””â”€â”€ styles/
+â”‚       â””â”€â”€ globals.css
+â”œâ”€â”€ public/
+â”‚   â”œâ”€â”€ manifest.json                   # ðŸ†• PWA manifest
+â”‚   â”œâ”€â”€ sw.js                           # ðŸ†• Service Worker
+â”‚   â”œâ”€â”€ icons/
+â”‚   â”‚   â”œâ”€â”€ icon-192.png
+â”‚   â”‚   â”œâ”€â”€ icon-512.png
+â”‚   â”‚   â”œâ”€â”€ icon-maskable.png
+â”‚   â”‚   â””â”€â”€ apple-touch-icon.png
+â”‚   â”œâ”€â”€ screenshots/                    # ðŸ†• PWA screenshots
+â”‚   â”‚   â”œâ”€â”€ mobile-1.png
+â”‚   â”‚   â””â”€â”€ mobile-2.png
+â”‚   â””â”€â”€ sounds/                         # ðŸ†• Notification sounds
+â”œâ”€â”€ supabase/
+â”‚   â”œâ”€â”€ migrations/
+â”‚   â”œâ”€â”€ functions/
+â”‚   â””â”€â”€ seed.sql
+â”œâ”€â”€ docs/
+â”œâ”€â”€ .env.local
+â”œâ”€â”€ next.config.js
+â”œâ”€â”€ tailwind.config.ts
+â”œâ”€â”€ tsconfig.json
+â””â”€â”€ package.json
 ```
 
 ---
@@ -424,7 +424,7 @@ si-gpib-v2/
 
 *(Tetap sama dengan v2.1, ditambah aturan baru)*
 
-### 📜 Aturan Bisnis Baru (Mobile)
+### ðŸ“œ Aturan Bisnis Baru (Mobile)
 
 | # | Rule | Enforcement |
 |---|------|-------------|
@@ -434,15 +434,15 @@ si-gpib-v2/
 | 16 | **Foto aset** wajib ada EXIF GPS (kecuali manual override) | Client validation |
 | 17 | **Form draft** auto-delete setelah 30 hari | Client-side cleanup |
 | 18 | **Pull-to-refresh** hanya di halaman list (bukan form) | UX rule |
-| 19 | **Profile 360° Audit & Biometric Privacy**: Jejak audit & perangkat biometrik HANYA terlihat oleh diri sendiri + super_user | RLS policy |
-| 20 | **Profile 360° Data Scope**: Data pelayanan (hierarki, mutasi, log) terlihat sesuai scope role | RLS policy |
-| 21 | **Profile 360° Graceful Fallback**: User non-pendeta menampilkan pesan penjelasan, bukan error/kotak kosong | Client-side |
+| 19 | **Profile 360Â° Audit Privacy**: Jejak audit (`t_log_aktivitas`) terlihat oleh diri sendiri + super_user + admin_mupel (scope Mupel) + kmj (scope Jemaat). Perangkat biometrik HANYA terlihat oleh diri sendiri + super_user. | RLS policy |
+| 20 | **Profile 360Â° Data Scope**: Data pelayanan (hierarki, mutasi, log) terlihat sesuai scope role | RLS policy |
+| 21 | **Profile 360Â° Graceful Fallback**: User non-pendeta menampilkan pesan penjelasan, bukan error/kotak kosong | Client-side |
 
 ---
 
 ## 10. UI/UX Guidelines
 
-### 🎨 Design System (Mobile First)
+### ðŸŽ¨ Design System (Mobile First)
 
 | Aspek | Standar Mobile | Standar Desktop |
 |-------|----------------|-----------------|
@@ -457,7 +457,7 @@ si-gpib-v2/
 | **Typography** | Inter (UI), Merriweather (Headings) |
 | **Dark Mode** | Supported via `next-themes` |
 
-### 📱 Mobile-First UI Patterns
+### ðŸ“± Mobile-First UI Patterns
 
 #### 1. **Bottom Navigation (Thumb Zone)**
 ```tsx
@@ -477,6 +477,7 @@ si-gpib-v2/
     <Action icon={Camera} label="Foto Aset" onClick={...} />
     <Action icon={MapPin} label="Input Log Pastoral" onClick={...} />
     <Action icon={FileText} label="Pengajuan Bantuan" onClick={...} />
+    <Action icon={RefreshCw} label="Ajukan Ulang Bantuan (Rejected)" onClick={...} /> {/* ðŸ†• EIA v0.1.1 */}
     <Action icon={Users} label="Tambah Pelayan" onClick={...} />
   </ActionSheet>
 </FloatingActionButton>
@@ -487,7 +488,7 @@ si-gpib-v2/
 <PosPelkesCard>
   <CardHeader>
     <h3>Pos Pelkes Eben Haezer</h3>
-    <Badge>26 KK • 99 Jiwa</Badge>
+    <Badge>26 KK â€¢ 99 Jiwa</Badge>
   </CardHeader>
   <CardBody>
     <MapPreview lat={...} lng={...} />
@@ -510,34 +511,34 @@ si-gpib-v2/
 </SwipeableCard>
 ```
 
-### ♿ Accessibility (Mobile-Specific)
+### â™¿ Accessibility (Mobile-Specific)
 
-- ✅ Touch target 44x44px minimum (Apple HIG & Material Design)
-- ✅ Safe area handling (notch, home indicator)
-- ✅ High contrast mode support
-- ✅ Reduce motion support
-- ✅ Screen reader optimized (ARIA)
-- ✅ VoiceOver / TalkBack compatible
-- ✅ Minimum 16px font size (iOS requirement)
+- âœ… Touch target 44x44px minimum (Apple HIG & Material Design)
+- âœ… Safe area handling (notch, home indicator)
+- âœ… High contrast mode support
+- âœ… Reduce motion support
+- âœ… Screen reader optimized (ARIA)
+- âœ… VoiceOver / TalkBack compatible
+- âœ… Minimum 16px font size (iOS requirement)
 
 ---
 
-## 11. 📱 Mobile First PWA Strategy
+## 11. ðŸ“± Mobile First PWA Strategy
 
-### 🎯 Prinsip Mobile First
+### ðŸŽ¯ Prinsip Mobile First
 
 > *"Mobile bukan versi kecil dari desktop. Mobile adalah pengalaman utama."*
 
-### 📊 Target Device
+### ðŸ“Š Target Device
 
 | Device | Share | Prioritas |
 |--------|-------|-----------|
-| **HP Android** (mid-range) | 60% | 🔴 Primary |
-| **iPhone** (SE - 15) | 25% | 🔴 Primary |
-| **Tablet** (iPad/Android) | 10% | 🟠 Secondary |
-| **Desktop/Laptop** | 5% | 🟢 Tertiary |
+| **HP Android** (mid-range) | 60% | ðŸ”´ Primary |
+| **iPhone** (SE - 15) | 25% | ðŸ”´ Primary |
+| **Tablet** (iPad/Android) | 10% | ðŸŸ  Secondary |
+| **Desktop/Laptop** | 5% | ðŸŸ¢ Tertiary |
 
-### 🏗️ Arsitektur PWA
+### ðŸ—ï¸ Arsitektur PWA
 
 #### 1. **PWA Manifest** (`public/manifest.json`)
 ```json
@@ -1067,7 +1068,7 @@ export function NetworkBanner() {
         ) : (
           <>
             <WifiOff className="w-4 h-4" />
-            <span>Offline — {pendingCount} data menunggu</span>
+            <span>Offline â€” {pendingCount} data menunggu</span>
           </>
         )}
       </div>
@@ -1125,7 +1126,7 @@ export async function shareToWhatsApp(data: {
 }
 ```
 
-### 📊 Performance Budget (Mobile)
+### ðŸ“Š Performance Budget (Mobile)
 
 | Metric | Target | Measurement |
 |--------|--------|-------------|
@@ -1140,9 +1141,9 @@ export async function shareToWhatsApp(data: {
 | **Time to Interactive** | < 3.5s | Lighthouse |
 | **Speed Index** | < 3.0s | Lighthouse |
 
-### ✅ Mobile First PWA Checklist
+### âœ… Mobile First PWA Checklist
 
-#### 🔴 Wajib (Fase 1-2)
+#### ðŸ”´ Wajib (Fase 1-2)
 - [x] Touch target 44x44px minimum
 - [x] Bottom navigation (thumb zone)
 - [x] Safe area handling (notch, home indicator)
@@ -1158,7 +1159,7 @@ export async function shareToWhatsApp(data: {
 - [x] Network status banner
 - [x] Form draft auto-save
 
-#### 🟠 Penting (Fase 3)
+#### ðŸŸ  Penting (Fase 3)
 - [ ] Pull-to-refresh
 - [ ] Skeleton loading
 - [ ] Push notifications
@@ -1167,7 +1168,7 @@ export async function shareToWhatsApp(data: {
 - [ ] Data saver mode
 - [ ] Haptic feedback
 
-#### 🟢 Enhancement (Fase 4-5)
+#### ðŸŸ¢ Enhancement (Fase 4-5)
 - [ ] Biometric authentication
 - [ ] Badge counter
 - [ ] Background sync
@@ -1178,9 +1179,9 @@ export async function shareToWhatsApp(data: {
 
 ---
 
-## 12. 🔐 Biometric Authentication
+## 12. ðŸ” Biometric Authentication
 
-### 🎯 Mengapa Biometric?
+### ðŸŽ¯ Mengapa Biometric?
 
 | Aspek | Password | Biometric |
 |-------|----------|-----------|
@@ -1188,67 +1189,67 @@ export async function shareToWhatsApp(data: {
 | **Keamanan** | Medium (phishing risk) | High (device-bound) |
 | **UX Mobile** | Ribet (ketik password) | Sentuh saja |
 | **Adopsi User** | 100% | ~85% (perlu setup) |
-| **Cocok untuk Pendeta** | ❌ | ✅ (di lapangan) |
+| **Cocok untuk Pendeta** | âŒ | âœ… (di lapangan) |
 
-### 🏗️ Arsitektur WebAuthn
+### ðŸ—ï¸ Arsitektur WebAuthn
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    CLIENT (Browser)                      │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │  @simplewebauthn/browser                         │  │
-│  │  - navigator.credentials.create()                │  │
-│  │  - navigator.credentials.get()                   │  │
-│  └──────────────────────────────────────────────────┘  │
-└──────────────────────────┬──────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│                    SERVER (Next.js API)                  │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │  @simplewebauthn/server                          │  │
-│  │  - generateRegistrationOptions()                 │  │
-│  │  - verifyRegistrationResponse()                  │  │
-│  │  - generateAuthenticationOptions()               │  │
-│  │  - verifyAuthenticationResponse()                │  │
-│  └──────────────────────────────────────────────────┘  │
-│                           │                            │
-│                           ▼                            │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │  Supabase: m_webauthn_credentials                │  │
-│  │  - credential_id                                 │  │
-│  │  - public_key                                    │  │
-│  │  - counter                                       │  │
-│  └──────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                    CLIENT (Browser)                      â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚
+â”‚  â”‚  @simplewebauthn/browser                         â”‚  â”‚
+â”‚  â”‚  - navigator.credentials.create()                â”‚  â”‚
+â”‚  â”‚  - navigator.credentials.get()                   â”‚  â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                           â”‚
+                           â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                    SERVER (Next.js API)                  â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚
+â”‚  â”‚  @simplewebauthn/server                          â”‚  â”‚
+â”‚  â”‚  - generateRegistrationOptions()                 â”‚  â”‚
+â”‚  â”‚  - verifyRegistrationResponse()                  â”‚  â”‚
+â”‚  â”‚  - generateAuthenticationOptions()               â”‚  â”‚
+â”‚  â”‚  - verifyAuthenticationResponse()                â”‚  â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚
+â”‚                           â”‚                            â”‚
+â”‚                           â–¼                            â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚
+â”‚  â”‚  Supabase: m_webauthn_credentials                â”‚  â”‚
+â”‚  â”‚  - credential_id                                 â”‚  â”‚
+â”‚  â”‚  - public_key                                    â”‚  â”‚
+â”‚  â”‚  - counter                                       â”‚  â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
-### 📱 Flow Registrasi Biometric
+### ðŸ“± Flow Registrasi Biometric
 
 ```
 1. User login dengan password/OTP (sukses)
-   ↓
+   â†“
 2. User klik "Aktifkan Biometric" di Settings
-   ↓
+   â†“
 3. Client minta registration options ke server
    GET /api/auth/webauthn/register/options
-   ↓
+   â†“
 4. Server generate challenge + return options
-   ↓
+   â†“
 5. Client panggil navigator.credentials.create()
-   → User sentuh fingerprint / Face ID
-   ↓
+   â†’ User sentuh fingerprint / Face ID
+   â†“
 6. Client kirim response ke server
    POST /api/auth/webauthn/register/verify
-   ↓
+   â†“
 7. Server verify + simpan credential ke DB
-   ↓
+   â†“
 8. Client simpan "biometric enabled" flag
-   ↓
-9. ✅ Selesai! Login berikutnya tinggal sentuh
+   â†“
+9. âœ… Selesai! Login berikutnya tinggal sentuh
 ```
 
-### 🔧 Implementasi
+### ðŸ”§ Implementasi
 
 #### Server-side (`app/api/auth/webauthn/register/options/route.ts`)
 ```typescript
@@ -1387,7 +1388,7 @@ export function BiometricSetup() {
 }
 ```
 
-### 🔒 Keamanan Biometric
+### ðŸ”’ Keamanan Biometric
 
 | Aspek | Implementasi |
 |-------|--------------|
@@ -1396,7 +1397,7 @@ export function BiometricSetup() {
 | **Counter** | Anti-replay attack (setiap use increment) |
 | **Device Binding** | Credential terikat ke device tertentu |
 | **Max Devices** | 5 perangkat per user |
-| **Auto-Expire** | 90 hari tidak dipakai → auto-revoke |
+| **Auto-Expire** | 90 hari tidak dipakai â†’ auto-revoke |
 | **Fallback** | Tetap bisa login dengan password/OTP |
 | **Revocation** | User bisa revoke device kapan saja |
 
@@ -1404,7 +1405,7 @@ export function BiometricSetup() {
 
 ## 13. Roadmap Pengembangan
 
-### 🗓️ Timeline (Mobile First Edition)
+### ðŸ—“ï¸ Timeline (Mobile First Edition)
 
 ```mermaid
 gantt
@@ -1434,15 +1435,15 @@ gantt
     AI & Peta Kritis            :2027-03-22, 30d
 ```
 
-### 🎯 Milestones
+### ðŸŽ¯ Milestones
 
 | Fase | Periode | Deliverables |
 |------|---------|--------------|
-| **Fase 1: Fondasi Mobile** | Jul–Agu 2026 | Auth + Biometric, Bottom Nav, PWA Install, Master Data |
-| **Fase 2: Pengayaan** | Sep–Okt 2026 | Kamera + GPS, Pendeta, Aset, Log Pastoral + Voice |
-| **Fase 3: Operasi** | Nov–Des 2026 | Offline Fallback, Draft, Pengajuan Bantuan, Push Notif |
-| **Fase 4: Keterlibatan** | Jan–Feb 2027 | Dashboard Mobile, Portal Umat |
-| **Fase 5: Puncak** | Feb–Mar 2027 | Biometric Polish, Background Sync, AI |
+| **Fase 1: Fondasi Mobile** | Julâ€“Agu 2026 | Auth + Biometric, Bottom Nav, PWA Install, Master Data |
+| **Fase 2: Pengayaan** | Sepâ€“Okt 2026 | Kamera + GPS, Pendeta, Aset, Log Pastoral + Voice |
+| **Fase 3: Operasi** | Novâ€“Des 2026 | Offline Fallback, Draft, Pengajuan Bantuan, Push Notif |
+| **Fase 4: Keterlibatan** | Janâ€“Feb 2027 | Dashboard Mobile, Portal Umat |
+| **Fase 5: Puncak** | Febâ€“Mar 2027 | Biometric Polish, Background Sync, AI |
 
 ---
 
@@ -1450,7 +1451,7 @@ gantt
 
 *(Tetap sama dengan v2.1, ditambah)*
 
-### 🌐 Environment Variables (Update)
+### ðŸŒ Environment Variables (Update)
 
 ```env
 # Supabase
@@ -1462,19 +1463,19 @@ SUPABASE_SERVICE_ROLE_KEY=
 NEXT_PUBLIC_APP_URL=
 NEXT_PUBLIC_APP_NAME="SI GPIB v2.0"
 
-# 🆕 WebAuthn
+# ðŸ†• WebAuthn
 NEXT_PUBLIC_RP_NAME="SI GPIB v2.0"
 NEXT_PUBLIC_RP_ID="pospelkes-gpib.vercel.app"
 
-# 🆕 PWA
+# ðŸ†• PWA
 NEXT_PUBLIC_ENABLE_PWA=true
 NEXT_PUBLIC_PWA_CACHE_VERSION=v2
 
-# 🆕 Camera
+# ðŸ†• Camera
 NEXT_PUBLIC_CAMERA_MAX_SIZE_KB=1024
 NEXT_PUBLIC_CAMERA_ENABLE_GPS=true
 
-# 🆕 Biometric
+# ðŸ†• Biometric
 NEXT_PUBLIC_BIOMETRIC_ENABLED=true
 NEXT_PUBLIC_BIOMETRIC_MAX_DEVICES=5
 NEXT_PUBLIC_BIOMETRIC_EXPIRE_DAYS=90
@@ -1489,7 +1490,7 @@ NEXT_PUBLIC_ENABLE_PUSH_NOTIFICATIONS=false
 
 ## 15. Testing Strategy
 
-### 🎯 Critical Test Scenarios (Mobile-Specific)
+### ðŸŽ¯ Critical Test Scenarios (Mobile-Specific)
 
 #### PWA Tests
 - [ ] Install prompt muncul di device yang support
@@ -1528,7 +1529,7 @@ NEXT_PUBLIC_ENABLE_PUSH_NOTIFICATIONS=false
 
 ## 16. Maintenance & Monitoring
 
-### 📈 KPI Monitoring (Update)
+### ðŸ“ˆ KPI Monitoring (Update)
 
 ```yaml
 performance:
@@ -1558,28 +1559,28 @@ usage:
 
 ## 17. Risk Management
 
-### ⚠️ Risk Matrix (Update)
+### âš ï¸ Risk Matrix (Update)
 
 | Risk | Impact | Probability | Mitigation |
 |------|--------|-------------|------------|
-| **🆕 Biometric tidak support di device lama** | 🟡 Medium | 🟡 Medium | Fallback ke password/OTP |
-| **🆕 Camera permission ditolak user** | 🟡 Medium | 🟡 Medium | Manual upload dari galeri |
-| **🆕 Geolocation tidak akurat** | 🟡 Medium | 🟠 High | Manual input koordinat |
-| **🆕 PWA install rate rendah** | 🟡 Medium | 🟡 Medium | Edukasi user + onboarding |
-| **🆕 localStorage quota exceeded** | 🟡 Medium | 🟢 Low | Auto-cleanup + max 5MB |
-| Data Loss | 🔴 Critical | 🟢 Low | Daily backup |
-| Security Breach | 🔴 Critical | 🟢 Low | RLS, 2FA, biometric |
-| Performance Degradation | 🟠 High | 🟡 Medium | Query optimization, caching |
-| Sinyal Terbatas di Pos Pelkes | 🟠 High | 🔴 High | PWA caching + Form Draft |
-| Scope Creep | 🟡 Medium | 🔴 High | Strict roadmap |
-| Vendor Lock-in | 🟡 Medium | 🟢 Low | Standard SQL, portable code |
-| User Adoption | 🟠 High | 🟡 Medium | Training, documentation |
+| **ðŸ†• Biometric tidak support di device lama** | ðŸŸ¡ Medium | ðŸŸ¡ Medium | Fallback ke password/OTP |
+| **ðŸ†• Camera permission ditolak user** | ðŸŸ¡ Medium | ðŸŸ¡ Medium | Manual upload dari galeri |
+| **ðŸ†• Geolocation tidak akurat** | ðŸŸ¡ Medium | ðŸŸ  High | Manual input koordinat |
+| **ðŸ†• PWA install rate rendah** | ðŸŸ¡ Medium | ðŸŸ¡ Medium | Edukasi user + onboarding |
+| **ðŸ†• localStorage quota exceeded** | ðŸŸ¡ Medium | ðŸŸ¢ Low | Auto-cleanup + max 5MB |
+| Data Loss | ðŸ”´ Critical | ðŸŸ¢ Low | Daily backup |
+| Security Breach | ðŸ”´ Critical | ðŸŸ¢ Low | RLS, 2FA, biometric |
+| Performance Degradation | ðŸŸ  High | ðŸŸ¡ Medium | Query optimization, caching |
+| Sinyal Terbatas di Pos Pelkes | ðŸŸ  High | ðŸ”´ High | PWA caching + Form Draft |
+| Scope Creep | ðŸŸ¡ Medium | ðŸ”´ High | Strict roadmap |
+| Vendor Lock-in | ðŸŸ¡ Medium | ðŸŸ¢ Low | Standard SQL, portable code |
+| User Adoption | ðŸŸ  High | ðŸŸ¡ Medium | Training, documentation |
 
 ---
 
 ## 18. Strategi Mitigasi Sinyal Terbatas
 
-*(Tetap sama dengan v2.1 — 5 lapis mitigasi)*
+*(Tetap sama dengan v2.1 â€” 5 lapis mitigasi)*
 
 1. **PWA Caching** (Read-only offline)
 2. **Form Draft Auto-Save** (localStorage)
@@ -1589,51 +1590,51 @@ usage:
 
 ---
 
-## 📝 Penutup
+## ðŸ“ Penutup
 
 > *"Data yang dikumpulkan dengan benar adalah pelita hikmat."*
 
-Blueprint v2.2 ini adalah fondasi untuk membangun **SI GPIB v2.0** — sebuah ekosistem digital **mobile-first** yang:
+Blueprint v2.2 ini adalah fondasi untuk membangun **SI GPIB v2.0** â€” sebuah ekosistem digital **mobile-first** yang:
 
-✅ **Mobile First** — 90%+ pendeta akses via HP
-✅ **PWA Installable** — Terasa seperti app native
-✅ **Biometric Auth** — Login < 1 detik, aman
-✅ **Camera + GPS** — Foto aset langsung dari lapangan
-✅ **Offline-Ready** — Form draft + pending queue
-✅ **Performance Optimized** — < 100KB JS, < 1.5s FCP
-✅ **Bulletproof** — 30-50 tahun lifecycle
+âœ… **Mobile First** â€” 90%+ pendeta akses via HP
+âœ… **PWA Installable** â€” Terasa seperti app native
+âœ… **Biometric Auth** â€” Login < 1 detik, aman
+âœ… **Camera + GPS** â€” Foto aset langsung dari lapangan
+âœ… **Offline-Ready** â€” Form draft + pending queue
+âœ… **Performance Optimized** â€” < 100KB JS, < 1.5s FCP
+âœ… **Bulletproof** â€” 30-50 tahun lifecycle
 
-### ✅ Next Steps
+### âœ… Next Steps
 
 1. **Review & Approval** blueprint v2.2 oleh stakeholder
 2. **Setup repository** GitHub + Supabase project
 3. **Kick-off meeting** dengan tim development
-4. **Mulai Fase 1** (Fondasi Mobile) — target 20 Juli 2026
+4. **Mulai Fase 1** (Fondasi Mobile) â€” target 20 Juli 2026
 
 ---
 
-**Dokumen ini adalah living document** — akan diperbarui seiring perkembangan proyek.
+**Dokumen ini adalah living document** â€” akan diperbarui seiring perkembangan proyek.
 
 ---
 
-## 19. 🔗 Arsitektur Identitas Terpadu (Unified Identity Model)
+## 19. ðŸ”— Arsitektur Identitas Terpadu (Unified Identity Model)
 
-### 📌 Aturan Bisnis Kunci Identitas Pendeta:
+### ðŸ“Œ Aturan Bisnis Kunci Identitas Pendeta:
 1. **`m_pendeta.id_pendeta` bersifat IMMUTABLE**: Sekali dibuat (format `PDT-XXXXXXXX`), ID Pendeta tidak pernah berubah.
 2. **Single Source of Truth Nama**: Nama pendeta secara resmi dikelola hanya pada `m_pendeta.nama_lengkap`. Tabel `users` hanya menyimpan relasi via `users.id_pendeta`.
 3. **1 Pendeta = Max 1 Akun Aktif**: Satu pendeta hanya boleh terhubung dengan maksimal satu akun pengguna aktif (`uq_users_pendeta_aktif`).
 4. **Keberlanjutan Sejarah Pelayanan**: Penghapusan pendeta men-set `users.id_pendeta = NULL` (`ON DELETE SET NULL`) dan merubah `users.status = 'Nonaktif'`. Catatan pelayanan (log pastoral, mutasi, penugasan, dan jabatan struktural) dikunci dengan `ON DELETE RESTRICT` sehingga tidak pernah terhapus.
-5. **Privasi Pelayan (Asymmetric Privacy Guard)**: Data dimensi keluarga (`t_keluarga_pendeta`) dilindungi secara ketat via RPC `SECURITY DEFINER` `get_pendeta_360`, hanya dapat diakses oleh Pemilik Data dan Super User, sedangkan Admin Mupel tidak diberi akses ke data keluarga.
+5. **Privasi Pelayan (Asymmetric Privacy Guard)**: Data dimensi keluarga (`t_keluarga_pendeta`) dilindungi secara ketat via RPC `SECURITY DEFINER` `get_pendeta_360`, hanya dapat diakses oleh Pemilik Data dan Super User, sedangkan Admin Mupel tidak diberi akses ke data keluarga. Data audit (`t_log_aktivitas`) dapat diakses oleh Pemilik Data, Super User, Admin Mupel (scope Mupel), dan KMJ (scope Jemaat) untuk keperluan monitoring dan akuntabilitas hierarki.
 
 ---
 
-📅 *Terakhir diperbarui: 30 Juli 2026*
-✍️ *Disusun oleh: Tim Development SI GPIB v2.0*
-🔗 *Versi: 2.2.1 (Mobile First PWA + Biometric + Unified Identity)*
-🔗 *Referensi: DB_SCHEMA.html, GPIB_Reach_Out_V2.0.html, GPIB.xlsx, ERD v2.2*
+ðŸ“… *Terakhir diperbarui: 30 Juli 2026*
+âœï¸ *Disusun oleh: Tim Development SI GPIB v2.0*
+ðŸ”— *Versi: 2.2.1 (Mobile First PWA + Biometric + Unified Identity)*
+ðŸ”— *Referensi: DB_SCHEMA.html, GPIB_Reach_Out_V2.0.html, GPIB.xlsx, ERD v2.2*
 
 
-## 🎯 Ringkasan Perubahan v2.1 → v2.2
+## ðŸŽ¯ Ringkasan Perubahan v2.1 â†’ v2.2
 
 | Aspek | v2.1 | v2.2 |
 |-------|------|------|

@@ -1,20 +1,30 @@
-export function haptic(type: 'light' | 'medium' | 'heavy' | 'selection' | 'success' | 'error') {
-  if (typeof window !== 'undefined' && 'vibrate' in navigator) {
-    const patterns = {
-      light: [10],
-      medium: [20],
-      heavy: [30],
-      selection: [5],
-      success: [10, 50, 10],
-      error: [50, 100, 50],
-    };
-    navigator.vibrate(patterns[type]);
+// src/lib/haptic/vibrate.ts
+export function haptic(type: 'success' | 'error' | 'warning' | 'selection' | 'light' | 'medium') {
+  if (typeof navigator === 'undefined' || !navigator.vibrate) return;
+
+  switch (type) {
+    case 'success':
+      navigator.vibrate([50, 50, 50]);
+      break;
+    case 'error':
+      navigator.vibrate([100, 50, 100, 50, 100]);
+      break;
+    case 'warning':
+      navigator.vibrate([100, 100]);
+      break;
+    case 'selection':
+    case 'light':
+      navigator.vibrate(20);
+      break;
+    case 'medium':
+      navigator.vibrate(40);
+      break;
   }
 }
 
-haptic.light = () => haptic('light');
-haptic.medium = () => haptic('medium');
-haptic.heavy = () => haptic('heavy');
-haptic.selection = () => haptic('selection');
 haptic.success = () => haptic('success');
 haptic.error = () => haptic('error');
+haptic.warning = () => haptic('warning');
+haptic.selection = () => haptic('selection');
+haptic.light = () => haptic('light');
+haptic.medium = () => haptic('medium');

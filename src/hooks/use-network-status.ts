@@ -1,49 +1,40 @@
-'use client';
-
+// src/hooks/use-network-status.ts
 import { useState, useEffect } from 'react';
-import { useMutationState } from '@tanstack/react-query';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '@/lib/offline/dexie';
 
-export function useNetworkStatus() {
-  const [isOnline, setIsOnline] = useState<boolean>(
-    typeof navigator !== 'undefined' ? navigator.onLine : true
+export interface NetworkStatus {
+  isOnline: boolean;
+  pendingCount: number;
+}
+
+export function useNetworkStatus(): NetworkStatus {
+  const [isOnline, setIsOnline] = useState<boolean>(true);
+
+  // Use Dexie's live query to reactively watch pending submissions count
+  const pendingCount = useLiveQuery(
+    () => db.pendingSubmissions.where('status').anyOf('pending', 'failed').count(),
+    [],
+    0
   );
 
-  // Accurately count paused or pending mutations in TanStack Query
-  const pendingMutations = useMutationState({
-    filters: { status: 'pending' },
-    select: (mutation) => mutation.state.status,
-  });
-
-  const pendingCount = pendingMutations.length;
-
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    // In browser environment, initialize network state
+    if (typeof window !== 'undefined') {
+      setIsOnline(navigator.onLine);
 
-    const handleOnline = () => {
-      setIsOnline(true);
-      if ('vibrate' in navigator) {
-        navigator.vibrate([10, 50, 10]); // Short double tap on reconnect
-      }
-    };
+      const handleOnline = () => setIsOnline(true);
+      const handleOffline = () => setIsOnline(false);
 
-    const handleOffline = () => {
-      setIsOnline(false);
-      if ('vibrate' in navigator) {
-        navigator.vibrate([50, 100, 50]); // Warning vibration on disconnect
-      }
-    };
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
+      return () => {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+      };
+    }
   }, []);
 
-  return {
-    isOnline,
-    pendingCount,
-  };
+  return { isOnline, pendingCount };
 }

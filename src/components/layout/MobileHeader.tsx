@@ -8,6 +8,7 @@ import { useSmoothTheme } from '@/hooks/useSmoothTheme';
 import { haptic } from '@/lib/haptic/vibrate';
 import { NetworkStatusBadge } from '@/components/ui/NetworkStatusBadge';
 import { NAV_GROUPS, NavGroup, NavItem } from '@/components/layout/Sidebar';
+import { ContextChip } from '@/components/mobile/ContextChip';
 
 // Helper function to resolve breadcrumb crumbs from Desktop Sidebar NAV_GROUPS
 function getSidebarCrumbs(pathname: string) {
@@ -178,8 +179,9 @@ export function MobileHeader() {
           </nav>
         </div>
 
-        {/* Kanan Atas: NetworkStatus + Theme Toggle */}
+        {/* Kanan Atas: ContextChip + NetworkStatus + Theme Toggle */}
         <div className="flex items-center shrink-0 gap-1.5">
+          <ContextChip />
           <NetworkStatusBadge showText={false} />
 
           <button

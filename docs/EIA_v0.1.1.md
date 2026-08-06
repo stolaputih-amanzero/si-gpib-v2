@@ -120,7 +120,7 @@ SINODE GPIB (Nasional — tidak dimodelkan sebagai tabel, diwakili super_user)
 ### 5.1 Layer A — Lifecycle State
 
 - **Pengajuan Bantuan**: `Draft → Pending_KMJ → Pending_Mupel → Pending_Sinode → Approved / Rejected`
-- **Rejected**: Boleh **Ajukan Ulang** (membuat record baru dengan `id_pengajuan_sebelumnya`).
+- **Rejected**: Boleh **Ajukan Ulang** (membuat record baru dengan `id_ajuan_sebelumnya`).
 
 ---
 

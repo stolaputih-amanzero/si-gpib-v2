@@ -1,60 +1,52 @@
+// src/components/mobile/NetworkBanner.tsx
 'use client';
 
 import { useNetworkStatus } from '@/hooks/use-network-status';
-import { WifiOff, RefreshCw, X } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { WifiOff, RefreshCw } from 'lucide-react';
+import { syncManager } from '@/lib/offline/sync-manager';
 
 export function NetworkBanner() {
   const { isOnline, pendingCount } = useNetworkStatus();
-  const [dismissed, setDismissed] = useState<boolean>(false);
-  const [mounted, setMounted] = useState(false);
 
-  // Avoid hydration mismatch by waiting until mounted
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
-  // If online and no pending queue, don't display banner
+  // If online and no pending items, don't show the banner
   if (isOnline && pendingCount === 0) return null;
-  if (dismissed) return null;
+
+  // Determine banner state
+  const isOffline = !isOnline;
+
+  // Colors based on state: 
+  // Offline = Amber (warning)
+  // Syncing = Blue/Green (processing)
+  const bannerClasses = isOffline
+    ? 'bg-amber-100 text-amber-900 border-b border-amber-200'
+    : 'bg-blue-50 text-blue-900 border-b border-blue-200';
 
   return (
-    <div
-      data-testid={!isOnline ? "network-banner-offline" : undefined}
-      className={`fixed top-0 left-0 right-0 z-50 min-h-[44px] px-4 py-2.5 flex items-center justify-between shadow-float backdrop-blur-md transition-all animate-in slide-in-from-top ${
-        !isOnline
-          ? 'bg-amber-500 text-white font-medium'
-          : 'bg-emerald-600 text-white font-medium'
-      }`}
-    >
-      <div className="flex items-center gap-2.5 text-xs sm:text-sm max-w-4xl mx-auto">
-        {!isOnline ? (
-          <>
-            <WifiOff size={18} className="shrink-0 animate-pulse text-amber-100" />
-            <p>
-              <span className="font-bold">Mode Offline</span> — Data yang Anda isi tersimpan aman di HP & akan dikirim otomatis saat sinyal kembali.
-            </p>
-          </>
+    <div className={`sticky top-0 z-50 w-full px-4 py-2 flex items-center justify-between text-sm ${bannerClasses}`}>
+      <div className="flex items-center gap-2">
+        {isOffline ? (
+          <WifiOff className="w-4 h-4 text-amber-700" />
         ) : (
-          <>
-            <RefreshCw size={18} className="shrink-0 animate-spin text-emerald-100" />
-            <p>
-              <span className="font-bold">Koneksi Kembali</span> — Menyinkronkan {pendingCount} data yang tertunda ke server...
-            </p>
-          </>
+          <RefreshCw className="w-4 h-4 text-blue-600 animate-spin" />
         )}
+        <span className="font-medium">
+          {isOffline
+            ? `Offline — ${pendingCount} data menunggu`
+            : `Menyinkronkan ${pendingCount} data...`}
+        </span>
       </div>
-
-      <button
-        type="button"
-        onClick={() => setDismissed(true)}
-        className="p-1 rounded-full hover:bg-black/20 text-white transition-colors shrink-0 ml-2"
-        aria-label="Tutup Banner"
-      >
-        <X size={16} />
-      </button>
+      
+      {isOffline && pendingCount > 0 && (
+        <button
+          onClick={() => {
+            // Manual retry trigger (will only work if device actually has some connection despite navigator.onLine)
+            syncManager.processQueue();
+          }}
+          className="text-xs font-semibold bg-amber-200 hover:bg-amber-300 px-2 py-1 rounded transition-colors"
+        >
+          Coba Lagi
+        </button>
+      )}
     </div>
   );
 }

@@ -1,167 +1,257 @@
 'use client';
 
-import { useState } from 'react';
-import { usePengajuanList } from '@/hooks/use-bantuan';
-import { Plus, Search, FileText, HeartHandshake, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { ListRow } from '@/components/list/ListRow';
-import { FilterChips } from '@/components/list/FilterChips';
-import { SummaryStrip } from '@/components/list/SummaryStrip';
-import { EmptyState } from '@/components/list/EmptyState';
-import { ListSkeleton } from '@/components/list/ListSkeleton';
-import { Badge } from '@/components/ui/badge';
-import { PosName } from '@/components/ui/PosName';
+import { useRouter, useSearchParams } from 'next/navigation';
+import {
+  Plus,
+  Filter,
+  Search,
+  Loader2,
+  Inbox,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { BantuanCard } from '@/components/bantuan/BantuanCard';
+import { SkeletonList } from '@/components/mobile/SkeletonList';
+import { useBantuanList } from '@/lib/domains/bantuan/bantuan.queries';
+import {
+  STATUS_BANTUAN,
+  URGENSI_LEVEL,
+  type StatusBantuan,
+  type UrgensiLevel,
+} from '@/lib/domains/bantuan/bantuan.types';
 
-export default function PengajuanBantuanOverviewPage() {
-  const [selectedStatus, setSelectedStatus] = useState<string>('');
-  const [selectedUrgensi] = useState<string>('');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+const STATUS_LABELS: Record<StatusBantuan, string> = {
+  Draft: 'Draft',
+  Pending_KMJ: 'Menunggu KMJ',
+  Pending_Mupel: 'Menunggu Mupel',
+  Pending_Sinode: 'Menunggu Sinode',
+  Approved: 'Disetujui',
+  Rejected: 'Ditolak',
+};
 
-  const { data: pengajuanList, isLoading } = usePengajuanList({
-    status: selectedStatus || undefined,
-    urgensi: (selectedUrgensi || undefined) as any,
-    search: searchQuery || undefined,
-  });
+export default function BantuanListPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // KPI summary stats
-  const totalCount = pengajuanList?.length || 0;
-  const pendingCount = pengajuanList?.filter((p) => p.status.startsWith('Pending')).length || 0;
-  const approvedCount = pengajuanList?.filter((p) => p.status === 'Approved').length || 0;
+  const [showFilters, setShowFilters] = useState(false);
+  const [search, setSearch] = useState(searchParams.get('search') ?? '');
+
+  const statusFilter = (searchParams.get('status') as StatusBantuan) ?? undefined;
+  const urgensiFilter = (searchParams.get('urgensi') as UrgensiLevel) ?? undefined;
+
+  const filters = useMemo(
+    () => ({
+      status: statusFilter,
+      urgensi: urgensiFilter,
+      search: search || undefined,
+    }),
+    [statusFilter, urgensiFilter, search]
+  );
+
+  const { data, isLoading, isFetching, isError, error } = useBantuanList(filters);
+
+  const updateFilter = (key: string, value: string | undefined) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
+    router.push(`/bantuan?${params.toString()}`);
+  };
+
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    // Debounce via URL param
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+      params.set('search', value);
+    } else {
+      params.delete('search');
+    }
+    router.replace(`/bantuan?${params.toString()}`);
+  };
+
+  const hasActiveFilters = statusFilter || urgensiFilter || search;
 
   return (
-    <div className="w-full space-y-4 pb-12">
-      {/* Top Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-2xl font-semibold text-ink-primary tracking-tight">
-            Pengajuan Bantuan & Workflow
-          </h1>
-          <p className="text-xs text-ink-tertiary mt-0.5">
-            Permohonan Bantuan Pos Pelkes & Approval Berjenjang
-          </p>
+    <div className="min-h-screen bg-gray-50 pb-24">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-20 px-4 py-3">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h1 className="text-lg font-semibold text-gray-900">
+              Pengajuan Bantuan
+            </h1>
+            <p className="text-xs text-gray-500">
+              {data?.pagination.total ?? 0} pengajuan
+              {isFetching && !isLoading && (
+                <Loader2 className="w-3 h-3 inline-block ml-1 animate-spin" />
+              )}
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-11 w-11"
+            onClick={() => setShowFilters(!showFilters)}
+            aria-label="Toggle filter"
+          >
+            <Filter className="w-5 h-5" />
+          </Button>
         </div>
 
-        <Link
-          href="/bantuan/ajukan"
-          className="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 active:scale-95 text-white text-xs font-semibold transition-all flex items-center gap-1.5 shadow-xs min-h-[44px] shrink-0"
-        >
-          <Plus size={18} />
-          <span className="hidden sm:inline">Ajukan Bantuan Baru</span>
-          <span className="sm:hidden">+ Ajukan</span>
-        </Link>
-      </div>
-
-      {/* Summary Metrics Strip */}
-      <SummaryStrip
-        metrics={[
-          { label: 'Total Permohonan', value: totalCount, icon: <FileText size={16} /> },
-          { label: 'Pending Review', value: pendingCount, icon: <Clock size={16} /> },
-          { label: 'Disetujui', value: approvedCount, icon: <CheckCircle2 size={16} /> },
-        ]}
-        className="hairline-b bg-surface-1/40 rounded-xl py-2 px-3"
-      />
-
-      {/* Search Bar */}
-      <div className="relative bg-surface-1 p-3 rounded-2xl border border-border-subtle shadow-xs">
-        <Search size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-ink-tertiary" />
-        <input
-          type="text"
-          placeholder="Cari pengajuan (jenis bantuan, pos pelkes)..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full min-h-[44px] pl-10 pr-4 rounded-xl border border-border-subtle bg-surface-base text-xs sm:text-sm text-ink-primary focus:outline-none focus:ring-2 focus:ring-brand-400"
-        />
-      </div>
-
-      {/* Filter Chips Status */}
-      <FilterChips
-        items={[
-          { key: '', label: 'Semua Status', count: totalCount },
-          { key: 'Pending_KMJ', label: 'Review KMJ' },
-          { key: 'Pending_Mupel', label: 'Review Mupel' },
-          { key: 'Pending_Sinode', label: 'Review Sinode' },
-          { key: 'Approved', label: '✅ Disetujui' },
-          { key: 'Rejected', label: '❌ Ditolak' },
-        ]}
-        active={selectedStatus}
-        onChange={(key) => setSelectedStatus(key)}
-        className="px-0 py-1"
-      />
-
-      {/* Main List Area */}
-      <div className="pt-1">
-        {isLoading ? (
-          <ListSkeleton count={6} />
-        ) : pengajuanList && pengajuanList.length > 0 ? (
-          <div className="divide-y divide-line-hairline bg-surface-1 hairline-t hairline-b rounded-2xl overflow-hidden">
-            {pengajuanList.map((item) => {
-              const isApproved = item.status === 'Approved';
-              const isRejected = item.status === 'Rejected';
-
-              const iconComponent = isApproved ? (
-                <CheckCircle2 className="h-5 w-5" />
-              ) : isRejected ? (
-                <AlertCircle className="h-5 w-5" />
-              ) : (
-                <HeartHandshake className="h-5 w-5" />
-              );
-
-              const iconVariant = isApproved ? 'brand' : isRejected ? 'default' : 'accent';
-
-              const formattedBiaya = new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                maximumFractionDigits: 0,
-              }).format(item.biaya || 0);
-
-              const posNama = item.pos?.nama_pos ? (
-                <PosName name={item.pos.nama_pos} />
-              ) : (
-                item.pos?.jemaat_induk?.nama_induk || 'Pos Pelkes'
-              );
-
-              return (
-                <ListRow
-                  key={item.id_ajuan}
-                  icon={iconComponent}
-                  iconVariant={iconVariant}
-                  title={item.jenis_bantuan}
-                  subtitle={
-                    <span>
-                      {posNama} · Urgensi: {item.urgensi}
-                    </span>
-                  }
-                  meta={
-                    <span>
-                      Tgl: {item.created_at ? item.created_at.split('T')[0] : '-'} · Anggaran: {formattedBiaya}
-                    </span>
-                  }
-                  badge={
-                    <Badge
-                      variant={isApproved ? 'brand' : isRejected ? 'destructive' : 'outline'}
-                      className="text-[10px] py-0 px-2"
-                    >
-                      {item.status.replace('_', ' ')}
-                    </Badge>
-                  }
-                  href={`/bantuan/${item.id_ajuan}`}
-                />
-              );
-            })}
-          </div>
-        ) : (
-          <EmptyState
-            icon={FileText}
-            title="Belum Ada Pengajuan Bantuan"
-            description="Tidak ada data pengajuan bantuan yang sesuai dengan kriteria filter."
-            action={{
-              label: 'Ajukan Bantuan Baru',
-              href: '/bantuan/ajukan',
-              variant: 'primary',
-            }}
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Input
+            type="search"
+            placeholder="Cari jenis bantuan atau deskripsi..."
+            value={search}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="pl-10 min-h-[44px] text-base"
           />
+        </div>
+
+        {/* Filter Panel (Collapsible) */}
+        {showFilters && (
+          <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-2 gap-2">
+            <Select
+              value={statusFilter ?? 'all'}
+              onValueChange={(v) =>
+                updateFilter('status', (v as string) === 'all' ? undefined : (v as string))
+              }
+            >
+              <SelectTrigger className="min-h-[40px] text-sm">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Status</SelectItem>
+                {STATUS_BANTUAN.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {STATUS_LABELS[s]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={urgensiFilter ?? 'all'}
+              onValueChange={(v) =>
+                updateFilter('urgensi', (v as string) === 'all' ? undefined : (v as string))
+              }
+            >
+              <SelectTrigger className="min-h-[40px] text-sm">
+                <SelectValue placeholder="Urgensi" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Urgensi</SelectItem>
+                {URGENSI_LEVEL.map((u) => (
+                  <SelectItem key={u} value={u}>
+                    {u}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="col-span-2 text-xs text-gray-500"
+                onClick={() => router.push('/bantuan')}
+              >
+                Reset semua filter
+              </Button>
+            )}
+          </div>
         )}
-      </div>
+      </header>
+
+      {/* Content */}
+      <main className="p-4 space-y-3">
+        {isLoading && <SkeletonList count={5} />}
+
+        {isError && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+            <p className="text-sm text-red-800">
+              Gagal memuat data: {(error as Error).message}
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-2"
+              onClick={() => router.refresh()}
+            >
+              Coba lagi
+            </Button>
+          </div>
+        )}
+
+        {!isLoading && !isError && data?.data.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <Inbox className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="font-medium text-gray-900 mb-1">
+              {hasActiveFilters
+                ? 'Tidak ada hasil untuk filter ini'
+                : 'Belum ada pengajuan bantuan'}
+            </h3>
+            <p className="text-sm text-gray-500 max-w-xs mb-4">
+              {hasActiveFilters
+                ? 'Coba ubah atau reset filter untuk melihat pengajuan lain.'
+                : 'Buat pengajuan bantuan pertama untuk Pos Pelkes Anda.'}
+            </p>
+            {!hasActiveFilters && (
+              <Link href="/bantuan/new">
+                <Button size="lg" className="min-h-[48px]">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Buat Pengajuan Baru
+                </Button>
+              </Link>
+            )}
+          </div>
+        )}
+
+        {!isLoading &&
+          !isError &&
+          data?.data.map((bantuan) => (
+            <BantuanCard key={bantuan.id_ajuan} bantuan={bantuan} />
+          ))}
+
+        {/* Load More / Pagination */}
+        {data && data.pagination.totalPages > 1 && (
+          <div className="pt-4 flex justify-center">
+            <p className="text-xs text-gray-500">
+              Halaman {data.pagination.page} dari {data.pagination.totalPages}
+            </p>
+          </div>
+        )}
+      </main>
+
+      {/* Floating Action Button (Fixed di kanan bawah, di atas bottom nav) */}
+      <Link
+        href="/bantuan/new"
+        className="fixed bottom-24 right-4 z-30"
+        aria-label="Buat pengajuan bantuan baru"
+      >
+        <Button
+          size="icon"
+          className="h-14 w-14 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700"
+        >
+          <Plus className="w-6 h-6" />
+        </Button>
+      </Link>
     </div>
   );
 }

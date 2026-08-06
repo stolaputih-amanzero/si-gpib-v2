@@ -1,13 +1,13 @@
-# 📄 SI GPIB v2.2 — Product Requirements Document (PRD)
+﻿# ðŸ“„ SI GPIB v2.2 â€” Product Requirements Document (PRD)
 
 > **Sistem Informasi Pos Pelayanan Kesaksian (SI Pos Pelkes) GPIB**
-> Versi Dokumen: 1.0 | Tanggal: 20 Juli 2026
-> Referensi: Blueprint v2.2 (Mobile First PWA + Biometric)
+> Versi Dokumen: 2.2.1 | Tanggal: 3 Agustus 2026 (Updated for EIA v0.1.1)
+> Referensi: Blueprint v2.2.2 (Mobile First PWA + Biometric), EIA v0.1.1
 > Status: *Ready for Development*
 
 ---
 
-## 📑 Daftar Isi
+## ðŸ“‘ Daftar Isi
 
 1. [Executive Summary](#1-executive-summary)
 2. [Problem Statement](#2-problem-statement)
@@ -31,15 +31,15 @@
 
 ## 1. Executive Summary
 
-**SI GPIB v2.2** adalah platform digital **Mobile First PWA** untuk mengelola data hierarki pelayanan GPIB (Gereja Protestan Indonesia di Barat) — mencakup 25 Mupel, 350+ Jemaat Induk, 200+ Pos Pelkes, dan 600+ Pendeta di seluruh Indonesia.
+**SI GPIB v2.2** adalah platform digital **Mobile First PWA** untuk mengelola data hierarki pelayanan GPIB (Gereja Protestan Indonesia di Barat) â€” mencakup 25 Mupel, 350+ Jemaat Induk, 200+ Pos Pelkes, dan 600+ Pendeta di seluruh Indonesia.
 
 Sistem ini menjadi **Single Source of Truth** untuk 4 Bidang Pelayanan dan Unit Misioner lainnya serta dirancang untuk **90%+ akses via mobile** oleh pendeta di lapangan, termasuk di daerah terpencil (Kalimantan pedalaman, Papua, Sulawesi Barat).
 
-### 🎯 Value Proposition
+### ðŸŽ¯ Value Proposition
 
 | Untuk | Value |
 |-------|-------|
-| **Pendeta di lapangan** | Input data pastoral, foto aset, log kegiatan langsung dari HP — tanpa perlu laptop |
+| **Pendeta di lapangan** | Input data pastoral, foto aset, log kegiatan langsung dari HP â€” tanpa perlu laptop |
 | **KMJ (Ketua Majelis Jemaat)** | Monitoring real-time seluruh Pos Pelkes di jemaatnya |
 | **Admin Mupel** | Dashboard analitik + approval workflow pengajuan bantuan |
 | **Super User Sinode** | Single Source of Truth untuk pengambilan keputusan strategis |
@@ -48,7 +48,7 @@ Sistem ini menjadi **Single Source of Truth** untuk 4 Bidang Pelayanan dan Unit 
 
 ## 2. Problem Statement
 
-### ❌ Kondisi Saat Ini (Berdasarkan Slide 8 GPIB Reach Out)
+### âŒ Kondisi Saat Ini (Berdasarkan Slide 8 GPIB Reach Out)
 
 | Masalah | Dampak |
 |---------|--------|
@@ -58,32 +58,32 @@ Sistem ini menjadi **Single Source of Truth** untuk 4 Bidang Pelayanan dan Unit 
 | Tidak ada geospasial terintegrasi | Sulit identifikasi Pos Pelkes terpencil |
 | Pendeta di daerah sinyal lemah tidak bisa input | Data tidak uptodate |
 
-### 💡 Solusi yang Ditawarkan
+### ðŸ’¡ Solusi yang Ditawarkan
 
 Platform **Mobile First PWA** yang:
-- ✅ **Single Source of Truth** — 1 platform untuk semua Bidang
-- ✅ **Mobile First** — Dioptimalkan untuk HP pendeta di lapangan
-- ✅ **Biometric Auth** — Login < 1 detik dengan fingerprint/Face ID
-- ✅ **Camera + GPS** — Foto aset + auto-fill koordinat
-- ✅ **Offline-Ready** — Form draft + pending queue saat sinyal lemah
-- ✅ **PWA Installable** — Terasa seperti app native
+- âœ… **Single Source of Truth** â€” 1 platform untuk semua Bidang
+- âœ… **Mobile First** â€” Dioptimalkan untuk HP pendeta di lapangan
+- âœ… **Biometric Auth** â€” Login < 1 detik dengan fingerprint/Face ID
+- âœ… **Camera + GPS** â€” Foto aset + auto-fill koordinat
+- âœ… **Offline-Ready** â€” Form draft + pending queue saat sinyal lemah
+- âœ… **PWA Installable** â€” Terasa seperti app native
 
 ---
 
 ## 3. Goals & Success Metrics
 
-### 🎯 Business Goals
+### ðŸŽ¯ Business Goals
 
 | # | Goal | Target | Timeline |
 |---|------|--------|----------|
-| G1 | Adopsi sistem oleh pendeta | ≥ 80% pendeta aktif | 6 bulan post-launch |
-| G2 | Kelengkapan data Pos Pelkes | ≥ 95% Pos Pelkes punya data lengkap | 12 bulan |
-| G3 | Kecepatan reporting | Dari minggu → real-time | Post-launch |
-| G4 | Kepuasan pengguna | NPS ≥ 50 | 6 bulan post-launch |
-| G5 | Adopsi PWA | ≥ 60% install rate | 3 bulan post-launch |
-| G6 | Adopsi Biometric | ≥ 70% pendeta aktifkan | 3 bulan post-launch |
+| G1 | Adopsi sistem oleh pendeta | â‰¥ 80% pendeta aktif | 6 bulan post-launch |
+| G2 | Kelengkapan data Pos Pelkes | â‰¥ 95% Pos Pelkes punya data lengkap | 12 bulan |
+| G3 | Kecepatan reporting | Dari minggu â†’ real-time | Post-launch |
+| G4 | Kepuasan pengguna | NPS â‰¥ 50 | 6 bulan post-launch |
+| G5 | Adopsi PWA | â‰¥ 60% install rate | 3 bulan post-launch |
+| G6 | Adopsi Biometric | â‰¥ 70% pendeta aktifkan | 3 bulan post-launch |
 
-### 📊 Key Performance Indicators (KPI)
+### ðŸ“Š Key Performance Indicators (KPI)
 
 ```yaml
 performance:
@@ -112,7 +112,7 @@ usage:
 
 ## 4. User Personas
 
-### 👤 Persona 1: Super User (Admin Sinode)
+### ðŸ‘¤ Persona 1: Super User (Admin Sinode)
 
 | Aspek | Detail |
 |-------|--------|
@@ -133,7 +133,7 @@ usage:
 
 ---
 
-### 👤 Persona 2: Admin Mupel
+### ðŸ‘¤ Persona 2: Admin Mupel
 
 | Aspek | Detail |
 |-------|--------|
@@ -154,7 +154,7 @@ usage:
 
 ---
 
-### 👤 Persona 3: KMJ (Ketua Majelis Jemaat)
+### ðŸ‘¤ Persona 3: KMJ (Ketua Majelis Jemaat)
 
 | Aspek | Detail |
 |-------|--------|
@@ -175,7 +175,7 @@ usage:
 
 ---
 
-### 👤 Persona 4: PJ / User (Pendeta di Lapangan) ⭐ PRIMARY USER
+### ðŸ‘¤ Persona 4: PJ / User (Pendeta di Lapangan) â­ PRIMARY USER
 
 | Aspek | Detail |
 |-------|--------|
@@ -189,246 +189,247 @@ usage:
 | **Tech Savvy** | Low-Medium |
 
 **User Needs:**
-- ⭐ **Mobile-first** — semua fitur harus bisa di HP
-- ⭐ **Biometric login** — login cepat tanpa ketik password
-- ⭐ **Camera capture** — foto aset langsung dari lapangan
-- ⭐ **GPS auto-fill** — koordinat otomatis saat input Pos Pelkes
-- ⭐ **Offline-ready** — form draft saat sinyal hilang
-- ⭐ **Voice input** — input log pastoral dengan suara (opsional)
-- ⭐ **Quick action** — FAB untuk aksi cepat (log, foto, bantuan)
+- â­ **Mobile-first** â€” semua fitur harus bisa di HP
+- â­ **Biometric login** â€” login cepat tanpa ketik password
+- â­ **Camera capture** â€” foto aset langsung dari lapangan
+- â­ **GPS auto-fill** â€” koordinat otomatis saat input Pos Pelkes
+- â­ **Offline-ready** â€” form draft saat sinyal hilang
+- â­ **Voice input** â€” input log pastoral dengan suara (opsional)
+- â­ **Quick action** â€” FAB untuk aksi cepat (log, foto, bantuan)
 
 **Skenario Kritis:**
-> Pdt. Otniel berada di Long Hubung (sinyal 2G). Ia ingin input log pastoral setelah kunjungan. Ia buka PWA, login dengan fingerprint, isi form log pastoral, foto kegiatan. Sinyal hilang → form tersimpan otomatis di draft. Saat dapat sinyal lagi, data otomatis terkirim.
+> Pdt. Otniel berada di Long Hubung (sinyal 2G). Ia ingin input log pastoral setelah kunjungan. Ia buka PWA, login dengan fingerprint, isi form log pastoral, foto kegiatan. Sinyal hilang â†’ form tersimpan otomatis di draft. Saat dapat sinyal lagi, data otomatis terkirim.
 
 ---
 
 ## 5. User Stories
 
-### 📱 Modul 1: Autentikasi & Biometric
+### ðŸ“± Modul 1: Autentikasi & Biometric
 
 | ID | User Story | Priority | Acceptance Criteria |
 |----|-----------|----------|---------------------|
-| US-1.1 | Sebagai User, saya ingin login dengan email/phone + password agar bisa akses sistem | 🔴 Must | - Login berhasil dalam < 3 detik<br>- Validasi email/phone + password<br>- Redirect ke dashboard sesuai role |
-| US-1.2 | Sebagai User, saya ingin login dengan biometric (fingerprint/Face ID) agar login cepat di lapangan | 🔴 Must | - Login < 1 detik<br>- Fallback ke password jika biometric gagal<br>- Max 5 device per user |
-| US-1.3 | Sebagai User, saya ingin aktivasi biometric setelah login pertama kali | 🔴 Must | - Setup biometric hanya setelah login password sukses<br>- Consent dialog jelas<br>- Bisa revoke device kapan saja |
-| US-1.4 | Sebagai User, saya ingin logout dari semua device | 🟠 Should | - Satu klik logout semua device<br>- Konfirmasi dialog |
-| US-1.5 | Sebagai User, saya ingin reset password via email/phone | 🟠 Should | - OTP via email/WhatsApp<br>- Link reset expire dalam 15 menit |
+| US-1.1 | Sebagai User, saya ingin login dengan email/phone + password agar bisa akses sistem | ðŸ”´ Must | - Login berhasil dalam < 3 detik<br>- Validasi email/phone + password<br>- Redirect ke dashboard sesuai role |
+| US-1.2 | Sebagai User, saya ingin login dengan biometric (fingerprint/Face ID) agar login cepat di lapangan | ðŸ”´ Must | - Login < 1 detik<br>- Fallback ke password jika biometric gagal<br>- Max 5 device per user |
+| US-1.3 | Sebagai User, saya ingin aktivasi biometric setelah login pertama kali | ðŸ”´ Must | - Setup biometric hanya setelah login password sukses<br>- Consent dialog jelas<br>- Bisa revoke device kapan saja |
+| US-1.4 | Sebagai User, saya ingin logout dari semua device | ðŸŸ  Should | - Satu klik logout semua device<br>- Konfirmasi dialog |
+| US-1.5 | Sebagai User, saya ingin reset password via email/phone | ðŸŸ  Should | - OTP via email/WhatsApp<br>- Link reset expire dalam 15 menit |
 
 ---
 
-### 📱 Modul 2: Manajemen Mupel & Jemaat Induk
+### ðŸ“± Modul 2: Manajemen Mupel & Jemaat Induk
 
 | ID | User Story | Priority | Acceptance Criteria |
 |----|-----------|----------|---------------------|
-| US-2.1 | Sebagai Super User, saya ingin melihat daftar 25 Mupel | 🔴 Must | - List semua Mupel dengan search<br>- Filter by wilayah |
-| US-2.2 | Sebagai Super User, saya ingin CRUD Mupel | 🔴 Must | - Create, Read, Update, Delete Mupel<br>- Validasi nama unik |
-| US-2.3 | Sebagai Admin Mupel, saya ingin melihat Jemaat Induk di Mupel saya | 🔴 Must | - Filter otomatis by Mupel<br>- List dengan search & filter |
-| US-2.4 | Sebagai KMJ, saya ingin melihat detail Jemaat Induk yang saya pimpin | 🔴 Must | - Info jemaat + KMJ + daftar PJ<br>- Daftar Pos Pelkes di bawahnya |
-| US-2.5 | Sebagai Super User, saya ingin assign KMJ ke Jemaat Induk | 🔴 Must | - Dropdown pendeta di jemaat tersebut<br>- Validasi: KMJ harus pendeta<br>- 1 Jemaat = tepat 1 KMJ |
+| US-2.1 | Sebagai Super User, saya ingin melihat daftar 25 Mupel | ðŸ”´ Must | - List semua Mupel dengan search<br>- Filter by wilayah |
+| US-2.2 | Sebagai Super User, saya ingin CRUD Mupel | ðŸ”´ Must | - Create, Read, Update, Delete Mupel<br>- Validasi nama unik |
+| US-2.3 | Sebagai Admin Mupel, saya ingin melihat Jemaat Induk di Mupel saya | ðŸ”´ Must | - Filter otomatis by Mupel<br>- List dengan search & filter |
+| US-2.4 | Sebagai KMJ, saya ingin melihat detail Jemaat Induk yang saya pimpin | ðŸ”´ Must | - Info jemaat + KMJ + daftar PJ<br>- Daftar Pos Pelkes di bawahnya |
+| US-2.5 | Sebagai Super User, saya ingin assign KMJ ke Jemaat Induk | ðŸ”´ Must | - Dropdown pendeta di jemaat tersebut<br>- Validasi: KMJ harus pendeta<br>- 1 Jemaat = tepat 1 KMJ |
 
 ---
 
-### 📱 Modul 3: Manajemen Pos Pelkes + Geospasial + Kamera
+### ðŸ“± Modul 3: Manajemen Pos Pelkes + Geospasial + Kamera
 
 | ID | User Story | Priority | Acceptance Criteria |
 |----|-----------|----------|---------------------|
-| US-3.1 | Sebagai User, saya ingin melihat daftar Pos Pelkes di jemaat saya | 🔴 Must | - List dengan card view (mobile)<br>- Search & filter<br>- Sort by nama/tanggal berdiri |
-| US-3.2 | Sebagai User, saya ingin melihat Pos Pelkes di peta | 🔴 Must | - Peta Leaflet dengan marker<br>- Cluster marker untuk performa<br>- Tap marker → detail Pos |
-| US-3.3 | Sebagai User, saya ingin input Pos Pelkes baru dengan kamera + GPS | 🔴 Must | - Form dengan camera capture<br>- GPS auto-fill koordinat<br>- Upload foto < 1MB (compressed) |
-| US-3.4 | Sebagai User, saya ingin edit data Pos Pelkes | 🔴 Must | - Edit semua field<br>- History perubahan |
-| US-3.5 | Sebagai User, saya ingin lihat detail Pos Pelkes (profil lengkap) | 🔴 Must | - Info dasar + demografi<br>- Daftar pendeta + pelayan<br>- Log pastoral terakhir<br>- Aset + lampiran |
-| US-3.6 | Sebagai User, saya ingin share info Pos Pelkes ke WhatsApp | 🟠 Should | - Share button → Web Share API<br>- Fallback ke WhatsApp direct link |
+| US-3.1 | Sebagai User, saya ingin melihat daftar Pos Pelkes di jemaat saya | ðŸ”´ Must | - List dengan card view (mobile)<br>- Search & filter<br>- Sort by nama/tanggal berdiri |
+| US-3.2 | Sebagai User, saya ingin melihat Pos Pelkes di peta | ðŸ”´ Must | - Peta Leaflet dengan marker<br>- Cluster marker untuk performa<br>- Tap marker â†’ detail Pos |
+| US-3.3 | Sebagai User, saya ingin input Pos Pelkes baru dengan kamera + GPS | ðŸ”´ Must | - Form dengan camera capture<br>- GPS auto-fill koordinat<br>- Upload foto < 1MB (compressed) |
+| US-3.4 | Sebagai User, saya ingin edit data Pos Pelkes | ðŸ”´ Must | - Edit semua field<br>- History perubahan |
+| US-3.5 | Sebagai User, saya ingin lihat detail Pos Pelkes (profil lengkap) | ðŸ”´ Must | - Info dasar + demografi<br>- Daftar pendeta + pelayan<br>- Log pastoral terakhir<br>- Aset + lampiran |
+| US-3.6 | Sebagai User, saya ingin share info Pos Pelkes ke WhatsApp | ðŸŸ  Should | - Share button â†’ Web Share API<br>- Fallback ke WhatsApp direct link |
 
 ---
 
-### 📱 Modul 4: Manajemen Pendeta (KMJ/PJ)
+### ðŸ“± Modul 4: Manajemen Pendeta (KMJ/PJ)
 
 | ID | User Story | Priority | Acceptance Criteria |
 |----|-----------|----------|---------------------|
-| US-4.1 | Sebagai Super User, saya ingin CRUD data pendeta | 🔴 Must | - Form lengkap (nama, WA, jabatan, dll)<br>- Assign ke Jemaat Induk |
-| US-4.2 | Sebagai KMJ, saya ingin assign PJ ke Pos Pelkes | 🔴 Must | - Multi-select pendeta<br>- 1 Jemaat bisa punya >1 PJ<br>- Riwayat penugasan tercatat |
-| US-4.3 | Sebagai Super User, saya ingin melihat daftar PJ per Jemaat | 🔴 Must | - List PJ aktif<br>- Status penugasan |
-| US-4.4 | Sebagai User, saya ingin melihat profil pendeta | 🔴 Must | - Info pribadi<br>- Riwayat penugasan<br>- Log pastoral yang dilakukan |
+| US-4.1 | Sebagai Super User, saya ingin CRUD data pendeta | ðŸ”´ Must | - Form lengkap (nama, WA, jabatan, dll)<br>- Assign ke Jemaat Induk |
+| US-4.2 | Sebagai KMJ, saya ingin assign PJ ke Pos Pelkes | ðŸ”´ Must | - Multi-select pendeta<br>- 1 Jemaat bisa punya >1 PJ<br>- Riwayat penugasan tercatat |
+| US-4.3 | Sebagai Super User, saya ingin melihat daftar PJ per Jemaat | ðŸ”´ Must | - List PJ aktif<br>- Status penugasan |
+| US-4.4 | Sebagai User, saya ingin melihat profil pendeta | ðŸ”´ Must | - Info pribadi<br>- Riwayat penugasan<br>- Log pastoral yang dilakukan |
 
 ---
 
-### 📱 Modul 5: Mutasi & Penugasan Pendeta
+### ðŸ“± Modul 5: Mutasi & Penugasan Pendeta
 
 | ID | User Story | Priority | Acceptance Criteria |
 |----|-----------|----------|---------------------|
-| US-5.1 | Sebagai Super User, saya ingin mutasi pendeta ke Jemaat Induk lain | 🔴 Must | - Atomic transaction (DB function)<br>- Otomatis insert ke riwayat mutasi<br>- Update `m_pendeta.id_induk` |
-| US-5.2 | Sebagai Super User, saya ingin melihat riwayat mutasi pendeta | 🔴 Must | - Timeline view<br>- Filter by pendeta/tanggal |
-| US-5.3 | Sebagai Super User, saya ingin assign pendeta ke Pos Pelkes | 🔴 Must | - Validasi: pendeta terdaftar di Jemaat Induk yang sama (atau kasus khusus) |
-| US-5.4 | Sebagai Super User, saya ingin akhiri penugasan pendeta di Pos Pelkes | 🟠 Should | - Set `tgl_selesai`<br>- Update status |
+| US-5.1 | Sebagai Super User, saya ingin mutasi pendeta ke Jemaat Induk lain | ðŸ”´ Must | - Atomic transaction (DB function)<br>- Otomatis insert ke riwayat mutasi<br>- Update `m_pendeta.id_induk` |
+| US-5.2 | Sebagai Super User, saya ingin melihat riwayat mutasi pendeta | ðŸ”´ Must | - Timeline view<br>- Filter by pendeta/tanggal |
+| US-5.3 | Sebagai Super User, saya ingin assign pendeta ke Pos Pelkes | ðŸ”´ Must | - Validasi: pendeta terdaftar di Jemaat Induk yang sama (atau kasus khusus) |
+| US-5.4 | Sebagai Super User, saya ingin akhiri penugasan pendeta di Pos Pelkes | ðŸŸ  Should | - Set `tgl_selesai`<br>- Update status |
 
 ---
 
-### 📱 Modul 6: Log Pastoral + Voice Input
+### ðŸ“± Modul 6: Log Pastoral + Voice Input
 
 | ID | User Story | Priority | Acceptance Criteria |
 |----|-----------|----------|---------------------|
-| US-6.1 | Sebagai PJ, saya ingin input log pastoral dengan cepat | 🔴 Must | - Form mobile-friendly<br>- Auto-fill tanggal hari ini<br>- Quick select jenis kegiatan |
-| US-6.2 | Sebagai PJ, saya ingin input log pastoral dengan suara (opsional) | 🟡 Could | - Voice-to-text (Web Speech API)<>- Bahasa Indonesia<br>- Fallback ke keyboard |
-| US-6.3 | Sebagai KMJ, saya ingin melihat log pastoral di jemaat saya | 🔴 Must | - List log dengan filter (tanggal, pendeta, Pos)<br>- Export ke Excel |
-| US-6.4 | Sebagai Super User, saya ingin melihat semua log pastoral GPIB | 🔴 Must | - Filter by Mupel, Jemaat, Pos, tanggal<br>- Dashboard statistik |
+| US-6.1 | Sebagai PJ, saya ingin input log pastoral dengan cepat | ðŸ”´ Must | - Form mobile-friendly<br>- Auto-fill tanggal hari ini<br>- Quick select jenis kegiatan |
+| US-6.2 | Sebagai PJ, saya ingin input log pastoral dengan suara (opsional) | ðŸŸ¡ Could | - Voice-to-text (Web Speech API)<>- Bahasa Indonesia<br>- Fallback ke keyboard |
+| US-6.3 | Sebagai KMJ, saya ingin melihat log pastoral di jemaat saya | ðŸ”´ Must | - List log dengan filter (tanggal, pendeta, Pos)<br>- Export ke Excel |
+| US-6.4 | Sebagai Super User, saya ingin melihat semua log pastoral GPIB | ðŸ”´ Must | - Filter by Mupel, Jemaat, Pos, tanggal<br>- Dashboard statistik |
 
 ---
 
-### 📱 Modul 7: Demografi Pelkat
+### ðŸ“± Modul 7: Demografi Pelkat
 
 | ID | User Story | Priority | Acceptance Criteria |
 |----|-----------|----------|---------------------|
-| US-7.1 | Sebagai PJ, saya ingin input demografi per kategori pelkat | 🔴 Must | - Input per kategori (Pemuda, Wanita, Anak, Lansia, dll)<br>- Composite PK (id_pos, kategori) |
-| US-7.2 | Sebagai KMJ, saya ingin melihat demografi Pos Pelkes | 🔴 Must | - Chart visualisasi<br>- Perbandingan antar kategori |
-| US-7.3 | Sebagai Super User, saya ingin analisis demografi GPIB | 🟠 Should | - Dashboard analitik<br>- Filter by Mupel, Jemaat |
+| US-7.1 | Sebagai PJ, saya ingin input demografi per kategori pelkat | ðŸ”´ Must | - Input per kategori (Pemuda, Wanita, Anak, Lansia, dll)<br>- Composite PK (id_pos, kategori) |
+| US-7.2 | Sebagai KMJ, saya ingin melihat demografi Pos Pelkes | ðŸ”´ Must | - Chart visualisasi<br>- Perbandingan antar kategori |
+| US-7.3 | Sebagai Super User, saya ingin analisis demografi GPIB | ðŸŸ  Should | - Dashboard analitik<br>- Filter by Mupel, Jemaat |
 
 ---
 
-### 📱 Modul 8: Inventaris Aset + Kamera + GPS
+### ðŸ“± Modul 8: Inventaris Aset + Kamera + GPS
 
 | ID | User Story | Priority | Acceptance Criteria |
 |----|-----------|----------|---------------------|
-| US-8.1 | Sebagai PJ, saya ingin input aset tanah dengan foto + GPS | 🔴 Must | - Camera capture<br>- GPS auto-fill<br>- Upload sertifikat (PDF/image) |
-| US-8.2 | Sebagai PJ, saya ingin input aset bangunan | 🔴 Must | - Foto bangunan<br>- Fungsi, kondisi, tahun berdiri |
-| US-8.3 | Sebagai PJ, saya ingin input aset bergerak (kendaraan) | 🔴 Must | - Foto + no polisi<br>- Tanggal pajak |
-| US-8.4 | Sebagai User, saya ingin melihat daftar aset Pos Pelkes | 🔴 Must | - Tab: Tanah, Bangunan, Bergerak<br>- Preview foto |
-| US-8.5 | Sebagai User, saya ingin upload lampiran aset | 🔴 Must | - Multi-file upload<br>- Max 10MB per file<br>- Support PDF, JPG, PNG |
+| US-8.1 | Sebagai PJ, saya ingin input aset tanah dengan foto + GPS | ðŸ”´ Must | - Camera capture<br>- GPS auto-fill<br>- Upload sertifikat (PDF/image) |
+| US-8.2 | Sebagai PJ, saya ingin input aset bangunan | ðŸ”´ Must | - Foto bangunan<br>- Fungsi, kondisi, tahun berdiri |
+| US-8.3 | Sebagai PJ, saya ingin input aset bergerak (kendaraan) | ðŸ”´ Must | - Foto + no polisi<br>- Tanggal pajak |
+| US-8.4 | Sebagai User, saya ingin melihat daftar aset Pos Pelkes | ðŸ”´ Must | - Tab: Tanah, Bangunan, Bergerak<br>- Preview foto |
+| US-8.5 | Sebagai User, saya ingin upload lampiran aset | ðŸ”´ Must | - Multi-file upload<br>- Max 10MB per file<br>- Support PDF, JPG, PNG |
 
 ---
 
-### 📱 Modul 9: Offline Fallback + Form Draft
+### ðŸ“± Modul 9: Offline Fallback + Form Draft
 
 | ID | User Story | Priority | Acceptance Criteria |
 |----|-----------|----------|---------------------|
-| US-9.1 | Sebagai User, saya ingin form auto-save setiap 30 detik | 🔴 Must | - Auto-save ke localStorage<br>- Indikator "Tersimpan di draft" |
-| US-9.2 | Sebagai User, saya ingin lihat data yang sudah di-cache saat offline | 🔴 Must | - Data master (Mupel, Jemaat, Pos) tetap bisa dilihat<br>- Read-only mode |
-| US-9.3 | Sebagai User, saya ingin submission otomatis retry saat online | 🔴 Must | - Pending queue<br>- Retry otomatis dengan exponential backoff<br>- Notifikasi saat sukses/gagal |
-| US-9.4 | Sebagai User, saya ingin lihat status koneksi | 🔴 Must | - Banner online/offline di header<br>- Jumlah pending submission |
-| US-9.5 | Sebagai User, saya ingin lihat halaman offline fallback | 🟠 Should | - Halaman khusus saat offline total<br>- Aksi: lihat data tersimpan, retry semua |
+| US-9.1 | Sebagai User, saya ingin form auto-save setiap 30 detik | ðŸ”´ Must | - Auto-save ke localStorage<br>- Indikator "Tersimpan di draft" |
+| US-9.2 | Sebagai User, saya ingin lihat data yang sudah di-cache saat offline | ðŸ”´ Must | - Data master (Mupel, Jemaat, Pos) tetap bisa dilihat<br>- Read-only mode |
+| US-9.3 | Sebagai User, saya ingin submission otomatis retry saat online | ðŸ”´ Must | - Pending queue<br>- Retry otomatis dengan exponential backoff<br>- Notifikasi saat sukses/gagal |
+| US-9.4 | Sebagai User, saya ingin lihat status koneksi | ðŸ”´ Must | - Banner online/offline di header<br>- Jumlah pending submission |
+| US-9.5 | Sebagai User, saya ingin lihat halaman offline fallback | ðŸŸ  Should | - Halaman khusus saat offline total<br>- Aksi: lihat data tersimpan, retry semua |
 
 ---
 
-### 📱 Modul 10: Pengajuan Bantuan (Workflow)
+### ðŸ“± Modul 10: Pengajuan Bantuan (Workflow)
 
 | ID | User Story | Priority | Acceptance Criteria |
 |----|-----------|----------|---------------------|
-| US-10.1 | Sebagai PJ, saya ingin ajukan bantuan untuk Pos Pelkes | 🔴 Must | - Form: jenis bantuan, estimasi biaya, urgensi<br>- Optional: link ke aset tertentu |
-| US-10.2 | Sebagai KMJ, saya ingin review pengajuan bantuan dari Pos Pelkes | 🔴 Must | - List pengajuan di jemaat saya<br>- Approve/reject dengan catatan |
-| US-10.3 | Sebagai Admin Mupel, saya ingin approve pengajuan dari Jemaat | 🔴 Must | - Workflow: Pos → Jemaat → Mupel → Sinode |
-| US-10.4 | Sebagai Super User, saya ingin approve pengajuan akhir | 🔴 Must | - Final approval<br>- Notifikasi ke pemohon |
-| US-10.5 | Sebagai User, saya ingin tracking status pengajuan | 🔴 Must | - Timeline status<br>- Notifikasi saat ada perubahan |
+| US-10.1 | Sebagai PJ, saya ingin ajukan bantuan untuk Pos Pelkes | ðŸ”´ Must | - Form: jenis bantuan, estimasi biaya, urgensi<br>- Optional: link ke aset tertentu |
+| US-10.2 | Sebagai KMJ, saya ingin review pengajuan bantuan dari Pos Pelkes | ðŸ”´ Must | - List pengajuan di jemaat saya<br>- Approve/reject dengan catatan |
+| US-10.3 | Sebagai Admin Mupel, saya ingin approve pengajuan dari Jemaat | ðŸ”´ Must | - Workflow: Pos â†’ Jemaat â†’ Mupel â†’ Sinode |
+| US-10.4 | Sebagai Super User, saya ingin approve pengajuan akhir | ðŸ”´ Must | - Final approval<br>- Notifikasi ke pemohon |
+| US-10.5 | Sebagai User, saya ingin tracking status pengajuan | ðŸ”´ Must | - Timeline status<br>- Notifikasi saat ada perubahan |
+| US-10.6 | Sebagai PJ, saya ingin mengajukan ulang bantuan yang ditolak | ðŸ”´ Must | - Membuat record baru<br>- Referensi `id_ajuan_sebelumnya`<br>- Record lama tetap Rejected (Audit) |
 
 ---
 
-### 📱 Modul 11: Pelayan & Relawan
+### ðŸ“± Modul 11: Pelayan & Relawan
 
 | ID | User Story | Priority | Acceptance Criteria |
 |----|-----------|----------|---------------------|
-| US-11.1 | Sebagai PJ, saya ingin input data pelayan di Pos Pelkes | 🔴 Must | - Form: nama, WA, jabatan, dll |
-| US-11.2 | Sebagai PJ, saya ingin input data relawan | 🟠 Should | - Form: nama, kategori, pelatihan |
-| US-11.3 | Sebagai User, saya ingin lihat daftar pelayan & relawan | 🔴 Must | - List dengan search & filter |
+| US-11.1 | Sebagai PJ, saya ingin input data pelayan di Pos Pelkes | ðŸ”´ Must | - Form: nama, WA, jabatan, dll |
+| US-11.2 | Sebagai PJ, saya ingin input data relawan | ðŸŸ  Should | - Form: nama, kategori, pelatihan |
+| US-11.3 | Sebagai User, saya ingin lihat daftar pelayan & relawan | ðŸ”´ Must | - List dengan search & filter |
 
 ---
 
-### 📱 Modul 12: Jadwal Ibadah
+### ðŸ“± Modul 12: Jadwal Ibadah
 
 | ID | User Story | Priority | Acceptance Criteria |
 |----|-----------|----------|---------------------|
-| US-12.1 | Sebagai PJ, saya ingin input jadwal ibadah rutin | 🔴 Must | - Form: jenis, hari, jam |
-| US-12.2 | Sebagai User, saya ingin lihat jadwal ibadah Pos Pelkes | 🔴 Must | - List jadwal<br>- Filter by hari |
+| US-12.1 | Sebagai PJ, saya ingin input jadwal ibadah rutin | ðŸ”´ Must | - Form: jenis, hari, jam |
+| US-12.2 | Sebagai User, saya ingin lihat jadwal ibadah Pos Pelkes | ðŸ”´ Must | - List jadwal<br>- Filter by hari |
 
 ---
 
-### 📱 Modul 13: Kerawanan & Potensi Wilayah
+### ðŸ“± Modul 13: Kerawanan & Potensi Wilayah
 
 | ID | User Story | Priority | Acceptance Criteria |
 |----|-----------|----------|---------------------|
-| US-13.1 | Sebagai PJ, saya ingin input data kerawanan wilayah | 🟠 Should | - Form: kategori, jenis risiko, frekuensi |
-| US-13.2 | Sebagai PJ, saya ingin input data potensi wilayah | 🟠 Should | - Form: nama potensi, kategori, deskripsi |
-| US-13.3 | Sebagai Super User, saya ingin peta kerawanan & potensi GPIB | 🟡 Could | - Visualisasi peta<br>- Filter by Mupel |
+| US-13.1 | Sebagai PJ, saya ingin input data kerawanan wilayah | ðŸŸ  Should | - Form: kategori, jenis risiko, frekuensi |
+| US-13.2 | Sebagai PJ, saya ingin input data potensi wilayah | ðŸŸ  Should | - Form: nama potensi, kategori, deskripsi |
+| US-13.3 | Sebagai Super User, saya ingin peta kerawanan & potensi GPIB | ðŸŸ¡ Could | - Visualisasi peta<br>- Filter by Mupel |
 
 ---
 
-### 📱 Modul 14: Dashboard Analitik
+### ðŸ“± Modul 14: Dashboard Analitik
 
 | ID | User Story | Priority | Acceptance Criteria |
 |----|-----------|----------|---------------------|
-| US-14.1 | Sebagai Super User, saya ingin dashboard analitik GPIB | 🟠 Should | - KPI: jumlah Pos, Pendeta, Jemaat<br>- Chart: pertumbuhan, distribusi |
-| US-14.2 | Sebagai Admin Mupel, saya ingin dashboard Mupel | 🟠 Should | - Filter by Mupel<br>- KPI spesifik Mupel |
-| US-14.3 | Sebagai KMJ, saya ingin dashboard Jemaat | 🟠 Should | - Overview Pos Pelkes<br>- Statistik demografi |
-| US-14.4 | Sebagai User, saya ingin export laporan ke Excel/PDF | 🟠 Should | - Export dengan filter<br>- Format rapi |
+| US-14.1 | Sebagai Super User, saya ingin dashboard analitik GPIB | ðŸŸ  Should | - KPI: jumlah Pos, Pendeta, Jemaat<br>- Chart: pertumbuhan, distribusi |
+| US-14.2 | Sebagai Admin Mupel, saya ingin dashboard Mupel | ðŸŸ  Should | - Filter by Mupel<br>- KPI spesifik Mupel |
+| US-14.3 | Sebagai KMJ, saya ingin dashboard Jemaat | ðŸŸ  Should | - Overview Pos Pelkes<br>- Statistik demografi |
+| US-14.4 | Sebagai User, saya ingin export laporan ke Excel/PDF | ðŸŸ  Should | - Export dengan filter<br>- Format rapi |
 
 ---
 
-### 📱 Modul 15: Push Notifications
+### ðŸ“± Modul 15: Push Notifications
 
 | ID | User Story | Priority | Acceptance Criteria |
 |----|-----------|----------|---------------------|
-| US-15.1 | Sebagai User, saya ingin notifikasi pengajuan bantuan | 🟡 Could | - Push notification (PWA)<br>- Klik → langsung ke detail |
-| US-15.2 | Sebagai User, saya ingin notifikasi mutasi pendeta | 🟡 Could | - Notifikasi ke KMJ & PJ terkait |
-| US-15.3 | Sebagai User, saya ingin manage preferensi notifikasi | 🟡 Could | - Toggle per jenis notifikasi |
+| US-15.1 | Sebagai User, saya ingin notifikasi pengajuan bantuan | ðŸŸ¡ Could | - Push notification (PWA)<br>- Klik â†’ langsung ke detail |
+| US-15.2 | Sebagai User, saya ingin notifikasi mutasi pendeta | ðŸŸ¡ Could | - Notifikasi ke KMJ & PJ terkait |
+| US-15.3 | Sebagai User, saya ingin manage preferensi notifikasi | ðŸŸ¡ Could | - Toggle per jenis notifikasi |
 
 ---
 
-### 📱 Modul 16: Portal Umat (Public)
+### ðŸ“± Modul 16: Portal Umat (Public)
 
 | ID | User Story | Priority | Acceptance Criteria |
 |----|-----------|----------|---------------------|
-| US-16.1 | Sebagai pengunjung, saya ingin lihat peta sebaran Pos Pelkes GPIB | 🟢 Won't (Fase 4) | - Public page<br>- Peta interaktif |
-| US-16.2 | Sebagai umat, saya ingin cari Pos Pelkes terdekat | 🟢 Won't (Fase 4) | - Geolocation<br>- Radius search |
+| US-16.1 | Sebagai pengunjung, saya ingin lihat peta sebaran Pos Pelkes GPIB | ðŸŸ¢ Won't (Fase 4) | - Public page<br>- Peta interaktif |
+| US-16.2 | Sebagai umat, saya ingin cari Pos Pelkes terdekat | ðŸŸ¢ Won't (Fase 4) | - Geolocation<br>- Radius search |
 
 ---
 
-### 📱 Modul 23: Profile 360° & Manajemen Pengguna
+### ðŸ“± Modul 23: Profile 360Â° & Manajemen Pengguna
 
 | ID | User Story | Priority | Acceptance Criteria |
 |---|---|---|---|
-| US-23.1 | Sebagai User, saya ingin melihat profil lengkap saya (akun, pelayanan, hierarki, mutasi, log, aktivitas) dalam satu halaman | 🟠 Should | - 8 section tampil dengan data yang benar <br> - Stat strip menampilkan metrik relevan <br> - Load < 2 detik |
-| US-23.2 | Sebagai User non-pendeta, saya ingin profil saya tetap informatif tanpa error | 🟠 Should | - Section pelayanan menampilkan pesan anggun <br> - Stat strip beralih ke metrik akun |
-| US-23.3 | Sebagai User, saya ingin mengelola perangkat biometrik saya dari profil | 🟠 Should | - List device dengan last_used_at <br> - Tombol cabut per device <br> - Konfirmasi sebelum cabut |
-| US-23.4 | Sebagai User, saya ingin melihat riwayat mutasi saya (kapan, dari mana, ke mana) | 🟠 Should | - Timeline vertikal <br> - Jenis mutasi sebagai badge <br> - Alasan tampil |
-| US-23.5 | Sebagai Super User, saya ingin melihat daftar semua pengguna dan mengelola mereka | 🟠 Should | - List dengan search & filter role/status <br> - Klik → Profile 360° supervision <br> - Aksi: nonaktifkan, ubah peran |
-| US-23.6 | Sebagai Super User, saya ingin melihat Profile 360° pengguna lain termasuk jejak audit | 🟠 Should | - Semua 8 section tampil <br> - Tab aktivitas terlihat (privat → super_user) <br> - Tombol edit organisasional aktif |
-| US-23.7 | Sebagai Admin Mupel, saya ingin melihat Profile 360° pengguna di Mupel saya | 🟠 Should | - Scope terbatas ke Mupel <br> - Tab aktivitas TIDAK terlihat (privat) |
-| US-23.8 | Sebagai User, saya ingin navigasi dari profil ke entitas terkait (jemaat, pos, log) | 🟡 Could | - Deep-link dua arah <br> - Breadcrumb kembali ke profil |
+| US-23.1 | Sebagai User, saya ingin melihat profil lengkap saya (akun, pelayanan, hierarki, mutasi, log, aktivitas) dalam satu halaman | ðŸŸ  Should | - 8 section tampil dengan data yang benar <br> - Stat strip menampilkan metrik relevan <br> - Load < 2 detik |
+| US-23.2 | Sebagai User non-pendeta, saya ingin profil saya tetap informatif tanpa error | ðŸŸ  Should | - Section pelayanan menampilkan pesan anggun <br> - Stat strip beralih ke metrik akun |
+| US-23.3 | Sebagai User, saya ingin mengelola perangkat biometrik saya dari profil | ðŸŸ  Should | - List device dengan last_used_at <br> - Tombol cabut per device <br> - Konfirmasi sebelum cabut |
+| US-23.4 | Sebagai User, saya ingin melihat riwayat mutasi saya (kapan, dari mana, ke mana) | ðŸŸ  Should | - Timeline vertikal <br> - Jenis mutasi sebagai badge <br> - Alasan tampil |
+| US-23.5 | Sebagai Super User, saya ingin melihat daftar semua pengguna dan mengelola mereka | ðŸŸ  Should | - List dengan search & filter role/status <br> - Klik â†’ Profile 360Â° supervision <br> - Aksi: nonaktifkan, ubah peran |
+| US-23.6 | Sebagai Super User, saya ingin melihat Profile 360Â° pengguna lain termasuk jejak audit | ðŸŸ  Should | - Semua 8 section tampil <br> - Tab aktivitas terlihat (privat â†’ super_user) <br> - Tombol edit organisasional aktif |
+| US-23.7 | Sebagai Admin Mupel, saya ingin melihat Profile 360Â° pengguna di Mupel saya termasuk aktivitas audit | ðŸŸ  Should | - Scope terbatas ke Mupel <br> - Tab aktivitas TERLIHAT (scope Mupel) <br> - Tab Keluarga & Biometrik TETAP tersembunyi |
+| US-23.8 | Sebagai User, saya ingin navigasi dari profil ke entitas terkait (jemaat, pos, log) | ðŸŸ¡ Could | - Deep-link dua arah <br> - Breadcrumb kembali ke profil |
 
 ---
 
-### 📱 Modul 24: Dimensi Keluarga Pendeta (Profile 360°)
+### ðŸ“± Modul 24: Dimensi Keluarga Pendeta (Profile 360Â°)
 
 | ID | User Story | Priority | Acceptance Criteria |
 |---|---|---|---|
-| US-24.1 | Sebagai Pendeta, saya ingin mencatat data anggota keluarga (pasangan, anak, orang tua, mertua) | 🟠 Should | - Form modal bottom sheet (h-12) <br> - Hitung umur otomatis dari tanggal lahir <br> - Flag tanggungan keluarga |
-| US-24.2 | Sebagai Pendeta, saya ingin data keluarga saya bersifat privat (RLS Asimetris) | 🔴 Must | - Hanya pemilik akun & Super User yang bisa membaca/edit <br> - KMJ & Admin Mupel TIDAK bisa melihat |
+| US-24.1 | Sebagai Pendeta, saya ingin mencatat data anggota keluarga (pasangan, anak, orang tua, mertua) | ðŸŸ  Should | - Form modal bottom sheet (h-12) <br> - Hitung umur otomatis dari tanggal lahir <br> - Flag tanggungan keluarga |
+| US-24.2 | Sebagai Pendeta, saya ingin data keluarga saya bersifat privat (RLS Asimetris) | ðŸ”´ Must | - Hanya pemilik akun & Super User yang bisa membaca/edit <br> - KMJ & Admin Mupel TIDAK bisa melihat |
 
 ---
 
-### 📱 Modul 25: Dimensi Kompetensi & Karunia (Profile 360°)
+### ðŸ“± Modul 25: Dimensi Kompetensi & Karunia (Profile 360Â°)
 
 | ID | User Story | Priority | Acceptance Criteria |
 |---|---|---|---|
-| US-25.1 | Sebagai Pendeta, saya ingin mencatat kompetensi praktis, passion, dan karunia rohani | 🟠 Should | - Kategori terkontrol (Pertanian, Manajemen, Teknologi, dll) <br> - Badge jenis (Kompetensi/Passion/Karunia) <br> - Filter chip per kategori |
-| US-25.2 | Sebagai Admin Mupel & Super User, saya ingin melihat kompetensi pendeta untuk pemetaan pelayanan | 🟠 Should | - Terbaca untuk Admin Mupel & Super User <br> - Membantu penugasan berbasis keahlian |
+| US-25.1 | Sebagai Pendeta, saya ingin mencatat kompetensi praktis, passion, dan karunia rohani | ðŸŸ  Should | - Kategori terkontrol (Pertanian, Manajemen, Teknologi, dll) <br> - Badge jenis (Kompetensi/Passion/Karunia) <br> - Filter chip per kategori |
+| US-25.2 | Sebagai Admin Mupel & Super User, saya ingin melihat kompetensi pendeta untuk pemetaan pelayanan | ðŸŸ  Should | - Terbaca untuk Admin Mupel & Super User <br> - Membantu penugasan berbasis keahlian |
 
 ---
 
-### 📱 Modul 26: Dimensi Keterlibatan Sinodal (Profile 360°)
+### ðŸ“± Modul 26: Dimensi Keterlibatan Sinodal (Profile 360Â°)
 
 | ID | User Story | Priority | Acceptance Criteria |
 |---|---|---|---|
-| US-26.1 | Sebagai Pendeta, saya ingin mencatat riwayat keterlibatan dalam Pokja, Komisi, Panitia, dan Delegasi | 🟠 Should | - VerticalTimeline kronologis <br> - Badge tingkat (Jemaat/Mupel/Sinodal/Eksternal) <br> - Status Aktif / Selesai |
+| US-26.1 | Sebagai Pendeta, saya ingin mencatat riwayat keterlibatan dalam Pokja, Komisi, Panitia, dan Delegasi | ðŸŸ  Should | - VerticalTimeline kronologis <br> - Badge tingkat (Jemaat/Mupel/Sinodal/Eksternal) <br> - Status Aktif / Selesai |
 
 ---
 
 ## 6. Functional Requirements
 
-### 🔴 Must Have (Fase 1-2)
+### ðŸ”´ Must Have (Fase 1-2)
 
 | ID | Requirement | Deskripsi |
 |----|-------------|-----------|
 | FR-01 | **Autentikasi Multi-Method** | Login via email/phone + password, biometric (WebAuthn), OTP |
-| FR-02 | **Role-Based Access Control** | 5 role: Super User, Admin Mupel, KMJ, PJ, User — dengan RLS di Supabase |
-| FR-03 | **Manajemen Hierarki** | CRUD Mupel → Jemaat Induk → Pos Pelkes dengan relasi yang benar |
+| FR-02 | **Role-Based Access Control** | 5 role: Super User, Admin Mupel, KMJ, PJ, User â€” dengan RLS di Supabase |
+| FR-03 | **Manajemen Hierarki** | CRUD Mupel â†’ Jemaat Induk â†’ Pos Pelkes dengan relasi yang benar |
 | FR-04 | **KMJ & PJ Management** | 1 Jemaat = 1 KMJ (pendeta), 1 Jemaat = 0+ PJ (pendeta) |
 | FR-05 | **Geospasial** | Input & visualisasi koordinat GPS (PostGIS) |
 | FR-06 | **Camera Capture** | Foto langsung dari kamera HP dengan compression < 1MB |
@@ -442,11 +443,11 @@ usage:
 | FR-14 | **Bottom Navigation** | Mobile-first navigation dengan 5 menu utama |
 | FR-15 | **Biometric Auth** | WebAuthn untuk login cepat (< 1 detik) |
 
-### 🟠 Should Have (Fase 3)
+### ðŸŸ  Should Have (Fase 3)
 
 | ID | Requirement | Deskripsi |
 |----|-------------|-----------|
-| FR-16 | **Workflow Pengajuan Bantuan** | Multi-level approval: Pos → Jemaat → Mupel → Sinode |
+| FR-16 | **Workflow Pengajuan Bantuan** | Multi-level approval: Pos â†’ Jemaat â†’ Mupel â†’ Sinode |
 | FR-17 | **Push Notifications** | Notifikasi real-time untuk approval, mutasi |
 | FR-18 | **Share to WhatsApp** | Web Share API + fallback ke WhatsApp link |
 | FR-19 | **Pull-to-Refresh** | Gesture untuk refresh data di halaman list |
@@ -455,7 +456,7 @@ usage:
 | FR-22 | **Dashboard Analitik** | Chart & KPI per role |
 | FR-23 | **Export Laporan** | Excel & PDF dengan filter |
 
-### 🟡 Could Have (Fase 4-5)
+### ðŸŸ¡ Could Have (Fase 4-5)
 
 | ID | Requirement | Deskripsi |
 |----|-------------|-----------|
@@ -465,7 +466,7 @@ usage:
 | FR-27 | **Badge Counter** | Jumlah notifikasi di icon PWA |
 | FR-28 | **AI Analytics** | Prediksi pertumbuhan jemaat, identifikasi Pos kritis |
 
-### ❌ Won't Have (Out of Scope)
+### âŒ Won't Have (Out of Scope)
 
 | ID | Requirement | Alasan |
 |----|-------------|--------|
@@ -478,7 +479,7 @@ usage:
 
 ## 7. Non-Functional Requirements
 
-### ⚡ Performance
+### âš¡ Performance
 
 | ID | Requirement | Target | Measurement |
 |----|-------------|--------|-------------|
@@ -493,7 +494,7 @@ usage:
 | NFR-09 | API Response Time (P95) | < 500ms | Monitoring |
 | NFR-10 | Database Query Time | < 100ms | Supabase Dashboard |
 
-### 🔒 Security
+### ðŸ”’ Security
 
 | ID | Requirement | Implementasi |
 |----|-------------|--------------|
@@ -508,7 +509,7 @@ usage:
 | NFR-19 | CSRF Protection | SameSite cookies + token |
 | NFR-20 | File Upload Security | Validasi tipe, size, virus scan (opsional) |
 
-### 📱 Mobile-First
+### ðŸ“± Mobile-First
 
 | ID | Requirement | Target |
 |----|-------------|--------|
@@ -519,7 +520,7 @@ usage:
 | NFR-25 | Lighthouse Mobile Score | > 90 |
 | NFR-26 | Viewport Meta | `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">` |
 
-### 🌐 Accessibility
+### ðŸŒ Accessibility
 
 | ID | Requirement | Target |
 |----|-------------|--------|
@@ -529,7 +530,7 @@ usage:
 | NFR-30 | Color Contrast | Min 4.5:1 |
 | NFR-31 | Reduce Motion | Support `prefers-reduced-motion` |
 
-### 🔄 Reliability
+### ðŸ”„ Reliability
 
 | ID | Requirement | Target |
 |----|-------------|--------|
@@ -538,7 +539,7 @@ usage:
 | NFR-34 | Backup | Daily automatic backup (Supabase) |
 | NFR-35 | Disaster Recovery | RTO < 1 jam, RPO < 24 jam |
 
-### 📈 Scalability
+### ðŸ“ˆ Scalability
 
 | ID | Requirement | Target |
 |----|-------------|--------|
@@ -550,7 +551,7 @@ usage:
 
 ## 8. UI/UX Requirements
 
-### 🎨 Design System
+### ðŸŽ¨ Design System
 
 | Aspek | Standar |
 |-------|---------|
@@ -562,22 +563,22 @@ usage:
 | **Shadows** | Subtle, consistent elevation |
 | **Dark Mode** | Supported via `next-themes` |
 
-### 📱 Mobile Layout
+### ðŸ“± Mobile Layout
 
 ```
-┌─────────────────────────┐
-│  Network Status Banner  │  ← Optional (saat offline/pending)
-├─────────────────────────┤
-│                         │
-│     App Content         │  ← Scrollable
-│     (with Safe Area)    │
-│                         │
-├─────────────────────────┤
-│ ⚙️ │ 📄 │ ➕ │ 🗺️ │ 🏠 │  ← Bottom Navigation (Thumb Zone)
-└─────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚  Network Status Banner  â”‚  â† Optional (saat offline/pending)
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚                         â”‚
+â”‚     App Content         â”‚  â† Scrollable
+â”‚     (with Safe Area)    â”‚
+â”‚                         â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚ âš™ï¸ â”‚ ðŸ“„ â”‚ âž• â”‚ ðŸ—ºï¸ â”‚ ðŸ  â”‚  â† Bottom Navigation (Thumb Zone)
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
-### 🔘 Key UI Components
+### ðŸ”˜ Key UI Components
 
 | Komponen | Spesifikasi |
 |----------|-------------|
@@ -590,7 +591,7 @@ usage:
 | **Modal Bottom Sheet** | Untuk quick action |
 | **Swipeable Card** | Swipe left = delete, right = edit |
 
-### ♿ Accessibility Checklist
+### â™¿ Accessibility Checklist
 
 - [ ] Touch target 44x44px minimum
 - [ ] Safe area handling (notch, home indicator)
@@ -604,18 +605,18 @@ usage:
 
 ## 9. Data Requirements
 
-### 📊 Initial Data Migration
+### ðŸ“Š Initial Data Migration
 
 | Data | Jumlah | Sumber |
 |------|--------|--------|
-| Mupel | 25 | `GPIB.xlsx` → sheet `Mupel` |
-| Jemaat Induk | 350+ | `GPIB.xlsx` → sheet `Jemaat` |
-| Pos Pelkes | 500+ | `GPIB.xlsx` → sheet `Pos Pelkes` |
-| Pendeta | 100+ | `GPIB.xlsx` → sheet `Pendeta` |
-| Users | 100+ | `GPIB.xlsx` → sheet `Users` |
-| Log Aktivitas | 500+ | `GPIB.xlsx` → sheet `Log_Aktivitas` |
+| Mupel | 25 | `GPIB.xlsx` â†’ sheet `Mupel` |
+| Jemaat Induk | 350+ | `GPIB.xlsx` â†’ sheet `Jemaat` |
+| Pos Pelkes | 500+ | `GPIB.xlsx` â†’ sheet `Pos Pelkes` |
+| Pendeta | 100+ | `GPIB.xlsx` â†’ sheet `Pendeta` |
+| Users | 100+ | `GPIB.xlsx` â†’ sheet `Users` |
+| Log Aktivitas | 500+ | `GPIB.xlsx` â†’ sheet `Log_Aktivitas` |
 
-### 🔐 Data Security
+### ðŸ” Data Security
 
 | Aspek | Requirement |
 |-------|-------------|
@@ -625,7 +626,7 @@ usage:
 | **Data Retention** | Retain 30-50 tahun (sesuai lifecycle) |
 | **GDPR-like** | Right to access, right to delete (untuk user data) |
 
-### 📈 Data Quality
+### ðŸ“ˆ Data Quality
 
 | Aspek | Target |
 |-------|--------|
@@ -638,21 +639,21 @@ usage:
 
 ## 10. Integration Requirements
 
-### 🔗 External Integrations
+### ðŸ”— External Integrations
 
 | Integration | Purpose | Priority |
 |-------------|---------|----------|
-| **Supabase Auth** | Authentication + JWT | 🔴 Must |
-| **Supabase Storage** | File upload (aset, lampiran) | 🔴 Must |
-| **Supabase Realtime** | Live updates (opsional) | 🟠 Should |
-| **Web Share API** | Share ke WhatsApp/native | 🟠 Should |
-| **Web Speech API** | Voice input (opsional) | 🟡 Could |
-| **Geolocation API** | GPS auto-fill | 🔴 Must |
-| **WebAuthn API** | Biometric authentication | 🔴 Must |
-| **Camera API** | Photo capture | 🔴 Must |
-| **Vibration API** | Haptic feedback | 🟠 Should |
+| **Supabase Auth** | Authentication + JWT | ðŸ”´ Must |
+| **Supabase Storage** | File upload (aset, lampiran) | ðŸ”´ Must |
+| **Supabase Realtime** | Live updates (opsional) | ðŸŸ  Should |
+| **Web Share API** | Share ke WhatsApp/native | ðŸŸ  Should |
+| **Web Speech API** | Voice input (opsional) | ðŸŸ¡ Could |
+| **Geolocation API** | GPS auto-fill | ðŸ”´ Must |
+| **WebAuthn API** | Biometric authentication | ðŸ”´ Must |
+| **Camera API** | Photo capture | ðŸ”´ Must |
+| **Vibration API** | Haptic feedback | ðŸŸ  Should |
 
-### 🚫 No Integration (Out of Scope)
+### ðŸš« No Integration (Out of Scope)
 
 - Payment gateway
 - Email marketing
@@ -664,7 +665,7 @@ usage:
 
 ## 11. Release Phases
 
-### 📅 Timeline (Mengacu Blueprint v2.2)
+### ðŸ“… Timeline (Mengacu Blueprint v2.2)
 
 ```mermaid
 gantt
@@ -698,17 +699,17 @@ gantt
     AI & Peta Kritis           :2027-03-22, 30d
 ```
 
-### 🎯 Milestones & Deliverables
+### ðŸŽ¯ Milestones & Deliverables
 
 | Fase | Periode | Deliverables | Success Criteria |
 |------|---------|--------------|------------------|
-| **Fase 1: Fondasi Mobile** | Jul–Agu 2026 | Auth + Biometric, Bottom Nav, PWA Install, Master Data | - Login < 1 detik (biometric)<br>- PWA installable<br>- 25 Mupel + 350 Jemaat ter-import |
-| **Fase 2: Pengayaan** | Sep–Okt 2026 | Kamera + GPS, Pendeta, Aset, Log Pastoral | - 500+ Pos Pelkes ter-input<br>- Foto aset bisa di-upload<br>- Log pastoral bisa di-input < 30 detik |
-| **Fase 3: Operasi** | Nov–Des 2026 | Offline Fallback, Draft, Pengajuan Bantuan, Push Notif | - Form draft auto-save bekerja<br>- Workflow approval berjalan<br>- Push notifikasi diterima |
-| **Fase 4: Keterlibatan** | Jan–Feb 2027 | Dashboard Mobile, Portal Umat | - Dashboard analitik bisa diakses<br>- Portal publik live |
-| **Fase 5: Puncak** | Feb–Mar 2027 | Biometric Polish, Background Sync, AI | - Background sync bekerja<br>- AI analytics tersedia |
+| **Fase 1: Fondasi Mobile** | Julâ€“Agu 2026 | Auth + Biometric, Bottom Nav, PWA Install, Master Data | - Login < 1 detik (biometric)<br>- PWA installable<br>- 25 Mupel + 350 Jemaat ter-import |
+| **Fase 2: Pengayaan** | Sepâ€“Okt 2026 | Kamera + GPS, Pendeta, Aset, Log Pastoral | - 500+ Pos Pelkes ter-input<br>- Foto aset bisa di-upload<br>- Log pastoral bisa di-input < 30 detik |
+| **Fase 3: Operasi** | Novâ€“Des 2026 | Offline Fallback, Draft, Pengajuan Bantuan, Push Notif | - Form draft auto-save bekerja<br>- Workflow approval berjalan<br>- Push notifikasi diterima |
+| **Fase 4: Keterlibatan** | Janâ€“Feb 2027 | Dashboard Mobile, Portal Umat | - Dashboard analitik bisa diakses<br>- Portal publik live |
+| **Fase 5: Puncak** | Febâ€“Mar 2027 | Biometric Polish, Background Sync, AI | - Background sync bekerja<br>- AI analytics tersedia |
 
-### 🚦 Go/No-Go Criteria per Fase
+### ðŸš¦ Go/No-Go Criteria per Fase
 
 | Fase | Go Criteria |
 |------|-------------|
@@ -722,40 +723,40 @@ gantt
 
 ## 12. Acceptance Criteria
 
-### ✅ Definition of Done (per User Story)
+### âœ… Definition of Done (per User Story)
 
 Semua User Story harus memenuhi:
 
-- [ ] **Code Complete** — Semua kode ditulis & di-review
-- [ ] **Unit Tests** — Coverage > 80%
-- [ ] **Integration Tests** — Critical flows tested
-- [ ] **E2E Tests** — Playwright untuk critical user journeys
-- [ ] **TypeScript Strict** — No `any` types
-- [ ] **Linting** — ESLint + Prettier pass
-- [ ] **Accessibility** — axe-core pass (WCAG 2.1 AA)
-- [ ] **Performance** — Lighthouse score > 90 (mobile)
-- [ ] **Responsive** — Bekerja di mobile (320px+), tablet, desktop
-- [ ] **Documentation** — Inline docs + README updated
-- [ ] **QA Approved** — QA sign-off
-- [ ] **PO Approved** — Product Owner sign-off
+- [ ] **Code Complete** â€” Semua kode ditulis & di-review
+- [ ] **Unit Tests** â€” Coverage > 80%
+- [ ] **Integration Tests** â€” Critical flows tested
+- [ ] **E2E Tests** â€” Playwright untuk critical user journeys
+- [ ] **TypeScript Strict** â€” No `any` types
+- [ ] **Linting** â€” ESLint + Prettier pass
+- [ ] **Accessibility** â€” axe-core pass (WCAG 2.1 AA)
+- [ ] **Performance** â€” Lighthouse score > 90 (mobile)
+- [ ] **Responsive** â€” Bekerja di mobile (320px+), tablet, desktop
+- [ ] **Documentation** â€” Inline docs + README updated
+- [ ] **QA Approved** â€” QA sign-off
+- [ ] **PO Approved** â€” Product Owner sign-off
 
-### 🎯 Critical User Journeys (E2E)
+### ðŸŽ¯ Critical User Journeys (E2E)
 
 | # | Journey | Steps |
 |---|---------|-------|
-| CJ-1 | **Pendeta input log pastoral di lapangan** | Login biometric → Buka Pos Pelkes → Input log pastoral → Foto kegiatan → Submit → Data tersimpan |
-| CJ-2 | **KMJ review log pastoral** | Login → Lihat daftar Pos Pelkes → Pilih Pos → Lihat log pastoral → Filter by tanggal |
-| CJ-3 | **Admin Mupel approve bantuan** | Login → Lihat pengajuan → Review detail → Approve dengan catatan → Notifikasi terkirim |
-| CJ-4 | **Super User mutasi pendeta** | Login → Cari pendeta → Klik "Mutasi" → Pilih Jemaat baru → Konfirmasi → Riwayat tercatat |
-| CJ-5 | **User input aset dengan kamera** | Login → Buka Pos Pelkes → Tab Aset → Tambah Aset → Foto dengan kamera → GPS auto-fill → Submit |
-| CJ-6 | **User offline lalu online** | Login → Input form → Sinyal hilang → Form auto-save → Sinyal kembali → Auto-submit → Notifikasi sukses |
-| CJ-7 | **Super User melihat Profile 360° pendeta** | Login Super User → /settings/users → Cari "Otniel" → Klik → 8 section tampil → Klik hierarki → Navigate ke Jemaat 23-03-ET → Kembali ke profil |
+| CJ-1 | **Pendeta input log pastoral di lapangan** | Login biometric â†’ Buka Pos Pelkes â†’ Input log pastoral â†’ Foto kegiatan â†’ Submit â†’ Data tersimpan |
+| CJ-2 | **KMJ review log pastoral** | Login â†’ Lihat daftar Pos Pelkes â†’ Pilih Pos â†’ Lihat log pastoral â†’ Filter by tanggal |
+| CJ-3 | **Admin Mupel approve bantuan** | Login â†’ Lihat pengajuan â†’ Review detail â†’ Approve dengan catatan â†’ Notifikasi terkirim |
+| CJ-4 | **Super User mutasi pendeta** | Login â†’ Cari pendeta â†’ Klik "Mutasi" â†’ Pilih Jemaat baru â†’ Konfirmasi â†’ Riwayat tercatat |
+| CJ-5 | **User input aset dengan kamera** | Login â†’ Buka Pos Pelkes â†’ Tab Aset â†’ Tambah Aset â†’ Foto dengan kamera â†’ GPS auto-fill â†’ Submit |
+| CJ-6 | **User offline lalu online** | Login â†’ Input form â†’ Sinyal hilang â†’ Form auto-save â†’ Sinyal kembali â†’ Auto-submit â†’ Notifikasi sukses |
+| CJ-7 | **Super User melihat Profile 360Â° pendeta** | Login Super User â†’ /settings/users â†’ Cari "Otniel" â†’ Klik â†’ 8 section tampil â†’ Klik hierarki â†’ Navigate ke Jemaat 23-03-ET â†’ Kembali ke profil |
 
 ---
 
 ## 13. Out of Scope
 
-### ❌ Tidak Termasuk dalam PRD Ini
+### âŒ Tidak Termasuk dalam PRD Ini
 
 | Item | Alasan |
 |------|--------|
@@ -770,7 +771,7 @@ Semua User Story harus memenuhi:
 | **Custom Domain per Jemaat** | Single domain untuk seluruh GPIB |
 | **AI Chatbot** | Bisa dipertimbangkan di Fase 6+ |
 
-### 🔄 Deferred to Future Versions
+### ðŸ”„ Deferred to Future Versions
 
 | Feature | Target Version |
 |---------|----------------|
@@ -784,52 +785,52 @@ Semua User Story harus memenuhi:
 
 ## 14. Assumptions & Dependencies
 
-### ✅ Assumptions
+### âœ… Assumptions
 
 | # | Assumption | Risk if Wrong |
 |---|------------|---------------|
-| A-1 | 90%+ pendeta punya HP smartphone | High — harus reconsider mobile-first approach |
-| A-2 | Pendeta familiar dengan HP (minimal WhatsApp) | Medium — perlu training lebih intensif |
-| A-3 | Supabase & Vercel tetap available & stabil | High — perlu backup plan (self-hosted) |
-| A-4 | Data di `GPIB.xlsx` akurat & lengkap | Medium — perlu data cleansing sebelum import |
-| A-5 | KMJ & PJ selalu seorang Pendeta | Low — sudah dikonfirmasi stakeholder |
-| A-6 | WebAuthn support di 85%+ device pendeta | Medium — fallback ke password/OTP |
-| A-7 | Camera & GPS permission di-allow oleh user | Medium — perlu UX yang jelas untuk minta permission |
-| A-8 | Tim development punya kapasitas 7 bulan | High — perlu re-schedule jika tidak |
+| A-1 | 90%+ pendeta punya HP smartphone | High â€” harus reconsider mobile-first approach |
+| A-2 | Pendeta familiar dengan HP (minimal WhatsApp) | Medium â€” perlu training lebih intensif |
+| A-3 | Supabase & Vercel tetap available & stabil | High â€” perlu backup plan (self-hosted) |
+| A-4 | Data di `GPIB.xlsx` akurat & lengkap | Medium â€” perlu data cleansing sebelum import |
+| A-5 | KMJ & PJ selalu seorang Pendeta | Low â€” sudah dikonfirmasi stakeholder |
+| A-6 | WebAuthn support di 85%+ device pendeta | Medium â€” fallback ke password/OTP |
+| A-7 | Camera & GPS permission di-allow oleh user | Medium â€” perlu UX yang jelas untuk minta permission |
+| A-8 | Tim development punya kapasitas 7 bulan | High â€” perlu re-schedule jika tidak |
 
-### 🔗 Dependencies
+### ðŸ”— Dependencies
 
 | # | Dependency | Owner | Status |
 |---|------------|-------|--------|
-| D-1 | **Supabase Project** | DevOps | ⏳ Pending setup |
-| D-2 | **Vercel Account** | DevOps | ⏳ Pending setup |
-| D-3 | **Domain Name** | Sinode GPIB | ⏳ Pending confirmation |
-| D-4 | **Data Cleansing** | Admin Sinode | ⏳ In progress |
-| D-5 | **Design Assets (Logo, Icon)** | Designer | ⏳ Pending |
-| D-6 | **Stakeholder Approval** | Product Owner | ⏳ Pending |
-| D-7 | **User Training Material** | Training Team | ⏳ Will start Fase 2 |
-| D-8 | **WhatsApp Business API** (opsional) | External | ⏳ Optional |
+| D-1 | **Supabase Project** | DevOps | â³ Pending setup |
+| D-2 | **Vercel Account** | DevOps | â³ Pending setup |
+| D-3 | **Domain Name** | Sinode GPIB | â³ Pending confirmation |
+| D-4 | **Data Cleansing** | Admin Sinode | â³ In progress |
+| D-5 | **Design Assets (Logo, Icon)** | Designer | â³ Pending |
+| D-6 | **Stakeholder Approval** | Product Owner | â³ Pending |
+| D-7 | **User Training Material** | Training Team | â³ Will start Fase 2 |
+| D-8 | **WhatsApp Business API** (opsional) | External | â³ Optional |
 
 ---
 
 ## 15. Risks & Mitigations
 
-### ⚠️ Risk Matrix
+### âš ï¸ Risk Matrix
 
 | # | Risk | Impact | Probability | Mitigation | Owner |
 |---|------|--------|-------------|------------|-------|
-| R-1 | **User adoption rendah** | 🔴 High | 🟡 Medium | - Training intensif<br>- Onboarding yang mudah<br>- Champion di setiap Mupel | Product Owner |
-| R-2 | **Data migration error** | 🔴 High | 🟡 Medium | - Data cleansing sebelum import<br>- Validation script<br>- Rollback plan | Data Team |
-| R-3 | **Performance issue di device lama** | 🟠 High | 🟡 Medium | - Performance budget ketat<br>- Testing di device low-end<br>- Progressive enhancement | Dev Team |
-| R-4 | **Biometric tidak support di device lama** | 🟡 Medium | 🟡 Medium | - Fallback ke password/OTP<br>- Edukasi user | Dev Team |
-| R-5 | **Sinyal terbatas di Pos Pelkes terpencil** | 🟠 High | 🔴 High | - PWA caching<br>- Form draft<br>- Pending queue | Dev Team |
-| R-6 | **Security breach** | 🔴 Critical | 🟢 Low | - RLS ketat<br>- Regular audit<br>- 2FA/Biometric | Security Team |
-| R-7 | **Scope creep** | 🟡 Medium | 🔴 High | - Strict roadmap<br>- MoSCoW prioritization<br>- Change request process | Product Owner |
-| R-8 | **Vendor lock-in (Supabase/Vercel)** | 🟡 Medium | 🟢 Low | - Standard SQL<br>- Portable code<br>- Export strategy | Dev Team |
-| R-9 | **Tim development tidak cukup** | 🔴 High | 🟡 Medium | - Hire additional devs<br>- Outsource non-core<br>- Re-schedule | Management |
-| R-10 | **localStorage quota exceeded** | 🟡 Medium | 🟢 Low | - Auto-cleanup<br>- Max 5MB per user<br>- Monitor usage | Dev Team |
+| R-1 | **User adoption rendah** | ðŸ”´ High | ðŸŸ¡ Medium | - Training intensif<br>- Onboarding yang mudah<br>- Champion di setiap Mupel | Product Owner |
+| R-2 | **Data migration error** | ðŸ”´ High | ðŸŸ¡ Medium | - Data cleansing sebelum import<br>- Validation script<br>- Rollback plan | Data Team |
+| R-3 | **Performance issue di device lama** | ðŸŸ  High | ðŸŸ¡ Medium | - Performance budget ketat<br>- Testing di device low-end<br>- Progressive enhancement | Dev Team |
+| R-4 | **Biometric tidak support di device lama** | ðŸŸ¡ Medium | ðŸŸ¡ Medium | - Fallback ke password/OTP<br>- Edukasi user | Dev Team |
+| R-5 | **Sinyal terbatas di Pos Pelkes terpencil** | ðŸŸ  High | ðŸ”´ High | - PWA caching<br>- Form draft<br>- Pending queue | Dev Team |
+| R-6 | **Security breach** | ðŸ”´ Critical | ðŸŸ¢ Low | - RLS ketat<br>- Regular audit<br>- 2FA/Biometric | Security Team |
+| R-7 | **Scope creep** | ðŸŸ¡ Medium | ðŸ”´ High | - Strict roadmap<br>- MoSCoW prioritization<br>- Change request process | Product Owner |
+| R-8 | **Vendor lock-in (Supabase/Vercel)** | ðŸŸ¡ Medium | ðŸŸ¢ Low | - Standard SQL<br>- Portable code<br>- Export strategy | Dev Team |
+| R-9 | **Tim development tidak cukup** | ðŸ”´ High | ðŸŸ¡ Medium | - Hire additional devs<br>- Outsource non-core<br>- Re-schedule | Management |
+| R-10 | **localStorage quota exceeded** | ðŸŸ¡ Medium | ðŸŸ¢ Low | - Auto-cleanup<br>- Max 5MB per user<br>- Monitor usage | Dev Team |
 
-### 🛡️ Mitigation Strategies
+### ðŸ›¡ï¸ Mitigation Strategies
 
 1. **Training & Onboarding**
    - Video tutorial per modul
@@ -864,13 +865,13 @@ Semua User Story harus memenuhi:
 | Term | Definition |
 |------|------------|
 | **GPIB** | Gereja Protestan Indonesia di Barat |
-| **Mupel** | Majelis Urusan Pelayanan (Wilayah) — ada 25 Mupel |
-| **Jemaat Induk** | Gereja Induk — di bawah 1 Mupel |
-| **Pos Pelkes** | Pos Pelayanan Kesaksian — di bawah 1 Jemaat Induk |
-| **KMJ** | Ketua Majelis Jemaat — harus seorang Pendeta |
-| **PJ** | Pendeta Jemaat — bisa >1 per Jemaat |
+| **Mupel** | Majelis Urusan Pelayanan (Wilayah) â€” ada 25 Mupel |
+| **Jemaat Induk** | Gereja Induk â€” di bawah 1 Mupel |
+| **Pos Pelkes** | Pos Pelayanan Kesaksian â€” di bawah 1 Jemaat Induk |
+| **KMJ** | Ketua Majelis Jemaat â€” harus seorang Pendeta |
+| **PJ** | Pendeta Jemaat â€” bisa >1 per Jemaat |
 | **Pelkat** | Pelayanan Kategorial (Pemuda, Wanita, Anak, Lansia, dll) |
-| **Bajem** | Bakal Jemaat — calon Pos Pelkes |
+| **Bajem** | Bakal Jemaat â€” calon Pos Pelkes |
 | **PWA** | Progressive Web App |
 | **RLS** | Row Level Security (Supabase) |
 | **WebAuthn** | Web Authentication API (untuk biometric) |
@@ -888,7 +889,7 @@ Semua User Story harus memenuhi:
 
 ## 17. Appendix
 
-### 📎 A. Referensi Dokumen
+### ðŸ“Ž A. Referensi Dokumen
 
 | Dokumen | Versi | Tanggal |
 |---------|-------|---------|
@@ -898,7 +899,7 @@ Semua User Story harus memenuhi:
 | GPIB_Reach_Out_V2.0.html | 2.0 | 11 Mei 2026 |
 | GPIB.xlsx (Data Master) | - | 19 Juli 2026 |
 
-### 📎 B. Stakeholders
+### ðŸ“Ž B. Stakeholders
 
 | Role | Nama | Kontak |
 |------|------|--------|
@@ -910,13 +911,13 @@ Semua User Story harus memenuhi:
 | **Stakeholder Sinode** | Bpk. Stolaputih | +62 8111550543 |
 | **Stakeholder Admin** | [TBD] | +62 8176588277 |
 
-### 📎 C. Change Log
+### ðŸ“Ž C. Change Log
 
 | Versi | Tanggal | Perubahan | Author |
 |-------|---------|-----------|--------|
 | 1.0 | 20 Juli 2026 | Initial PRD based on Blueprint v2.2 | Tim Development |
 
-### 📎 D. Approval
+### ðŸ“Ž D. Approval
 
 | Role | Nama | Tanda Tangan | Tanggal |
 |------|------|--------------|---------|
@@ -926,28 +927,28 @@ Semua User Story harus memenuhi:
 
 ---
 
-## 📝 Penutup
+## ðŸ“ Penutup
 
 > *"Data yang dikumpulkan dengan benar adalah pelita hikmat."*
 
 PRD ini adalah **kontrak produk** antara tim development dan stakeholder GPIB. Dokumen ini akan menjadi acuan utama selama development SI GPIB v2.2 dan akan diperbarui seiring perkembangan proyek melalui **Change Request Process**.
 
-### ✅ Next Steps
+### âœ… Next Steps
 
 1. **Review PRD** oleh stakeholder (Product Owner, Tech Lead, Sinode)
-2. **Approval** — Tanda tangan di Appendix D
-3. **Kick-off Meeting** — Align dengan tim development
-4. **Setup Repository** — GitHub + Supabase + Vercel
-5. **Mulai Fase 1** — Target 20 Juli 2026
+2. **Approval** â€” Tanda tangan di Appendix D
+3. **Kick-off Meeting** â€” Align dengan tim development
+4. **Setup Repository** â€” GitHub + Supabase + Vercel
+5. **Mulai Fase 1** â€” Target 20 Juli 2026
 
 ---
 
-**Dokumen ini adalah living document** — akan diperbarui via Change Request Process.
+**Dokumen ini adalah living document** â€” akan diperbarui via Change Request Process.
 
-📅 *Tanggal: 20 Juli 2026*
-✍️ *Disusun oleh: Tim Development SI GPIB v2.0*
-🔗 *Versi: 1.0 (berdasarkan Blueprint v2.2)*
-📊 *Status: Ready for Approval*
+ðŸ“… *Tanggal: 20 Juli 2026*
+âœï¸ *Disusun oleh: Tim Development SI GPIB v2.0*
+ðŸ”— *Versi: 1.0 (berdasarkan Blueprint v2.2)*
+ðŸ“Š *Status: Ready for Approval*
 
 ---
 

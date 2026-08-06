@@ -11,7 +11,7 @@ BEGIN
     WHERE table_name = 't_pengajuan_bantuan' AND column_name = 'id_pengajuan_sebelumnya'
   ) THEN
     ALTER TABLE t_pengajuan_bantuan 
-    ADD COLUMN id_pengajuan_sebelumnya VARCHAR(30) NULL REFERENCES t_pengajuan_bantuan(id_pengajuan);
+    ADD COLUMN id_pengajuan_sebelumnya VARCHAR(30) NULL REFERENCES t_pengajuan_bantuan(id_ajuan);
   END IF;
 END $$;
 
@@ -25,20 +25,20 @@ CREATE POLICY "Akses audit log aktivitas"
 ON t_log_aktivitas FOR SELECT
 USING (
   -- Diri sendiri
-  user_id = auth.uid()
+  id_user = auth.uid()
   -- Super User global
   OR (SELECT role FROM users WHERE id = auth.uid()) = 'super_user'
   -- Admin Mupel (dapat melihat audit log user dalam scope Mupelnya)
   OR (
     (SELECT role FROM users WHERE id = auth.uid()) = 'admin_mupel'
-    AND user_id IN (
+    AND id_user IN (
       SELECT id FROM users WHERE id_mupel = (SELECT id_mupel FROM users WHERE id = auth.uid())
     )
   )
   -- KMJ (dapat melihat audit log user dalam scope Jemaatnya)
   OR (
     (SELECT role FROM users WHERE id = auth.uid()) = 'kmj'
-    AND user_id IN (
+    AND id_user IN (
       SELECT id FROM users WHERE id_induk = (SELECT id_induk FROM users WHERE id = auth.uid())
     )
   )

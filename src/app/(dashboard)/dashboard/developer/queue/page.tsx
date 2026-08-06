@@ -2,7 +2,7 @@
 
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type PendingSubmission } from '@/lib/offline/dexie';
-import { processPendingQueue } from '@/lib/offline/sync-manager';
+import { syncManager } from '@/lib/offline/sync-manager';
 import { useState } from 'react';
 import { RefreshCw, Trash2, Database, AlertCircle, CheckCircle2, Play } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +19,7 @@ export default function QueueInspectorPage() {
   const handleForceSync = async () => {
     setIsSyncing(true);
     try {
-      await processPendingQueue();
+      await syncManager.processQueue();
       // Assume attachments will also have their own sync process later
     } catch (error) {
       logger.error('Force sync failed', error);

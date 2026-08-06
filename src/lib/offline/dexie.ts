@@ -1,3 +1,4 @@
+// src/lib/offline/dexie.ts
 import Dexie, { type Table } from 'dexie';
 
 export interface Draft {
@@ -7,6 +8,7 @@ export interface Draft {
 }
 
 export interface DraftPhoto {
+  id?: number;
   formKey: string;
   photoIndex: number;
   blob: Blob;
@@ -15,19 +17,20 @@ export interface DraftPhoto {
 
 export interface PendingSubmission {
   id?: number;
-  requestId: string;
+  requestId: string; 
   operationType: 'rpc' | 'insert' | 'update';
   targetIdentifier: string;
   payload: Record<string, unknown>;
   status: 'pending' | 'syncing' | 'failed';
   attempts: number;
   lastError?: string;
+  lastAttemptAt?: number;
   createdAt: number;
 }
 
 export interface PendingAttachment {
   id?: number;
-  submissionId: number; // Foreign key referencing PendingSubmission.id
+  submissionId: number; // Merujuk ke id (auto-increment) dari PendingSubmission
   file: Blob;
   path: string;
   status: 'pending' | 'uploading' | 'done' | 'failed';
@@ -52,19 +55,20 @@ export interface DeadLetter {
 
 class SIOSDatabase extends Dexie {
   drafts!: Table<Draft, string>;
-  draftPhotos!: Table<DraftPhoto>;
-  pendingSubmissions!: Table<PendingSubmission>;
-  pendingAttachments!: Table<PendingAttachment>;
-  deadLetters!: Table<DeadLetter>;
+  draftPhotos!: Table<DraftPhoto, number>;
+  pendingSubmissions!: Table<PendingSubmission, number>;
+  pendingAttachments!: Table<PendingAttachment, number>;
+  deadLetters!: Table<DeadLetter, number>;
 
   constructor() {
-    super('sios-offline-db');
+    super('sigpib-offline');
+    // Skema v5 identik dengan rules.md
     this.version(5).stores({
       drafts: 'formKey, timestamp',
-      draftPhotos: '[formKey+photoIndex], formKey, timestamp',
-      pendingSubmissions: '++id, requestId, status, operationType, createdAt',
+      draftPhotos: '++id, [formKey+photoIndex], timestamp',
+      pendingSubmissions: '++id, requestId, status, createdAt, lastAttemptAt',
       pendingAttachments: '++id, submissionId, status, createdAt',
-      deadLetters: '++id, requestId, targetIdentifier, movedToDLQAt',
+      deadLetters: '++id, requestId, createdAt, movedToDLQAt',
     });
   }
 }

@@ -45,7 +45,7 @@ const QUICK_ACTIONS: QuickAction[] = [
   {
     label: 'Ajukan Bantuan',
     icon: HandHeart,
-    href: '/bantuan/ajukan',
+    href: '/bantuan/new',
     color: 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400',
     description: 'Permohonan bantuan pos',
   },

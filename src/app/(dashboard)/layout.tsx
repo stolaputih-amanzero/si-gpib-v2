@@ -4,6 +4,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import MobileHeader from '@/components/layout/MobileHeader';
 import { SuperBottomNav } from '@/components/mobile/SuperBottomNav/SuperBottomNav';
 import { ReadOnlyNoticeBanner } from '@/components/auth/ReadOnlyNoticeBanner';
+import { PosProvider } from '@/stores/pos-context';
 
 export default function DashboardLayout({
   children,
@@ -11,7 +12,8 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-screen bg-surface-base overflow-hidden">
+    <PosProvider>
+      <div className="flex h-screen bg-surface-base overflow-hidden">
       {/* Desktop Sidebar (Collapsible with grouped navigation) */}
       <Sidebar />
 
@@ -32,5 +34,6 @@ export default function DashboardLayout({
         <SuperBottomNav />
       </div>
     </div>
+    </PosProvider>
   );
 }

@@ -93,7 +93,7 @@ export const NAV_GROUPS: NavGroup[] = [
     icon: HandHeart,
     items: [
       { label: 'Daftar Pengajuan', href: '/bantuan', icon: HandHeart },
-      { label: 'Ajukan Bantuan Baru', href: '/bantuan/ajukan', icon: HandHeart },
+      { label: 'Ajukan Bantuan Baru', href: '/bantuan/new', icon: HandHeart },
     ],
   },
   {

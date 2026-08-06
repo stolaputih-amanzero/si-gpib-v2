@@ -1,110 +1,132 @@
-'use client';
-
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { db } from '@/lib/offline/dexie';
-import { logger } from '@/lib/utils/logger';
-import { useToast } from '@/components/ui/toast';
 
-export function useFormDraft<T extends Record<string, any>>(
-  storageKey: string,
-  initialValues: T
-) {
-  const [draft, setDraft] = useState<T>(initialValues);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [hasRestoredDraft, setHasRestoredDraft] = useState<boolean>(false);
-  const [lastSavedTimestamp, setLastSavedTimestamp] = useState<string | null>(null);
+export const FORM_KEYS = {
+  ASET_NEW: 'aset-new',
+} as const;
+
+export function useFormDraft(formKey: string, formOrInitialData: any, intervalMs: number = 30000) {
+  const isHookForm = formOrInitialData && typeof formOrInitialData.watch === 'function';
+  
+  const [isRestored, setIsRestored] = useState(false);
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
-  const { toast } = useToast();
-
-  // Load draft dari Dexie saat mount
+  const [draft, setDraft] = useState<any>(null);
+  const [lastSaved, setLastSaved] = useState<number | null>(null);
+  
+  const currentValuesRef = useRef<any>(isHookForm ? formOrInitialData.getValues() : formOrInitialData);
+  
+  // New API: auto-watch
   useEffect(() => {
-    if (!storageKey) return;
-    
-    const loadDraft = async () => {
-      try {
-        setIsLoading(true);
-        const stored = await db.drafts.get(storageKey);
-        
-        if (stored) {
-          setDraft(stored.data as T);
-          setLastSavedTimestamp(new Date(stored.timestamp).toISOString());
-          setHasRestoredDraft(true);
-          setStatus('saved');
-          logger.info(`[Draft] Loaded draft for ${storageKey}`, { timestamp: stored.timestamp });
-        }
-      } catch (error) {
-        logger.error(`[Draft] Failed to load draft for ${storageKey}`, error);
-      } finally {
-        setIsLoading(false);
-      }
+    if (!isHookForm) return;
+    const subscription = formOrInitialData.watch((value: any) => {
+      currentValuesRef.current = value;
+    });
+    return () => subscription.unsubscribe();
+  }, [isHookForm, formOrInitialData]);
+
+  // Clean old drafts on mount
+  useEffect(() => {
+    const cleanupOldDrafts = async () => {
+      const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+      const cutoff = Date.now() - THIRTY_DAYS;
+      await db.drafts.where('timestamp').below(cutoff).delete();
     };
-    
-    loadDraft();
-    
-    // Check storage quota on mount
-    if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.estimate) {
-      navigator.storage.estimate().then((estimate) => {
-        if (estimate.usage && estimate.quota) {
-          const usageRatio = estimate.usage / estimate.quota;
-          if (usageRatio > 0.8) {
-            toast.error('Penyimpanan Penuh', 'Penyimpanan perangkat Anda hampir penuh. Draf mungkin gagal disimpan.');
+    cleanupOldDrafts().catch(console.error);
+  }, []);
+
+  // Restore draft on mount
+  useEffect(() => {
+    let isMounted = true;
+    const restoreDraft = async () => {
+      try {
+        const draftData = await db.drafts.get(formKey);
+        if (draftData && isMounted) {
+          setDraft(draftData.data);
+          setLastSaved(draftData.timestamp);
+          if (isHookForm) {
+            formOrInitialData.reset(draftData.data, { keepDefaultValues: true });
           }
         }
-      }).catch((e) => logger.warn('[Draft] Failed to estimate storage', e));
-    }
-  }, [storageKey, toast]);
-
-  // Save draft ke Dexie (async)
-  const saveDraft = useCallback(
-    async (data: Partial<T>) => {
-      if (!storageKey) return;
-      setStatus('saving');
-      const now = Date.now();
-      
-      try {
-        await db.drafts.put({
-          formKey: storageKey,
-          data,
-          timestamp: now,
-        });
-        setLastSavedTimestamp(new Date(now).toISOString());
-        setStatus('saved');
-      } catch (error: any) {
-        if (error.name === 'QuotaExceededError') {
-          logger.error('[Draft] Storage quota exceeded!');
-          toast.error('Penyimpanan Penuh', 'Tidak dapat menyimpan draf karena penyimpanan penuh.');
-          setStatus('idle');
-        } else {
-          logger.error(`[Draft] Failed to save draft for ${storageKey}`, error);
-          setStatus('idle');
-        }
+      } catch (err) {
+        console.error('Failed to restore draft', err);
+      } finally {
+        if (isMounted) setIsRestored(true);
       }
-    },
-    [storageKey, toast]
-  );
+    };
+    restoreDraft();
+    return () => { isMounted = false; };
+  }, [formKey, isHookForm, formOrInitialData]);
 
-  // Clear draft dari Dexie
-  const clearDraft = useCallback(async () => {
-    if (!storageKey) return;
+  // Save function (can be called manually in legacy mode)
+  const saveDraft = useCallback(async (dataToSave?: any) => {
+    if (!isRestored) return;
+    const data = dataToSave || currentValuesRef.current;
+    if (!data) return;
+    
+    setStatus('saving');
     try {
-      await db.drafts.delete(storageKey);
-      setLastSavedTimestamp(null);
-      setHasRestoredDraft(false);
+      await db.drafts.put({
+        formKey,
+        data,
+        timestamp: Date.now(),
+      });
+      setStatus('saved');
+      setLastSaved(Date.now());
+    } catch (err) {
+      console.error('Failed to save draft', err);
       setStatus('idle');
-      logger.info(`[Draft] Cleared draft for ${storageKey}`);
-    } catch (error) {
-      logger.error(`[Draft] Failed to clear draft for ${storageKey}`, error);
     }
-  }, [storageKey]);
+  }, [formKey, isRestored]);
 
-  return {
-    draft,
-    isLoading,
-    saveDraft,
+  // Auto-save interval (30s) if dirty (only for new API)
+  useEffect(() => {
+    if (!isHookForm || !isRestored) return;
+    const isDirty = formOrInitialData.formState.isDirty;
+    if (!isDirty) return;
+    const interval = setInterval(() => saveDraft(), intervalMs);
+    return () => clearInterval(interval);
+  }, [isHookForm, isRestored, saveDraft, formOrInitialData?.formState?.isDirty]);
+
+  // Save on visibility change or page hide
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        if (!isHookForm || formOrInitialData.formState.isDirty) saveDraft();
+      }
+    };
+    const handlePageHide = () => {
+      if (!isHookForm || formOrInitialData.formState.isDirty) saveDraft();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handlePageHide);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handlePageHide);
+    };
+  }, [isHookForm, saveDraft, formOrInitialData?.formState?.isDirty]);
+
+  const clearDraft = useCallback(async () => {
+    try {
+      await db.drafts.delete(formKey);
+      setDraft(null);
+      setLastSaved(null);
+    } catch (err) {
+      console.error('Failed to clear draft', err);
+    }
+  }, [formKey]);
+
+  const relativeSavedTime = lastSaved ? new Date(lastSaved).toLocaleTimeString() : '';
+
+  return { 
+    isRestored, 
     clearDraft,
-    hasRestoredDraft,
-    lastSavedTimestamp,
-    relativeSavedTime: lastSavedTimestamp,
+    draft,
+    saveDraft,
+    hasRestoredDraft: isRestored,
     status,
+    isLoading: !isRestored,
+    relativeSavedTime
   };
 }
