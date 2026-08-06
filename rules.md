@@ -304,6 +304,13 @@ Pos Pelkes → KMJ → Admin Mupel → Super User Sinode
  Draft    Pending_KMJ  Pending_Mupel  Pending_Sinode
                                          ↓
                                    Approved / Rejected
+                                         ↓ (Ajukan Ulang)
+                                  Draft (Record Baru)
+
+Catatan Pengajuan Ulang:
+- Jika status `Rejected`, pemohon (PJ/User) dapat melakukan **Ajukan Ulang**.
+- Aksi ini membuat record baru (`t_pengajuan_bantuan`) ber-status `Draft` dan mereferensikan ID lama via kolom `id_pengajuan_sebelumnya`.
+- Record lama tetap tersimpan sebagai `Rejected` untuk audit trail.
 
 🟠 PENTING — Mutasi Pendeta (Atomic)
 
@@ -748,12 +755,13 @@ USING (
 -- ❌ JANGAN: Disable RLS
 ALTER TABLE m_jemaat_induk DISABLE ROW LEVEL SECURITY;
 
-🔴 KRITIS — Privasi Profile 360° (RLS Asimetri)
+🔴 KRITIS — Privasi Profile 360° (RLS Asimetri EIA v0.1.1)
 
-- `t_log_aktivitas` & `m_webauthn_credentials`: HANYA diri sendiri + super_user
+- `t_log_aktivitas` (Audit Log): Diri sendiri + super_user + admin_mupel (scope Mupel) + kmj (scope Jemaat)
 - Data keluarga (`t_keluarga_pendeta`): HANYA pemilik + super_user (via RPC `get_pendeta_360`)
+- `m_webauthn_credentials` (Device Biometrik): HANYA diri sendiri + super_user
 - Data pelayanan (hierarki, mutasi, log pastoral): sesuai scope role
-- JANGAN pernah longgarkan audit/device ke admin_mupel atau kmj
+- JANGAN pernah longgarkan data keluarga atau biometrik ke admin_mupel atau kmj
 
 🔐 Biometric Auth Rules
 
