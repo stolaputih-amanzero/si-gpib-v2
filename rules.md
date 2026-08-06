@@ -4,17 +4,16 @@
 File ini adalah "kontrak" untuk AI Agent di IDE
 Setiap kode yang dihasilkan WAJIB mematuhi aturan di bawah ini.
 
-Versi: 2.3.1 | Update: 6 Agustus 2026
+Versi: 2.3.2 | Update: 6 Agustus 2026 (Phase 6: Production Readiness & Pilot Phase)
 ⚠️ PWA: Workbox custom + @serwist/next (build tool only)
 
-⚠️ PERUBAHAN KRITIS dari v2.2:
-- Next.js 15+ → 16+ (runtime sudah 16.2.10)
-- next-pwa → Workbox langsung (next-pwa dead & tidak kompatibel Next 16)
-- Zustand → React Context + TanStack Query (pemisahan state per jenis)
-- localStorage → IndexedDB (Dexie) untuk offline storage
-- Tambah: Sentry, CI/CD GitHub Actions, Husky, lint-staged
-- Tambah: Domain logic colocation, No barrel exports
-- Tambah: Next.js 16 specific rules (async params, PPR, cache)
+⚠️ PERUBAHAN KRITIS dari v2.3.1 (Tahap 6 Hardening):
+- Offline Engine: Command Pattern Sync Engine (Dexie v5 + Dead-Letter Queue)
+- Conflict Resolution: Domain-Driven Conflict Policy Engine (menggantikan generic LWW)
+- Server Idempotency: Centralized `sys_transaction_logs` Supabase table
+- Observability: Dual-Write Telemetry (`sys_telemetry` + Sentry Dashboard at `/dashboard/developer/telemetry`)
+- RLS Token Expiry Mitigation: P0 Hotfix session verification before pending queue loop
+- Incident Runbook: Formally defined at `docs/runbooks/offline-sync-incident.md`
 
 🎯 IDENTITAS PROYEK
 
@@ -469,39 +468,80 @@ await db.drafts.delete('log-pastoral-new');
 localStorage.setItem('draft:log-pastoral', JSON.stringify(formData));
 localStorage.setItem('foto-aset', base64String); // ❌ Terlalu besar!
 
-### Dexie Schema
+### Dexie Schema (v5 - Command Pattern & DLQ)
 // src/lib/offline/dexie.ts
 import Dexie, { type Table } from 'dexie';
 
-interface Draft {
+export interface Draft {
   formKey: string;
   data: unknown;
   timestamp: number;
 }
 
-interface PendingSubmission {
+export interface DraftPhoto {
+  formKey: string;
+  photoIndex: number;
+  blob: Blob;
+  timestamp: number;
+}
+
+export interface PendingSubmission {
   id?: number;
-  endpoint: string;
-  payload: unknown;
-  status: 'pending' | 'retrying' | 'failed';
+  requestId: string; // UUID v7 / UUID v4
+  operationType: 'rpc' | 'insert' | 'update';
+  targetIdentifier: string;
+  payload: Record<string, unknown>;
+  status: 'pending' | 'syncing' | 'failed';
   attempts: number;
+  lastError?: string;
   createdAt: number;
 }
 
-class SIGPIBDatabase extends Dexie {
+export interface PendingAttachment {
+  id?: number;
+  submissionId: number;
+  file: Blob;
+  path: string;
+  status: 'pending' | 'uploading' | 'done' | 'failed';
+  attempts: number;
+  lastError?: string;
+  createdAt: number;
+}
+
+export interface DeadLetter {
+  id?: number;
+  requestId: string;
+  operationType: 'rpc' | 'insert' | 'update';
+  targetIdentifier: string;
+  payload: Record<string, unknown>;
+  failureReason: string;
+  httpStatus?: number;
+  errorCode?: string;
+  attempts: number;
+  createdAt: number;
+  movedToDLQAt: number;
+}
+
+class SIOSDatabase extends Dexie {
   drafts!: Table<Draft, string>;
+  draftPhotos!: Table<DraftPhoto>;
   pendingSubmissions!: Table<PendingSubmission>;
+  pendingAttachments!: Table<PendingAttachment>;
+  deadLetters!: Table<DeadLetter>;
 
   constructor() {
     super('sigpib-offline');
-    this.version(1).stores({
+    this.version(5).stores({
       drafts: 'formKey, timestamp',
-      pendingSubmissions: '++id, status, createdAt',
+      draftPhotos: '++id, [formKey+photoIndex], timestamp',
+      pendingSubmissions: '++id, requestId, status, createdAt',
+      pendingAttachments: '++id, submissionId, status, createdAt',
+      deadLetters: '++id, requestId, createdAt, movedToDLQAt',
     });
   }
 }
 
-export const db = new sigpibDatabase();
+export const db = new SIOSDatabase();
 
 ### TanStack Query Persist
 Gunakan `@tanstack/react-query-persist-client` untuk offline data fetching:
@@ -1395,6 +1435,7 @@ const DATA_MASTER = {
 | 1.0 | 20 Juli 2026 | Initial rules untuk Gemini Agentic AI |
 | 2.2 | 20 Juli 2026 | Mobile First PWA + Biometric |
 | 2.3 | 6 Agustus 2026 | KRITIKAL: Next 16+, Workbox custom + @serwist/next (build tool), Dexie, Sentry, CI/CD, State rules, Server Actions, Domain colocation, No barrel exports |
+| 2.3.2 | 6 Agustus 2026 | Tahap 6 Hardening: Offline Command Engine (Dexie v5), Conflict Policy Engine, Server Idempotency (sys_transaction_logs), Dual-Write Telemetry, DLQ, & Incident Runbooks |
 
 🎯 PENUTUP
 
