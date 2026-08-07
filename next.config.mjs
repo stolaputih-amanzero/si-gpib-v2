@@ -15,8 +15,7 @@ const withSerwistConfig = withSerwist({
 const nextConfig = {
   reactStrictMode: true,
 
-  // Next.js 16: cacheComponents (formerly PPR)
-  cacheComponents: false,
+  // Next.js 16: cacheComponents (formerly PPR) removed due to conflicts
 
   images: {
     formats: ['image/avif', 'image/webp'],
