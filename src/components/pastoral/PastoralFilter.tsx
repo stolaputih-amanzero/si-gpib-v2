@@ -41,16 +41,14 @@ export function PastoralFilter({ filter, onFilterChange, pendetaList, posList }:
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild={true as any}>
-        <Button variant="outline" size="sm" className="relative">
-          <Filter className="w-4 h-4 mr-2" />
-          Filter
-          {activeFilterCount > 0 && (
-            <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              {activeFilterCount}
-            </span>
-          )}
-        </Button>
+      <SheetTrigger className="relative inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-xs font-medium shadow-sm hover:bg-accent hover:text-accent-foreground">
+        <Filter className="w-4 h-4 mr-2" />
+        Filter
+        {activeFilterCount > 0 && (
+          <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+            {activeFilterCount}
+          </span>
+        )}
       </SheetTrigger>
       <SheetContent side="bottom" className="max-h-[90vh] overflow-y-auto">
         <SheetHeader>
@@ -92,8 +90,8 @@ export function PastoralFilter({ filter, onFilterChange, pendetaList, posList }:
           <div>
             <label className="text-sm font-medium mb-1 block">Pendeta</label>
             <Select
-              value={localFilter.idPendeta || 'all'}
-              onValueChange={(value) => setLocalFilter({ ...localFilter, idPendeta: value === 'all' ? undefined : value })}
+              value={(localFilter.idPendeta as string) || 'all'}
+              onValueChange={(value) => setLocalFilter({ ...localFilter, idPendeta: value === 'all' ? undefined : value } as any)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Semua Pendeta" />
@@ -113,8 +111,8 @@ export function PastoralFilter({ filter, onFilterChange, pendetaList, posList }:
           <div>
             <label className="text-sm font-medium mb-1 block">Pos Pelkes</label>
             <Select
-              value={localFilter.idPos || 'all'}
-              onValueChange={(value) => setLocalFilter({ ...localFilter, idPos: value === 'all' ? undefined : value })}
+              value={(localFilter.idPos as string) || 'all'}
+              onValueChange={(value) => setLocalFilter({ ...localFilter, idPos: value === 'all' ? undefined : value } as any)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Semua Pos" />
