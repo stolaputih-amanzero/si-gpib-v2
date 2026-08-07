@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Fingerprint, AlertCircle, Loader2, ShieldCheck, RefreshCw } from 'lucide-react';
 import { useBiometric } from '@/hooks/use-biometric';
 import { haptic } from '@/lib/haptic/vibrate';
+import { useBiometricMotion } from './biometric-motion';
 
 interface BiometricSetupProps {
   initialEnabled?: boolean;
@@ -12,6 +14,19 @@ interface BiometricSetupProps {
 export function BiometricSetup({ initialEnabled = false }: BiometricSetupProps) {
   const { status, error, registerBiometric, resetStatus } = useBiometric();
   const [isOverrideReset, setIsOverrideReset] = useState(false);
+  
+  const { iconVariants, controls, shake } = useBiometricMotion();
+  const prevStatus = useRef(status);
+
+  useEffect(() => {
+    if (status === 'error' && prevStatus.current !== 'error') {
+      haptic.error();
+      shake();
+    } else if (status === 'success' && prevStatus.current !== 'success') {
+      haptic.success();
+    }
+    prevStatus.current = status;
+  }, [status, shake]);
 
   // If initially enabled and user hasn't pressed reset, treat idle as active
   const isCurrentlyActive = (initialEnabled && status === 'idle' && !isOverrideReset) || status === 'success';
@@ -19,9 +34,6 @@ export function BiometricSetup({ initialEnabled = false }: BiometricSetupProps) 
   const handleRegister = async () => {
     haptic.light();
     await registerBiometric();
-    if (status === 'success') {
-      haptic.success();
-    }
   };
 
   const handleReset = () => {
@@ -30,15 +42,19 @@ export function BiometricSetup({ initialEnabled = false }: BiometricSetupProps) 
   };
 
   return (
-    <div className="bg-surface-elevated rounded-2xl p-5 shadow-sm border border-border-subtle transition-all">
+    <motion.div animate={controls} className="bg-surface-elevated rounded-2xl p-5 shadow-sm border border-border-subtle transition-all">
       <div className="flex items-start gap-3.5 mb-4">
-        <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+        <motion.div 
+          variants={iconVariants}
+          initial="idle"
+          animate={status === 'loading' ? 'loading' : status === 'success' ? 'success' : 'idle'}
+          className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
           isCurrentlyActive 
             ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400' 
             : 'bg-brand-primary/10 text-brand-primary'
         }`}>
           <Fingerprint className="w-6 h-6" />
-        </div>
+        </motion.div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
             <h3 className="text-base font-semibold text-text-high">
@@ -57,6 +73,36 @@ export function BiometricSetup({ initialEnabled = false }: BiometricSetupProps) 
           </p>
         </div>
       </div>
+
+      <AnimatePresence mode="wait">
+        {/* State: Error */}
+        {status === 'error' && (
+          <motion.div 
+            key="error"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mb-4 overflow-hidden"
+          >
+            <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 rounded-xl p-3.5 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-red-900 dark:text-red-200">Gagal mengaktifkan biometrik</p>
+                <p className="text-xs text-red-700 dark:text-red-300 mt-0.5 leading-tight">{error}</p>
+                <button 
+                  onClick={() => {
+                    resetStatus();
+                    setIsOverrideReset(true);
+                  }} 
+                  className="text-xs text-red-700 dark:text-red-300 font-semibold underline mt-2 inline-block hover:text-red-900"
+                >
+                  Coba Lagi
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* State: Active / Previously Registered */}
       {isCurrentlyActive && (
@@ -101,27 +147,6 @@ export function BiometricSetup({ initialEnabled = false }: BiometricSetupProps) 
           <span className="text-sm font-medium">Sentuh sensor sidik jari HP Anda...</span>
         </div>
       )}
-
-      {/* State: Error */}
-      {status === 'error' && (
-        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 rounded-xl p-3.5 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-red-900 dark:text-red-200">Gagal mengaktifkan biometrik</p>
-            <p className="text-xs text-red-700 dark:text-red-300 mt-0.5 leading-tight">{error}</p>
-            <button 
-              onClick={() => {
-                resetStatus();
-                setIsOverrideReset(true);
-              }} 
-              className="text-xs text-red-700 dark:text-red-300 font-semibold underline mt-2 inline-block hover:text-red-900"
-            >
-              Coba Lagi
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+    </motion.div>
   );
 }
-

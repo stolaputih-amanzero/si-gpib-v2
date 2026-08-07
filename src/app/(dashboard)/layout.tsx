@@ -5,6 +5,7 @@ import MobileHeader from '@/components/layout/MobileHeader';
 import { SuperBottomNav } from '@/components/mobile/SuperBottomNav/SuperBottomNav';
 import { ReadOnlyNoticeBanner } from '@/components/auth/ReadOnlyNoticeBanner';
 import { PosProvider } from '@/stores/pos-context';
+import { OfflineQueuePanel } from '@/components/offline/OfflineQueuePanel';
 
 export default function DashboardLayout({
   children,
@@ -26,6 +27,9 @@ export default function DashboardLayout({
         <main className="flex-1 overflow-y-auto pb-24 md:pb-8 px-4 sm:px-6 md:px-8 pt-4 sm:pt-6">
           <div className="max-w-7xl mx-auto min-h-full">
             <ReadOnlyNoticeBanner />
+            <div className="flex justify-end mb-4">
+              <OfflineQueuePanel />
+            </div>
             {children}
           </div>
         </main>

@@ -140,6 +140,25 @@ class SyncManager {
   private async executeServerAction(item: PendingSubmission): Promise<{ success: boolean; error?: string; status?: number; code?: string }> {
     return dispatchSubmission(item);
   }
+
+  /** Pindahkan satu Dead Letter kembali ke antrean pending, lalu proses. */
+  async retryDeadLetter(id: number) {
+    const dl = await db.deadLetters.get(id);
+    if (!dl) return;
+    await db.transaction('rw', db.deadLetters, db.pendingSubmissions, async () => {
+      await db.pendingSubmissions.add({
+        requestId: dl.requestId,
+        operationType: dl.operationType,
+        targetIdentifier: dl.targetIdentifier,
+        payload: dl.payload,
+        status: 'pending',
+        attempts: 0,
+        createdAt: Date.now(),
+      });
+      await db.deadLetters.delete(id);
+    });
+    await this.processQueue();
+  }
 }
 
 export const syncManager = new SyncManager();
