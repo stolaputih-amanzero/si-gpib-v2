@@ -9,11 +9,18 @@ import { logger } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
 
 interface NativeCameraCaptureProps {
-  onCapture: (blob: Blob, gps: { lat: number; lng: number; accuracy: number }) => void;
-  existingPreview?: string | null; // URL preview jika ada dari draft
+  onCapture: (blob: Blob, gps?: { lat: number; lng: number; accuracy: number }) => void;
+  existingPreview?: string | null;
+  label?: string;
+  requireGps?: boolean;
 }
 
-export function NativeCameraCapture({ onCapture, existingPreview }: NativeCameraCaptureProps) {
+export function NativeCameraCapture({ 
+  onCapture, 
+  existingPreview, 
+  label = "Ambil Foto Aset", 
+  requireGps = true 
+}: NativeCameraCaptureProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(existingPreview ?? null);
   const [blob, setBlob] = useState<Blob | null>(null);
@@ -30,21 +37,20 @@ export function NativeCameraCapture({ onCapture, existingPreview }: NativeCamera
     haptic('medium');
 
     try {
-      // 1. Ambil GPS live (bukan dari EXIF — D-CJ5-2)
-      const position = await getCurrentPosition();
-      if (!position) {
-        setError('Gagal mengambil koordinat GPS. Silakan coba lagi atau input manual.');
-      } else {
-        setGps({ lat: position.latitude, lng: position.longitude, accuracy: position.accuracy });
+      if (requireGps) {
+        const position = await getCurrentPosition();
+        if (!position) {
+          setError('Gagal mengambil koordinat GPS. Silakan coba lagi atau input manual.');
+        } else {
+          setGps({ lat: position.latitude, lng: position.longitude, accuracy: position.accuracy });
+        }
       }
 
-      // 2. Kompres ke ≤ 200KB (NFR-08)
       const compressed = await compressImage(file, {
         maxDim: 1920,
         targetKB: 200,
       });
 
-      // 3. Buat preview URL
       const url = URL.createObjectURL(compressed);
       setPreview(url);
       setBlob(compressed);
@@ -53,15 +59,14 @@ export function NativeCameraCapture({ onCapture, existingPreview }: NativeCamera
       setError('Gagal memproses foto. Silakan coba lagi.');
     } finally {
       setProcessing(false);
-      // Reset input agar bisa pilih file yang sama lagi
       if (inputRef.current) inputRef.current.value = '';
     }
-  }, []);
+  }, [requireGps]);
 
   const handleConfirm = () => {
-    if (blob && gps) {
+    if (blob) {
       haptic('success');
-      onCapture(blob, gps);
+      onCapture(blob, requireGps ? (gps || undefined) : undefined);
     }
   };
 
@@ -74,7 +79,6 @@ export function NativeCameraCapture({ onCapture, existingPreview }: NativeCamera
     inputRef.current?.click();
   };
 
-  // Mode preview — setelah capture
   if (preview) {
     return (
       <div className="space-y-3">
@@ -101,7 +105,6 @@ export function NativeCameraCapture({ onCapture, existingPreview }: NativeCamera
     );
   }
 
-  // Mode capture — tampilkan tombol besar
   return (
     <div className="space-y-3">
       <input
@@ -118,15 +121,15 @@ export function NativeCameraCapture({ onCapture, existingPreview }: NativeCamera
         onClick={() => inputRef.current?.click()}
         disabled={processing}
         className="w-full h-40 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center gap-3 text-gray-600 bg-gray-50 active:bg-gray-100 transition-colors disabled:opacity-50"
-        aria-label="Ambil foto aset"
+        aria-label={label}
       >
         {processing ? (
           <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
         ) : (
           <>
             <Camera className="w-10 h-10" />
-            <span className="font-medium text-base">Ambil Foto Aset</span>
-            <span className="text-xs text-gray-500">Kamera belakang akan terbuka</span>
+            <span className="font-medium text-base">{label}</span>
+            <span className="text-xs text-gray-500">Kamera akan terbuka</span>
           </>
         )}
       </button>

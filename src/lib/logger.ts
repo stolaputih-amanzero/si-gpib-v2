@@ -1,30 +1,34 @@
-// src/lib/logger.ts
-/**
- * Centralized logger utility for SI GPIB.
- * In production, this should integrate with Sentry or Datadog.
- * Rules.md: Ensure all client/server logs route through this.
- */
+import * as Sentry from '@sentry/nextjs';
 
 type LogContext = Record<string, unknown>;
 
 class Logger {
   info(message: string, context?: LogContext) {
     console.log(`[INFO] ${message}`, context || '');
-    // Sentry.captureMessage(message, { level: 'info', extra: context });
+    if (process.env.NEXT_PUBLIC_SENTRY_DSN || process.env.SENTRY_DSN) {
+      Sentry.addBreadcrumb({ category: 'app', message, data: context, level: 'info' });
+    }
   }
 
   warn(message: string, context?: LogContext) {
     console.warn(`[WARN] ${message}`, context || '');
-    // Sentry.captureMessage(message, { level: 'warning', extra: context });
+    if (process.env.NEXT_PUBLIC_SENTRY_DSN || process.env.SENTRY_DSN) {
+      Sentry.addBreadcrumb({ category: 'app', message, data: context, level: 'warning' });
+    }
   }
 
   error(message: string, context?: LogContext | Error | unknown) {
     console.error(`[ERROR] ${message}`, context || '');
     
-    if (context instanceof Error) {
-      // Sentry.captureException(context);
-    } else {
-      // Sentry.captureMessage(message, { level: 'error', extra: context });
+    if (process.env.NEXT_PUBLIC_SENTRY_DSN || process.env.SENTRY_DSN) {
+      if (context instanceof Error) {
+        Sentry.captureException(context, { extra: { customMessage: message } });
+      } else {
+        Sentry.captureMessage(message, {
+          level: 'error',
+          extra: typeof context === 'object' ? (context as LogContext) : { details: context },
+        });
+      }
     }
   }
 

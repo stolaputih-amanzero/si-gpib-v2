@@ -265,12 +265,12 @@ export function PosPelkesList({
               </span>
             </div>
 
-            <Button asChild variant="ghost" size="sm" className="min-h-[44px] shrink-0 text-brand-600 hover:bg-surface-brand" onClick={() => haptic.light()}>
-              <Link href="/dashboard/peta">
+            <Link href="/dashboard/peta" onClick={() => haptic.light()}>
+              <Button variant="ghost" size="sm" type="button" className="min-h-[44px] shrink-0 text-brand-600 hover:bg-surface-brand">
                 <Map size={18} className="mr-1.5" />
                 <span className="hidden sm:inline">Peta</span>
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </div>
         </div>
 

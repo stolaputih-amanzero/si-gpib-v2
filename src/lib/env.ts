@@ -20,6 +20,11 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_URL: z.string().url(),
     // Sentry (Optional)
     NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
+    // Feature Flags
+    NEXT_PUBLIC_ENABLE_PUBLIC_PORTAL: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((v) => v === 'true'),
   },
   runtimeEnv: {
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -29,6 +34,7 @@ export const env = createEnv({
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    NEXT_PUBLIC_ENABLE_PUBLIC_PORTAL: process.env.NEXT_PUBLIC_ENABLE_PUBLIC_PORTAL,
     NODE_ENV: process.env.NODE_ENV,
   },
   emptyStringAsUndefined: true,

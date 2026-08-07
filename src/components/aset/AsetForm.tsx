@@ -83,9 +83,11 @@ export function AsetForm({ jenis, idPos, id_pos, defaultKategori }: AsetFormProp
     }
   }, [fotoGps, useManualGps, form]);
 
-  const handleCapture = useCallback((blob: Blob, gps: { lat: number; lng: number; accuracy: number }) => {
+  const handleCapture = useCallback((blob: Blob, gps?: { lat: number; lng: number; accuracy: number }) => {
     setFotoBlob(blob);
-    setFotoGps(gps);
+    if (gps) {
+      setFotoGps(gps);
+    }
     
     // Set metadata foto di form
     form.setValue('foto', {

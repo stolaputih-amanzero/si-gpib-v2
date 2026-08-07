@@ -42,13 +42,20 @@ CREATE OR REPLACE FUNCTION create_log_pastoral_atomic(
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
+DECLARE
+  v_role VARCHAR;
 BEGIN
+  -- Dapatkan role user
+  SELECT role INTO v_role FROM users WHERE id = p_user_id;
+
   -- Defense-in-depth RBAC (F-4c)
-  IF NOT EXISTS (SELECT 1 FROM t_penugasan_pendeta
-                 WHERE id_pendeta = p_id_pendeta AND id_pos = p_id_pos
-                   AND status_tugas = 'Aktif' AND tgl_selesai IS NULL)
-  THEN 
-    RAISE EXCEPTION 'RBAC_VIOLATION: penugasan aktif tidak ditemukan';
+  IF v_role NOT IN ('super_user', 'admin_mupel', 'admin_jemaat', 'pj') THEN
+    IF NOT EXISTS (SELECT 1 FROM t_penugasan_pendeta
+                   WHERE id_pendeta = p_id_pendeta AND id_pos IS NOT DISTINCT FROM p_id_pos
+                     AND status_tugas = 'Aktif' AND tgl_selesai IS NULL)
+    THEN 
+      RAISE EXCEPTION 'RBAC_VIOLATION: penugasan aktif tidak ditemukan';
+    END IF;
   END IF;
 
   -- Idempotency check (double-lock)

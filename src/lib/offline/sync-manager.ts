@@ -13,7 +13,7 @@ export type SyncEvent = 'session-expired' | 'sync-started' | 'sync-completed' | 
 type SyncEventListener = (event: SyncEvent, payload?: unknown) => void;
 
 class SyncManager {
-  private isProcessing = false;
+  public isProcessing = false;
   private listeners: Set<SyncEventListener> = new Set();
 
   on(listener: SyncEventListener) {
@@ -42,10 +42,12 @@ class SyncManager {
       // P0 Hotfix: Validate session before looping
       const supabase = createClient();
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const isPaused = typeof window !== 'undefined' && window.localStorage.getItem('gp_sync_paused') === 'true';
       
-      if (sessionError || !session) {
+      if (isPaused || (sessionError && !session)) {
+        console.error('[SYNC_SESSION_CHECK_FAILED]', { sessionError, session, isPaused });
         this.emit('session-expired');
-        logger.error('Session expired, halting sync');
+        logger.error('Session expired or sync paused, halting sync');
         return;
       }
 
@@ -94,6 +96,7 @@ class SyncManager {
             throw new Error(response.error || 'Server validation failed');
           }
         } catch (error: unknown) {
+          console.error('[SYNC_MANAGER_CATCH_ERROR]', error);
           const err = error as { status?: number; code?: string; message?: string };
           const isClientError = err.status && err.status >= 400 && err.status < 500;
           
@@ -118,11 +121,12 @@ class SyncManager {
             logger.error('Moved to DeadLetter Queue', { requestId: item.requestId, error: err.message });
           } else {
             // Gagal transient -> kembalikan ke failed
+            console.error('[SYNC_FAILED_TRANSIENTLY]', { requestId: item.requestId, attempts: item.attempts + 1, error });
             await db.pendingSubmissions.update(item.id!, {
               status: 'failed',
               lastError: err.message || 'Transient network error',
             });
-            logger.error('Sync failed transiently', { requestId: item.requestId, attempts: item.attempts + 1 });
+            logger.error('Sync failed transiently', { requestId: item.requestId, attempts: item.attempts + 1, errorMessage: err.message });
           }
         }
       }
@@ -139,6 +143,10 @@ class SyncManager {
 }
 
 export const syncManager = new SyncManager();
+
+if (typeof window !== 'undefined') {
+  (window as any).__SYNC_MANAGER__ = syncManager;
+}
 
 export function setupSyncListener() {
   if (typeof window !== 'undefined') {

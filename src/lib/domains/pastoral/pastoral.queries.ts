@@ -1,8 +1,9 @@
 // src/lib/domains/pastoral/pastoral.queries.ts
 'use client';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { submitLogPastoral } from './pastoral.service';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { submitLogPastoral, getLogPastoralList, getPastoralStats } from './pastoral.service';
+import type { PastoralFilter } from './pastoral.types';
 import { toast } from 'sonner';
 import { haptic } from '@/lib/haptic/vibrate';
 
@@ -37,5 +38,23 @@ export function useCreateLogPastoral() {
       });
       haptic('error');
     },
+  });
+}
+
+export function useLogPastoralList(filter: PastoralFilter) {
+  return useQuery({
+    queryKey: ['log-pastoral-list', filter],
+    queryFn: () => getLogPastoralList(filter),
+    enabled: !!filter.idJemaat,
+    staleTime: 5 * 60 * 1000, // 5 menit
+  });
+}
+
+export function usePastoralStats(idJemaat: string, startDate?: string, endDate?: string) {
+  return useQuery({
+    queryKey: ['pastoral-stats', idJemaat, startDate, endDate],
+    queryFn: () => getPastoralStats(idJemaat, startDate, endDate),
+    enabled: !!idJemaat,
+    staleTime: 5 * 60 * 1000,
   });
 }

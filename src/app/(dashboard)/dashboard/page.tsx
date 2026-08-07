@@ -9,6 +9,9 @@ import { KATEGORI_PELKAT } from '@/lib/constants/pelkat';
 import { ScopeIndicator, UserRoleScope } from '@/components/analitik/ScopeIndicator';
 import { getStatRoutes } from '@/lib/utils/stat-routes';
 import { formatNumber } from '@/lib/utils';
+import { PastoralStats } from '@/components/pastoral/PastoralStats';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import Link from 'next/link';
 
 interface DemografiRow {
   kategori_pelkat: string;
@@ -360,6 +363,22 @@ export default async function Dashboard() {
             <RecentActivity logs={recentLogs as any || []} />
           </div>
         </div>
+
+        {userRole === 'kmj' && userIndukId && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Aktivitas Pastoral Minggu Ini</span>
+                <Link href="/pastoral" className="text-sm font-medium text-blue-600 hover:underline">
+                  Lihat Semua
+                </Link>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PastoralStats idJemaat={userIndukId} />
+            </CardContent>
+          </Card>
+        )}
       </main>
 
       <QuickActions />

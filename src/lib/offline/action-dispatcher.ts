@@ -11,7 +11,7 @@ export async function dispatchSubmission(item: PendingSubmission) {
   // - network / 5xx / timeout → transient → retry backoff
   switch (item.targetIdentifier) {
     case 'create_log_pastoral':
-      return createLogPastoralAction(item.payload);
+      return createLogPastoralAction({ ...item.payload, requestId: item.requestId });
     case 'create_aset': {
       const validated = createAsetSchema.parse(item.payload);
       return createAsetAction(validated);

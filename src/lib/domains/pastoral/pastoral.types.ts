@@ -25,3 +25,23 @@ export interface CreateLogPastoralInput {
 export const PASTORAL_TARGETS = {
   CREATE_LOG: 'create_log_pastoral',
 } as const;
+
+export interface PastoralFilter {
+  idJemaat: string;
+  startDate?: string; // ISO date
+  endDate?: string;
+  idPendeta?: string;
+  idPos?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface PastoralStats {
+  total_log: number;
+  total_jiwa: number;
+  total_pos: number;
+  total_pendeta: number;
+  avg_jiwa_per_log: number;
+  latest_log: string | null;
+}

@@ -7,7 +7,7 @@ import {
 } from '@/hooks/use-pendeta';
 import { useJabatanByPendeta } from '@/hooks/use-jabatan-struktural';
 import { MutationTimeline } from '@/components/pendeta/MutationTimeline';
-import { MutasiForm } from '@/components/pendeta/MutasiForm';
+import { MutasiButton } from '@/components/pendeta/MutasiButton';
 import { JabatanTimeline } from '@/components/pendeta/JabatanTimeline';
 import { OrganikBadge } from '@/components/pendeta/OrganikBadge';
 import { KontrakAlert } from '@/components/pendeta/KontrakAlert';
@@ -30,8 +30,6 @@ import Link from 'next/link';
 export default function PendetaDetailPage({ params }: { params: Promise<{ id_pendeta: string }> }) {
   const resolvedParams = use(params);
   const id_pendeta = resolvedParams.id_pendeta;
-
-  const [showMutasiModal, setShowMutasiModal] = useState<boolean>(false);
 
   const { data: currentUser } = useCurrentUser();
   const isSuperUser = isSuperUserRole(currentUser?.role);
@@ -137,14 +135,7 @@ export default function PendetaDetailPage({ params }: { params: Promise<{ id_pen
                 <span>{isSuperUser ? 'Edit Biodata SDM' : 'Update Profil 360°'}</span>
               </Link>
 
-              <button
-                type="button"
-                onClick={() => setShowMutasiModal(true)}
-                className="flex-1 sm:flex-none min-h-[44px] px-4 py-2 rounded-xl bg-brand-primary text-white font-semibold text-xs hover:bg-blue-800 transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98]"
-              >
-                <ArrowRightLeft size={16} />
-                <span>Mutasi & Penugasan Pendeta</span>
-              </button>
+              <MutasiButton idPendeta={pendeta.id_pendeta} namaPendeta={pendeta.nama_lengkap} />
             </div>
           </div>
 
@@ -228,32 +219,6 @@ export default function PendetaDetailPage({ params }: { params: Promise<{ id_pen
         </Tabs>
       </main>
 
-      {/* Modal Mutasi Form */}
-      {showMutasiModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-surface-elevated w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-5 border border-border-subtle shadow-float max-h-[90vh] overflow-y-auto space-y-4 animate-in slide-in-from-bottom-4">
-            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
-              <h2 className="text-base font-bold text-brand-primary">Mutasi Pendeta Ke Jemaat Induk Lain</h2>
-              <button
-                type="button"
-                onClick={() => setShowMutasiModal(false)}
-                className="w-8 h-8 rounded-full bg-surface-sunken flex items-center justify-center text-text-muted hover:text-text-high"
-              >
-                ✕
-              </button>
-            </div>
-
-            <MutasiForm
-              id_pendeta={pendeta.id_pendeta}
-              nama_pendeta={pendeta.nama_lengkap}
-              currentIdInduk={pendeta.id_induk}
-              currentNamaInduk={pendeta.jemaat_induk?.nama_induk || pendeta.id_induk}
-              onSuccess={() => setShowMutasiModal(false)}
-              onCancel={() => setShowMutasiModal(false)}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

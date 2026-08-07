@@ -74,3 +74,7 @@ class SIOSDatabase extends Dexie {
 }
 
 export const db = new SIOSDatabase();
+
+if (typeof window !== 'undefined') {
+  (window as any).__TEST_DB__ = db;
+}

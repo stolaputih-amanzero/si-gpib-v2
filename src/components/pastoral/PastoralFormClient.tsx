@@ -24,6 +24,7 @@ import { useFormDraft } from '@/hooks/use-form-draft';
 import { usePendingSubmissions } from '@/hooks/use-pending-submissions';
 import { formatPastoralKegiatanText } from '@/lib/formatters/pastoral-text';
 import { createLogPastoralAction } from '@/app/(dashboard)/dashboard/pastoral/actions';
+import { generateTimestampId } from '@/lib/constants/id-formats';
 
 export function PastoralFormClient() {
   const router = useRouter();
@@ -137,7 +138,7 @@ export function PastoralFormClient() {
   const onSubmit = async (data: LogPastoralInput) => {
     setHasSubmitError(false);
 
-    let pendetaId = data.id_pendeta || userAuth?.id_pendeta || 'PDT-TEST-DEFAULT';
+    let pendetaId = data.id_pendeta || userAuth?.id_pendeta || 'PDT-00000001';
     let finalPosId = data.id_pos && data.id_pos.trim() !== '' ? data.id_pos : null;
 
     if (targetScope === 'pos' && !finalPosId) {
@@ -145,7 +146,7 @@ export function PastoralFormClient() {
       return;
     }
 
-    const idLog = `LOG-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const idLog = generateTimestampId('LOG');
     const tglStr = typeof data.tgl === 'string' ? data.tgl : getTodayDateString();
     const jamStr = data.jam || getNowTimeString();
     const zonaStr = data.zona_waktu || 'WIB';
@@ -174,8 +175,9 @@ export function PastoralFormClient() {
 
     if (isCurrentlyOffline) {
       // Queue submission offline immediately without waiting for network timeouts or router push errors
-      addPendingSubmission('insert', 't_log_pastoral', payload as Record<string, unknown>);
+      addPendingSubmission('insert', 'create_log_pastoral', payload as Record<string, unknown>);
       clearDraft();
+      reset();
       toast.info('Tersimpan di Antrean Offline', 'Koneksi internet tidak tersedia. Data tersimpan di antrean offline.');
       return;
     }
@@ -187,7 +189,7 @@ export function PastoralFormClient() {
       router.push('/laporan/pastoral');
     } catch (err: any) {
       console.warn('Online sync failed, queuing to offline pending submissions:', err);
-      addPendingSubmission('insert', 't_log_pastoral', payload as Record<string, unknown>);
+      addPendingSubmission('insert', 'create_log_pastoral', payload as Record<string, unknown>);
       clearDraft();
       toast.info('Tersimpan di Antrean Offline', 'Koneksi internet terputus. Data tersimpan di antrean offline.');
       router.push('/laporan/pastoral');
