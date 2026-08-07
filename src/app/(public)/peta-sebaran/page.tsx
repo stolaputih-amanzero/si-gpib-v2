@@ -5,6 +5,8 @@ import { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
 import { getPublicPosPelkes } from '@/lib/domains/portal/portal.service';
 
+export const dynamic = 'force-dynamic';
+
 const getCachedPosData = unstable_cache(
   async () => getPublicPosPelkes(),
   ['public-pos-pelkes-page'],
