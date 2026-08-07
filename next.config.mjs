@@ -16,7 +16,7 @@ const nextConfig = {
   reactStrictMode: true,
 
   // Next.js 16: cacheComponents (formerly PPR)
-  cacheComponents: true,
+  cacheComponents: false,
 
   images: {
     formats: ['image/avif', 'image/webp'],
