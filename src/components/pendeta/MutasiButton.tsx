@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
 import { MutasiPendetaForm } from './MutasiPendetaForm';
 import { ArrowRightLeft } from 'lucide-react';
@@ -21,11 +20,9 @@ export function MutasiButton({ idPendeta, namaPendeta }: MutasiButtonProps) {
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild={true as any}>
-        <Button variant="outline" size="sm" className="ml-auto w-full md:w-auto flex items-center justify-center border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 hover:text-blue-800">
-          <ArrowRightLeft className="w-4 h-4 mr-2" />
-          Mutasi Pendeta
-        </Button>
+      <SheetTrigger className="inline-flex h-9 items-center justify-center rounded-md px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 ml-auto w-full md:w-auto border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 hover:text-blue-800">
+        <ArrowRightLeft className="w-4 h-4 mr-2" />
+        Mutasi Pendeta
       </SheetTrigger>
       
       {/* Gunakan side="bottom" untuk mobile, tapi right untuk desktop jika perlu, default bottom untuk PWA */}

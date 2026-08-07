@@ -155,7 +155,7 @@ export function MutasiPendetaForm({ idPendeta, namaPendeta, onSuccess }: MutasiP
 
       <div className="space-y-2">
         <Label>Jenis Mutasi <span className="text-red-500">*</span></Label>
-        <Select value={jenisMutasi} onValueChange={setJenisMutasi}>
+        <Select value={jenisMutasi} onValueChange={(v) => setJenisMutasi(v as string)}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>

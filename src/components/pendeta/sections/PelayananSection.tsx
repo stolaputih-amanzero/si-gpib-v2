@@ -15,7 +15,7 @@ interface PelayananSectionProps {
   jabatan: any[];
 }
 
-export function PelayananSection({ pendeta, jabatan }: PelayananSectionProps) {
+export function PelayananSection({ pendeta }: PelayananSectionProps) {
   // Ambil jabatan yang relevan dengan gereja (contoh: KMJ, PJ)
   return (
     <div className="space-y-4">
