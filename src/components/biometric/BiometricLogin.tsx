@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Fingerprint, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { haptic } from '@/lib/haptic/vibrate';
@@ -15,6 +15,11 @@ export function BiometricLogin({ email }: BiometricLoginProps) {
   const { status, error, loginWithBiometric, resetStatus } = useBiometricLogin();
   const { iconVariants, controls, shake } = useBiometricMotion();
   const prevStatus = useRef(status);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (status === 'error' && prevStatus.current !== 'error') {
@@ -30,6 +35,29 @@ export function BiometricLogin({ email }: BiometricLoginProps) {
     haptic.light();
     loginWithBiometric(email?.trim() || undefined);
   };
+
+  if (!mounted) {
+    return (
+      <div className="flex flex-col items-center gap-6 py-6 w-full">
+        <div className="relative w-20 h-20 flex items-center justify-center">
+          <div className="absolute inset-0 rounded-full bg-blue-50" />
+          <Fingerprint className="w-10 h-10 text-brand-primary z-10" aria-hidden />
+        </div>
+        <button
+          type="button"
+          disabled
+          className="w-full min-h-[44px] rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300 bg-surface-elevated border-2 border-brand-primary text-brand-primary opacity-50"
+        >
+          <Fingerprint className="w-4 h-4" />Login dengan Biometrik
+        </button>
+        {!email && (
+          <p className="text-[11px] text-text-muted text-center leading-relaxed">
+            Gunakan biometrik (Fingerprint/Face ID) jika passkey sudah terdaftar.
+          </p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <motion.div animate={controls} className="flex flex-col items-center gap-6 py-6 w-full">
