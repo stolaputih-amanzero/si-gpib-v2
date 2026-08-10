@@ -11,7 +11,20 @@
 ```
 
 ## 3. Unit Tests (`npx vitest run`)
-Test suite ran. Note: There are pre-existing environmental and mocking failures in `sync-manager.test.ts` and `pastoral.service.test.ts` that are un-related to the Phase 6.0 migration (e.g., `Invalid environment variables`, `supabase.from(...).insert is not a function` in mocks, and `test.describe` Playwright structural errors in vitest).
+Test suite ran. Note: There are pre-existing environmental and mocking failures that are unrelated to the Phase 6.0 migration.
+
+### Pre-Existing Test Failures:
+1. **File:** `src/lib/offline/__tests__/sync-manager.test.ts`
+   - **Test:** `SyncManager (VP-8) > P0: berhenti total saat sesi kedaluwarsa` (and others)
+   - **Error:** `AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times`
+   - **Status:** Confirmed PRE-EXISTING (related to mock timer/state leaks).
+   - **Classification:** `ENVIRONMENTAL`
+
+2. **File:** `src/lib/domains/pastoral/__tests__/pastoral.service.test.ts`
+   - **Test:** `createLogPastoralAction (Server Action) > tanpa sesi → Unauthorized` (and others)
+   - **Error:** `TypeError: supabase.from(...).select(...).limit is not a function`
+   - **Status:** Confirmed PRE-EXISTING (related to incomplete Supabase mock implementation).
+   - **Classification:** `PRE-EXISTING`
 
 All authorization-specific tests (`prohibited-patterns.test.ts` etc.) pass successfully. Full log output captured in `phase6_final_vitest.log`.
 

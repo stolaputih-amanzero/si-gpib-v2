@@ -8,7 +8,15 @@
 ## Blocker 2: `src/lib/domains/bantuan/bantuan.service.ts`
 | # | Caller File | Caller Line | Function Used | Supabase Client | Credential | Classification |
 |---|---|---|---|---|---|---|
-| 1 | `src/lib/domains/bantuan/bantuan.queries.ts` | 18, 241 | `createPengajuanBantuan`, `updatePengajuanBantuan`, `submitPengajuanBantuan`, `reviewByKMJ`, `reviewByAdminMupel`, `reviewBySuperUser`, `ajukanUlangBantuan`, `deletePengajuanBantuan`, `getPengajuanDetail` | Server Client | Auth Session | `ACTIVE — Unmigrated Domain Logic (Contains Shadow Auth)` |
+| 1 | `bantuan.queries.ts` | 18, 241 | `createPengajuanBantuan` | Server Client | Auth Session | `ACTIVE — Unmigrated Domain Logic (WRITE / OC-AID-001)` |
+| 2 | `bantuan.queries.ts` | 18, 241 | `reviewByKMJ` | Server Client | Auth Session | `ACTIVE — Unmigrated Domain Logic (WRITE / OC-AID-004)` |
+| 3 | `bantuan.queries.ts` | 18, 241 | `ajukanUlangBantuan` | Server Client | Auth Session | `ACTIVE — Unmigrated Domain Logic (WRITE / OC-AID-007)` |
+| 4 | `bantuan.queries.ts` | 18, 241 | `updatePengajuanBantuan` | Server Client | Auth Session | `ACTIVE — Unmigrated Domain Logic (WRITE / OC-AID-002)` |
+| 5 | `bantuan.queries.ts` | 18, 241 | `submitPengajuanBantuan` | Server Client | Auth Session | `ACTIVE — Unmigrated Domain Logic (WRITE / OC-AID-003)` |
+| 6 | `bantuan.queries.ts` | 18, 241 | `reviewByAdminMupel` | Server Client | Auth Session | `ACTIVE — Unmigrated Domain Logic (WRITE / WORKFLOW)` |
+| 7 | `bantuan.queries.ts` | 18, 241 | `reviewBySuperUser` | Server Client | Auth Session | `ACTIVE — Unmigrated Domain Logic (WRITE / WORKFLOW)` |
+| 8 | `bantuan.queries.ts` | 18, 241 | `deletePengajuanBantuan` | Server Client | Auth Session | `ACTIVE — Unmigrated Domain Logic (WRITE / DELETE)` |
+| 9 | `bantuan.queries.ts` | 18, 241 | `getPengajuanDetail` | Server Client | Auth Session | `ACTIVE — Unmigrated Domain Logic (READ / No Contract)` |
 
 ## Blocker 3: `src/lib/domains/pastoral/pastoral.service.ts`
 | # | Caller File | Caller Line | Function Used | Supabase Client | Credential | Caller Context | Classification |
