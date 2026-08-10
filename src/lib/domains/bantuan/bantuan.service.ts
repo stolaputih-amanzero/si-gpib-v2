@@ -924,7 +924,7 @@ export async function getPengajuanDetail(
   idAjuan: string
 ): Promise<ActionResult<PengajuanBantuanWithRelations>> {
   try {
-    const { supabase } = await getAuthenticatedUser();
+    const supabase = await createClient();
 
     const { data: pengajuan, error } = await supabase
       .from('t_pengajuan_bantuan')
