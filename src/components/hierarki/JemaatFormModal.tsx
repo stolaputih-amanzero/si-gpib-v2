@@ -7,7 +7,7 @@ import { jemaatIndukSchema, JemaatIndukInput } from '@/lib/validations/hierarki.
 import { JemaatIndukItem } from '@/hooks/use-hierarki';
 import { X, Church, Loader2, Save, MapPin, Camera, Upload, Image as ImageIcon, Eye } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
-import { saveJemaatInduk } from '@/app/(dashboard)/hierarki/jemaat-actions';
+import { saveJemaatInduk } from '@/app/actions/jemaat';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface JemaatFormModalProps {

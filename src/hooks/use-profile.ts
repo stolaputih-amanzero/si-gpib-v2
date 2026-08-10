@@ -11,7 +11,7 @@ import {
   DeviceBiometricItem,
   DraftUserItem,
 } from '@/types/profile.types';
-import { getLogPastoralListAction } from '@/app/(dashboard)/dashboard/pastoral/actions';
+import { getLogPastoralListAction } from '@/app/actions/pastoral';
 import {
   fetchUserAuditLogsAction,
   fetchProfileStatsAction,

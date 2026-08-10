@@ -3,7 +3,7 @@ import {
   getLogPastoralListAction,
   updateLogPastoralAction,
   deleteLogPastoralAction,
-} from '@/app/(dashboard)/dashboard/pastoral/actions';
+} from '@/app/actions/pastoral';
 
 export interface LogPastoralItem {
   id_log: string;

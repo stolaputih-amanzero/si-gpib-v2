@@ -24,7 +24,7 @@ import { cn } from '@/lib/utils';
 import { useFormDraft } from '@/hooks/use-form-draft';
 import { usePendingSubmissions } from '@/hooks/use-pending-submissions';
 import { formatPastoralKegiatanText } from '@/lib/formatters/pastoral-text';
-import { createLogPastoralAction } from '@/app/(dashboard)/dashboard/pastoral/actions';
+import { createLogPastoralAction } from '@/app/actions/pastoral';
 import { generateTimestampId } from '@/lib/constants/id-formats';
 
 export interface PastoralFormClientProps {
