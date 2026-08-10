@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Authorization E2E (Gate 4)', () => {
   
-  test('ALLOW: KMJ can create pastoral log for their Jemaat', async ({ request }) => {
+  test('ALLOW: KMJ can create pastoral log for their Jemaat', async () => {
     // In a real Playwright test, you would mock the session cookie or log in via UI.
     // For this demonstration, we are testing the endpoint that uses enforceContract.
     // Assuming /api/some-action or server action exists.

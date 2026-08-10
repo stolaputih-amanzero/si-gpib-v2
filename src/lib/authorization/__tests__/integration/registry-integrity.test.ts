@@ -11,7 +11,7 @@ describe('Contract Registry Integrity', () => {
     let unresolvedCount = 0;
     let otherCount = 0;
     
-    for (const [id, def] of CONTRACT_REGISTRY.entries()) {
+    CONTRACT_REGISTRY.forEach((def, id) => {
       if (def.registry_status === 'ACTIVE') {
         activeCount++;
       } else if (def.registry_status === 'UNRESOLVED') {
@@ -21,7 +21,7 @@ describe('Contract Registry Integrity', () => {
       } else {
         otherCount++;
       }
-    }
+    });
     
     expect(activeCount).toBe(40);
     expect(unresolvedCount).toBe(1);

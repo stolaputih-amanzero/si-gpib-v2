@@ -261,6 +261,7 @@ export async function getPastoralStats(idJemaat: string, startDate?: string, end
 export async function exportLogPastoralToExcel(filter: PastoralFilter) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Unauthorized');
 
   const { enforceContract } = await import('@/lib/authorization');
   
