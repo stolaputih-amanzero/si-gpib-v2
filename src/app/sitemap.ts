@@ -23,21 +23,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily',
       priority: 0.9,
     });
-
-    try {
-      const posPelkes = await getPublicPosPelkes();
-      
-      const posRoutes: MetadataRoute.Sitemap = posPelkes.map((pos) => ({
-        url: `${baseUrl}/peta-sebaran/${pos.id_pos}`,
-        lastModified: new Date(),
-        changeFrequency: 'weekly',
-        priority: 0.8,
-      }));
-
-      routes.push(...posRoutes);
-    } catch (error) {
-      console.error('[Sitemap] Failed to fetch Pos Pelkes:', error);
-    }
   }
 
   return routes;

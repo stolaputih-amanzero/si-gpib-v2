@@ -106,7 +106,7 @@ const nextConfig = {
       { source: '/bantuan', destination: '/aid-requests', permanent: true },
       
       // Maps & Reports
-      { source: '/peta-sebaran', destination: '/maps', permanent: true },
+      
       { source: '/dashboard/peta', destination: '/maps', permanent: true },
       { source: '/wilayah/:path*', destination: '/maps', permanent: true },
       { source: '/laporan/aset/:path*', destination: '/laporan', permanent: true },
