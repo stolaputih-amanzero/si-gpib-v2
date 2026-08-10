@@ -1,21 +1,34 @@
 import { getServerContext } from '@/lib/utils/context';
-import { redirect } from 'next/navigation';
-import BantuanDetailPage from '@/app/(dashboard)/bantuan/[id]/page';
+import { fetchUnifiedAidRequestData } from '@/lib/services/aid-request';
+import { notFound, redirect } from 'next/navigation';
+import { AidRequestWorkspaceClient } from '@/components/workspace/aid-request/AidRequestWorkspaceClient';
 
-export default async function AidRequestDetailWorkspacePage({
-  params,
+export async function generateMetadata({ params }: { params: Promise<{ id_ajuan: string }> }) {
+  const { id_ajuan } = await params;
+  return {
+    title: `Aid Request | ${id_ajuan}`,
+  };
+}
+
+export default async function AidRequestWorkspacePage({
+  params
 }: {
-  params: Promise<{ id_ajuan: string }>;
+  params: Promise<{ id_ajuan: string }>
 }) {
-  const { context_id, status } = await getServerContext();
-
-  if (status === 'CONTEXT_STALE' || !context_id) {
-    redirect('/context-selection');
+  const context = await getServerContext();
+  const contextId = context?.context_id;
+  
+  if (!context || !contextId) {
+    redirect('/auth/login');
   }
 
   const { id_ajuan } = await params;
-  
-  // Delegate to legacy Bantuan Detail View
-  // @ts-ignore: IntrinsicAttributes error from searchParams in Next.js 15
-  return <BantuanDetailPage params={Promise.resolve({ id: id_ajuan })} />;
+  const aidData = await fetchUnifiedAidRequestData(id_ajuan);
+
+  // Secure RBAC: fetchUnifiedAidRequestData returns null if context lacks permission
+  if (!aidData) {
+    notFound();
+  }
+
+  return <AidRequestWorkspaceClient data={aidData} contextId={contextId} />;
 }

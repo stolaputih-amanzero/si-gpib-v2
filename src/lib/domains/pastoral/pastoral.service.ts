@@ -4,165 +4,18 @@
 import { createClient } from '@/lib/supabase/server';
 import { enforceContract } from '@/lib/authorization';
 import type { PastoralFilter, PastoralStats } from './pastoral.types';
-import { revalidatePath } from 'next/cache';
-import { logger } from '@/lib/logger';
 import { createLogPastoralSchema } from './pastoral.schema';
 import { db } from '@/lib/offline/dexie';
 import { syncManager } from '@/lib/offline/sync-manager';
 import { PASTORAL_TARGETS } from './pastoral.types';
-import { generateTimestampId } from '@/lib/constants/id-formats';
-
-export async function createLogPastoralAction(
-  rawData: unknown
-): Promise<{ success: boolean; error?: string; idempotent?: boolean }> {
-  const validation = createLogPastoralSchema.safeParse(rawData);
-  if (!validation.success) {
-    return { success: false, error: validation.error.issues[0].message };
-  }
-  const data = validation.data;
-
-  const supabase = await createClient();
-  let user = (await supabase.auth.getUser()).data.user;
-
-  if (!user) {
-    const { data: testUser } = await supabase.from('users').select('*').eq('email', 'pj.test@gpib.local').maybeSingle();
-    if (testUser) {
-      user = { id: testUser.id, email: testUser.email, user_metadata: { role: testUser.role || 'pj' } } as any;
-    }
-  }
-
-  if (!user) {
-    return { success: false, error: 'Sesi tidak valid. Silakan login ulang.' };
-  }
-
-
-  
-  const result = await enforceContract('OC-PASTORAL-001', {
-    target_entity: {
-      entity_type: 'Pastoral',
-      entity_id: null,
-      owning_context_id: data.id_pos || '',
-    },
-    operation_payload: data,
-  });
-
-  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
-    return { success: false, error: 'System configuration error (Authorization).' };
-  }
-  if (result.decision.result === 'DENY') {
-    return { success: false, error: result.decision.error_detail || 'Anda tidak memiliki akses.' };
-  }
-
-  // Inject session
-  await supabase.rpc('set_authorization_context', {
-    p_context_id: result.context_resolution.active_context?.context_id || '',
-    p_context_level: result.context_resolution.active_context?.context_level || '',
-    p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
-    p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
-    p_effective_role: result.role_binding.effective_system_role || '',
-  });
-
-  let idPendeta = data.id_pendeta || user.user_metadata?.id_pendeta;
-
-  if (idPendeta) {
-    const { data: pCheck } = await supabase.from('m_pendeta').select('id_pendeta').eq('id_pendeta', idPendeta).maybeSingle();
-    if (!pCheck) {
-      idPendeta = undefined;
-    }
-  }
-
-  if (!idPendeta) {
-    const { data: firstPendeta } = await supabase.from('m_pendeta').select('id_pendeta').limit(1).maybeSingle();
-    if (firstPendeta) {
-      idPendeta = firstPendeta.id_pendeta;
-    } else {
-      return { success: false, error: 'Profil pendeta tidak ditemukan pada akun Anda.' };
-    }
-  }
-
-  const { error: rpcError } = await supabase.rpc('create_log_pastoral_atomic', {
-    p_id_log: generateTimestampId('LOG'),
-    p_id_pos: data.id_pos || null,
-    p_id_pendeta: idPendeta,
-    p_tgl: data.tgl,
-    p_kegiatan: data.kegiatan,
-    p_jml_jiwa: data.jml_jiwa ?? null,
-    p_catatan: data.catatan ?? null,
-    p_foto_url: data.foto_url ?? null,
-    p_request_id: data.requestId,
-    p_user_id: user.id,
-  });
-
-  if (rpcError) {
-    logger.warn('RPC create_log_pastoral_atomic failed, executing resilient direct insert fallback:', { rpcError });
-    
-    const idLog = data.id_log || generateTimestampId('LOG');
-    const { error: insertError } = await supabase.from('t_log_pastoral').insert({
-      id_log: idLog,
-      id_pos: data.id_pos || null,
-      id_pendeta: idPendeta,
-      tgl: data.tgl,
-      kegiatan: data.kegiatan,
-      jml_jiwa: data.jml_jiwa ?? null,
-      catatan: data.catatan ?? null,
-      foto_url: data.foto_url ?? null,
-    });
-
-    if (insertError) {
-      console.error('[DIRECT_INSERT_ERROR]', { idLog, idPendeta, insertError });
-      if (
-        insertError.code === '23505' ||
-        insertError.message.includes('duplicate key') ||
-        insertError.message.includes('unique constraint') ||
-        insertError.message.includes('already exists')
-      ) {
-        logger.info('Idempotent insert caught by DB constraint');
-        return { success: true, idempotent: true };
-      }
-      logger.error('Resilient direct insert also failed', { insertError });
-      return { success: false, error: 'Gagal menyimpan log pastoral. Silakan coba lagi.' };
-    }
-
-    // Best effort logging to sys_transaction_logs for idempotency
-    try {
-      await supabase.from('sys_transaction_logs').insert({
-        request_id: data.requestId,
-        user_id: user.id,
-        operation_type: 'insert',
-        table_name: 't_log_pastoral',
-        record_id: idLog,
-        payload_summary: { id_pos: data.id_pos, kegiatan: data.kegiatan },
-        created_at: new Date().toISOString(),
-      });
-    } catch (e) {
-      // Ignore sys_transaction_logs insert errors in fallback mode
-    }
-  }
-
-  try {
-    revalidatePath('/pastoral');
-    if (data.id_pos) {
-      revalidatePath(`/dashboard/pos-pelkes/${data.id_pos}`);
-    }
-  } catch (e) {
-    // Ignore revalidation errors during background sync
-  }
-  
-  logger.info('Log pastoral created successfully', {
-    requestId: data.requestId,
-    idPos: data.id_pos,
-    userId: user.id,
-  });
-
-  return { success: true };
-}
+import { createLogPastoral } from '@/app/actions/log-pastoral';
 
 export async function submitLogPastoral(rawData: unknown) {
   // Check online status if we are on client
   const isOnline = typeof navigator !== 'undefined' && navigator.onLine;
 
   if (isOnline) {
-    return createLogPastoralAction(rawData);
+    return createLogPastoral(rawData as any);
   }
 
   const validation = createLogPastoralSchema.safeParse(rawData);

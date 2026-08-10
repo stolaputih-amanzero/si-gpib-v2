@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { usePendetaList } from '@/hooks/use-pendeta';
-import { useAssignKmj } from '@/hooks/use-hierarki';
+import { assignKmjAction } from '@/app/actions/hierarki';
 import { UserCheck, Search, Loader2, CheckCircle2, AlertCircle, X, Users } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface KMJSelectorProps {
   id_induk: string;
@@ -31,27 +32,44 @@ export function KMJSelector({
     id_induk: filterMode === 'jemaat' ? id_induk : undefined,
     search: searchQuery
   });
-  const assignKmjMutation = useAssignKmj();
+  const [isPending, startTransition] = useTransition();
+  const queryClient = useQueryClient();
 
-  const handleAssign = async () => {
+  const handleAssign = () => {
     if (!selectedPendetaId) return;
     setSuccessMsg(null);
     setErrorMsg(null);
 
-    try {
-      await assignKmjMutation.mutateAsync({
-        id_induk,
-        id_pendeta: selectedPendetaId,
-      });
+    startTransition(async () => {
+      try {
+        const res = await assignKmjAction({
+          id_induk,
+          id_pendeta: selectedPendetaId,
+        });
 
-      setSuccessMsg('Ketua Majelis Jemaat (KMJ) berhasil ditetapkan!');
-      if (onSuccess) {
-        setTimeout(() => onSuccess(), 1200);
+        if (!res.success) {
+          setErrorMsg(res.detail || res.error || 'Gagal memproses penetapan KMJ.');
+          if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([50, 100, 50]);
+          return;
+        }
+
+        setSuccessMsg('Ketua Majelis Jemaat (KMJ) berhasil ditetapkan!');
+        queryClient.invalidateQueries({ queryKey: ['mupel-list'] });
+        queryClient.invalidateQueries({ queryKey: ['jemaat-list-by-mupel'] });
+        queryClient.invalidateQueries({ queryKey: ['jemaat-detail', id_induk] });
+        queryClient.invalidateQueries({ queryKey: ['pendeta-list'] });
+        
+        if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([10, 50, 10]);
+
+        if (onSuccess) {
+          setTimeout(() => onSuccess(), 1200);
+        }
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Gagal memproses penetapan KMJ.';
+        setErrorMsg(message);
+        if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([50, 100, 50]);
       }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Gagal memproses penetapan KMJ.';
-      setErrorMsg(message);
-    }
+    });
   };
 
   return (
@@ -204,11 +222,11 @@ export function KMJSelector({
           </button>
           <button
             type="button"
-            disabled={!selectedPendetaId || assignKmjMutation.isPending}
+            disabled={!selectedPendetaId || isPending}
             onClick={handleAssign}
             className="flex-1 min-h-[48px] bg-indigo-600 text-white rounded-xl font-bold text-xs hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-soft"
           >
-            {assignKmjMutation.isPending ? (
+            {isPending ? (
               <>
                 <Loader2 size={16} className="animate-spin" />
                 <span>Menyimpan...</span>

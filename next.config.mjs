@@ -32,6 +32,48 @@ const nextConfig = {
   async headers() {
     return [
       {
+        source: '/peta-sebaran/:path*',
+        headers: [
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self)' },
+          { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains; preload' },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' https://unpkg.com",
+              "style-src 'self' 'unsafe-inline' https://unpkg.com",
+              "img-src 'self' data: https://*.tile.openstreetmap.org",
+              "connect-src 'self' https://*.supabase.co",
+              "frame-ancestors 'none'",
+            ].join('; '),
+          },
+        ],
+      },
+      {
+        source: '/maps/:path*',
+        headers: [
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self)' },
+          { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains; preload' },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' https://unpkg.com",
+              "style-src 'self' 'unsafe-inline' https://unpkg.com",
+              "img-src 'self' data: https://*.tile.openstreetmap.org",
+              "connect-src 'self' https://*.supabase.co",
+              "frame-ancestors 'none'",
+            ].join('; '),
+          },
+        ],
+      },
+      {
         source: '/(.*)',
         headers: [
           { key: 'X-Frame-Options', value: 'DENY' },
@@ -58,7 +100,6 @@ const nextConfig = {
       
       // Assets
       { source: '/aset/:id', destination: '/assets/:id', permanent: true },
-      { source: '/laporan/aset', destination: '/assets', permanent: true },
       
       // Aid Requests
       { source: '/bantuan/:id', destination: '/aid-requests/:id', permanent: true },
@@ -66,7 +107,12 @@ const nextConfig = {
       // Maps & Reports
       { source: '/peta-sebaran', destination: '/maps', permanent: true },
       { source: '/dashboard/peta', destination: '/maps', permanent: true },
-      { source: '/laporan', destination: '/org', permanent: true }, // Laporan terintegrasi ke Workspace
+      { source: '/wilayah/:path*', destination: '/maps', permanent: true },
+      { source: '/laporan/aset/:path*', destination: '/laporan', permanent: true },
+      { source: '/laporan/pastoral/:path*', destination: '/laporan', permanent: true },
+      { source: '/laporan/demografi/:path*', destination: '/laporan', permanent: true },
+      { source: '/laporan/kerawanan/:path*', destination: '/laporan', permanent: true },
+      { source: '/laporan/potensi/:path*', destination: '/laporan', permanent: true },
     ];
   },
 };

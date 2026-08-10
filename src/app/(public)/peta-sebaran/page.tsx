@@ -1,56 +1,34 @@
-import { env } from '@/lib/env';
-import { MaintenancePage } from '@/components/portal/MaintenancePage';
-import { PublicMap } from '@/components/portal/PublicMap';
-import { Metadata } from 'next';
-import { unstable_cache } from 'next/cache';
-import { getPublicPosPelkes } from '@/lib/domains/portal/portal.service';
+import { fetchPublicMapData } from '@/lib/services/public-portal';
+import { PublicMapClient } from '@/components/maps/PublicMapClient';
 
-export const dynamic = 'force-dynamic';
+export const metadata = {
+  title: 'Peta Sebaran | SI GPIB',
+};
 
-const getCachedPosData = unstable_cache(
-  async () => getPublicPosPelkes(),
-  ['public-pos-pelkes-page'],
-  { revalidate: 3600 }
-);
+export default async function PublicMapPage() {
+  const mapData = await fetchPublicMapData();
 
-export async function generateMetadata(): Promise<Metadata> {
-  const isEnabled = env.NEXT_PUBLIC_ENABLE_PUBLIC_PORTAL;
-  const baseUrl = env.NEXT_PUBLIC_APP_URL || 'https://sigpib.amanzero.space';
+  return (
+    <div className="flex flex-col h-screen bg-bg-base">
+      {/* Header Publik */}
+      <header className="bg-brand-primary text-white py-4 px-6 shadow-md z-10 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center p-1">
+            <img src="/logo-gpib.png" alt="GPIB Logo" className="w-full h-full object-contain" />
+          </div>
+          <div>
+            <h1 className="font-bold text-lg leading-tight tracking-wide">SI GPIB v2.2</h1>
+            <p className="text-xs text-brand-surface font-medium opacity-80">Peta Sebaran Pelayanan</p>
+          </div>
+        </div>
+      </header>
 
-  if (!isEnabled) {
-    return {
-      title: 'Peta Sebaran - Segera Hadir',
-      robots: {
-        index: false,
-        follow: false,
-      },
-    };
-  }
-
-  return {
-    title: 'Peta Sebaran Pos Pelkes GPIB',
-    description: 'Temukan lokasi Pos Pelayanan dan Kesaksian (Pelkes) GPIB di seluruh Indonesia.',
-    metadataBase: new URL(baseUrl),
-    openGraph: {
-      url: `${baseUrl}/peta-sebaran`,
-      images: ['/og-image-portal.png'],
-      title: 'Peta Sebaran Pos Pelkes GPIB',
-      description: 'Peta sebaran interaktif Pos Pelkes GPIB',
-      siteName: 'SI GPIB v2',
-    },
-    robots: {
-      index: true,
-      follow: true,
-    }
-  };
-}
-
-export default async function PetaSebaranPage() {
-  if (!env.NEXT_PUBLIC_ENABLE_PUBLIC_PORTAL) {
-    return <MaintenancePage />;
-  }
-
-  const locations = await getCachedPosData();
-  
-  return <PublicMap locations={locations} />;
+      {/* Konten Peta */}
+      <main className="flex-1 w-full relative z-0 p-2 md:p-6 pb-20 md:pb-6">
+        <div className="w-full h-full bg-surface-1 rounded-2xl shadow-sm border border-border-subtle overflow-hidden">
+          <PublicMapClient initialData={mapData} />
+        </div>
+      </main>
+    </div>
+  );
 }

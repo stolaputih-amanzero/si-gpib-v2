@@ -27,14 +27,15 @@ import { format, differenceInYears } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { useToast } from '@/components/ui/toast';
 import { formatWhatsAppUrl } from '@/lib/utils';
+import { useKeluargaPendeta } from '@/hooks/use-pendeta-360';
 import {
-  useKeluargaPendeta,
-  useCreateKeluarga,
-  useUpdateKeluarga,
-  useDeleteKeluarga,
-} from '@/hooks/use-pendeta-360';
+  addKeluargaAction,
+  updateKeluargaAction,
+  deleteKeluargaAction,
+} from '@/app/actions/pendeta';
 import { KeluargaPendeta } from '@/types/pendeta-360.types';
 import { HUBUNGAN_KELUARGA } from '@/lib/constants/pendeta-360.constants';
+import { useQueryClient } from '@tanstack/react-query';
 import { compressAvatarImage } from '@/lib/camera/compress';
 
 interface KeluargaSectionProps {
@@ -45,9 +46,8 @@ interface KeluargaSectionProps {
 export function KeluargaSection({ idPendeta, isOwnerOrSuperUser }: KeluargaSectionProps) {
   const { toast } = useToast();
   const { data: keluargaList = [], isLoading } = useKeluargaPendeta(idPendeta || undefined);
-  const createMutation = useCreateKeluarga();
-  const updateMutation = useUpdateKeluarga();
-  const deleteMutation = useDeleteKeluarga();
+  const queryClient = useQueryClient();
+  const [isPending, startTransition] = React.useTransition();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<KeluargaPendeta | null>(null);
@@ -64,7 +64,7 @@ export function KeluargaSection({ idPendeta, isOwnerOrSuperUser }: KeluargaSecti
   const [noWa, setNoWa] = useState('');
   const [pendidikan, setPendidikan] = useState('');
   const [pekerjaan, setPekerjaan] = useState('');
-  const [statusHidup, setStatusHidup] = useState<string>('Hidup');
+  const [statusHidup, setStatusHidup] = useState<'Hidup' | 'Meninggal'>('Hidup');
   const [isTanggungan, setIsTanggungan] = useState(false);
   const [keterangan, setKeterangan] = useState('');
 
@@ -150,7 +150,7 @@ export function KeluargaSection({ idPendeta, isOwnerOrSuperUser }: KeluargaSecti
     setNoWa(item.no_wa || '');
     setPendidikan(item.pendidikan || '');
     setPekerjaan(item.pekerjaan || '');
-    setStatusHidup(item.status_hidup || 'Hidup');
+    setStatusHidup((item.status_hidup as 'Hidup' | 'Meninggal') || 'Hidup');
     setIsTanggungan(Boolean(item.is_tanggungan));
     setKeterangan(item.keterangan || '');
     setIsModalOpen(true);
@@ -177,33 +177,51 @@ export function KeluargaSection({ idPendeta, isOwnerOrSuperUser }: KeluargaSecti
       keterangan: keterangan || null,
     };
 
-    try {
-      if (editingItem) {
-        await updateMutation.mutateAsync({
-          id_keluarga: editingItem.id_keluarga,
-          ...payload,
-        });
-        toast.success('Berhasil Diperbarui', 'Data anggota keluarga berhasil diperbarui.');
-      } else {
-        await createMutation.mutateAsync(payload);
-        toast.success('Berhasil Ditambahkan', 'Data anggota keluarga berhasil ditambahkan.');
+    startTransition(async () => {
+      try {
+        let res;
+        if (editingItem) {
+          res = await updateKeluargaAction(editingItem.id_keluarga, idPendeta, payload);
+          if (res.success) {
+            toast.success('Berhasil Diperbarui', 'Data anggota keluarga berhasil diperbarui.');
+          }
+        } else {
+          res = await addKeluargaAction(idPendeta, payload);
+          if (res.success) {
+            toast.success('Berhasil Ditambahkan', 'Data anggota keluarga berhasil ditambahkan.');
+          }
+        }
+        
+        if (res?.success) {
+          queryClient.invalidateQueries({ queryKey: ['keluarga-pendeta', idPendeta] });
+          setIsModalOpen(false);
+        } else {
+          toast.error('Gagal Menyimpan', res?.error || 'Terjadi kesalahan saat menyimpan data keluarga.');
+        }
+      } catch (err: any) {
+        toast.error('Gagal Menyimpan', err.message || 'Terjadi kesalahan saat menyimpan data keluarga.');
       }
-      setIsModalOpen(false);
-    } catch (err: any) {
-      toast.error('Gagal Menyimpan', err.message || 'Terjadi kesalahan saat menyimpan data keluarga.');
-    }
+    });
   };
 
-  const handleDelete = async (id_keluarga: string) => {
+  const handleDelete = (id_keluarga: string) => {
     if (!idPendeta || !confirm('Apakah Anda yakin ingin menghapus data anggota keluarga ini?')) return;
     if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
-    try {
-      await deleteMutation.mutateAsync({ id_keluarga, id_pendeta: idPendeta });
-      toast.success('Berhasil Dihapus', 'Data anggota keluarga telah dihapus.');
-      setSelectedDetailItem(null);
-    } catch (err: any) {
-      toast.error('Gagal Menghapus', err.message || 'Terjadi kesalahan saat menghapus anggota keluarga.');
-    }
+    
+    startTransition(async () => {
+      try {
+        const res = await deleteKeluargaAction(id_keluarga, idPendeta);
+        if (res.success) {
+          toast.success('Berhasil Dihapus', 'Data anggota keluarga telah dihapus.');
+          queryClient.invalidateQueries({ queryKey: ['keluarga-pendeta', idPendeta] });
+          setSelectedDetailItem(null);
+        } else {
+          toast.error('Gagal Menghapus', res.error || 'Terjadi kesalahan saat menghapus anggota keluarga.');
+        }
+      } catch (err: any) {
+        toast.error('Gagal Menghapus', err.message || 'Terjadi kesalahan saat menghapus anggota keluarga.');
+      }
+    });
   };
 
   return (
@@ -510,8 +528,9 @@ export function KeluargaSection({ idPendeta, isOwnerOrSuperUser }: KeluargaSecti
 
               <button
                 type="button"
+                disabled={isPending}
                 onClick={() => handleDelete(selectedDetailItem.id_keluarga)}
-                className="min-h-[44px] px-4 rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                className="min-h-[44px] px-4 rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 disabled:opacity-50"
               >
                 <Trash2 size={15} />
                 <span>Hapus</span>
@@ -650,7 +669,7 @@ export function KeluargaSection({ idPendeta, isOwnerOrSuperUser }: KeluargaSecti
                   <label className="block text-xs font-semibold text-ink-secondary mb-1">Status Hidup</label>
                   <select
                     value={statusHidup}
-                    onChange={(e) => setStatusHidup(e.target.value)}
+                    onChange={(e) => setStatusHidup(e.target.value as 'Hidup' | 'Meninggal')}
                     className="w-full h-12 px-3 rounded-xl border border-line-subtle bg-surface-1 text-sm text-ink-primary"
                   >
                     <option value="Hidup">Hidup</option>
@@ -737,10 +756,10 @@ export function KeluargaSection({ idPendeta, isOwnerOrSuperUser }: KeluargaSecti
                 </button>
                 <button
                   type="submit"
-                  disabled={createMutation.isPending || updateMutation.isPending || isCompressingFoto}
-                  className="flex-1 h-12 rounded-xl bg-brand-600 text-white font-semibold text-sm shadow-2xs hover:bg-brand-700 disabled:opacity-50"
+                  disabled={isPending || isCompressingFoto}
+                  className="flex-1 h-12 rounded-xl bg-brand-600 text-white font-semibold text-sm shadow-2xs hover:bg-brand-700 disabled:opacity-50 flex items-center justify-center"
                 >
-                  {isCompressingFoto ? 'Memproses Foto...' : 'Simpan'}
+                  {isCompressingFoto ? 'Memproses Foto...' : isPending ? <RefreshCw className="animate-spin" size={16} /> : 'Simpan'}
                 </button>
               </div>
             </form>

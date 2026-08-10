@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { usePendetaList } from '@/hooks/use-pendeta';
-import { useAssignPj } from '@/hooks/use-hierarki';
+import { assignPjAction } from '@/app/actions/hierarki';
 import { HeartHandshake, Search, Loader2, CheckCircle2, AlertCircle, X, Users } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface PJSelectorProps {
   id_induk: string;
@@ -29,27 +30,44 @@ export function PJSelector({
     id_induk: filterMode === 'jemaat' ? id_induk : undefined,
     search: searchQuery
   });
-  const assignPjMutation = useAssignPj();
+  
+  const queryClient = useQueryClient();
+  const [isPending, startTransition] = useTransition();
 
-  const handleAssign = async () => {
+  const handleAssign = () => {
     if (!selectedPendetaId) return;
     setSuccessMsg(null);
     setErrorMsg(null);
 
-    try {
-      await assignPjMutation.mutateAsync({
-        id_induk,
-        id_pendeta: selectedPendetaId,
-      });
+    startTransition(async () => {
+      try {
+        const res = await assignPjAction({
+          id_induk,
+          id_pendeta: selectedPendetaId,
+        });
 
-      setSuccessMsg('Pendeta Jemaat (PJ) berhasil ditugaskan!');
-      if (onSuccess) {
-        setTimeout(() => onSuccess(), 1200);
+        if (res.success) {
+          queryClient.invalidateQueries({ queryKey: ['mupel-list'] });
+          queryClient.invalidateQueries({ queryKey: ['jemaat-list-by-mupel'] });
+          queryClient.invalidateQueries({ queryKey: ['jemaat-detail', id_induk] });
+          queryClient.invalidateQueries({ queryKey: ['pendeta-list'] });
+          
+          if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+            navigator.vibrate([10, 50, 10]);
+          }
+          
+          setSuccessMsg('Pendeta Jemaat (PJ) berhasil ditugaskan!');
+          if (onSuccess) {
+            setTimeout(() => onSuccess(), 1200);
+          }
+        } else {
+          setErrorMsg(res.error || 'Gagal memproses penugasan PJ.');
+        }
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Gagal memproses penugasan PJ.';
+        setErrorMsg(message);
       }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Gagal memproses penugasan PJ.';
-      setErrorMsg(message);
-    }
+    });
   };
 
   return (
@@ -201,14 +219,14 @@ export function PJSelector({
           </button>
           <button
             type="button"
-            disabled={!selectedPendetaId || assignPjMutation.isPending}
+            disabled={!selectedPendetaId || isPending}
             onClick={handleAssign}
-            className="flex-1 min-h-[48px] bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-soft"
+            className="flex-1 min-h-[44px] px-4 rounded-xl bg-emerald-600 text-white text-xs font-semibold shadow-2xs hover:bg-emerald-700 disabled:opacity-50 disabled:hover:bg-emerald-600 transition-all active:scale-95 flex items-center justify-center gap-2"
           >
-            {assignPjMutation.isPending ? (
+            {isPending ? (
               <>
                 <Loader2 size={16} className="animate-spin" />
-                <span>Menyimpan...</span>
+                <span>Menugaskan...</span>
               </>
             ) : (
               <>

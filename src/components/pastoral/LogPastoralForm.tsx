@@ -12,7 +12,8 @@ import { useUserMupelAuth } from '@/hooks/use-hierarki-selector';
 import { PastoralPhotoPicker } from '@/components/pastoral/PastoralPhotoPicker';
 import { useToast } from '@/components/ui/toast';
 import { formatPastoralKegiatanText } from '@/lib/formatters/pastoral-text';
-import { createLogPastoralAction } from '@/app/(dashboard)/dashboard/pastoral/actions';
+import { createLogPastoral } from '@/app/actions/log-pastoral';
+import { submitOrQueue } from '@/lib/offline/queue-manager';
 
 interface LogPastoralFormProps {
   id_pos?: string;
@@ -150,7 +151,7 @@ export default function LogPastoralForm({ id_pos, id_induk, onSuccess }: LogPast
 
       const formattedKegiatan = formatPastoralKegiatanText(data.kegiatan);
 
-      await createLogPastoralAction({
+      const payload = {
         id_log: idLog,
         id_pos: finalPosId,
         id_pendeta: pendetaId,
@@ -158,10 +159,20 @@ export default function LogPastoralForm({ id_pos, id_induk, onSuccess }: LogPast
         kegiatan: formattedKegiatan,
         jml_jiwa: data.jml_jiwa ? Number(data.jml_jiwa) : null,
         catatan: finalCatatan,
-      });
+      };
 
-      toast.success('Berhasil Disimpan', 'Log pastoral baru berhasil dicatat.');
-      onSuccess();
+      const originContextId = finalPosId || id_induk || '';
+      const response = await submitOrQueue('OC-PASTORAL-001', payload, originContextId, createLogPastoral);
+
+      if (response.status === 'QUEUED') {
+        toast.success('Disimpan Offline', 'Data disimpan offline. Akan disinkronkan otomatis saat koneksi pulih.');
+        onSuccess();
+      } else if (response.status === 'ONLINE_SUCCESS') {
+        toast.success('Berhasil Disimpan', 'Log pastoral baru berhasil dicatat.');
+        onSuccess();
+      } else {
+        toast.error('Gagal Menyimpan Log', response.error?.message || 'Terjadi kesalahan sistem.');
+      }
     } catch (err: any) {
       toast.error('Gagal Menyimpan Log', err?.message || 'Terjadi kesalahan sistem.');
     }

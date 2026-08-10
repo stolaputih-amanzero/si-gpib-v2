@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
+import { uploadFile } from '@/lib/services/storage';
 import { logPastoralSchema } from '@/lib/validations/log-pastoral.schema';
 import { revalidatePath } from 'next/cache';
 import { enforceContract } from '@/lib/authorization';
@@ -116,7 +117,42 @@ export async function createLogPastoral(payload: {
   // 4. Revalidate
   revalidatePath('/laporan/pastoral');
   revalidatePath('/dashboard/pastoral');
-  revalidatePath('/pastoral');
+  revalidatePath(`/pastoral/${encodeURIComponent(payload.id_pos || '')}`);
 
   return data;
+}
+
+export async function uploadFotoLogPastoral(
+  idLog: string,
+  idPos: string,
+  file: File
+) {
+  const supabase = await createClient();
+  const db = getDbClient(supabase);
+
+  const uploadResult = await uploadFile({
+    bucket: 'pastoral',
+    folder: `${idPos}`,
+    file,
+    contractId: 'OC-PASTORAL-001',
+    contractPayload: {
+      target_entity: { entity_type: 'PastoralLog', entity_id: idLog, owning_context_id: idPos },
+      operation_payload: { action: 'upload_foto' },
+    },
+  });
+
+  if (!uploadResult.success) {
+    return { success: false, error: uploadResult.error };
+  }
+
+  const { error: dbError } = await db
+    .from('t_log_pastoral')
+    .update({ foto_url: uploadResult.path! })
+    .eq('id_log', idLog);
+
+  if (!dbError) {
+    revalidatePath(`/pastoral/${encodeURIComponent(idPos)}`);
+  }
+
+  return { success: !dbError, error: dbError?.message };
 }

@@ -53,7 +53,8 @@ import { MockIdentityResolver } from '../engine/identity-resolver';
 
 export async function enforceContract(
   contractId: ContractId,
-  operationInput: OperationInput
+  operationInput: OperationInput,
+  overrideContextId?: string
 ): Promise<AuthorizationResult> {
   
   // 1. Get current session (L1 Authentication boundary)
@@ -68,7 +69,7 @@ export async function enforceContract(
   const baseIdentity: BaseIdentity = await identityResolver.resolveBase(session);
 
   // 3. Active Context Resolution (Step 3)
-  const claimedContextId = getClaimedContextFromSession(session);
+  const claimedContextId = overrideContextId || getClaimedContextFromSession(session);
   const contextResolver = new MockContextResolver();
   const activeContext: ActiveContextObject | null = await contextResolver.resolve(
     claimedContextId, 

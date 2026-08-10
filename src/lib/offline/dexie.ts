@@ -53,22 +53,36 @@ export interface DeadLetter {
   movedToDLQAt: number;
 }
 
+export interface QueuedMutationRecord {
+  id?: string;          // UUID (client-generated)
+  contractId: string;  // e.g., 'OC-PASTORAL-001'
+  payload: any;        // Raw form data
+  originContextId: string; // CRITICAL: Stamped at submission time
+  timestamp: number;   // Unix timestamp
+  retryCount: number;  // For exponential backoff
+  status: 'PENDING' | 'SYNCING' | 'FAILED';
+  error_code?: string;
+  error_detail?: string;
+}
+
 class SIOSDatabase extends Dexie {
   drafts!: Table<Draft, string>;
   draftPhotos!: Table<DraftPhoto, number>;
   pendingSubmissions!: Table<PendingSubmission, number>;
   pendingAttachments!: Table<PendingAttachment, number>;
   deadLetters!: Table<DeadLetter, number>;
+  offlineQueue!: Table<QueuedMutationRecord, string>;
 
   constructor() {
     super('sigpib-offline');
-    // Skema v5 identik dengan rules.md
-    this.version(5).stores({
+    // Skema v5 identik dengan rules.md, v6 adds offlineQueue
+    this.version(6).stores({
       drafts: 'formKey, timestamp',
       draftPhotos: '++id, [formKey+photoIndex], timestamp',
       pendingSubmissions: '++id, requestId, status, createdAt, lastAttemptAt',
       pendingAttachments: '++id, submissionId, status, createdAt',
       deadLetters: '++id, requestId, createdAt, movedToDLQAt',
+      offlineQueue: 'id, contractId, originContextId, status, timestamp',
     });
   }
 }

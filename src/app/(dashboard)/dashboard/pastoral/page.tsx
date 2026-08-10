@@ -1,7 +1,5 @@
-'use client';
-
-import LaporanPastoralPage from '@/app/(dashboard)/laporan/pastoral/page';
+import { redirect } from 'next/navigation';
 
 export default function LogPastoralDashboardPage() {
-  return <LaporanPastoralPage />;
+  redirect('/laporan');
 }

@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
+import { uploadFile } from '@/lib/services/storage';
 import { asetTanahSchema, asetBangunanSchema, asetBergerakSchema } from '@/lib/validations/aset.schema';
 import { revalidatePath } from 'next/cache';
 import { enforceContract } from '@/lib/authorization';
@@ -173,3 +174,50 @@ export async function createAsetAction(payload: {
 
   return insertedData;
 }
+
+export async function uploadLampiranAset(
+  idAset: string,
+  tipeAset: 'tanah' | 'bangunan' | 'bergerak',
+  file: File,
+  idPos: string
+) {
+  const supabase = await createClient();
+  const db = getDbClient(supabase);
+  
+  // 1. Upload using unified service with contract validation
+  const uploadResult = await uploadFile({
+    bucket: 'assets',
+    folder: `${idPos}/${tipeAset}`,
+    file,
+    contractId: 'OC-ASSET-001',
+    contractPayload: {
+      target_entity: { entity_type: 'Asset', entity_id: idAset, owning_context_id: idPos },
+      operation_payload: { action: 'upload_lampiran' },
+    },
+  });
+  
+  if (!uploadResult.success) {
+    return { success: false, error: uploadResult.error };
+  }
+  
+  // 2. Insert into t_lampiran_aset
+  const { error: dbError } = await db
+    .from('t_lampiran_aset')
+    .insert({
+      id_lampiran: `LMP-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      id_tanah: tipeAset === 'tanah' ? idAset : null,
+      id_bangunan: tipeAset === 'bangunan' ? idAset : null,
+      id_aset_b: tipeAset === 'bergerak' ? idAset : null,
+      nama_file: file.name,
+      file_path: uploadResult.path!,
+      tipe_file: file.type,
+      ukuran_file: file.size,
+    });
+  
+  if (!dbError) {
+    revalidatePath(`/aset/${encodeURIComponent(idPos)}`);
+  }
+  
+  return { success: !dbError, error: dbError?.message };
+}
+

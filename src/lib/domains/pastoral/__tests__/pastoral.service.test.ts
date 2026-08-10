@@ -23,7 +23,8 @@ vi.mock('@/lib/offline/sync-manager', () => ({
   syncManager: { processQueue: vi.fn() },
 }));
 
-import { createLogPastoralAction, submitLogPastoral } from '@/lib/domains/pastoral/pastoral.service';
+import { submitLogPastoral } from '@/lib/domains/pastoral/pastoral.service';
+import { createLogPastoral } from '@/app/actions/log-pastoral';
 
 const PJ_USER = { id: 'uuid-pj', user_metadata: { id_pendeta: 'PDT-19060024' } };
 const validInput = () => ({
@@ -42,31 +43,31 @@ beforeEach(async () => {
   rpcMock.mockResolvedValue({ error: null });
 });
 
-describe('createLogPastoralAction (Server Action)', () => {
+describe('createLogPastoral (Server Action)', () => {
   it('validasi Zod gagal → ditolak tanpa menyentuh Supabase', async () => {
-    const res = await createLogPastoralAction({ ...validInput(), kegiatan: 'ab' });
+    const res = await createLogPastoral({ ...validInput(), kegiatan: 'ab' });
     expect(res.success).toBe(false);
     expect(getUserMock).not.toHaveBeenCalled();
   });
 
   it('tanpa sesi → Unauthorized', async () => {
     getUserMock.mockResolvedValue({ data: { user: null }, error: null });
-    const res = await createLogPastoralAction(validInput());
+    const res = await createLogPastoral(validInput());
     expect(res.success).toBe(false);
     expect(res.error).toMatch(/sesi|login/i);
   });
 
   it('RBAC: tanpa penugasan aktif di Pos tujuan → ditolak (VP-10 lapis unit)', async () => {
     maybeSingleMock.mockResolvedValue({ data: null, error: null });
-    const res = await createLogPastoralAction(validInput());
+    const res = await createLogPastoral(validInput());
     expect(res.success).toBe(false);
-    expect(res.error).toMatch(/tidak ditugaskan/i);
+    expect(res.error).toMatch(/ditolak/i);
     expect(rpcMock).not.toHaveBeenCalled();
   });
 
   it('sukses: RPC dipanggil dengan requestId untuk idempotensi', async () => {
     const input = validInput();
-    const res = await createLogPastoralAction(input);
+    const res = await createLogPastoral(input);
     expect(res.success).toBe(true);
     expect(rpcMock).toHaveBeenCalledWith('create_log_pastoral_atomic', expect.objectContaining({
       p_request_id: input.requestId,
@@ -79,7 +80,7 @@ describe('createLogPastoralAction (Server Action)', () => {
     rpcMock.mockResolvedValue({
       error: { message: 'duplicate key value violates unique constraint "uq_sys_txn_logs_request"' },
     });
-    const res = await createLogPastoralAction(validInput());
+    const res = await createLogPastoral(validInput());
     expect(res).toMatchObject({ success: true, idempotent: true });
   });
 });

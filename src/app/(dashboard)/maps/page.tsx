@@ -1,14 +1,47 @@
 import { getServerContext } from '@/lib/utils/context';
 import { redirect } from 'next/navigation';
-import PetaSebaranPage from '@/app/(dashboard)/dashboard/peta/page';
+import { fetchUnifiedTerritoryData } from '@/lib/services/territory';
+import { TerritoryMapClient } from '@/components/maps/TerritoryMapClient';
 
-export default async function MapsWorkspacePage(props: any) {
-  const { context_id, status } = await getServerContext();
+export const metadata = {
+  title: 'Territory Intelligence | SI GPIB',
+};
 
-  if (status === 'CONTEXT_STALE' || !context_id) {
-    redirect('/context-selection');
+export default async function MapsPage() {
+  const context = await getServerContext();
+  const contextId = context?.context_id;
+
+  if (!context || !contextId) {
+    redirect('/auth/login');
   }
 
-  // Delegate to the legacy Peta Sebaran view
-  return <PetaSebaranPage {...props} />;
+  const points = await fetchUnifiedTerritoryData();
+
+  if (!points) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-state-error font-semibold">Gagal memuat data teritori atau akses ditolak.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col min-h-screen bg-bg-base pb-32">
+      {/* Header */}
+      <header className="bg-bg-surface border-b border-border-subtle pt-12 pb-6 px-4 sticky top-0 z-20">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-xl font-bold text-text-strong leading-tight">
+            Territory Intelligence
+          </h1>
+          <p className="text-sm text-text-subtle">
+            Peta sebaran organisasi, risiko kerawanan, dan potensi wilayah
+          </p>
+        </div>
+      </header>
+
+      <main className="flex-1 p-4">
+        <TerritoryMapClient points={points} />
+      </main>
+    </div>
+  );
 }

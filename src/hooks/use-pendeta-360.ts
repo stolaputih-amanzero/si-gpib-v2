@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 
 export function useKeluargaPendeta(idPendeta: string | null | undefined) {
@@ -43,16 +43,4 @@ export function useKeterlibatanPendeta(idPendeta: string | null | undefined) {
   });
 }
 
-// Dummy mutation hooks to satisfy legacy components during transition
-export const useCreateKeluarga = () => useMutation({ mutationFn: async (_vars: any) => {} });
-export const useUpdateKeluarga = () => useMutation({ mutationFn: async (_vars: any) => {} });
-export const useDeleteKeluarga = () => useMutation({ mutationFn: async (_vars: any) => {} });
-
-export const useCreateKompetensi = () => useMutation({ mutationFn: async (_vars: any) => {} });
-export const useUpdateKompetensi = () => useMutation({ mutationFn: async (_vars: any) => {} });
-export const useDeleteKompetensi = () => useMutation({ mutationFn: async (_vars: any) => {} });
-
-export const useCreateKeterlibatan = () => useMutation({ mutationFn: async (_vars: any) => {} });
-export const useUpdateKeterlibatan = () => useMutation({ mutationFn: async (_vars: any) => {} });
-export const useDeleteKeterlibatan = () => useMutation({ mutationFn: async (_vars: any) => {} });
 

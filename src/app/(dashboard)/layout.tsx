@@ -4,7 +4,7 @@ import MobileHeader from '@/components/layout/MobileHeader';
 import { SuperBottomNav } from '@/components/mobile/SuperBottomNav/SuperBottomNav';
 import { ReadOnlyNoticeBanner } from '@/components/auth/ReadOnlyNoticeBanner';
 import { PosProvider } from '@/stores/pos-context';
-import { OfflineQueuePanel } from '@/components/offline/OfflineQueuePanel';
+import { SyncManagerSheet } from '@/components/offline/SyncManagerSheet';
 
 export default async function DashboardLayout({
   children,
@@ -32,7 +32,7 @@ export default async function DashboardLayout({
           <div className="max-w-7xl mx-auto min-h-full">
             <ReadOnlyNoticeBanner />
             <div className="flex justify-end mb-4">
-              <OfflineQueuePanel />
+              <SyncManagerSheet />
             </div>
             {children}
           </div>

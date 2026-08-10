@@ -19,13 +19,14 @@ import {
   FileCheck,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
+import { useKompetensiPendeta } from '@/hooks/use-pendeta-360';
 import {
-  useKompetensiPendeta,
-  useCreateKompetensi,
-  useUpdateKompetensi,
-  useDeleteKompetensi,
-} from '@/hooks/use-pendeta-360';
+  addKompetensiAction,
+  updateKompetensiAction,
+  deleteKompetensiAction,
+} from '@/app/actions/pendeta';
 import { KompetensiPendeta } from '@/types/pendeta-360.types';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   KATEGORI_KOMPETENSI,
   JENIS_KOMPETENSI,
@@ -40,9 +41,8 @@ interface KompetensiSectionProps {
 export function KompetensiSection({ idPendeta, canEdit }: KompetensiSectionProps) {
   const { toast } = useToast();
   const { data: kompetensiList = [], isLoading } = useKompetensiPendeta(idPendeta || undefined);
-  const createMutation = useCreateKompetensi();
-  const updateMutation = useUpdateKompetensi();
-  const deleteMutation = useDeleteKompetensi();
+  const queryClient = useQueryClient();
+  const [isPending, startTransition] = React.useTransition();
 
   const [selectedKategori, setSelectedKategori] = useState<string>('Semua');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -150,33 +150,50 @@ export function KompetensiSection({ idPendeta, canEdit }: KompetensiSectionProps
       keterangan: keterangan || null,
     };
 
-    try {
-      if (editingItem) {
-        await updateMutation.mutateAsync({
-          id_kompetensi: editingItem.id_kompetensi,
-          ...payload,
-        });
-        toast.success('Berhasil Diperbarui', 'Data kompetensi berhasil diperbarui.');
-      } else {
-        await createMutation.mutateAsync(payload);
-        toast.success('Berhasil Ditambahkan', 'Data kompetensi berhasil ditambahkan.');
+    startTransition(async () => {
+      try {
+        let res;
+        if (editingItem) {
+          res = await updateKompetensiAction(editingItem.id_kompetensi, idPendeta, payload);
+          if (res.success) {
+            toast.success('Berhasil Diperbarui', 'Data kompetensi berhasil diperbarui.');
+          }
+        } else {
+          res = await addKompetensiAction(idPendeta, payload);
+          if (res.success) {
+            toast.success('Berhasil Ditambahkan', 'Data kompetensi berhasil ditambahkan.');
+          }
+        }
+
+        if (res?.success) {
+          queryClient.invalidateQueries({ queryKey: ['kompetensi-pendeta', idPendeta] });
+          setIsModalOpen(false);
+        } else {
+          toast.error('Gagal Menyimpan', res?.error || 'Terjadi kesalahan saat menyimpan kompetensi.');
+        }
+      } catch (err: any) {
+        toast.error('Gagal Menyimpan', err.message || 'Terjadi kesalahan saat menyimpan kompetensi.');
       }
-      setIsModalOpen(false);
-    } catch (err: any) {
-      toast.error('Gagal Menyimpan', err.message || 'Terjadi kesalahan saat menyimpan kompetensi.');
-    }
+    });
   };
 
-  const handleDelete = async (id_kompetensi: string) => {
+  const handleDelete = (id_kompetensi: string) => {
     if (!idPendeta || !confirm('Apakah Anda yakin ingin menghapus kompetensi ini?')) return;
     if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
-    try {
-      await deleteMutation.mutateAsync({ id_kompetensi, id_pendeta: idPendeta });
-      toast.success('Berhasil Dihapus', 'Data kompetensi telah dihapus.');
-      setSelectedDetailItem(null);
-    } catch (err: any) {
-      toast.error('Gagal Menghapus', err.message || 'Terjadi kesalahan saat menghapus kompetensi.');
-    }
+    startTransition(async () => {
+      try {
+        const res = await deleteKompetensiAction(id_kompetensi, idPendeta);
+        if (res.success) {
+          toast.success('Berhasil Dihapus', 'Data kompetensi telah dihapus.');
+          queryClient.invalidateQueries({ queryKey: ['kompetensi-pendeta', idPendeta] });
+          setSelectedDetailItem(null);
+        } else {
+          toast.error('Gagal Menghapus', res.error || 'Terjadi kesalahan saat menghapus kompetensi.');
+        }
+      } catch (err: any) {
+        toast.error('Gagal Menghapus', err.message || 'Terjadi kesalahan saat menghapus kompetensi.');
+      }
+    });
   };
 
   const getJenisBadge = (j: string) => {
@@ -444,13 +461,14 @@ export function KompetensiSection({ idPendeta, canEdit }: KompetensiSectionProps
                 </button>
 
                 <button
-                  type="button"
-                  onClick={() => handleDelete(selectedDetailItem.id_kompetensi)}
-                  className="min-h-[44px] px-4 rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95"
-                >
-                  <Trash2 size={15} />
-                  <span>Hapus</span>
-                </button>
+                type="button"
+                disabled={isPending}
+                onClick={() => handleDelete(selectedDetailItem.id_kompetensi)}
+                className="min-h-[44px] px-4 rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 disabled:opacity-50"
+              >
+                <Trash2 size={15} />
+                <span>Hapus</span>
+              </button>
               </div>
             )}
           </div>
@@ -617,10 +635,10 @@ export function KompetensiSection({ idPendeta, canEdit }: KompetensiSectionProps
                 </button>
                 <button
                   type="submit"
-                  disabled={createMutation.isPending || updateMutation.isPending}
+                  disabled={isPending}
                   className="flex-1 h-12 rounded-xl bg-brand-600 text-white font-semibold text-sm shadow-2xs hover:bg-brand-700 disabled:opacity-50"
                 >
-                  Simpan
+                  {isPending ? 'Menyimpan...' : 'Simpan'}
                 </button>
               </div>
             </form>

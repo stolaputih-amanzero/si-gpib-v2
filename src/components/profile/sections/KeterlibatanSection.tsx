@@ -5,13 +5,14 @@ import { Layers, Plus, Trash2, Edit3, Camera, X, MessageSquare, Eye } from 'luci
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { useToast } from '@/components/ui/toast';
+import { useKeterlibatanPendeta } from '@/hooks/use-pendeta-360';
 import {
-  useKeterlibatanPendeta,
-  useCreateKeterlibatan,
-  useUpdateKeterlibatan,
-  useDeleteKeterlibatan,
-} from '@/hooks/use-pendeta-360';
+  addKeterlibatanAction,
+  updateKeterlibatanAction,
+  deleteKeterlibatanAction,
+} from '@/app/actions/pendeta';
 import { KeterlibatanPendeta } from '@/types/pendeta-360.types';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   TINGKAT_KETERLIBATAN,
   JENIS_KETERLIBATAN,
@@ -28,9 +29,8 @@ interface KeterlibatanSectionProps {
 export function KeterlibatanSection({ idPendeta, canEdit }: KeterlibatanSectionProps) {
   const { toast } = useToast();
   const { data: keterlibatanList = [], isLoading } = useKeterlibatanPendeta(idPendeta || undefined);
-  const createMutation = useCreateKeterlibatan();
-  const updateMutation = useUpdateKeterlibatan();
-  const deleteMutation = useDeleteKeterlibatan();
+  const queryClient = useQueryClient();
+  const [isPending, startTransition] = React.useTransition();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<KeterlibatanPendeta | null>(null);
@@ -44,7 +44,7 @@ export function KeterlibatanSection({ idPendeta, canEdit }: KeterlibatanSectionP
   const [jabatan, setJabatan] = useState<string>('Anggota');
   const [tglMulai, setTglMulai] = useState('');
   const [tglSelesai, setTglSelesai] = useState('');
-  const [status, setStatus] = useState<string>('Aktif');
+  const [status, setStatus] = useState<'Aktif' | 'Selesai'>('Aktif');
   const [keterangan, setKeterangan] = useState('');
 
   // Photo & Caption State
@@ -101,7 +101,7 @@ export function KeterlibatanSection({ idPendeta, canEdit }: KeterlibatanSectionP
     setJabatan(item.jabatan || 'Anggota');
     setTglMulai(item.tgl_mulai || '');
     setTglSelesai(item.tgl_selesai || '');
-    setStatus(item.status || 'Aktif');
+    setStatus((item.status as 'Aktif' | 'Selesai') || 'Aktif');
     setKeterangan(cleanNotes);
     setPhotoBase64(pBase64);
     setPhotoCaption(pCaption || '');
@@ -135,32 +135,49 @@ export function KeterlibatanSection({ idPendeta, canEdit }: KeterlibatanSectionP
       keterangan: finalKeterangan || null,
     };
 
-    try {
-      if (editingItem) {
-        await updateMutation.mutateAsync({
-          id_keterlibatan: editingItem.id_keterlibatan,
-          ...payload,
-        });
-        toast.success('Berhasil Diperbarui', 'Data keterlibatan berhasil diperbarui.');
-      } else {
-        await createMutation.mutateAsync(payload);
-        toast.success('Berhasil Ditambahkan', 'Data keterlibatan berhasil ditambahkan.');
+    startTransition(async () => {
+      try {
+        let res;
+        if (editingItem) {
+          res = await updateKeterlibatanAction(editingItem.id_keterlibatan, idPendeta, payload);
+          if (res.success) {
+            toast.success('Berhasil Diperbarui', 'Data keterlibatan berhasil diperbarui.');
+          }
+        } else {
+          res = await addKeterlibatanAction(idPendeta, payload);
+          if (res.success) {
+            toast.success('Berhasil Ditambahkan', 'Data keterlibatan berhasil ditambahkan.');
+          }
+        }
+
+        if (res?.success) {
+          queryClient.invalidateQueries({ queryKey: ['keterlibatan-pendeta', idPendeta] });
+          setIsModalOpen(false);
+        } else {
+          toast.error('Gagal Menyimpan', res?.error || 'Terjadi kesalahan saat menyimpan keterlibatan.');
+        }
+      } catch (err: any) {
+        toast.error('Gagal Menyimpan', err.message || 'Terjadi kesalahan saat menyimpan keterlibatan.');
       }
-      setIsModalOpen(false);
-    } catch (err: any) {
-      toast.error('Gagal Menyimpan', err.message || 'Terjadi kesalahan saat menyimpan keterlibatan.');
-    }
+    });
   };
 
-  const handleDelete = async (id_keterlibatan: string) => {
+  const handleDelete = (id_keterlibatan: string) => {
     if (!idPendeta || !confirm('Apakah Anda yakin ingin menghapus data keterlibatan ini?')) return;
     if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
-    try {
-      await deleteMutation.mutateAsync({ id_keterlibatan, id_pendeta: idPendeta });
-      toast.success('Berhasil Dihapus', 'Data keterlibatan telah dihapus.');
-    } catch (err: any) {
-      toast.error('Gagal Menghapus', err.message || 'Terjadi kesalahan saat menghapus keterlibatan.');
-    }
+    startTransition(async () => {
+      try {
+        const res = await deleteKeterlibatanAction(id_keterlibatan, idPendeta);
+        if (res.success) {
+          toast.success('Berhasil Dihapus', 'Data keterlibatan telah dihapus.');
+          queryClient.invalidateQueries({ queryKey: ['keterlibatan-pendeta', idPendeta] });
+        } else {
+          toast.error('Gagal Menghapus', res.error || 'Terjadi kesalahan saat menghapus keterlibatan.');
+        }
+      } catch (err: any) {
+        toast.error('Gagal Menghapus', err.message || 'Terjadi kesalahan saat menghapus keterlibatan.');
+      }
+    });
   };
 
   const getTingkatBadge = (t: string, statusVal: string) => {
@@ -355,7 +372,7 @@ export function KeterlibatanSection({ idPendeta, canEdit }: KeterlibatanSectionP
                   <label className="block text-xs font-semibold text-ink-secondary mb-1">Status Penugasan</label>
                   <select
                     value={status}
-                    onChange={(e) => setStatus(e.target.value)}
+                    onChange={(e) => setStatus(e.target.value as 'Aktif' | 'Selesai')}
                     className="w-full h-12 px-3 rounded-xl border border-line-subtle bg-surface-1 text-sm text-ink-primary"
                   >
                     <option value="Aktif">Aktif</option>
@@ -433,10 +450,10 @@ export function KeterlibatanSection({ idPendeta, canEdit }: KeterlibatanSectionP
                 </button>
                 <button
                   type="submit"
-                  disabled={createMutation.isPending || updateMutation.isPending}
+                  disabled={isPending}
                   className="flex-1 h-12 rounded-xl bg-brand-600 text-white font-semibold text-sm shadow-2xs hover:bg-brand-700 disabled:opacity-50"
                 >
-                  Simpan
+                  {isPending ? 'Menyimpan...' : 'Simpan'}
                 </button>
               </div>
             </form>
@@ -564,12 +581,9 @@ export function KeterlibatanSection({ idPendeta, canEdit }: KeterlibatanSectionP
                         </button>
                         <button
                           type="button"
-                          onClick={() => {
-                            const idToDelete = selectedDetailItem.id_keterlibatan;
-                            setSelectedDetailItem(null);
-                            handleDelete(idToDelete);
-                          }}
-                          className="h-11 px-4 rounded-xl border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 font-semibold text-xs flex items-center justify-center gap-1.5 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all"
+                          disabled={isPending}
+                          onClick={() => handleDelete(selectedDetailItem.id_keterlibatan)}
+                          className="min-h-[44px] px-4 rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 disabled:opacity-50"
                         >
                           <Trash2 size={15} />
                           <span>Hapus</span>
