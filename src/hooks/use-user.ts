@@ -101,7 +101,6 @@ export function useUser(): UserProfile {
   if (
     role === 'kmj' &&
     (email.toLowerCase().includes('benbianco') ||
-      email.toLowerCase().includes('stolaputih') ||
       nama.toLowerCase().includes('ben bianco'))
   ) {
     role = 'pj';

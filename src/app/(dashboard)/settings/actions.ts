@@ -215,7 +215,7 @@ export async function updateOwnProfileAction(payload: {
       // Fallback to match frontend useProfileAkun logic for testing accounts
       if (!pendetaId && currentUserEmail) {
         const eLower = currentUserEmail.toLowerCase();
-        if (eLower.includes('benbianco') || eLower.includes('stolaputih')) {
+        if (eLower.includes('benbianco')) {
           pendetaId = 'PDT-43300681';
         }
       }

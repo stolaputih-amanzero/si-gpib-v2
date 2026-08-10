@@ -44,7 +44,6 @@ export async function GET() {
         if (
           finalRole === 'kmj' &&
           (user.email?.toLowerCase().includes('benbianco') ||
-            user.email?.toLowerCase().includes('stolaputih') ||
             user.nama_lengkap?.toLowerCase().includes('ben bianco'))
         ) {
           finalRole = 'pj';
@@ -59,7 +58,7 @@ export async function GET() {
         }
         if (!resolvedPdtId) {
           const emailLower = (user.email || '').toLowerCase();
-          if (emailLower.includes('benbianco') || emailLower.includes('stolaputih')) {
+          if (emailLower.includes('benbianco')) {
             resolvedPdtId = 'PDT-43300681';
           }
         }

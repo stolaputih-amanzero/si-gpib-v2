@@ -37,7 +37,7 @@ export async function fetchUnifiedTerritoryData() {
   // Determine effective role (same logic as api/auth/me)
   let role = dbUser?.role || session.user.user_metadata?.role || 'pendeta';
   const emailLower = (session.user.email || '').toLowerCase();
-  if (role === 'kmj' && (emailLower.includes('benbianco') || emailLower.includes('stolaputih'))) {
+  if (role === 'kmj' && emailLower.includes('benbianco')) {
     role = 'pj';
   }
 

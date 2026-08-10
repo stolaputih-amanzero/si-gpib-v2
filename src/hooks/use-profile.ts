@@ -144,7 +144,7 @@ export function useProfileAkun(userId?: string) {
       if (!resolvedIdPendeta) {
         const emailLower = (userEmailToMatch || '').toLowerCase();
         const nameLower = (dbUser?.nama_lengkap || authData?.user?.user_metadata?.nama_lengkap || '').toLowerCase();
-        if (emailLower.includes('benbianco') || emailLower.includes('stolaputih') || nameLower.includes('ben bianco')) {
+        if (emailLower.includes('benbianco') || nameLower.includes('ben bianco')) {
           resolvedIdPendeta = 'PDT-43300681';
         }
       }
@@ -158,7 +158,7 @@ export function useProfileAkun(userId?: string) {
               let resolvedPdtId = body.user.id_pendeta || body.user.user_metadata?.id_pendeta || resolvedIdPendeta || null;
               if (!resolvedPdtId && body.user.email) {
                 const eLower = body.user.email.toLowerCase();
-                if (eLower.includes('benbianco') || eLower.includes('stolaputih')) {
+                if (eLower.includes('benbianco')) {
                   resolvedPdtId = 'PDT-43300681';
                 }
               }
@@ -210,7 +210,6 @@ export function useProfileAkun(userId?: string) {
       if (
         userRole === 'kmj' &&
         (dbUser.email?.toLowerCase().includes('benbianco') ||
-          dbUser.email?.toLowerCase().includes('stolaputih') ||
           dbUser.nama_lengkap?.toLowerCase().includes('ben bianco'))
       ) {
         userRole = 'pj';
@@ -344,7 +343,6 @@ export function useProfilePelayanan(idPendeta?: string | null | undefined) {
 
       const isBenBianco =
         pendetaRow.email?.toLowerCase().includes('benbianco') ||
-        pendetaRow.email?.toLowerCase().includes('stolaputih') ||
         pendetaRow.nama_lengkap?.toLowerCase().includes('ben bianco') ||
         pendetaRow.nama_pendeta?.toLowerCase().includes('ben bianco');
 
