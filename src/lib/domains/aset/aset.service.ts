@@ -8,7 +8,7 @@ import { createAsetSchema, type CreateAsetSchema } from './aset.schema';
 import { db } from '@/lib/offline/dexie';
 import { syncManager } from '@/lib/offline/sync-manager';
 import { ASET_TARGETS } from './aset.types';
-import { assertPosWriteAccess } from '@/lib/utils/rbac';
+
 
 export async function createAsetAction(
   rawData: CreateAsetSchema
@@ -21,14 +21,24 @@ export async function createAsetAction(
 
   const supabase = await createClient();
   
-  let userId = '';
-  
-  try {
-    const access = await assertPosWriteAccess(data.id_pos);
-    userId = access.user.id;
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  const { enforceContract } = await import('@/lib/authorization');
+  const result = await enforceContract('OC-ASSET-001', {
+    target_entity: {
+      entity_type: 'Asset',
+      entity_id: null,
+      owning_context_id: data.id_pos || '',
+    },
+    operation_payload: data,
+  });
+
+  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+    return { success: false, error: 'System configuration error (Authorization).' };
   }
+  if (result.decision.result === 'DENY') {
+    return { success: false, error: result.decision.error_detail || 'Anda tidak memiliki akses.' };
+  }
+  
+  let userId = result.identity_resolution.base_identity?.user_account_id || '';
 
   let rpcName: 'cj5_create_aset_tanah' | 'cj5_create_aset_bangunan' | 'cj5_create_aset_bergerak';
   let payload: Record<string, any>;
