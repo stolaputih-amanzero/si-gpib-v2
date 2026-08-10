@@ -178,6 +178,11 @@ export function EditProfileModal({ isOpen, onClose, onSuccess }: EditProfileModa
       }
 
       onClose();
+      
+      // Force reload to completely bypass Next.js client router cache and ensure fresh UI
+      if (typeof window !== 'undefined') {
+        window.location.reload();
+      }
     } catch (err: any) {
       toast.error('Gagal Simpan Profil', err?.message || 'Terjadi kesalahan saat menyimpan profil.');
     } finally {
