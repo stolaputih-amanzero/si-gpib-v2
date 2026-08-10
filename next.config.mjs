@@ -99,10 +99,11 @@ const nextConfig = {
       { source: '/sdm/relawan', destination: '/org', permanent: true },
       
       // Assets
-      { source: '/aset/:id', destination: '/assets/:id', permanent: true },
+      { source: '/aset/:path*', destination: '/assets/:path*', permanent: true },
       
       // Aid Requests
-      { source: '/bantuan/:id', destination: '/aid-requests/:id', permanent: true },
+      { source: '/bantuan/:path*', destination: '/aid-requests/:path*', permanent: true },
+      { source: '/bantuan', destination: '/aid-requests', permanent: true },
       
       // Maps & Reports
       { source: '/peta-sebaran', destination: '/maps', permanent: true },

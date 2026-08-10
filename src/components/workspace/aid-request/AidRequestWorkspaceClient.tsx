@@ -6,9 +6,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { MapPin, Building, Car, Clock, CheckCircle2, XCircle, AlertCircle, Send, FileEdit, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { formatNumber } from '@/lib/utils';
-import { processApprovalAction, submitBantuanAction, resubmitPengajuanBantuanAction } from '@/app/actions/bantuan';
+import { processApprovalAction, submitBantuanAction } from '@/app/actions/bantuan';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { AidRequestFormSheet } from '@/components/bantuan/AidRequestFormSheet';
 
 interface AidRequestWorkspaceClientProps {
   data: UnifiedAidRequestData;
@@ -18,8 +19,10 @@ interface AidRequestWorkspaceClientProps {
 export function AidRequestWorkspaceClient({ data }: AidRequestWorkspaceClientProps) {
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showConfirm, setShowConfirm] = useState<'approve' | 'reject' | 'submit' | 'resubmit' | null>(null);
+  const [showConfirm, setShowConfirm] = useState<'approve' | 'reject' | 'submit' | null>(null);
   const [catatan, setCatatan] = useState('');
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isResubmitOpen, setIsResubmitOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -59,10 +62,6 @@ export function AidRequestWorkspaceClient({ data }: AidRequestWorkspaceClientPro
       } else if (showConfirm === 'submit') {
         await submitBantuanAction(data.id_ajuan);
         toast.success('Pengajuan berhasil disubmit');
-      } else if (showConfirm === 'resubmit') {
-        await resubmitPengajuanBantuanAction({ id_ajuan_lama: data.id_ajuan });
-        toast.success('Pengajuan berhasil diajukan ulang');
-        // It will redirect to new draft via action or we reload
       }
       setShowConfirm(null);
       setCatatan('');
@@ -79,13 +78,24 @@ export function AidRequestWorkspaceClient({ data }: AidRequestWorkspaceClientPro
       {/* Header */}
       <header className="bg-bg-surface border-b border-border-subtle pt-12 pb-6 px-4 sticky top-0 z-20">
         <div className="flex flex-col gap-3">
-          <div className="flex justify-between items-start">
+          <div className="flex justify-between items-start gap-4">
             <h1 className="text-xl font-bold text-text-strong leading-tight">
               {data.judul_ajuan}
             </h1>
-            <div className={`px-2 py-1 rounded-full flex items-center gap-1 text-xs font-semibold ${getStatusColor(data.status)}`}>
-              {getStatusIcon(data.status)}
-              {data.status.replace('_', ' ')}
+            <div className="flex items-center gap-2">
+              <div className={`px-2 py-1 rounded-full flex items-center gap-1 text-xs font-semibold ${getStatusColor(data.status)}`}>
+                {getStatusIcon(data.status)}
+                {data.status.replace('_', ' ')}
+              </div>
+              {data.canEdit && (
+                <button 
+                  onClick={() => setIsEditOpen(true)} 
+                  className="p-1.5 text-brand-primary hover:bg-brand-primary/10 rounded-full transition-colors flex-shrink-0"
+                  title="Edit Pengajuan"
+                >
+                  <FileEdit size={18} />
+                </button>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2 text-sm text-text-subtle">
@@ -214,7 +224,7 @@ export function AidRequestWorkspaceClient({ data }: AidRequestWorkspaceClientPro
           )}
           {data.canResubmit && (
             <button 
-              onClick={() => setShowConfirm('resubmit')}
+              onClick={() => setIsResubmitOpen(true)}
               className="w-full py-3 px-4 rounded-xl border border-border-strong text-text-strong font-semibold flex items-center justify-center gap-2 hover:bg-bg-subtle active:scale-95 transition-all"
             >
               <RefreshCw size={18} />
@@ -223,6 +233,34 @@ export function AidRequestWorkspaceClient({ data }: AidRequestWorkspaceClientPro
           )}
         </div>
       )}
+
+      {/* Forms (Bottom Sheets) */}
+      <AidRequestFormSheet
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        mode="edit"
+        initialData={{
+          id_ajuan: data.id_ajuan,
+          jenis_bantuan: data.jenis_bantuan,
+          deskripsi: data.deskripsi,
+          estimasi_biaya: data.estimasi_biaya,
+          urgensi: data.urgensi,
+          id_aset_terkait: data.aset_terkait?.id || null,
+        }}
+      />
+      <AidRequestFormSheet
+        isOpen={isResubmitOpen}
+        onClose={() => setIsResubmitOpen(false)}
+        mode="ajukan-ulang"
+        initialData={{
+          id_ajuan_lama: data.id_ajuan,
+          jenis_bantuan: data.jenis_bantuan,
+          deskripsi: data.deskripsi,
+          estimasi_biaya: data.estimasi_biaya,
+          urgensi: data.urgensi,
+          id_aset_terkait: data.aset_terkait?.id || null,
+        }}
+      />
 
       {/* Bottom Sheet Confirmation */}
       {showConfirm && (

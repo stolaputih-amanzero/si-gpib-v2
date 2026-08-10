@@ -14,6 +14,11 @@ interface BiometricSetupProps {
 export function BiometricSetup({ initialEnabled = false }: BiometricSetupProps) {
   const { status, error, registerBiometric, resetStatus } = useBiometric();
   const [isOverrideReset, setIsOverrideReset] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   const { iconVariants, controls, shake } = useBiometricMotion();
   const prevStatus = useRef(status);
@@ -40,6 +45,29 @@ export function BiometricSetup({ initialEnabled = false }: BiometricSetupProps) 
     setIsOverrideReset(true);
     resetStatus();
   };
+
+  if (!mounted) {
+    return (
+      <div className="bg-surface-elevated rounded-2xl p-5 shadow-sm border border-border-subtle">
+        <div className="flex items-start gap-3.5 mb-4 opacity-50">
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-brand-primary/10 text-brand-primary">
+            <Fingerprint className="w-6 h-6" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-base font-semibold text-text-high">Keamanan Biometrik</h3>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                Memuat...
+              </span>
+            </div>
+            <p className="text-xs text-text-muted mt-1 leading-relaxed">
+              Scan Sidik Jari / Face ID untuk login instan di lapangan tanpa perlu mengetik password.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div animate={controls} className="bg-surface-elevated rounded-2xl p-5 shadow-sm border border-border-subtle transition-all">

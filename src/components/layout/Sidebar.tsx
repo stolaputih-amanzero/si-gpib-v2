@@ -19,16 +19,12 @@ import {
   ChevronRight,
   HandHeart,
   LogOut,
-  UserPlus,
   UserCheck,
-  HeartHandshake,
   Calendar,
   Box,
-  ShieldAlert,
   Activity,
   Crown,
   GitFork,
-  Database,
   Sun,
   Moon,
 } from 'lucide-react';
@@ -56,51 +52,32 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'Dashboard Utama', href: '/dashboard', icon: Home },
       { label: 'Analitik & KPI', href: '/analitik', icon: Activity },
+      { label: 'Peta Sebaran', href: '/maps', icon: Map },
     ],
   },
   {
-    label: 'Hierarki',
+    label: 'Organisasi & SDM',
     icon: Church,
     items: [
-      { label: 'Peta Sebaran', href: '/dashboard/peta', icon: Map },
-      { label: 'Struktur Hierarki', href: '/hierarki', icon: GitFork },
-      { label: 'Pos Pelkes & Bajem', href: '/dashboard/pos-pelkes', icon: Database },
-    ],
-  },
-  {
-    label: 'SDM & Pelayanan',
-    icon: Users,
-    items: [
-      { label: 'Manajemen Pendeta', href: '/sdm/pendeta', icon: UserPlus },
-      { label: 'Pelayan Pos Pelkes', href: '/sdm/pelayan', icon: UserCheck },
-      { label: 'Relawan', href: '/sdm/relawan', icon: HeartHandshake },
+      { label: 'Direktori Organisasi', href: '/org', icon: GitFork },
+      { label: 'Personil & Pelayan', href: '/people', icon: Users },
       { label: 'Jadwal Ibadah', href: '/sdm/jadwal', icon: Calendar },
     ],
   },
   {
-    label: 'Data & Laporan',
-    icon: FileText,
+    label: 'Operasional',
+    icon: Box,
     items: [
-      { label: 'Log Pastoral', href: '/laporan/pastoral', icon: FileText },
-      { label: 'Demografi Pelkat', href: '/laporan/demografi', icon: Users },
-      { label: 'Inventaris Aset', href: '/laporan/aset', icon: Box },
-      { label: 'Kerawanan Wilayah', href: '/laporan/kerawanan', icon: ShieldAlert },
-      { label: 'Potensi Wilayah', href: '/laporan/potensi', icon: ShieldAlert },
-    ],
-  },
-  {
-    label: 'Bantuan',
-    icon: HandHeart,
-    items: [
-      { label: 'Daftar Pengajuan', href: '/bantuan', icon: HandHeart },
-      { label: 'Ajukan Bantuan Baru', href: '/bantuan/new', icon: HandHeart },
+      { label: 'Inventaris Aset', href: '/assets', icon: Box },
+      { label: 'Daftar Pengajuan', href: '/aid-requests', icon: HandHeart },
+      { label: 'Laporan', href: '/laporan', icon: FileText },
     ],
   },
   {
     label: 'Pengaturan',
     icon: Settings,
     items: [
-      { label: 'Profil 360° Saya', href: '/settings/profile', icon: UserCheck },
+      { label: 'Profil 360 Saya', href: '/settings/profile', icon: UserCheck },
       { label: 'Pengaturan Sistem', href: '/settings', icon: Settings },
       { label: 'Manajemen User & Role', href: '/settings/users', icon: Crown },
     ],
@@ -120,10 +97,8 @@ export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<string[]>([
     'Beranda',
-    'Hierarki',
-    'SDM & Pelayanan',
-    'Data & Laporan',
-    'Bantuan',
+    'Organisasi & SDM',
+    'Operasional',
     'Pengaturan',
   ]);
 
@@ -247,7 +222,7 @@ export function Sidebar() {
           : NAV_GROUPS
         ).map((group) => {
           const validItems = group.items.filter((item) => {
-            if (item.href === '/settings/users' || item.href === '/sdm/pendeta') {
+            if (item.href === '/settings/users') {
               return isSuperUser;
             }
             return true;
@@ -314,7 +289,7 @@ export function Sidebar() {
                 <div className="ml-3 pl-3 border-l-2 border-border-subtle/60 space-y-1 my-1">
                   {validItems.map((item) => {
                     const isItemActive =
-                      item.href === '/hierarki' || item.href === '/dashboard' || item.href === '/bantuan' || item.href === '/settings' || item.href === '/laporan'
+                      item.href === '/dashboard' || item.href === '/settings' || item.href === '/laporan' || item.href === '/org' || item.href === '/assets' || item.href === '/aid-requests'
                         ? pathname === item.href
                         : pathname === item.href || pathname.startsWith(item.href + '/');
                     const ItemIcon = item.icon;
