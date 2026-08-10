@@ -1,38 +1,46 @@
-// src/stores/pos-context.tsx
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useTransition } from 'react';
+import { setWorkingContext } from '@/app/actions/context';
 
 interface PosContextType {
   activePosId: string | null;
-  setActivePosId: (id: string) => void;
+  setActivePosId: (id: string) => Promise<void>;
   isLoading: boolean;
+  isPending: boolean;
 }
 
 const PosContext = createContext<PosContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'sigpib:active-pos';
+export function PosProvider({ children, initialContextId = null }: { children: ReactNode, initialContextId?: string | null }) {
+  const [activePosId, setActivePosIdState] = useState<string | null>(initialContextId);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
-export function PosProvider({ children }: { children: ReactNode }) {
-  const [activePosId, setActivePosIdState] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
+  // If server context changes (e.g. navigation), sync it to client state
   useEffect(() => {
-    // Check localStorage on mount
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      setActivePosIdState(saved);
-    }
-    setIsLoading(false);
-  }, []);
+    setActivePosIdState(initialContextId);
+  }, [initialContextId]);
 
-  const setActivePosId = (id: string) => {
-    setActivePosIdState(id);
-    localStorage.setItem(STORAGE_KEY, id);
+  const setActivePosId = async (id: string) => {
+    setIsLoading(true);
+    try {
+      const result = await setWorkingContext(id);
+      if (result.success) {
+        startTransition(() => {
+          setActivePosIdState(id);
+        });
+      }
+    } catch (error) {
+      console.error('Failed to set working context', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <PosContext.Provider value={{ activePosId, setActivePosId, isLoading }}>
+    <PosContext.Provider value={{ activePosId, setActivePosId, isLoading, isPending }}>
       {children}
     </PosContext.Provider>
   );

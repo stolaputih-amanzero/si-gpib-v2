@@ -1,5 +1,4 @@
-'use client';
-
+import { getServerContext } from '@/lib/utils/context';
 import Sidebar from '@/components/layout/Sidebar';
 import MobileHeader from '@/components/layout/MobileHeader';
 import { SuperBottomNav } from '@/components/mobile/SuperBottomNav/SuperBottomNav';
@@ -7,13 +6,18 @@ import { ReadOnlyNoticeBanner } from '@/components/auth/ReadOnlyNoticeBanner';
 import { PosProvider } from '@/stores/pos-context';
 import { OfflineQueuePanel } from '@/components/offline/OfflineQueuePanel';
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const contextData = await getServerContext();
+  
+  // Remove redirect logic for now to prevent infinite redirect loops during transition
+  // We'll let page components handle authentication gaps or empty context
+
   return (
-    <PosProvider>
+    <PosProvider initialContextId={contextData.context_id}>
       <div className="flex h-screen bg-surface-base overflow-hidden">
       {/* Desktop Sidebar (Collapsible with grouped navigation) */}
       <Sidebar />

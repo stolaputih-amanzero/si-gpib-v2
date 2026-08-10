@@ -111,12 +111,12 @@ export function BantuanFormClient() {
       const payload = {
         id_pos: posId,
         jenis_bantuan: formValues.jenis_bantuan,
-        biaya: biayaNumeric,
+        estimasi_biaya: biayaNumeric,
         urgensi: formValues.urgensi || 'Sedang',
         id_tanah: hasAssetLink === 'Ya' ? assetLinkValue.id_tanah : null,
         id_bangunan: hasAssetLink === 'Ya' ? assetLinkValue.id_bangunan : null,
         id_aset_b: hasAssetLink === 'Ya' ? assetLinkValue.id_aset_b : null,
-        keterangan: formValues.keterangan || null,
+        deskripsi: formValues.keterangan || null,
         proposal_files: proposalPayload,
       };
 

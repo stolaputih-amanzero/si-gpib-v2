@@ -21,12 +21,12 @@ function getDbClient(supabaseServerClient: any) {
 export async function createPengajuanBantuanAction(payload: {
   id_pos: string;
   jenis_bantuan: string;
-  biaya: number;
-  urgensi: 'Rendah' | 'Sedang' | 'Tinggi' | 'Kritis';
+  estimasi_biaya: number;
+  urgensi: 'Rendah' | 'Sedang' | 'Tinggi' | 'Darurat' | 'Kritis';
   id_tanah?: string | null;
   id_bangunan?: string | null;
   id_aset_b?: string | null;
-  keterangan?: string | null;
+  deskripsi?: string | null;
   proposal_files?: { name: string; size: number; path?: string }[];
 }) {
   const supabase = await createClient();
@@ -36,12 +36,12 @@ export async function createPengajuanBantuanAction(payload: {
   const validated = pengajuanBantuanSchema.parse({
     id_pos: payload.id_pos,
     jenis_bantuan: payload.jenis_bantuan,
-    biaya: payload.biaya,
+    biaya: payload.estimasi_biaya,
     urgensi: payload.urgensi,
     id_tanah: payload.id_tanah || null,
     id_bangunan: payload.id_bangunan || null,
     id_aset_b: payload.id_aset_b || null,
-    keterangan: payload.keterangan || null,
+    keterangan: payload.deskripsi || null,
   });
 
   // 2. Authorization (OC-AID-001)
@@ -82,14 +82,14 @@ export async function createPengajuanBantuanAction(payload: {
     .insert({
       id_ajuan: idAjuan,
       id_pos: validated.id_pos,
-      jenis_bantuan: validated.jenis_bantuan,
-      biaya: validated.biaya,
-      urgensi: validated.urgensi,
-      id_tanah: validated.id_tanah || null,
-      id_bangunan: validated.id_bangunan || null,
-      id_aset_b: validated.id_aset_b || null,
-      keterangan: validated.keterangan || null,
-      status: 'Pending_KMJ',
+      jenis_bantuan: payload.jenis_bantuan,
+      estimasi_biaya: payload.estimasi_biaya,
+      urgensi: payload.urgensi,
+      id_tanah: payload.id_tanah || null,
+      id_bangunan: payload.id_bangunan || null,
+      id_aset_b: payload.id_aset_b || null,
+      deskripsi: payload.deskripsi || null,
+      status: 'Draft',
     })
     .select('*')
     .single();
@@ -293,3 +293,180 @@ export async function processApprovalAction(payload: {
   return { success: true };
 }
 
+export async function updatePengajuanBantuanAction(payload: {
+  id_ajuan: string;
+  jenis_bantuan?: string;
+  deskripsi?: string;
+  estimasi_biaya?: number;
+  urgensi?: 'Rendah' | 'Sedang' | 'Tinggi' | 'Darurat' | 'Kritis';
+  id_aset_tanah?: string | null;
+  id_aset_bangunan?: string | null;
+  id_aset_bergerak?: string | null;
+}) {
+  const supabase = await createClient();
+  const db = getDbClient(supabase);
+
+  // Lookup record to get id_pos for authorization
+  const { data: currentRecord } = await db
+    .from('t_pengajuan_bantuan')
+    .select('id_pos, status')
+    .eq('id_ajuan', payload.id_ajuan)
+    .single();
+
+  if (!currentRecord) {
+    throw new Error('Pengajuan bantuan tidak ditemukan.');
+  }
+
+  const contractId: ContractId = 'OC-AID-002';
+  const result = await enforceContract(contractId, {
+    target_entity: {
+      entity_type: 'Aid',
+      entity_id: payload.id_ajuan,
+      owning_context_id: currentRecord.id_pos,
+    },
+    operation_payload: {
+      status: currentRecord.status, // Evaluated against precondition TargetAid.status == 'Draft'
+    },
+  });
+
+  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+    throw new Error('System configuration error (Authorization).');
+  }
+  if (result.decision.result === 'DENY') {
+    throw new Error(result.decision.error_detail || 'Access denied.');
+  }
+
+  await db.rpc('set_authorization_context', {
+    p_context_id: result.context_resolution.active_context?.context_id || '',
+    p_context_level: result.context_resolution.active_context?.context_level || '',
+    p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+    p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+    p_effective_role: result.role_binding.effective_system_role || '',
+  });
+
+  const updateData: any = { updated_at: new Date().toISOString() };
+  if (payload.jenis_bantuan !== undefined) updateData.jenis_bantuan = payload.jenis_bantuan;
+  if (payload.estimasi_biaya !== undefined) updateData.estimasi_biaya = payload.estimasi_biaya;
+  if (payload.urgensi !== undefined) updateData.urgensi = payload.urgensi;
+  if (payload.deskripsi !== undefined) updateData.deskripsi = payload.deskripsi;
+  if (payload.id_aset_tanah !== undefined) updateData.id_tanah = payload.id_aset_tanah;
+  if (payload.id_aset_bangunan !== undefined) updateData.id_bangunan = payload.id_aset_bangunan;
+  if (payload.id_aset_bergerak !== undefined) updateData.id_aset_b = payload.id_aset_bergerak;
+
+  const { data, error } = await db
+    .from('t_pengajuan_bantuan')
+    .update(updateData)
+    .eq('id_ajuan', payload.id_ajuan)
+    .select('*')
+    .single();
+
+  if (error) {
+    console.error('updatePengajuanBantuanAction error:', error);
+    throw new Error(error.message || 'Gagal mengupdate pengajuan bantuan.');
+  }
+
+  // Audit
+  await db.from('t_log_aktivitas').insert({
+    id_log: `LOG-AID-${Date.now()}`,
+    id_user: result.identity_resolution.base_identity?.user_account_id,
+    aksi: 'aid.update',
+    objek_type: 'Aid',
+    objek_id: payload.id_ajuan,
+    aktor: result.role_binding.effective_system_role,
+    keterangan: `Update draft pengajuan bantuan ${payload.id_ajuan}`
+  });
+
+  revalidatePath('/bantuan');
+  revalidatePath(`/bantuan/${payload.id_ajuan}`);
+  revalidatePath('/dashboard');
+
+  return data;
+}
+
+export async function resubmitPengajuanBantuanAction(payload: {
+  id_ajuan_lama: string;
+  jenis_bantuan?: string;
+  estimasi_biaya?: number;
+  urgensi?: 'Rendah' | 'Sedang' | 'Tinggi' | 'Darurat' | 'Kritis';
+  deskripsi?: string | null;
+}) {
+  const supabase = await createClient();
+  const db = getDbClient(supabase);
+
+  // Lookup rejected record
+  const { data: currentRecord } = await db
+    .from('t_pengajuan_bantuan')
+    .select('*')
+    .eq('id_ajuan', payload.id_ajuan_lama)
+    .single();
+
+  if (!currentRecord) {
+    throw new Error('Pengajuan bantuan tidak ditemukan.');
+  }
+
+  const contractId: ContractId = 'OC-AID-007'; // Resubmit
+  const result = await enforceContract(contractId, {
+    target_entity: {
+      entity_type: 'Aid',
+      entity_id: payload.id_ajuan_lama,
+      owning_context_id: currentRecord.id_pos,
+    },
+    operation_payload: {
+      status: currentRecord.status, // Evaluated against precondition TargetAid.status == 'Rejected'
+    },
+  });
+
+  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+    throw new Error('System configuration error (Authorization).');
+  }
+  if (result.decision.result === 'DENY') {
+    throw new Error(result.decision.error_detail || 'Access denied.');
+  }
+
+  await db.rpc('set_authorization_context', {
+    p_context_id: result.context_resolution.active_context?.context_id || '',
+    p_context_level: result.context_resolution.active_context?.context_level || '',
+    p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+    p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+    p_effective_role: result.role_binding.effective_system_role || '',
+  });
+
+  const newIdAjuan = `AJU-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+  // Create NEW record linking to old record
+  const { data: newPengajuan, error: newError } = await db
+    .from('t_pengajuan_bantuan')
+    .insert({
+      id_ajuan: newIdAjuan,
+      id_pos: currentRecord.id_pos,
+      id_pengajuan_sebelumnya: payload.id_ajuan_lama,
+      jenis_bantuan: payload.jenis_bantuan || currentRecord.jenis_bantuan,
+      estimasi_biaya: payload.estimasi_biaya || currentRecord.estimasi_biaya,
+      urgensi: payload.urgensi || currentRecord.urgensi,
+      deskripsi: payload.deskripsi !== undefined ? payload.deskripsi : currentRecord.deskripsi,
+      status: 'Draft',
+    })
+    .select('*')
+    .single();
+
+  if (newError) {
+    console.error('resubmitPengajuanBantuanAction error:', newError);
+    throw new Error(newError.message || 'Gagal mengajukan ulang bantuan.');
+  }
+
+  // Audit
+  await db.from('t_log_aktivitas').insert({
+    id_log: `LOG-AID-${Date.now()}`,
+    id_user: result.identity_resolution.base_identity?.user_account_id,
+    aksi: 'aid.resubmit',
+    objek_type: 'Aid',
+    objek_id: newIdAjuan,
+    aktor: result.role_binding.effective_system_role,
+    keterangan: `Resubmit pengajuan bantuan dari ${payload.id_ajuan_lama} menjadi ${newIdAjuan}`
+  });
+
+  revalidatePath('/bantuan');
+  revalidatePath('/dashboard');
+
+  return newPengajuan;
+}

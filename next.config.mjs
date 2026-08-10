@@ -41,6 +41,34 @@ const nextConfig = {
       },
     ];
   },
+
+  async redirects() {
+    return [
+      // Organization
+      { source: '/mupel/:id', destination: '/org/:id', permanent: true },
+      { source: '/jemaat/:id', destination: '/org/:id', permanent: true },
+      { source: '/dashboard/pos-pelkes/:id', destination: '/org/:id', permanent: true },
+      { source: '/hierarki/:path*', destination: '/org/:path*', permanent: true },
+      
+      // People
+      { source: '/pendeta/:id', destination: '/people/:id', permanent: true },
+      { source: '/sdm/pendeta', destination: '/people', permanent: true },
+      { source: '/sdm/pelayan', destination: '/org', permanent: true }, // Pelayan masuk ke SDM Section di Org
+      { source: '/sdm/relawan', destination: '/org', permanent: true },
+      
+      // Assets
+      { source: '/aset/:id', destination: '/assets/:id', permanent: true },
+      { source: '/laporan/aset', destination: '/assets', permanent: true },
+      
+      // Aid Requests
+      { source: '/bantuan/:id', destination: '/aid-requests/:id', permanent: true },
+      
+      // Maps & Reports
+      { source: '/peta-sebaran', destination: '/maps', permanent: true },
+      { source: '/dashboard/peta', destination: '/maps', permanent: true },
+      { source: '/laporan', destination: '/org', permanent: true }, // Laporan terintegrasi ke Workspace
+    ];
+  },
 };
 
 export default withSerwistConfig(nextConfig);

@@ -4,7 +4,7 @@
 
 'use client';
 
-import { use, useState } from 'react';
+import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -14,7 +14,6 @@ import {
   Calendar,
   Pencil,
   Send,
-  Trash2,
   Loader2,
   RefreshCw,
   AlertTriangle,
@@ -32,7 +31,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   useBantuanDetail,
   useSubmitBantuan,
-  useDeleteBantuan,
 } from '@/lib/domains/bantuan/bantuan.queries';
 import { useCurrentProfile } from '@/hooks/use-current-profile';
 import { haptic } from '@/lib/haptic/vibrate';
@@ -151,12 +149,9 @@ export default function BantuanDetailPage({
   const { id } = use(params);
   const router = useRouter();
 
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
-
   const { data: pengajuan, isLoading, isError, error, refetch } = useBantuanDetail(id);
   const { data: profile, isLoading: profileLoading } = useCurrentProfile();
   const submitMutation = useSubmitBantuan();
-  const deleteMutation = useDeleteBantuan();
 
   // Loading
   if (isLoading || profileLoading) {
@@ -203,24 +198,6 @@ export default function BantuanDetailPage({
         toast.error('Gagal mengirim pengajuan', {
           description: (err as Error).message,
         });
-      },
-    });
-  };
-
-  const handleDelete = () => {
-    deleteMutation.mutate(pengajuan.id_ajuan, {
-      onSuccess: () => {
-        haptic('success');
-        toast.success('Draft pengajuan dihapus');
-        router.push('/bantuan');
-      },
-      onError: (err) => {
-        haptic('error');
-        logger.error('Gagal hapus pengajuan bantuan', err as Error);
-        toast.error('Gagal menghapus pengajuan', {
-          description: (err as Error).message,
-        });
-        setConfirmingDelete(false);
       },
     });
   };
@@ -369,44 +346,6 @@ export default function BantuanDetailPage({
                 </Button>
               </Link>
 
-              {/* Delete dengan konfirmasi inline dua-tahap */}
-              {!confirmingDelete ? (
-                <Button
-                  variant="ghost"
-                  size="lg"
-                  className="w-full min-h-[48px] text-red-600 hover:text-red-700 hover:bg-red-50"
-                  onClick={() => setConfirmingDelete(true)}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Hapus Draft
-                </Button>
-              ) : (
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="flex-1 min-h-[48px]"
-                    onClick={() => setConfirmingDelete(false)}
-                    disabled={deleteMutation.isPending}
-                  >
-                    Batal
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="lg"
-                    className="flex-1 min-h-[48px]"
-                    onClick={handleDelete}
-                    disabled={deleteMutation.isPending}
-                  >
-                    {deleteMutation.isPending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Trash2 className="w-4 h-4 mr-2" />
-                    )}
-                    Yakin Hapus
-                  </Button>
-                </div>
-              )}
             </CardContent>
           </Card>
         )}
