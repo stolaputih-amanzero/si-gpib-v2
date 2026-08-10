@@ -2,6 +2,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { enforceContract } from '@/lib/authorization';
 import type { PastoralFilter, PastoralStats } from './pastoral.types';
 import { revalidatePath } from 'next/cache';
 import { logger } from '@/lib/logger';
@@ -34,7 +35,7 @@ export async function createLogPastoralAction(
     return { success: false, error: 'Sesi tidak valid. Silakan login ulang.' };
   }
 
-  const { enforceContract } = await import('@/lib/authorization');
+
   
   const result = await enforceContract('OC-PASTORAL-001', {
     target_entity: {
@@ -263,7 +264,7 @@ export async function exportLogPastoralToExcel(filter: PastoralFilter) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Unauthorized');
 
-  const { enforceContract } = await import('@/lib/authorization');
+
   
   const result = await enforceContract('OC-PASTORAL-004', {
     target_entity: {

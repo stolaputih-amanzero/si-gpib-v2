@@ -8,11 +8,11 @@ import { createAsetSchema, type CreateAsetSchema } from './aset.schema';
 import { db } from '@/lib/offline/dexie';
 import { syncManager } from '@/lib/offline/sync-manager';
 import { ASET_TARGETS } from './aset.types';
-
+import { enforceContract } from '@/lib/authorization';
 
 export async function createAsetAction(
   rawData: CreateAsetSchema
-): Promise<{ success: boolean; error?: string; idempotent?: boolean }> {
+): Promise<{ success: boolean; error?: string; message?: string; idempotent?: boolean }> {
   const validation = createAsetSchema.safeParse(rawData);
   if (!validation.success) {
     return { success: false, error: validation.error.issues[0].message };
@@ -21,7 +21,6 @@ export async function createAsetAction(
 
   const supabase = await createClient();
   
-  const { enforceContract } = await import('@/lib/authorization');
   const result = await enforceContract('OC-ASSET-001', {
     target_entity: {
       entity_type: 'Asset',
@@ -32,13 +31,17 @@ export async function createAsetAction(
   });
 
   if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
-    return { success: false, error: 'System configuration error (Authorization).' };
+    return { success: false, error: 'INTERNAL_ERROR', message: 'System configuration error.' };
   }
   if (result.decision.result === 'DENY') {
-    return { success: false, error: result.decision.error_detail || 'Anda tidak memiliki akses.' };
+    return { 
+        success: false, 
+        error: result.decision.error_code || 'ACCESS_DENIED',
+        message: result.decision.error_detail || 'Access denied.'
+    };
   }
   
-  let userId = result.identity_resolution.base_identity?.user_account_id || '';
+  let userId = result.identity_resolution?.base_identity?.user_account_id || '';
 
   let rpcName: 'cj5_create_aset_tanah' | 'cj5_create_aset_bangunan' | 'cj5_create_aset_bergerak';
   let payload: Record<string, any>;
