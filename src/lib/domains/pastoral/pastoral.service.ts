@@ -34,30 +34,34 @@ export async function createLogPastoralAction(
     return { success: false, error: 'Sesi tidak valid. Silakan login ulang.' };
   }
 
-  const role = user.user_metadata?.role || user.app_metadata?.role;
-  const isPrivileged = ['super_user', 'admin_mupel', 'admin_jemaat', 'pj'].includes(role);
+  const { enforceContract } = await import('@/lib/authorization');
+  
+  const result = await enforceContract('OC-PASTORAL-001', {
+    target_entity: {
+      entity_type: 'Pastoral',
+      entity_id: null,
+      owning_context_id: data.id_pos || '',
+    },
+    operation_payload: data,
+  });
 
-  if (!isPrivileged) {
-    // Pre-check RBAC untuk Pendeta
-    const { data: penugasan, error: rbacError } = await supabase
-      .from('t_penugasan_pendeta')
-      .select('id_tugas')
-      .eq('id_pendeta', user.user_metadata?.id_pendeta || '')
-      .eq('id_pos', data.id_pos || '')
-      .eq('status_tugas', 'Aktif')
-      .is('tgl_selesai', null)
-      .maybeSingle();
-
-    if (rbacError || !penugasan) {
-      logger.warn('RBAC Pre-check failed: User not assigned to this Pos', {
-        userId: user.id,
-        idPos: data.id_pos,
-      });
-      return { success: false, error: 'Anda tidak ditugaskan di Pos Pelkes ini.' };
-    }
+  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+    return { success: false, error: 'System configuration error (Authorization).' };
+  }
+  if (result.decision.result === 'DENY') {
+    return { success: false, error: result.decision.error_detail || 'Anda tidak memiliki akses.' };
   }
 
-  let idPendeta = isPrivileged ? (data.id_pendeta || user.user_metadata?.id_pendeta) : user.user_metadata?.id_pendeta;
+  // Inject session
+  await supabase.rpc('set_authorization_context', {
+    p_context_id: result.context_resolution.active_context?.context_id || '',
+    p_context_level: result.context_resolution.active_context?.context_level || '',
+    p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+    p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+    p_effective_role: result.role_binding.effective_system_role || '',
+  });
+
+  let idPendeta = data.id_pendeta || user.user_metadata?.id_pendeta;
 
   if (idPendeta) {
     const { data: pCheck } = await supabase.from('m_pendeta').select('id_pendeta').eq('id_pendeta', idPendeta).maybeSingle();
@@ -258,8 +262,18 @@ export async function exportLogPastoralToExcel(filter: PastoralFilter) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  // RBAC re-check
-  if (user?.user_metadata?.role !== 'kmj' && user?.user_metadata?.role !== 'super_user' || (user?.user_metadata?.id_induk !== filter.idJemaat && user?.user_metadata?.role !== 'super_user')) {
+  const { enforceContract } = await import('@/lib/authorization');
+  
+  const result = await enforceContract('OC-PASTORAL-004', {
+    target_entity: {
+      entity_type: 'Pastoral',
+      entity_id: null,
+      owning_context_id: filter.idJemaat || '',
+    },
+    operation_payload: {},
+  });
+
+  if (result.status === 'CONTRACT_RESOLUTION_FAILURE' || result.decision.result === 'DENY') {
     throw new Error('Unauthorized: hanya KMJ dari jemaat ini yang bisa export');
   }
 

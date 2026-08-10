@@ -1,118 +1,16 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
+// cookies import removed
 import { revalidatePath } from 'next/cache'
+import { enforceContract } from '@/lib/authorization'
+import type { ContractId } from '@/lib/authorization/types'
 
-async function getAuthUser(supabase: any) {
-  let user: any = null
-  try {
-    const { data } = await supabase.auth.getUser()
-    user = data?.user
-  } catch {}
+// getAuthUser removed
 
-  if (!user) {
-    const cookieStore = await cookies()
-    const sessionCookie = cookieStore.get('si_gpib_user_session')?.value
-    if (sessionCookie) {
-      try {
-        user = JSON.parse(sessionCookie)
-      } catch {}
-    }
-  }
-
-  if (!user) {
-    throw new Error('Unauthorized: Pengguna tidak terautentikasi')
-  }
-
-  return user
-}
-
-async function validateCreateAccess(supabase: any, id_induk: string) {
-  const user = await getAuthUser(supabase)
-
-  let userAuth: any = null
-  try {
-    const { data } = await supabase
-      .from('users')
-      .select('role, id_mupel, id_induk, id_pos')
-      .or(`id.eq.${user.id},email.eq.${user.email}`)
-      .maybeSingle()
-    userAuth = data
-  } catch {}
-
-  const role = userAuth?.role || user.user_metadata?.role || user.role || 'guest'
-
-  if (['super_user', 'superadmin', 'sinode', 'admin', 'pendeta'].includes(role)) {
-    return true
-  }
-
-  let targetJemaat: any = null
-  try {
-    const { data } = await supabase
-      .from('m_jemaat_induk')
-      .select('id_mupel')
-      .eq('id_induk', id_induk)
-      .maybeSingle()
-    targetJemaat = data
-  } catch {}
-
-  if (!targetJemaat) {
-    // Admin fallback
-    const supabaseAdmin = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
-    const { data } = await supabaseAdmin
-      .from('m_jemaat_induk')
-      .select('id_mupel')
-      .eq('id_induk', id_induk)
-      .maybeSingle()
-    targetJemaat = data
-  }
-
-  if (!targetJemaat) {
-    throw new Error('Unauthorized: Jemaat Induk tidak ditemukan')
-  }
-
-  const targetMupelId = targetJemaat.id_mupel
-
-  const isAllowed =
-    (role === 'admin_mupel' && userAuth?.id_mupel === targetMupelId) ||
-    (['kmj', 'admin_jemaat', 'pj_pos', 'pelayan', 'relawan'].includes(role) && userAuth?.id_induk === id_induk)
-
-  if (!isAllowed) {
-    // Standard logged in user fallback
-    return true
-  }
-
-  return true
-}
-
-async function validateWriteAccess(supabase: any, _targetIdPos: string) {
-  const user = await getAuthUser(supabase)
-
-  let userAuth: any = null
-  try {
-    const { data } = await supabase
-      .from('users')
-      .select('role, id_mupel, id_induk, id_pos')
-      .or(`id.eq.${user.id},email.eq.${user.email}`)
-      .maybeSingle()
-    userAuth = data
-  } catch {}
-
-  const role = userAuth?.role || user.user_metadata?.role || user.role || 'guest'
-
-  if (['super_user', 'superadmin', 'sinode', 'admin', 'pendeta'].includes(role)) {
-    return true
-  }
-
-  return true
-}
-
-export async function savePosPelkes(formData: FormData) {
+// Removed dangling syntax
+export async function savePosPelkes(formData: FormData): Promise<{ success?: boolean; id_pos?: string; error?: string | any }> {
   const supabase = await createClient()
 
   const id_induk = formData.get('id_induk') as string
@@ -127,11 +25,35 @@ export async function savePosPelkes(formData: FormData) {
     return { error: 'Data tidak lengkap' }
   }
 
-  try {
-    await validateCreateAccess(supabase, id_induk)
-  } catch (authError: any) {
-    return { error: authError.message }
+  const contractId: ContractId = 'OC-ORG-001';
+  const result = await enforceContract(contractId, {
+    target_entity: {
+      entity_type: 'Organization',
+      entity_id: null,
+      owning_context_id: id_induk,
+    },
+    operation_payload: {},
+  });
+
+  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+    return { error: 'System configuration error (Authorization).' };
   }
+  if (result.decision.result === 'DENY') {
+    return { error: result.decision.error_detail || 'Access denied.' };
+  }
+
+  const supabaseAdmin = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  await supabaseAdmin.rpc('set_authorization_context', {
+    p_context_id: result.context_resolution.active_context?.context_id || '',
+    p_context_level: result.context_resolution.active_context?.context_level || '',
+    p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+    p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+    p_effective_role: result.role_binding.effective_system_role || '',
+  });
 
   const latitude = latStr ? parseFloat(latStr) : null
   const longitude = lngStr ? parseFloat(lngStr) : null
@@ -194,11 +116,21 @@ export async function savePosPelkes(formData: FormData) {
     return { error: `Gagal menyimpan Pos Pelkes: ${posError.message}` }
   }
 
+  await supabaseAdmin.from('t_log_aktivitas').insert({
+    id_log: `LOG-ORG-${Date.now()}`,
+    id_user: result.identity_resolution.base_identity?.user_account_id,
+    aksi: 'org.create',
+    objek_type: 'Organization',
+    objek_id: id_pos,
+    aktor: result.role_binding.effective_system_role,
+    keterangan: `Membuat Pos Pelkes ${nama_pos}`
+  });
+
   revalidatePath('/dashboard/pos-pelkes')
   return { success: true, id_pos }
 }
 
-export async function updatePosPelkes(id_pos: string, formData: FormData) {
+export async function updatePosPelkes(id_pos: string, formData: FormData): Promise<{ success?: boolean; id_pos?: string; error?: string | any }> {
   const supabase = await createClient()
 
   const id_induk = formData.get('id_induk') as string
@@ -214,11 +146,35 @@ export async function updatePosPelkes(id_pos: string, formData: FormData) {
     return { error: 'Data tidak lengkap' }
   }
 
-  try {
-    await validateWriteAccess(supabase, id_pos)
-  } catch (authError: any) {
-    return { error: authError.message }
+  const contractId: ContractId = 'OC-ORG-002';
+  const result = await enforceContract(contractId, {
+    target_entity: {
+      entity_type: 'Organization',
+      entity_id: id_pos,
+      owning_context_id: id_induk,
+    },
+    operation_payload: {},
+  });
+
+  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+    return { error: 'System configuration error (Authorization).' };
   }
+  if (result.decision.result === 'DENY') {
+    return { error: result.decision.error_detail || 'Access denied.' };
+  }
+
+  const supabaseAdmin = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  await supabaseAdmin.rpc('set_authorization_context', {
+    p_context_id: result.context_resolution.active_context?.context_id || '',
+    p_context_level: result.context_resolution.active_context?.context_level || '',
+    p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+    p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+    p_effective_role: result.role_binding.effective_system_role || '',
+  });
 
   const latitude = latStr ? parseFloat(latStr) : null
   const longitude = lngStr ? parseFloat(lngStr) : null
@@ -283,41 +239,72 @@ export async function updatePosPelkes(id_pos: string, formData: FormData) {
     return { error: `Gagal memperbarui Pos Pelkes: ${error.message}` }
   }
 
+  await supabaseAdmin.from('t_log_aktivitas').insert({
+    id_log: `LOG-ORG-${Date.now()}`,
+    id_user: result.identity_resolution.base_identity?.user_account_id,
+    aksi: 'org.update',
+    objek_type: 'Organization',
+    objek_id: id_pos,
+    aktor: result.role_binding.effective_system_role,
+    keterangan: `Memperbarui Pos Pelkes ${nama_pos}`
+  });
+
   revalidatePath(`/dashboard/pos-pelkes/${id_pos}`)
   revalidatePath('/dashboard/pos-pelkes')
   return { success: true }
 }
 
 export async function deletePosPelkes(id_pos: string) {
-  const supabase = await createClient()
+  // const supabase = await createClient()
 
-  try {
-    await validateWriteAccess(supabase, id_pos)
-  } catch (authError: any) {
-    return { error: authError.message }
+  const contractId: ContractId = 'OC-ORG-004';
+  const result = await enforceContract(contractId, {
+    target_entity: {
+      entity_type: 'Organization',
+      entity_id: id_pos,
+      owning_context_id: null,
+    },
+    operation_payload: {},
+  });
+
+  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+    return { error: 'System configuration error (Authorization).' };
+  }
+  if (result.decision.result === 'DENY') {
+    return { error: result.decision.error_detail || 'Access denied.' };
   }
 
-  let { error } = await supabase
+  const supabaseAdmin = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  await supabaseAdmin.rpc('set_authorization_context', {
+    p_context_id: result.context_resolution.active_context?.context_id || '',
+    p_context_level: result.context_resolution.active_context?.context_level || '',
+    p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+    p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+    p_effective_role: result.role_binding.effective_system_role || '',
+  });
+
+  let { error } = await supabaseAdmin
     .from('m_pos_pelkes')
     .delete()
     .eq('id_pos', id_pos)
 
   if (error) {
-    const supabaseAdmin = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
-    const { error: adminError } = await supabaseAdmin
-      .from('m_pos_pelkes')
-      .delete()
-      .eq('id_pos', id_pos)
-
-    error = adminError
-  }
-
-  if (error) {
     return { error: `Gagal menghapus Pos Pelkes: ${error.message}` }
   }
+
+  await supabaseAdmin.from('t_log_aktivitas').insert({
+    id_log: `LOG-ORG-${Date.now()}`,
+    id_user: result.identity_resolution.base_identity?.user_account_id,
+    aksi: 'org.delete',
+    objek_type: 'Organization',
+    objek_id: id_pos,
+    aktor: result.role_binding.effective_system_role,
+    keterangan: `Menghapus Pos Pelkes ${id_pos}`
+  });
 
   revalidatePath('/dashboard/pos-pelkes')
   return { success: true }

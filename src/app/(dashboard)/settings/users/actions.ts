@@ -2,7 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
+import { enforceContract } from '@/lib/authorization'
+import type { ContractId } from '@/lib/authorization/types'
 
 function createAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -24,38 +25,7 @@ function createAdminClient() {
   })
 }
 
-function isSuperUserRole(role?: string): boolean {
-  if (!role) return false
-  const r = role.toLowerCase().trim().replace(/[\s_]/g, '')
-  return r === 'superuser' || r === 'superadmin' || r === 'sinode' || r === 'admin'
-}
-
-async function getAuthenticatedCaller(supabase: any) {
-  // Attempt 1: Supabase auth.getUser()
-  try {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) return user
-  } catch {}
-
-  // Attempt 2: Read cookies fallback
-  try {
-    const cookieStore = await cookies()
-    const sessionCookie = cookieStore.get('si_gpib_user_session')?.value
-    if (sessionCookie) {
-      const parsed = JSON.parse(sessionCookie)
-      if (parsed?.id) {
-        return {
-          id: parsed.id,
-          email: parsed.email || '',
-          user_metadata: { role: parsed.role || 'super_user' },
-          role: parsed.role || 'super_user',
-        }
-      }
-    }
-  } catch {}
-
-  return null
-}
+// Unused functions removed
 
 async function resolveHierarchyMupel(
   client: any,
@@ -109,27 +79,37 @@ export async function createUserAction(payload: {
   try {
     const supabase = await createClient()
 
-    // 1. Verify authenticated caller
-    const caller = await getAuthenticatedCaller(supabase)
-    if (!caller) {
-      return { success: false, error: 'Unauthorized: Pengguna tidak terautentikasi' }
+    // 1. Authorization (OC-USER-001)
+    const contractId: ContractId = 'OC-USER-001';
+    const result = await enforceContract(contractId, {
+      target_entity: {
+        entity_type: 'User',
+        entity_id: null,
+        owning_context_id: payload.id_pos || payload.id_induk || payload.id_mupel || null,
+      },
+      operation_payload: {
+        role: payload.role,
+      },
+    });
+
+    if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+      return { success: false, error: 'System configuration error (Authorization).' }
+    }
+    if (result.decision.result === 'DENY') {
+      return { success: false, error: result.decision.error_detail || 'Access denied.' }
     }
 
-    // Verify caller role in DB
     const adminClient = createAdminClient()
     const clientForRead = adminClient || supabase
 
-    const { data: userAuth } = await clientForRead
-      .from('users')
-      .select('role')
-      .eq('id', caller.id)
-      .maybeSingle()
-
-    const currentRole = userAuth?.role || caller.user_metadata?.role || caller.role || 'guest'
-
-    if (!isSuperUserRole(currentRole)) {
-      return { success: false, error: 'Unauthorized: Anda tidak memiliki hak akses untuk membuat pengguna baru' }
-    }
+    // Inject session context
+    await clientForRead.rpc('set_authorization_context', {
+      p_context_id: result.context_resolution.active_context?.context_id || '',
+      p_context_level: result.context_resolution.active_context?.context_level || '',
+      p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+      p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+      p_effective_role: result.role_binding.effective_system_role || '',
+    });
 
     // Resolve hierarchy IDs defensively
     const { resolved_mupel, resolved_induk } = await resolveHierarchyMupel(
@@ -184,6 +164,17 @@ export async function createUserAction(payload: {
       return { success: false, error: `Gagal menyimpan data profil pengguna: ${dbError.message}` }
     }
 
+    // Layer 8 Audit
+    await clientForWrite.from('t_log_aktivitas').insert({
+      id_log: `LOG-USR-${Date.now()}`,
+      id_user: result.identity_resolution.base_identity?.user_account_id,
+      aksi: 'user.create',
+      objek_type: 'User',
+      objek_id: newUserId,
+      aktor: result.role_binding.effective_system_role,
+      keterangan: `Membuat pengguna baru ${payload.email}`
+    });
+
     return { success: true, data: { id: newUserId, password: tempPassword } }
   } catch (err: any) {
     return { success: false, error: err?.message || 'Terjadi kesalahan tidak terduga saat membuat pengguna' }
@@ -203,26 +194,38 @@ export async function updateUserRoleAction(payload: {
   try {
     const supabase = await createClient()
 
-    // 1. Verify authenticated caller
-    const caller = await getAuthenticatedCaller(supabase)
-    if (!caller) {
-      return { success: false, error: 'Unauthorized: Pengguna tidak terautentikasi' }
+    // 1. Authorization (OC-USER-002)
+    const contractId: ContractId = 'OC-USER-002';
+    const result = await enforceContract(contractId, {
+      target_entity: {
+        entity_type: 'User',
+        entity_id: payload.id,
+        owning_context_id: payload.id_pos || payload.id_induk || payload.id_mupel || null,
+      },
+      operation_payload: {
+        role: payload.role,
+        status: payload.status,
+      },
+    });
+
+    if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+      return { success: false, error: 'System configuration error (Authorization).' }
+    }
+    if (result.decision.result === 'DENY') {
+      return { success: false, error: result.decision.error_detail || 'Access denied.' }
     }
 
     const adminClient = createAdminClient()
     const clientForRead = adminClient || supabase
 
-    const { data: userAuth } = await clientForRead
-      .from('users')
-      .select('role')
-      .eq('id', caller.id)
-      .maybeSingle()
-
-    const currentRole = userAuth?.role || caller.user_metadata?.role || caller.role || 'guest'
-
-    if (!isSuperUserRole(currentRole)) {
-      return { success: false, error: 'Unauthorized: Anda tidak memiliki hak akses untuk manajemen user' }
-    }
+    // Inject session context
+    await clientForRead.rpc('set_authorization_context', {
+      p_context_id: result.context_resolution.active_context?.context_id || '',
+      p_context_level: result.context_resolution.active_context?.context_level || '',
+      p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+      p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+      p_effective_role: result.role_binding.effective_system_role || '',
+    });
 
     // Resolve hierarchy IDs defensively
     const { resolved_mupel, resolved_induk } = await resolveHierarchyMupel(
@@ -270,6 +273,17 @@ export async function updateUserRoleAction(payload: {
       return { success: false, error: `Gagal memperbarui user: ${error.message}` }
     }
 
+    // Layer 8 Audit
+    await clientForWrite.from('t_log_aktivitas').insert({
+      id_log: `LOG-USR-${Date.now()}`,
+      id_user: result.identity_resolution.base_identity?.user_account_id,
+      aksi: 'user.update_role',
+      objek_type: 'User',
+      objek_id: payload.id,
+      aktor: result.role_binding.effective_system_role,
+      keterangan: `Memperbarui pengguna ${payload.email}`
+    });
+
     return { success: true, data }
   } catch (err: any) {
     return { success: false, error: err?.message || 'Terjadi kesalahan tidak terduga saat memperbarui pengguna' }
@@ -280,25 +294,35 @@ export async function deleteUserAction(id: string) {
   try {
     const supabase = await createClient()
 
-    const caller = await getAuthenticatedCaller(supabase)
-    if (!caller) {
-      return { success: false, error: 'Unauthorized: Pengguna tidak terautentikasi' }
+    // 1. Authorization (OC-USER-004)
+    const contractId: ContractId = 'OC-USER-004';
+    const result = await enforceContract(contractId, {
+      target_entity: {
+        entity_type: 'User',
+        entity_id: id,
+        owning_context_id: null,
+      },
+      operation_payload: {},
+    });
+
+    if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+      return { success: false, error: 'System configuration error (Authorization).' }
+    }
+    if (result.decision.result === 'DENY') {
+      return { success: false, error: result.decision.error_detail || 'Access denied.' }
     }
 
     const adminClient = createAdminClient()
     const clientForRead = adminClient || supabase
 
-    const { data: userAuth } = await clientForRead
-      .from('users')
-      .select('role')
-      .eq('id', caller.id)
-      .maybeSingle()
-
-    const currentRole = userAuth?.role || caller.user_metadata?.role || caller.role || 'guest'
-
-    if (!isSuperUserRole(currentRole)) {
-      return { success: false, error: 'Unauthorized: Anda tidak memiliki hak akses untuk manajemen user' }
-    }
+    // Inject session context
+    await clientForRead.rpc('set_authorization_context', {
+      p_context_id: result.context_resolution.active_context?.context_id || '',
+      p_context_level: result.context_resolution.active_context?.context_level || '',
+      p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+      p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+      p_effective_role: result.role_binding.effective_system_role || '',
+    });
 
     const clientForWrite = adminClient || supabase
 
@@ -320,6 +344,17 @@ export async function deleteUserAction(id: string) {
         console.warn('Auth admin delete user warning:', authErr)
       }
     }
+
+    // Layer 8 Audit
+    await clientForWrite.from('t_log_aktivitas').insert({
+      id_log: `LOG-USR-${Date.now()}`,
+      id_user: result.identity_resolution.base_identity?.user_account_id,
+      aksi: 'user.delete',
+      objek_type: 'User',
+      objek_id: id,
+      aktor: result.role_binding.effective_system_role,
+      keterangan: `Menghapus pengguna ${id}`
+    });
 
     return { success: true }
   } catch (err: any) {

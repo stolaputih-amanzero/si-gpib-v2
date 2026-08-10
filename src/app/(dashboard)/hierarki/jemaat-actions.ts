@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { revalidatePath } from 'next/cache';
+import { enforceContract } from '@/lib/authorization';
+import type { ContractId } from '@/lib/authorization/types';
 
 export async function saveJemaatInduk(formData: FormData) {
   const supabase = await createClient();
@@ -24,6 +26,37 @@ export async function saveJemaatInduk(formData: FormData) {
   if (!id_induk || !nama_induk) {
     return { error: 'ID Jemaat Induk dan Nama Jemaat Induk wajib diisi' };
   }
+
+  const contractId: ContractId = isEdit ? 'OC-ORG-002' : 'OC-ORG-001';
+  const result = await enforceContract(contractId, {
+    target_entity: {
+      entity_type: 'Organization',
+      entity_id: isEdit ? id_induk : null,
+      owning_context_id: id_mupel,
+    },
+    operation_payload: {},
+  });
+
+  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+    return { error: 'System configuration error (Authorization).' };
+  }
+  if (result.decision.result === 'DENY') {
+    return { error: result.decision.error_detail || 'Access denied.' };
+  }
+
+  const supabaseAdmin = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  // Inject session context
+  await supabaseAdmin.rpc('set_authorization_context', {
+    p_context_id: result.context_resolution.active_context?.context_id || '',
+    p_context_level: result.context_resolution.active_context?.context_level || '',
+    p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+    p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+    p_effective_role: result.role_binding.effective_system_role || '',
+  });
 
   const latitude = latStr ? parseFloat(latStr) : null;
   const longitude = lngStr ? parseFloat(lngStr) : null;
@@ -90,11 +123,6 @@ export async function saveJemaatInduk(formData: FormData) {
     payload.foto_url = foto_url;
   }
 
-  const supabaseAdmin = createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-
   if (isEdit) {
     let { error } = await supabase
       .from('m_jemaat_induk')
@@ -132,6 +160,17 @@ export async function saveJemaatInduk(formData: FormData) {
       return { error: `Gagal menambahkan Jemaat Induk: ${error.message}` };
     }
   }
+
+  // Audit
+  await supabaseAdmin.from('t_log_aktivitas').insert({
+    id_log: `LOG-ORG-${Date.now()}`,
+    id_user: result.identity_resolution.base_identity?.user_account_id,
+    aksi: isEdit ? 'org.update' : 'org.create',
+    objek_type: 'Organization',
+    objek_id: id_induk,
+    aktor: result.role_binding.effective_system_role,
+    keterangan: `${isEdit ? 'Memperbarui' : 'Membuat'} Jemaat Induk ${nama_induk}`
+  });
 
   if (id_mupel) {
     revalidatePath(`/hierarki/${encodeURIComponent(id_mupel)}/${encodeURIComponent(id_induk)}`);

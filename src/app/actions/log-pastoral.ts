@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server';
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 import { logPastoralSchema } from '@/lib/validations/log-pastoral.schema';
 import { revalidatePath } from 'next/cache';
+import { enforceContract } from '@/lib/authorization';
+import type { ContractId } from '@/lib/authorization/types';
 
 function getDbClient(supabaseServerClient: any) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -55,6 +57,31 @@ export async function createLogPastoral(payload: {
     tglStr = validated.tgl.toISOString().split('T')[0];
   }
 
+  const contractId: ContractId = 'OC-PASTORAL-001';
+  const result = await enforceContract(contractId, {
+    target_entity: {
+      entity_type: 'PastoralLog',
+      entity_id: idLog,
+      owning_context_id: validated.id_pos || payload.id_induk || null,
+    },
+    operation_payload: {},
+  });
+
+  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+    throw new Error('System configuration error (Authorization).');
+  }
+  if (result.decision.result === 'DENY') {
+    throw new Error(result.decision.error_detail || 'Access denied.');
+  }
+
+  await db.rpc('set_authorization_context', {
+    p_context_id: result.context_resolution.active_context?.context_id || '',
+    p_context_level: result.context_resolution.active_context?.context_level || '',
+    p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+    p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+    p_effective_role: result.role_binding.effective_system_role || '',
+  });
+
   // 3. Insert ke DB
   const { data, error } = await db
     .from('t_log_pastoral')
@@ -75,6 +102,16 @@ export async function createLogPastoral(payload: {
     console.error('createLogPastoral error:', error);
     throw new Error(error.message || 'Gagal menyimpan log pastoral');
   }
+
+  await db.from('t_log_aktivitas').insert({
+    id_log: `LOG-PAST-${Date.now()}`,
+    id_user: result.identity_resolution.base_identity?.user_account_id,
+    aksi: 'pastoral.create',
+    objek_type: 'PastoralLog',
+    objek_id: idLog,
+    aktor: result.role_binding.effective_system_role,
+    keterangan: `Membuat log pastoral kegiatan ${validated.kegiatan}`
+  });
 
   // 4. Revalidate
   revalidatePath('/laporan/pastoral');

@@ -29,15 +29,16 @@ export function OfflineQueuePanel() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      {/* @ts-expect-error type missing asChild */}
-      <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="min-h-[44px] relative bg-white/5 border-border-strong hover:bg-surface-sunken">
-          <Inbox className="w-4 h-4 mr-2" />
-          Antrean Offline
-          {pendingCount > 0 && (
-            <Badge className="ml-2 bg-amber-500 text-amber-950 border-amber-600">{pendingCount}</Badge>
-          )}
-        </Button>
+      <SheetTrigger
+        render={
+          <Button variant="outline" size="sm" className="min-h-[44px] relative bg-white/5 border-border-strong hover:bg-surface-sunken" />
+        }
+      >
+        <Inbox className="w-4 h-4 mr-2" />
+        Antrean Offline
+        {pendingCount > 0 && (
+          <Badge className="ml-2 bg-amber-500 text-amber-950 border-amber-600">{pendingCount}</Badge>
+        )}
       </SheetTrigger>
 
       <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto">

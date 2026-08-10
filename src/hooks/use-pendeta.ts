@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { PendetaInput, MutasiInput, SetKmjInput } from '@/lib/validations/pendeta.schema';
 import { getRiwayatMutasiAction } from '@/app/(dashboard)/sdm/pendeta/actions-360';
+import { createPendetaAction, updatePendetaAction, deletePendetaAction, setKmjAction } from '@/app/(dashboard)/sdm/pendeta/actions';
 
 function toError(error: any): Error {
   if (error instanceof Error) return error;
@@ -165,7 +166,6 @@ export function useMutationHistory(id_pendeta?: string) {
 }
 
 export function useCreatePendeta() {
-  const supabase = createClient();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -185,14 +185,12 @@ export function useCreatePendeta() {
         gereja_asal: input.gereja_asal || null,
       };
 
-      const { data, error } = await supabase
-        .from('m_pendeta')
-        .insert(payload)
-        .select()
-        .single();
-
-      if (error) throw toError(error);
-      return data;
+      try {
+        const data = await createPendetaAction(payload);
+        return data;
+      } catch (error: any) {
+        throw toError(error);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pendeta-list'] });
@@ -204,7 +202,6 @@ export function useCreatePendeta() {
 }
 
 export function useUpdatePendeta() {
-  const supabase = createClient();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -215,17 +212,15 @@ export function useUpdatePendeta() {
         tgl_tugas: input.tgl_tugas ? new Date(input.tgl_tugas).toISOString().split('T')[0] : null,
         tgl_mulai_kontrak: input.tgl_mulai_kontrak ? new Date(input.tgl_mulai_kontrak).toISOString().split('T')[0] : null,
         tgl_akhir_kontrak: input.tgl_akhir_kontrak ? new Date(input.tgl_akhir_kontrak).toISOString().split('T')[0] : null,
+        updated_at: new Date().toISOString(),
       };
 
-      const { data, error } = await supabase
-        .from('m_pendeta')
-        .update({ ...updateData, updated_at: new Date().toISOString() })
-        .eq('id_pendeta', id_pendeta)
-        .select()
-        .single();
-
-      if (error) throw toError(error);
-      return data;
+      try {
+        const data = await updatePendetaAction(id_pendeta, updateData);
+        return data;
+      } catch (error: any) {
+        throw toError(error);
+      }
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['current-pendeta'] });
@@ -239,19 +234,16 @@ export function useUpdatePendeta() {
 }
 
 export function useDeletePendeta() {
-  const supabase = createClient();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id_pendeta: string) => {
-      const { error } = await supabase.from('m_pendeta').delete().eq('id_pendeta', id_pendeta);
-      if (error) {
-        if (error.code === '23503' || error.message?.includes('foreign key constraint') || error.message?.includes('violates foreign key constraint')) {
-          throw new Error('Pendeta ini tidak dapat dihapus karena memiliki riwayat pelayanan (mutasi, penugasan, log pastoral, atau jabatan) yang harus dipertahankan.');
-        }
+      try {
+        await deletePendetaAction(id_pendeta);
+        return true;
+      } catch (error: any) {
         throw toError(error);
       }
-      return true;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['current-pendeta'] });
@@ -381,64 +373,19 @@ export function useMutasiPendeta() {
  * Set KMJ (Calls Database RPC set_kmj)
  */
 export function useSetKmj() {
-  const supabase = createClient();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (data: SetKmjInput) => {
-      const tglMutasiVal = data.tgl_mutasi || new Date().toISOString().split('T')[0];
-
-      // 1. Call RPC set_kmj
-      const { error } = await supabase.rpc('set_kmj', {
-        p_id_induk: data.id_induk,
-        p_id_pendeta: data.id_pendeta,
-      });
-
-      if (error) throw toError(error);
-
-      // 2. Update m_pendeta: is_kmj = true, is_pj = false, id_pos = null, jabatan = 'Ketua Majelis Jemaat (KMJ)'
       try {
-        await supabase
-          .from('m_pendeta')
-          .update({
-            id_induk: data.id_induk,
-            is_kmj: true,
-            is_pj: false,
-            id_pos: null,
-            jabatan: 'Ketua Majelis Jemaat (KMJ)',
-          })
-          .eq('id_pendeta', data.id_pendeta);
-      } catch {}
-
-      // 3. Update users table if linked: id_induk = data.id_induk, id_pos = null, role = 'kmj'
-      try {
-        await supabase
-          .from('users')
-          .update({
-            id_induk: data.id_induk,
-            id_pos: null,
-            role: 'kmj',
-          })
-          .eq('id_pendeta', data.id_pendeta);
-      } catch {}
-
-      // 4. Insert or update t_riwayat_mutasi_pendeta for KMJ appointment history
-      try {
-        const skTag = data.file_sk ? `[📄 SK_MUTASI:${data.file_sk}]` : '';
-        await supabase
-          .from('t_riwayat_mutasi_pendeta')
-          .insert({
-            id_riwayat: 'MUT-' + Math.floor(1000000000 + Math.random() * 9000000000),
-            id_pendeta: data.id_pendeta,
-            id_induk_baru: data.id_induk,
-            tgl_mutasi: tglMutasiVal,
-            jenis_mutasi: 'PENGANGKATAN_KMJ',
-            alasan: data.alasan,
-            catatan: skTag,
-          });
-      } catch {}
-
-      return { success: true };
+        await setKmjAction({
+          ...data,
+          tgl_mutasi: data.tgl_mutasi || undefined,
+        });
+        return { success: true };
+      } catch (error: any) {
+        throw toError(error);
+      }
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['current-pendeta'] });

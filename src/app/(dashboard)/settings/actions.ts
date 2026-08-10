@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { enforceContract } from '@/lib/authorization';
+import type { ContractId } from '@/lib/authorization/types';
 
 function createAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -41,6 +43,32 @@ export async function updateOwnProfileAction(payload: {
     if (!currentUserId) {
       return { success: false, error: 'Unauthorized: Sesi pengguna tidak ditemukan' };
     }
+
+    const contractId: ContractId = 'OC-USER-005';
+    const result = await enforceContract(contractId, {
+      target_entity: {
+        entity_type: 'User',
+        entity_id: currentUserId,
+        owning_context_id: null,
+      },
+      operation_payload: {},
+    });
+
+    if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+      return { success: false, error: 'System configuration error (Authorization).' }
+    }
+    if (result.decision.result === 'DENY') {
+      return { success: false, error: result.decision.error_detail || 'Access denied.' }
+    }
+
+    const clientForRead = createAdminClient() || supabase;
+    await clientForRead.rpc('set_authorization_context', {
+      p_context_id: result.context_resolution.active_context?.context_id || '',
+      p_context_level: result.context_resolution.active_context?.context_level || '',
+      p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+      p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+      p_effective_role: result.role_binding.effective_system_role || '',
+    });
 
     let finalAvatarUrl = payload.avatar_url || '';
 
@@ -243,11 +271,14 @@ export async function updateOwnProfileAction(payload: {
       } catch {}
     }
 
-    await createAuditLog({
-      userId: currentUserId,
-      aksi: 'UPDATE',
-      objekType: 'PROFIL',
-      keterangan: `Memperbarui profil pengguna & foto avatar (${payload.nama_lengkap})`,
+    await dbClient.from('t_log_aktivitas').insert({
+      id_log: `LOG-USR-${Date.now()}`,
+      id_user: result.identity_resolution.base_identity?.user_account_id,
+      aksi: 'user.update_profile',
+      objek_type: 'User',
+      objek_id: currentUserId,
+      aktor: result.role_binding.effective_system_role,
+      keterangan: `Memperbarui profil pengguna & foto avatar (${payload.nama_lengkap})`
     });
 
     return { success: true, avatar_url: finalAvatarUrl, email: finalEmail, nama_lengkap: payload.nama_lengkap };
@@ -447,7 +478,7 @@ export async function fetchUserAuditLogsAction(targetUserId?: string) {
 
     return (data || []).map((a: any) => ({
       id: a.id_log || a.id || `log-${Math.random()}`,
-      user_id: a.id_user || a.user_id,
+      user_id: a.id_user || a.user_account_id,
       aksi: a.aksi || a.action || 'LOG',
       fitur: a.objek_type || a.fitur || a.feature || null,
       detail: a.keterangan || a.detail || a.description || null,
@@ -656,7 +687,7 @@ export async function fetchUserBiometricDevicesAction(targetUserId?: string) {
 
     return creds.map((d: any) => ({
       id: d.id || d.credential_id,
-      user_id: d.id_user || d.user_id || userId,
+      user_id: d.id_user || d.user_account_id || userId,
       credential_id: d.credential_id || d.id,
       device_type: d.device_type || 'Platform Credential',
       created_at: d.created_at || new Date().toISOString(),
@@ -686,6 +717,50 @@ export async function revokeUserBiometricDeviceAction(credentialId: string) {
     const supabase = await createClient();
     const dbClient = createAdminClient() || supabase;
 
+    // Resolve user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    let currentUserId = user?.id;
+
+    if (!currentUserId) {
+      const cookieStore = await cookies();
+      const sessionCookie = cookieStore.get('si_gpib_user_session')?.value;
+      if (sessionCookie) {
+        try {
+          const parsed = JSON.parse(sessionCookie);
+          currentUserId = parsed.id;
+        } catch {}
+      }
+    }
+
+    if (!currentUserId) {
+      return { success: false, error: 'Unauthorized: Sesi pengguna tidak ditemukan' };
+    }
+
+    const contractId: ContractId = 'OC-USER-006';
+    const result = await enforceContract(contractId, {
+      target_entity: {
+        entity_type: 'User',
+        entity_id: currentUserId,
+        owning_context_id: null,
+      },
+      operation_payload: {},
+    });
+
+    if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+      return { success: false, error: 'System configuration error (Authorization).' }
+    }
+    if (result.decision.result === 'DENY') {
+      return { success: false, error: result.decision.error_detail || 'Access denied.' }
+    }
+
+    await dbClient.rpc('set_authorization_context', {
+      p_context_id: result.context_resolution.active_context?.context_id || '',
+      p_context_level: result.context_resolution.active_context?.context_level || '',
+      p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+      p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+      p_effective_role: result.role_binding.effective_system_role || '',
+    });
+
     const { error: err1 } = await dbClient
       .from('m_webauthn_credentials')
       .delete()
@@ -697,6 +772,16 @@ export async function revokeUserBiometricDeviceAction(credentialId: string) {
         .delete()
         .eq('credential_id', credentialId);
     }
+
+    await dbClient.from('t_log_aktivitas').insert({
+      id_log: `LOG-BIO-${Date.now()}`,
+      id_user: result.identity_resolution.base_identity?.user_account_id,
+      aksi: 'user.toggle_biometric',
+      objek_type: 'User',
+      objek_id: currentUserId,
+      aktor: result.role_binding.effective_system_role,
+      keterangan: `Mencabut perangkat biometrik ${credentialId}`
+    });
 
     return { success: true };
   } catch (err: any) {

@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { enforceContract } from '@/lib/authorization';
+import type { ContractId } from '@/lib/authorization/types';
 
 function createAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -195,6 +197,7 @@ export async function getRiwayatMutasiAction(idPendeta?: string) {
 }
 
 // --- KETERLIBATAN ---
+// TODO: No Contract exists for keterlibatan. Contract Registry Review Required. See Part 4 §4.2.
 export async function createKeterlibatanAction(payload: any) {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -207,6 +210,7 @@ export async function createKeterlibatanAction(payload: any) {
   return data;
 }
 
+// TODO: No Contract exists for keterlibatan. Contract Registry Review Required. See Part 4 §4.2.
 export async function updateKeterlibatanAction(id_keterlibatan: string, payload: any) {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -220,6 +224,7 @@ export async function updateKeterlibatanAction(id_keterlibatan: string, payload:
   return data;
 }
 
+// TODO: No Contract exists for keterlibatan. Contract Registry Review Required. See Part 4 §4.2.
 export async function deleteKeterlibatanAction(id_keterlibatan: string) {
   const supabase = await createClient();
   const { error } = await supabase
@@ -234,23 +239,40 @@ export async function deleteKeterlibatanAction(id_keterlibatan: string) {
 // --- KELUARGA ---
 export async function createKeluargaAction(payload: any) {
   const supabase = await createClient();
+  const dbClient = createAdminClient() || supabase;
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Otentikasi diperlukan.');
+  const { data: currentPendeta } = await supabase
+    .from('m_pendeta')
+    .select('id_induk')
+    .eq('id_pendeta', payload.id_pendeta)
+    .single();
 
-  const { data: dbUser } = await supabase
-    .from('users')
-    .select('role, id_pendeta')
-    .eq('id', user.id)
-    .maybeSingle();
+  if (!currentPendeta) throw new Error('Pendeta tidak ditemukan');
 
-  const isSuperUser = ['super_user', 'superadmin', 'sinode'].includes((dbUser?.role || user.user_metadata?.role || '').toLowerCase());
-  const resolvedPdtId = await resolveUserPendetaId(supabase, user, dbUser);
-  const isOwner = Boolean(resolvedPdtId && resolvedPdtId === payload.id_pendeta);
+  const contractId: ContractId = 'OC-PERSON-006';
+  const result = await enforceContract(contractId, {
+    target_entity: {
+      entity_type: 'Person',
+      entity_id: payload.id_pendeta,
+      owning_context_id: currentPendeta.id_induk,
+    },
+    operation_payload: {},
+  });
 
-  if (!isSuperUser && !isOwner) {
-    throw new Error('Akses ditolak: Data keluarga hanya dapat dikelola oleh pemilik akun atau Super User.');
+  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+    throw new Error('System configuration error (Authorization).');
   }
+  if (result.decision.result === 'DENY') {
+    throw new Error(result.decision.error_detail || 'Access denied.');
+  }
+
+  await dbClient.rpc('set_authorization_context', {
+    p_context_id: result.context_resolution.active_context?.context_id || '',
+    p_context_level: result.context_resolution.active_context?.context_level || '',
+    p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+    p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+    p_effective_role: result.role_binding.effective_system_role || '',
+  });
 
   const { data, error } = await supabase
     .from('t_keluarga_pendeta')
@@ -264,31 +286,47 @@ export async function createKeluargaAction(payload: any) {
 
 export async function updateKeluargaAction(id_keluarga: string, payload: any) {
   const supabase = await createClient();
+  const dbClient = createAdminClient() || supabase;
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Otentikasi diperlukan.');
+  // fetch keluarga to find id_pendeta
+  const { data: familyRow } = await supabase
+    .from('t_keluarga_pendeta')
+    .select('id_pendeta')
+    .eq('id_keluarga', id_keluarga)
+    .single();
 
-  const { data: dbUser } = await supabase
-    .from('users')
-    .select('role, id_pendeta')
-    .eq('id', user.id)
-    .maybeSingle();
+  if (!familyRow) throw new Error('Data keluarga tidak ditemukan.');
 
-  const isSuperUser = ['super_user', 'superadmin', 'sinode'].includes((dbUser?.role || user.user_metadata?.role || '').toLowerCase());
-  const resolvedPdtId = await resolveUserPendetaId(supabase, user, dbUser);
+  const { data: currentPendeta } = await supabase
+    .from('m_pendeta')
+    .select('id_induk')
+    .eq('id_pendeta', familyRow.id_pendeta)
+    .single();
 
-  if (!isSuperUser) {
-    // Check if user owns this family record
-    const { data: familyRow } = await supabase
-      .from('t_keluarga_pendeta')
-      .select('id_pendeta')
-      .eq('id_keluarga', id_keluarga)
-      .maybeSingle();
+  const contractId: ContractId = 'OC-PERSON-006';
+  const result = await enforceContract(contractId, {
+    target_entity: {
+      entity_type: 'Person',
+      entity_id: familyRow.id_pendeta,
+      owning_context_id: currentPendeta?.id_induk || null,
+    },
+    operation_payload: {},
+  });
 
-    if (!familyRow || resolvedPdtId !== familyRow.id_pendeta) {
-      throw new Error('Akses ditolak: Data keluarga hanya dapat dikelola oleh pemilik akun atau Super User.');
-    }
+  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+    throw new Error('System configuration error (Authorization).');
   }
+  if (result.decision.result === 'DENY') {
+    throw new Error(result.decision.error_detail || 'Access denied.');
+  }
+
+  await dbClient.rpc('set_authorization_context', {
+    p_context_id: result.context_resolution.active_context?.context_id || '',
+    p_context_level: result.context_resolution.active_context?.context_level || '',
+    p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+    p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+    p_effective_role: result.role_binding.effective_system_role || '',
+  });
 
   const { data, error } = await supabase
     .from('t_keluarga_pendeta')
@@ -303,30 +341,47 @@ export async function updateKeluargaAction(id_keluarga: string, payload: any) {
 
 export async function deleteKeluargaAction(id_keluarga: string) {
   const supabase = await createClient();
+  const dbClient = createAdminClient() || supabase;
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Otentikasi diperlukan.');
+  // fetch keluarga to find id_pendeta
+  const { data: familyRow } = await supabase
+    .from('t_keluarga_pendeta')
+    .select('id_pendeta')
+    .eq('id_keluarga', id_keluarga)
+    .single();
 
-  const { data: dbUser } = await supabase
-    .from('users')
-    .select('role, id_pendeta')
-    .eq('id', user.id)
-    .maybeSingle();
+  if (!familyRow) throw new Error('Data keluarga tidak ditemukan.');
 
-  const isSuperUser = ['super_user', 'superadmin', 'sinode'].includes((dbUser?.role || user.user_metadata?.role || '').toLowerCase());
-  const resolvedPdtId = await resolveUserPendetaId(supabase, user, dbUser);
+  const { data: currentPendeta } = await supabase
+    .from('m_pendeta')
+    .select('id_induk')
+    .eq('id_pendeta', familyRow.id_pendeta)
+    .single();
 
-  if (!isSuperUser) {
-    const { data: familyRow } = await supabase
-      .from('t_keluarga_pendeta')
-      .select('id_pendeta')
-      .eq('id_keluarga', id_keluarga)
-      .maybeSingle();
+  const contractId: ContractId = 'OC-PERSON-006';
+  const result = await enforceContract(contractId, {
+    target_entity: {
+      entity_type: 'Person',
+      entity_id: familyRow.id_pendeta,
+      owning_context_id: currentPendeta?.id_induk || null,
+    },
+    operation_payload: {},
+  });
 
-    if (!familyRow || resolvedPdtId !== familyRow.id_pendeta) {
-      throw new Error('Akses ditolak: Data keluarga hanya dapat dikelola oleh pemilik akun atau Super User.');
-    }
+  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+    throw new Error('System configuration error (Authorization).');
   }
+  if (result.decision.result === 'DENY') {
+    throw new Error(result.decision.error_detail || 'Access denied.');
+  }
+
+  await dbClient.rpc('set_authorization_context', {
+    p_context_id: result.context_resolution.active_context?.context_id || '',
+    p_context_level: result.context_resolution.active_context?.context_level || '',
+    p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+    p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+    p_effective_role: result.role_binding.effective_system_role || '',
+  });
 
   const { error } = await supabase
     .from('t_keluarga_pendeta')
@@ -338,6 +393,7 @@ export async function deleteKeluargaAction(id_keluarga: string) {
 }
 
 // --- KOMPETENSI ---
+// TODO: OC-PERSON-007 is UNRESOLVED. No authorization enforcement applied. See SA-A1.
 export async function createKompetensiAction(payload: any) {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -350,6 +406,7 @@ export async function createKompetensiAction(payload: any) {
   return data;
 }
 
+// TODO: OC-PERSON-007 is UNRESOLVED. No authorization enforcement applied. See SA-A1.
 export async function updateKompetensiAction(id_kompetensi: string, payload: any) {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -363,6 +420,7 @@ export async function updateKompetensiAction(id_kompetensi: string, payload: any
   return data;
 }
 
+// TODO: OC-PERSON-007 is UNRESOLVED. No authorization enforcement applied. See SA-A1.
 export async function deleteKompetensiAction(id_kompetensi: string) {
   const supabase = await createClient();
   const { error } = await supabase
@@ -385,9 +443,46 @@ export async function mutasiPendetaAction(payload: {
   const supabase = await createClient();
   const dbClient = createAdminClient() || supabase;
 
-  // 1. Validasi Autentikasi
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Otentikasi diperlukan.');
+  // Authorization (OC-PERSON-003)
+  const contractId: ContractId = 'OC-PERSON-003';
+  
+  const { data: currentPendeta } = await supabase
+    .from('m_pendeta')
+    .select('id_induk')
+    .eq('id_pendeta', payload.id_pendeta)
+    .single();
+
+  if (!currentPendeta) {
+    throw new Error('Pendeta tidak ditemukan');
+  }
+
+  const result = await enforceContract(contractId, {
+    target_entity: {
+      entity_type: 'Person',
+      entity_id: payload.id_pendeta,
+      owning_context_id: currentPendeta.id_induk,
+    },
+    operation_payload: {
+      id_induk_baru: payload.id_induk_baru,
+      is_kmj: false,
+      is_pj: false,
+    },
+  });
+
+  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+    throw new Error('System configuration error (Authorization).');
+  }
+  if (result.decision.result === 'DENY') {
+    throw new Error(result.decision.error_detail || 'Access denied.');
+  }
+
+  await dbClient.rpc('set_authorization_context', {
+    p_context_id: result.context_resolution.active_context?.context_id || '',
+    p_context_level: result.context_resolution.active_context?.context_level || '',
+    p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+    p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+    p_effective_role: result.role_binding.effective_system_role || '',
+  });
 
   // 2. Panggil RPC mutasi_pendeta dengan sinkronisasi identitas
   const { error } = await dbClient.rpc('mutasi_pendeta', {
@@ -402,6 +497,17 @@ export async function mutasiPendetaAction(payload: {
     console.error('mutasiPendetaAction RPC error:', error);
     throw new Error(error.message || 'Gagal memproses mutasi pendeta.');
   }
+
+  // Audit
+  await dbClient.from('t_log_aktivitas').insert({
+    id_log: `LOG-MUTASI-${Date.now()}`,
+    id_user: result.identity_resolution.base_identity?.user_account_id,
+    aksi: 'person.mutate',
+    objek_type: 'Person',
+    objek_id: payload.id_pendeta,
+    aktor: result.role_binding.effective_system_role,
+    keterangan: `Mutasi pendeta ${payload.id_pendeta} ke ${payload.id_induk_baru}`
+  });
 
   return { success: true };
 }

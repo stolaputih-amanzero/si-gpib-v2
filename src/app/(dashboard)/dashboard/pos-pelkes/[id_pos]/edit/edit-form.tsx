@@ -232,7 +232,7 @@ function EditPosPelkesFormContent({ pos }: { pos: any }) {
 
     const result = await updatePosPelkes(pos.id_pos, formData);
     
-    if (result?.error) {
+    if (result && 'error' in result && result.error) {
       setServerError(typeof result.error === 'string' ? result.error : (result.error as any)?.message || JSON.stringify(result.error));
     } else {
       toast.success('Pembaruan Berhasil', 'Data unit pelayanan berhasil diperbarui.');

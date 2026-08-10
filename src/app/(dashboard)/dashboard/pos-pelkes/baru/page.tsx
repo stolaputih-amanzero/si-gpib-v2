@@ -281,7 +281,7 @@ function TambahPosPelkesFormContent() {
 
     const result = await savePosPelkes(formData);
     
-    if (result?.error) {
+    if (result && 'error' in result && result.error) {
       setServerError(typeof result.error === 'string' ? result.error : (result.error as any)?.message || JSON.stringify(result.error));
     } else {
       toast.success('Penyimpanan Berhasil', 'Unit pelayanan baru berhasil ditambahkan.');

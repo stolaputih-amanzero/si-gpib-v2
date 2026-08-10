@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server';
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 import { asetTanahSchema, asetBangunanSchema, asetBergerakSchema } from '@/lib/validations/aset.schema';
 import { revalidatePath } from 'next/cache';
+import { enforceContract } from '@/lib/authorization';
+import type { ContractId } from '@/lib/authorization/types';
 
 function getDbClient(supabaseServerClient: any) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -28,6 +30,31 @@ export async function createAsetAction(payload: {
 
   let insertedData: any = null;
   let asetId: string = '';
+
+  const contractId: ContractId = 'OC-ASSET-001';
+  const result = await enforceContract(contractId, {
+    target_entity: {
+      entity_type: 'Asset',
+      entity_id: null,
+      owning_context_id: payload.id_pos,
+    },
+    operation_payload: {},
+  });
+
+  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+    throw new Error('System configuration error (Authorization).');
+  }
+  if (result.decision.result === 'DENY') {
+    throw new Error(result.decision.error_detail || 'Access denied.');
+  }
+
+  await db.rpc('set_authorization_context', {
+    p_context_id: result.context_resolution.active_context?.context_id || '',
+    p_context_level: result.context_resolution.active_context?.context_level || '',
+    p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+    p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+    p_effective_role: result.role_binding.effective_system_role || '',
+  });
 
   if (payload.jenis_aset === 'tanah') {
     const validated = asetTanahSchema.parse(payload.data);
@@ -129,6 +156,16 @@ export async function createAsetAction(payload: {
       });
     }
   }
+
+  await db.from('t_log_aktivitas').insert({
+    id_log: `LOG-ASET-${Date.now()}`,
+    id_user: result.identity_resolution.base_identity?.user_account_id,
+    aksi: 'asset.create',
+    objek_type: 'Asset',
+    objek_id: asetId,
+    aktor: result.role_binding.effective_system_role,
+    keterangan: `Membuat aset ${payload.jenis_aset} untuk pos pelkes ${payload.id_pos}`
+  });
 
   revalidatePath('/aset');
   revalidatePath('/dashboard');

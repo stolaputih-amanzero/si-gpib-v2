@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server';
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 import { pengajuanBantuanSchema } from '@/lib/validations/bantuan.schema';
 import { revalidatePath } from 'next/cache';
+import { enforceContract } from '@/lib/authorization';
+import type { ContractId } from '@/lib/authorization/types';
 
 function getDbClient(supabaseServerClient: any) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -40,6 +42,36 @@ export async function createPengajuanBantuanAction(payload: {
     id_bangunan: payload.id_bangunan || null,
     id_aset_b: payload.id_aset_b || null,
     keterangan: payload.keterangan || null,
+  });
+
+  // 2. Authorization (OC-AID-001)
+  const contractId: ContractId = 'OC-AID-001';
+  const result = await enforceContract(contractId, {
+    target_entity: {
+      entity_type: 'Aid',
+      entity_id: null,
+      owning_context_id: validated.id_pos,
+    },
+    operation_payload: {
+      jenis_bantuan: validated.jenis_bantuan,
+      biaya: validated.biaya,
+    },
+  });
+
+  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+    throw new Error('System configuration error (Authorization).');
+  }
+  if (result.decision.result === 'DENY') {
+    throw new Error(result.decision.error_detail || 'Access denied.');
+  }
+
+  // 3. Inject validated session variables into the DB transaction
+  await db.rpc('set_authorization_context', {
+    p_context_id: result.context_resolution.active_context?.context_id || '',
+    p_context_level: result.context_resolution.active_context?.context_level || '',
+    p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+    p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+    p_effective_role: result.role_binding.effective_system_role || '',
   });
 
   const idAjuan = `AJU-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -81,7 +113,18 @@ export async function createPengajuanBantuanAction(payload: {
     }
   }
 
-  // 4. Revalidate cache
+  // Layer 8 Audit
+  await db.from('t_log_aktivitas').insert({ 
+    id_log: `LOG-AID-${Date.now()}`,
+    id_user: result.identity_resolution.base_identity?.user_account_id, 
+    aksi: 'aid.create', 
+    objek_type: 'Aid', 
+    objek_id: idAjuan,
+    aktor: result.role_binding.effective_system_role,
+    keterangan: `Membuat draft pengajuan bantuan ${validated.jenis_bantuan}`
+  });
+
+  // Revalidate cache
   revalidatePath('/bantuan');
   revalidatePath('/dashboard');
 
@@ -91,6 +134,44 @@ export async function createPengajuanBantuanAction(payload: {
 export async function submitBantuanAction(id_ajuan: string) {
   const supabase = await createClient();
   const db = getDbClient(supabase);
+
+  // Lookup record to get id_pos for authorization
+  const { data: currentRecord } = await db
+    .from('t_pengajuan_bantuan')
+    .select('id_pos, status')
+    .eq('id_ajuan', id_ajuan)
+    .single();
+
+  if (!currentRecord) {
+    throw new Error('Pengajuan bantuan tidak ditemukan.');
+  }
+
+  const contractId: ContractId = 'OC-AID-003';
+  const result = await enforceContract(contractId, {
+    target_entity: {
+      entity_type: 'Aid',
+      entity_id: id_ajuan,
+      owning_context_id: currentRecord.id_pos,
+    },
+    operation_payload: {
+      status: currentRecord.status, // Evaluated against precondition TargetAid.status == 'Draft'
+    },
+  });
+
+  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+    throw new Error('System configuration error (Authorization).');
+  }
+  if (result.decision.result === 'DENY') {
+    throw new Error(result.decision.error_detail || 'Access denied.');
+  }
+
+  await db.rpc('set_authorization_context', {
+    p_context_id: result.context_resolution.active_context?.context_id || '',
+    p_context_level: result.context_resolution.active_context?.context_level || '',
+    p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+    p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+    p_effective_role: result.role_binding.effective_system_role || '',
+  });
 
   const { data, error } = await db
     .from('t_pengajuan_bantuan')
@@ -107,6 +188,17 @@ export async function submitBantuanAction(id_ajuan: string) {
     throw new Error(error.message || 'Gagal mengirim pengajuan bantuan untuk diapprove.');
   }
 
+  // Audit
+  await db.from('t_log_aktivitas').insert({
+    id_log: `LOG-AID-${Date.now()}`,
+    id_user: result.identity_resolution.base_identity?.user_account_id,
+    aksi: 'aid.submit',
+    objek_type: 'Aid',
+    objek_id: id_ajuan,
+    aktor: result.role_binding.effective_system_role,
+    keterangan: `Submit pengajuan bantuan ${id_ajuan}`
+  });
+
   revalidatePath('/bantuan');
   revalidatePath('/dashboard');
 
@@ -118,24 +210,57 @@ export async function processApprovalAction(payload: {
   aksi: 'approve' | 'reject' | 'revision';
   catatan: string;
   role_approver?: string;
+  step?: 1 | 2; // 1 for KMJ, 2 for Mupel
 }) {
   const supabase = await createClient();
   const db = getDbClient(supabase);
 
-  // 1. Get authenticated user
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    throw new Error('Autentikasi diperlukan untuk memproses persetujuan.');
-  }
-
-  // 2. Lookup user profile role
-  const { data: profile } = await db
-    .from('users')
-    .select('role, nama_lengkap')
-    .eq('id', user.id)
+  const { data: currentRecord } = await db
+    .from('t_pengajuan_bantuan')
+    .select('id_pos, status')
+    .eq('id_ajuan', payload.id_ajuan)
     .single();
 
-  const userRole = payload.role_approver || profile?.role || 'super_user';
+  if (!currentRecord) {
+    throw new Error('Pengajuan tidak ditemukan');
+  }
+
+  let contractId: ContractId;
+  if (payload.aksi === 'reject' || payload.aksi === 'revision') {
+    contractId = 'OC-AID-006'; // reject
+  } else {
+    // determine step
+    const step = payload.step || (currentRecord.status === 'Pending_KMJ' ? 1 : 2);
+    contractId = step === 1 ? 'OC-AID-004' : 'OC-AID-005';
+  }
+
+  const result = await enforceContract(contractId, {
+    target_entity: {
+      entity_type: 'Aid',
+      entity_id: payload.id_ajuan,
+      owning_context_id: currentRecord.id_pos,
+    },
+    operation_payload: {
+      status: currentRecord.status,
+    },
+  });
+
+  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
+    throw new Error('System configuration error (Authorization).');
+  }
+  if (result.decision.result === 'DENY') {
+    throw new Error(result.decision.error_detail || 'Access denied.');
+  }
+
+  await db.rpc('set_authorization_context', {
+    p_context_id: result.context_resolution.active_context?.context_id || '',
+    p_context_level: result.context_resolution.active_context?.context_level || '',
+    p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
+    p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
+    p_effective_role: result.role_binding.effective_system_role || '',
+  });
+
+  const userRole = payload.role_approver || result.role_binding.effective_system_role || 'super_user';
 
   // 3. Execute atomic RPC
   const { error: rpcError } = await db.rpc('process_pengajuan_bantuan', {
@@ -149,6 +274,17 @@ export async function processApprovalAction(payload: {
     console.error('processApprovalAction RPC error:', rpcError);
     throw new Error(rpcError.message || 'Gagal memproses aksi persetujuan.');
   }
+
+  // Audit
+  await db.from('t_log_aktivitas').insert({
+    id_log: `LOG-AID-${Date.now()}`,
+    id_user: result.identity_resolution.base_identity?.user_account_id,
+    aksi: contractId === 'OC-AID-006' ? 'aid.reject' : 'aid.approve',
+    objek_type: 'Aid',
+    objek_id: payload.id_ajuan,
+    aktor: result.role_binding.effective_system_role,
+    keterangan: `Approval action ${payload.aksi} by ${userRole} for ${payload.id_ajuan}`
+  });
 
   revalidatePath('/bantuan');
   revalidatePath(`/bantuan/${payload.id_ajuan}`);
