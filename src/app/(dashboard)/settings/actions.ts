@@ -210,13 +210,23 @@ export async function updateOwnProfileAction(payload: {
         .eq('id', targetRowId)
         .maybeSingle();
 
-      const pendetaId = userData?.id_pendeta;
+      let pendetaId = userData?.id_pendeta;
+      
+      // Fallback to match frontend useProfileAkun logic for testing accounts
+      if (!pendetaId && currentUserEmail) {
+        const eLower = currentUserEmail.toLowerCase();
+        if (eLower.includes('benbianco') || eLower.includes('stolaputih')) {
+          pendetaId = 'PDT-43300681';
+        }
+      }
+
       if (pendetaId) {
         await dbClient
           .from('m_pendeta')
           .update({
             nama_lengkap: payload.nama_lengkap,
-            email: finalEmail,
+            // Only update email if it's not a fallback account to avoid overriding the original email
+            ...(pendetaId !== 'PDT-43300681' && { email: finalEmail }),
             foto_url: finalAvatarUrl || null,
             no_wa: payload.no_hp || null,
             updated_at: new Date().toISOString(),
