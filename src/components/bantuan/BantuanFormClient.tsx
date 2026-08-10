@@ -23,7 +23,13 @@ import { createPengajuanBantuanAction } from '@/app/actions/bantuan';
 import { shareBantuanWA } from '@/lib/share/share-bantuan-wa';
 import { cn } from '@/lib/utils';
 
-export function BantuanFormClient() {
+export interface BantuanFormClientProps {
+  autoLockedPosId?: string | null;
+  onClose?: () => void;
+  isSheetMode?: boolean;
+}
+
+export function BantuanFormClient({ autoLockedPosId, onClose, isSheetMode }: BantuanFormClientProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryPosId = searchParams.get('id_pos');
@@ -79,15 +85,21 @@ export function BantuanFormClient() {
   // Set default values on mount
   useEffect(() => {
     if (userAuth) {
-      if (userAuth.id_pos) {
+      if (autoLockedPosId) {
+        setValue('id_pos', autoLockedPosId);
+        setTargetScope('pos');
+      } else if (userAuth.id_pos) {
         setValue('id_pos', userAuth.id_pos);
         setTargetScope('pos');
       } else if (queryPosId) {
         setValue('id_pos', queryPosId);
         setTargetScope('pos');
       }
+    } else if (autoLockedPosId) {
+      setValue('id_pos', autoLockedPosId);
+      setTargetScope('pos');
     }
-  }, [userAuth, queryPosId, setValue]);
+  }, [userAuth, queryPosId, setValue, autoLockedPosId]);
 
   const handleBiayaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawDigits = e.target.value.replace(/\D/g, '');
@@ -100,7 +112,7 @@ export function BantuanFormClient() {
   const onSubmit = async (formValues: any) => {
     setHasSubmitError(false);
 
-    const posId = formValues.id_pos || hierarchyMeta?.id_pos || 'POS-MOCK-001';
+    const posId = autoLockedPosId || formValues.id_pos || hierarchyMeta?.id_pos || 'POS-MOCK-001';
 
     try {
       const proposalPayload = proposalFiles.map((f) => ({
@@ -124,7 +136,11 @@ export function BantuanFormClient() {
         addPendingSubmission('insert', 't_bantuan', payload as Record<string, unknown>);
         clearDraft();
         toast.info('Tersimpan di Antrean Offline', 'Koneksi internet tidak tersedia. Data akan dikirim otomatis saat online.');
-        router.push('/bantuan');
+        if (onClose) {
+          onClose();
+        } else {
+          router.push('/aid-requests');
+        }
         return;
       }
 
@@ -150,7 +166,13 @@ export function BantuanFormClient() {
         console.warn('Share WA error:', err);
       }
 
-      router.push(`/bantuan/${created?.id_ajuan || ''}`);
+      if (onClose) {
+        onClose();
+        // Option to navigate or just close sheet and let active context handle it
+        router.push(`/aid-requests/${created?.id_ajuan || ''}`);
+      } else {
+        router.push(`/aid-requests/${created?.id_ajuan || ''}`);
+      }
     } catch (err: any) {
       console.error('Failed to create assistance request:', err);
       setHasSubmitError(true);
@@ -161,50 +183,54 @@ export function BantuanFormClient() {
   const selectedUrgensi = watch('urgensi');
 
   return (
-    <div className="min-h-screen bg-surface-base pb-32 select-none">
-      {/* Sticky Header with DraftIndicator */}
-      <div className="sticky top-0 z-40 bg-surface-1/85 backdrop-blur-md border-b border-border-subtle pt-safe">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="p-2 rounded-xl text-text-high hover:bg-surface-sunken transition-all border border-border-subtle/50 cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
-              aria-label="Tutup"
-            >
-              <X size={20} className="text-text-muted" />
-            </button>
-            <div>
-              <h1 className="text-lg font-display font-semibold text-text-high leading-tight">
-                Ajukan Bantuan Pos Pelkes
-              </h1>
-              <DraftIndicator status={draftStatus} pendingCount={pendingCount} className="mt-0.5" />
+    <div className={cn("bg-surface-base select-none", isSheetMode ? "" : "min-h-screen pb-32")}>
+      {/* Sticky Header with DraftIndicator (Only in Page Mode) */}
+      {!isSheetMode && (
+        <div className="sticky top-0 z-40 bg-surface-1/85 backdrop-blur-md border-b border-border-subtle pt-safe">
+          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="p-2 rounded-xl text-text-high hover:bg-surface-sunken transition-all border border-border-subtle/50 cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
+                aria-label="Tutup"
+              >
+                <X size={20} className="text-text-muted" />
+              </button>
+              <div>
+                <h1 className="text-lg font-display font-semibold text-text-high leading-tight">
+                  Ajukan Bantuan Pos Pelkes
+                </h1>
+                <DraftIndicator status={draftStatus} pendingCount={pendingCount} className="mt-0.5" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Main Form Stack */}
-      <form onSubmit={handleSubmit(onSubmit)} className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className={cn("mx-auto space-y-6", isSheetMode ? "pb-24" : "max-w-4xl px-4 py-6")}>
         {/* Workflow Progress Indicator Bar */}
         <WorkflowStatusIndicator status="Draft" />
 
-        {/* 1. Cascading Selector */}
-        <Controller
-          name="id_pos"
-          control={control}
-          render={({ field }) => (
-            <PosCascadingSelector
-              value={field.value}
-              onChange={field.onChange}
-              onJemaatChange={() => setValue('id_pos', '')}
-              onMetaChange={(meta) => setHierarchyMeta(meta)}
-              disabled={isSubmitting}
-              required={targetScope === 'pos'}
-              hidePos={targetScope === 'jemaat'}
-            />
-          )}
-        />
+        {/* 1. Cascading Selector (Hidden if Auto-Locked) */}
+        {!autoLockedPosId && (
+          <Controller
+            name="id_pos"
+            control={control}
+            render={({ field }) => (
+              <PosCascadingSelector
+                value={field.value}
+                onChange={field.onChange}
+                onJemaatChange={() => setValue('id_pos', '')}
+                onMetaChange={(meta) => setHierarchyMeta(meta)}
+                disabled={isSubmitting}
+                required={targetScope === 'pos'}
+                hidePos={targetScope === 'jemaat'}
+              />
+            )}
+          />
+        )}
 
         {/* 2. Jenis Bantuan */}
         <FormField label="Jenis Permohonan Bantuan" required error={errors.jenis_bantuan?.message as string | undefined}>

@@ -1,15 +1,12 @@
 import { getServerContext } from '@/lib/utils/context';
 import { redirect } from 'next/navigation';
-import MupelDetailPage from '@/app/(dashboard)/mupel/[id_mupel]/page';
-import JemaatDetailPage from '@/app/(dashboard)/jemaat/[id_induk]/page';
-import PosPelkesDetailPage from '@/app/(dashboard)/dashboard/pos-pelkes/[id_pos]/page';
+import { fetchUnifiedOrganizationData, hasReadAccess } from '@/lib/services/organization';
+import { OrganizationWorkspaceClient } from '@/components/workspace/org/OrganizationWorkspaceClient';
 
 export default async function OrganizationWorkspacePage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id_org: string }>;
-  searchParams: Promise<{ tab?: string }>;
 }) {
   const { context_id, status } = await getServerContext();
 
@@ -21,25 +18,31 @@ export default async function OrganizationWorkspacePage({
   const { id_org } = await params;
   const decodedId = decodeURIComponent(id_org);
 
-  // 2. Route to the correct legacy detail view based on ID format.
-  // In Phase 6.1c, these will be consolidated into a single unified workspace UI.
-  if (decodedId.startsWith('MUPEL-')) {
-    return <MupelDetailPage params={Promise.resolve({ id_mupel: decodedId })} searchParams={searchParams} />;
-  } else if (decodedId.startsWith('JEMAAT-')) {
-    return <JemaatDetailPage params={Promise.resolve({ id_induk: decodedId })} searchParams={searchParams} />;
-  } else if (decodedId.startsWith('POS-')) {
-    return <PosPelkesDetailPage params={Promise.resolve({ id_pos: decodedId })} searchParams={searchParams} />;
+  // 2. Fetch Unified Data
+  const orgData = await fetchUnifiedOrganizationData(decodedId);
+
+  if (!orgData) {
+    return (
+      <div className="flex items-center justify-center h-full p-8 text-center">
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold text-destructive">Organisasi Tidak Ditemukan</h2>
+          <p className="text-muted-foreground text-sm">
+            Format ID organisasi ({decodedId}) tidak dikenali atau telah dihapus.
+          </p>
+        </div>
+      </div>
+    );
   }
 
-  // Fallback
-  return (
-    <div className="flex items-center justify-center h-full p-8 text-center">
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold text-destructive">Organisasi Tidak Ditemukan</h2>
-        <p className="text-muted-foreground text-sm">
-          Format ID organisasi ({decodedId}) tidak dikenali.
-        </p>
-      </div>
-    </div>
-  );
+  // 3. View Target Validation (RBAC Downward & Upward Reach)
+  const canRead = await hasReadAccess(context_id, decodedId);
+  if (!canRead) {
+    redirect(`/org/${encodeURIComponent(context_id)}`);
+  }
+
+  // Generate a mock activeContext for the client since we can't extract it from getServerContext right now
+  // In reality activeContext has more details, but the client only relies on `id` and maybe `name` for FAB lock
+  const clientActiveContext = { id: context_id, name: 'Context', context_level: 'UNKNOWN' };
+
+  return <OrganizationWorkspaceClient orgData={orgData} activeContext={clientActiveContext} />;
 }

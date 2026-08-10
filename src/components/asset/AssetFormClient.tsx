@@ -22,7 +22,13 @@ import { useGeolocation } from '@/hooks/use-geolocation';
 import { createAsetAction } from '@/app/actions/aset';
 import { cn } from '@/lib/utils';
 
-export function AssetFormClient() {
+export interface AssetFormClientProps {
+  autoLockedPosId?: string | null;
+  onClose?: () => void;
+  isSheetMode?: boolean;
+}
+
+export function AssetFormClient({ autoLockedPosId, onClose, isSheetMode }: AssetFormClientProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryPosId = searchParams.get('id_pos');
@@ -96,15 +102,21 @@ export function AssetFormClient() {
   // Set default values on mount
   useEffect(() => {
     if (userAuth) {
-      if (userAuth.id_pos) {
+      if (autoLockedPosId) {
+        setValue('id_pos', autoLockedPosId);
+        setTargetScope('pos');
+      } else if (userAuth.id_pos) {
         setValue('id_pos', userAuth.id_pos);
         setTargetScope('pos');
       } else if (queryPosId) {
         setValue('id_pos', queryPosId);
         setTargetScope('pos');
       }
+    } else if (autoLockedPosId) {
+      setValue('id_pos', autoLockedPosId);
+      setTargetScope('pos');
     }
-  }, [userAuth, queryPosId, setValue]);
+  }, [userAuth, queryPosId, setValue, autoLockedPosId]);
 
   const handleRefreshGps = () => {
     getLocation();
@@ -123,7 +135,7 @@ export function AssetFormClient() {
       return;
     }
 
-    const posId = formValues.id_pos || hierarchyMeta?.id_pos || 'POS-MOCK-001';
+    const posId = autoLockedPosId || formValues.id_pos || hierarchyMeta?.id_pos || 'POS-MOCK-001';
 
     try {
       let asetPayloadData: any = {
@@ -172,7 +184,8 @@ export function AssetFormClient() {
 
       clearDraft();
       toast.success('Aset Berhasil Disimpan', `Aset ${jenisAset.toUpperCase()} di ${hierarchyMeta?.posName || 'Wilayah'} telah tercatat.`);
-      router.push('/aset');
+      if (onClose) onClose();
+      else router.push('/assets'); // updated to canon route
     } catch (err: any) {
       console.error('Failed to save asset:', err);
       setHasSubmitError(true);
@@ -183,31 +196,33 @@ export function AssetFormClient() {
   const selectedJenisBergerak = watch('jenis_bergerak');
 
   return (
-    <div className="min-h-screen bg-surface-base pb-32 select-none">
+    <div className={cn("bg-surface-base select-none", isSheetMode ? "" : "min-h-screen pb-32")}>
       {/* Sticky Header with DraftIndicator */}
-      <div className="sticky top-0 z-40 bg-surface-1/85 backdrop-blur-md border-b border-border-subtle pt-safe">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="p-2 rounded-xl text-text-high hover:bg-surface-sunken transition-all border border-border-subtle/50 cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
-              aria-label="Tutup"
-            >
-              <X size={20} className="text-text-muted" />
-            </button>
-            <div>
-              <h1 className="text-lg font-display font-semibold text-text-high leading-tight">
-                Tambah Aset Inventaris
-              </h1>
-              <DraftIndicator status={draftStatus} pendingCount={pendingCount} className="mt-0.5" />
+      {!isSheetMode && (
+        <div className="sticky top-0 z-40 bg-surface-1/85 backdrop-blur-md border-b border-border-subtle pt-safe">
+          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="p-2 rounded-xl text-text-high hover:bg-surface-sunken transition-all border border-border-subtle/50 cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
+                aria-label="Tutup"
+              >
+                <X size={20} className="text-text-muted" />
+              </button>
+              <div>
+                <h1 className="text-lg font-display font-semibold text-text-high leading-tight">
+                  Tambah Aset Inventaris
+                </h1>
+                <DraftIndicator status={draftStatus} pendingCount={pendingCount} className="mt-0.5" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Main Form Stack */}
-      <form onSubmit={handleSubmit(onSubmit)} className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className={cn("mx-auto space-y-6", isSheetMode ? "pb-24" : "max-w-4xl px-4 py-6")}>
         {/* GPS Auto-Fill Context Card with Indicator */}
         <div className="p-4 rounded-2xl bg-surface-sunken/60 border border-border-subtle text-xs space-y-2">
           <div className="flex items-center justify-between">
@@ -275,22 +290,24 @@ export function AssetFormClient() {
           </div>
         </FormField>
 
-        {/* 2. Cascading Wilayah Selector */}
-        <Controller
-          name="id_pos"
-          control={control}
-          render={({ field }) => (
-            <PosCascadingSelector
-              value={field.value}
-              onChange={field.onChange}
-              onJemaatChange={() => setValue('id_pos', '')}
-              onMetaChange={(meta) => setHierarchyMeta(meta)}
-              disabled={isSubmitting}
-              required={targetScope === 'pos'}
-              hidePos={targetScope === 'jemaat'}
-            />
-          )}
-        />
+        {/* 2. Cascading Wilayah Selector (Hidden if Auto-Locked) */}
+        {!autoLockedPosId && (
+          <Controller
+            name="id_pos"
+            control={control}
+            render={({ field }) => (
+              <PosCascadingSelector
+                value={field.value}
+                onChange={field.onChange}
+                onJemaatChange={() => setValue('id_pos', '')}
+                onMetaChange={(meta) => setHierarchyMeta(meta)}
+                disabled={isSubmitting}
+                required={targetScope === 'pos'}
+                hidePos={targetScope === 'jemaat'}
+              />
+            )}
+          />
+        )}
 
         {/* 3. Conditional Fields per Jenis Aset */}
         {jenisAset === 'tanah' && (

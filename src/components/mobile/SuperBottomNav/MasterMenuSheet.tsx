@@ -4,6 +4,10 @@ import { useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { SUPER_MENU_GROUPS } from '@/lib/constants/navigation';
 import { MenuGroup } from './MenuGroup';
+import { useState } from 'react';
+import { PastoralActionSheet } from '@/components/pastoral/PastoralActionSheet';
+import { BantuanActionSheet } from '@/components/bantuan/BantuanActionSheet';
+import { AsetActionSheet } from '@/components/asset/AsetActionSheet';
 
 interface MasterMenuSheetProps {
   isOpen: boolean;
@@ -11,6 +15,8 @@ interface MasterMenuSheetProps {
 }
 
 export function MasterMenuSheet({ isOpen, onClose }: MasterMenuSheetProps) {
+  const [activeSheet, setActiveSheet] = useState<string | null>(null);
+
   // Close on Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -34,16 +40,22 @@ export function MasterMenuSheet({ isOpen, onClose }: MasterMenuSheetProps) {
 
   return (
     <>
-      {/* Backdrop */}
-      <div
-        className={cn(
-          'fixed inset-0 z-40 transition-opacity duration-300',
-          'bg-black/40 backdrop-blur-sm',
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        )}
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      {/* 
+        We only render the MasterMenuSheet if there's no active child sheet,
+        so the active child sheet can take focus completely.
+      */}
+      {isOpen && !activeSheet && (
+        <>
+          {/* Backdrop */}
+          <div
+            className={cn(
+              'fixed inset-0 z-40 transition-opacity duration-300',
+              'bg-black/40 backdrop-blur-sm',
+              isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            )}
+            onClick={onClose}
+            aria-hidden="true"
+          />
 
       {/* Sheet */}
       <div
@@ -79,10 +91,27 @@ export function MasterMenuSheet({ isOpen, onClose }: MasterMenuSheetProps) {
               key={group.title}
               group={group}
               onClose={onClose}
+              onOpenSheet={setActiveSheet}
             />
           ))}
         </div>
       </div>
+        </>
+      )}
+
+      {/* Embedded Action Sheets */}
+      <PastoralActionSheet 
+        isOpen={activeSheet === 'pastoral'} 
+        onClose={() => { setActiveSheet(null); onClose(); }} 
+      />
+      <BantuanActionSheet 
+        isOpen={activeSheet === 'bantuan'} 
+        onClose={() => { setActiveSheet(null); onClose(); }} 
+      />
+      <AsetActionSheet 
+        isOpen={activeSheet === 'aset'} 
+        onClose={() => { setActiveSheet(null); onClose(); }} 
+      />
     </>
   );
 }

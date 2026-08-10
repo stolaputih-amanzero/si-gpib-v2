@@ -7,18 +7,23 @@ import { haptic } from '@/lib/haptic/vibrate';
 interface MenuGroupProps {
   group: SuperMenuGroupConfig;
   onClose: () => void;
+  onOpenSheet?: (id: string) => void;
 }
 
-export function MenuGroup({ group, onClose }: MenuGroupProps) {
+export function MenuGroup({ group, onClose, onOpenSheet }: MenuGroupProps) {
   const router = useRouter();
 
-  const handleNavigate = (href: string) => {
+  const handleNavigate = (item: SuperMenuItemConfig) => {
     haptic('light');
-    onClose();
-    // Delay kecil agar animasi close sheet selesai sebelum transisi halaman
-    setTimeout(() => {
-      router.push(href);
-    }, 150);
+    if (item.actionId && onOpenSheet) {
+      onOpenSheet(item.actionId);
+    } else if (item.href) {
+      onClose();
+      // Delay kecil agar animasi close sheet selesai sebelum transisi halaman
+      setTimeout(() => {
+        router.push(item.href as string);
+      }, 150);
+    }
   };
 
   return (
@@ -29,9 +34,9 @@ export function MenuGroup({ group, onClose }: MenuGroupProps) {
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
         {group.items.map((item) => (
           <MenuItem 
-            key={item.href} 
+            key={item.href || item.actionId} 
             item={item} 
-            onNavigate={() => handleNavigate(item.href)} 
+            onNavigate={() => handleNavigate(item)} 
           />
         ))}
       </div>

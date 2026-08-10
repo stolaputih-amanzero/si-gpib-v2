@@ -28,7 +28,8 @@ export interface NavGroup {
 export interface SuperMenuItemConfig {
   icon: LucideIcon;
   label: string;
-  href: string;
+  href?: string;
+  actionId?: string; // used for Action Sheets
   color: string; // Hex color untuk icon chip
 }
 
@@ -51,16 +52,16 @@ export const SUPER_MENU_GROUPS: SuperMenuGroupConfig[] = [
   {
     title: 'Input Cepat',
     items: [
-      { icon: ClipboardList, label: 'Log Pastoral',      href: '/pastoral/new',              color: '#3B82F6' }, // blue-500
-      { icon: Camera,        label: 'Foto Aset',         href: '/aset/new',                  color: '#10B981' }, // emerald-500
-      { icon: HandHelping,   label: 'Pengajuan Bantuan', href: '/bantuan/new',               color: '#F59E0B' }, // amber-500
+      { icon: ClipboardList, label: 'Log Pastoral',      actionId: 'pastoral',               color: '#3B82F6' }, // blue-500
+      { icon: Camera,        label: 'Foto Aset',         actionId: 'aset',                   color: '#10B981' }, // emerald-500
+      { icon: HandHelping,   label: 'Pengajuan Bantuan', actionId: 'bantuan',                color: '#F59E0B' }, // amber-500
     ],
   },
   {
     title: 'Data Pelayanan',
     items: [
       { icon: Users,         label: 'Data Pelayan',      href: '/pelayan',                   color: '#8B5CF6' }, // violet-500
-      { icon: MapPin,        label: 'Pos Pelkes Baru',   href: '/dashboard/pos-pelkes/baru', color: '#EF4444' }, // red-500
+      { icon: MapPin,        label: 'Pos Pelkes Baru',   actionId: 'pos_baru',               color: '#EF4444' }, // red-500
       { icon: Package,       label: 'Demografi',         href: '/demografi',                 color: '#06B6D4' }, // cyan-500
       { icon: Church,        label: 'Jadwal Ibadah',     href: '/jadwal',                    color: '#EC4899' }, // pink-500
     ],
@@ -81,7 +82,7 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
     title: 'SDM & Pastoral',
     items: [
       { icon: Users, label: 'Pelayan & Presbiter', href: '/pelayan', description: 'Daftar pelayan pelayanan' },
-      { icon: Activity, label: 'Log Pastoral', href: '/pastoral/new', description: 'Pencatatan kegiatan pastoral' },
+      { icon: Activity, label: 'Log Pastoral', href: '/laporan/pastoral', description: 'Pencatatan kegiatan pastoral' },
     ],
   },
   {

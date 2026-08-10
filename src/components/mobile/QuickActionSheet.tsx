@@ -5,47 +5,55 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { haptic } from '@/lib/haptic/vibrate';
 
+import { PastoralActionSheet } from '@/components/pastoral/PastoralActionSheet';
+import { BantuanActionSheet } from '@/components/bantuan/BantuanActionSheet';
+import { AsetActionSheet } from '@/components/asset/AsetActionSheet';
+import { useState } from 'react';
+
 export interface QuickAction {
+  id: string;
   label: string;
   icon: React.ElementType;
-  href: string;
+  href?: string;
   color: string;
   description?: string;
 }
 
 const QUICK_ACTIONS: QuickAction[] = [
   {
+    id: 'aset',
     label: 'Foto Aset',
     icon: Camera,
-    href: '/laporan/aset/baru',
     color: 'bg-brand-50 text-brand-600 dark:bg-brand-900/40 dark:text-brand-400',
     description: 'Upload & lokasi aset pos',
   },
   {
+    id: 'pastoral',
     label: 'Log Pastoral',
     icon: FileText,
-    href: '/laporan/pastoral/baru',
     color: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400',
     description: 'Catat kunjungan pelayanan',
   },
   {
+    id: 'pos_baru',
     label: 'Input Pos Pelkes',
     icon: MapPin,
-    href: '/hierarki/pos/baru',
+    href: '/org/new',
     color: 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400',
     description: 'Daftarkan titik pos baru',
   },
   {
+    id: 'pelayan_baru',
     label: 'Tambah Pelayan',
     icon: Users,
-    href: '/sdm/pelayan/baru',
+    href: '/people/new',
     color: 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300',
     description: 'Registrasi pelayan/pengurus',
   },
   {
+    id: 'bantuan',
     label: 'Ajukan Bantuan',
     icon: HandHeart,
-    href: '/bantuan/new',
     color: 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400',
     description: 'Permohonan bantuan pos',
   },
@@ -58,11 +66,16 @@ export interface QuickActionSheetProps {
 
 export function QuickActionSheet({ isOpen, onClose }: QuickActionSheetProps) {
   const router = useRouter();
-
-  if (!isOpen) return null;
+  const [activeSheet, setActiveSheet] = useState<string | null>(null);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
+    <>
+      {/* 
+        We only render the QuickActionSheet if there's no active child sheet,
+        or we can render it underneath. We'll hide it when a child opens for cleaner UI. 
+      */}
+      {isOpen && !activeSheet && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
       {/* Dark Overlay Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-xs animate-fade-in"
@@ -106,12 +119,16 @@ export function QuickActionSheet({ isOpen, onClose }: QuickActionSheetProps) {
             const Icon = action.icon;
             return (
               <button
-                key={action.href}
+                key={action.id}
                 type="button"
                 onClick={() => {
                   haptic.light();
-                  router.push(action.href);
-                  onClose();
+                  if (action.id === 'pastoral' || action.id === 'bantuan' || action.id === 'aset') {
+                    setActiveSheet(action.id);
+                  } else if (action.href) {
+                    router.push(action.href);
+                    onClose();
+                  }
                 }}
                 className="tap flex flex-col items-center justify-center p-3.5 rounded-2xl bg-surface-sunken hover:bg-surface-sunken/80 active:scale-[0.97] transition-all min-h-[110px] text-center border border-line-subtle/50 group"
               >
@@ -136,7 +153,23 @@ export function QuickActionSheet({ isOpen, onClose }: QuickActionSheetProps) {
           })}
         </div>
       </div>
-    </div>
+        </div>
+      )}
+
+      {/* Embedded Action Sheets */}
+      <PastoralActionSheet 
+        isOpen={activeSheet === 'pastoral'} 
+        onClose={() => { setActiveSheet(null); onClose(); }} 
+      />
+      <BantuanActionSheet 
+        isOpen={activeSheet === 'bantuan'} 
+        onClose={() => { setActiveSheet(null); onClose(); }} 
+      />
+      <AsetActionSheet 
+        isOpen={activeSheet === 'aset'} 
+        onClose={() => { setActiveSheet(null); onClose(); }} 
+      />
+    </>
   );
 }
 

@@ -1,0 +1,24 @@
+﻿  // Fetch lists concurrently
+  const [
+    { data: pelayan },
+    { data: relawan },
+    { data: logs },
+    { data: jadwal },
+    { data: kerawanan },
+    { data: potensi },
+    { data: asetTanah },
+    { data: asetBangunan },
+    { data: asetBergerak },
+    { data: bantuan }
+  ] = await Promise.all([
+    supabase.from('t_pelayan').select('id_pelayan, nama, jabatan, foto_url').eq('id_pos', id_org).eq('status', 'Aktif').limit(10),
+    supabase.from('t_relawan').select('id_relawan, nama, kategori, foto_url').eq('id_pos', id_org).limit(10),
+    supabase.from('t_log_pastoral').select('id_log, tgl, kegiatan, catatan, pendeta:m_pendeta(nama_lengkap), jml_jiwa').eq('id_pos', id_org).order('tgl', { ascending: false }).limit(5),
+    supabase.from('t_jadwal_ibadah').select('id_ibadah, jenis, hari, jam, keterangan').eq('id_pos', id_org).limit(10),
+    supabase.from('t_kerawanan_wilayah').select('id_risiko, jenis_risiko, kategori, keterangan').eq('id_pos', id_org).limit(5),
+    supabase.from('t_potensi_wilayah').select('id_potensi, nama_potensi, kategori, keterangan').eq('id_pos', id_org).limit(5),
+    supabase.from('t_aset_tanah').select('id_aset, nama_aset, status_hukum, tgl_perolehan, nilai_aset').eq('id_pos', id_org).limit(5),
+    supabase.from('t_aset_bangunan').select('id_aset, nama_aset, kondisi, tgl_perolehan, nilai_aset').eq('id_pos', id_org).limit(5),
+    supabase.from('t_aset_bbergerak').select('id_aset, nama_aset, kondisi, tgl_perolehan, nilai_aset').eq('id_pos', id_org).limit(5),
+    supabase.from('t_pengajuan_bantuan').select('id_ajuan, judul_ajuan, status_ajuan, tgl_pengajuan, nominal_disetujui').eq('id_pos', id_org).limit(5)
+  ]);

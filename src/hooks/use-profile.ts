@@ -12,7 +12,6 @@ import {
   DraftUserItem,
 } from '@/types/profile.types';
 import { getLogPastoralListAction } from '@/app/(dashboard)/dashboard/pastoral/actions';
-import { getRiwayatMutasiAction } from '@/app/(dashboard)/sdm/pendeta/actions-360';
 import {
   fetchUserAuditLogsAction,
   fetchProfileStatsAction,
@@ -245,7 +244,7 @@ export function useProfileAkun(userId?: string) {
 /**
  * 2. Fetch Profile Pelayanan (data pendeta) if idPendeta exists
  */
-export function useProfilePelayanan(idPendeta?: string | null) {
+export function useProfilePelayanan(idPendeta?: string | null | undefined) {
   const supabase = createClient();
 
   return useQuery<ProfilePelayanan | null>({
@@ -388,7 +387,7 @@ export function useProfilePelayanan(idPendeta?: string | null) {
 /**
  * 3. Fetch Profile Stats via RPC get_profile_stats
  */
-export function useProfileStats(idPendeta?: string | null, userId?: string) {
+export function useProfileStats(idPendeta?: string | null | undefined, userId?: string) {
   return useQuery<ProfileStats>({
     queryKey: ['profile-stats', idPendeta || userId || 'me'],
     queryFn: async () => {
@@ -402,23 +401,25 @@ export function useProfileStats(idPendeta?: string | null, userId?: string) {
 /**
  * 4. Fetch Riwayat Mutasi Pendeta
  */
-export function useRiwayatMutasi(idPendeta?: string | null) {
+export function useRiwayatMutasi(idPendeta?: string | null | undefined) {
+  const supabase = createClient();
   return useQuery<RiwayatMutasiItem[]>({
-    queryKey: ['profile-mutasi', idPendeta || 'me'],
-    enabled: true,
+    queryKey: ['riwayat-mutasi', idPendeta],
     queryFn: async () => {
-      let targetPendetaId = idPendeta || null;
-      if (!targetPendetaId) {
-        try {
-          const res = await fetch('/api/auth/me');
-          if (res.ok) {
-            const body = await res.json();
-            targetPendetaId = body?.user?.id_pendeta || null;
-          }
-        } catch {}
-      }
+      const targetPendetaId = idPendeta;
+      if (!targetPendetaId) return [];
 
-      const data = await getRiwayatMutasiAction(targetPendetaId || undefined);
+      const { data, error } = await supabase
+        .from('t_riwayat_mutasi_pendeta')
+        .select(`
+          *,
+          jemaat_lama:id_induk_lama(nama_induk),
+          jemaat_baru:id_induk_baru(nama_induk)
+        `)
+        .eq('id_pendeta', targetPendetaId)
+        .order('tgl_mutasi', { ascending: false });
+
+      if (error) throw error;
 
       return (data || []).map((m: any) => ({
         id_mutasi: m.id_mutasi || m.id_riwayat || String(m.id || ''),
@@ -429,11 +430,11 @@ export function useRiwayatMutasi(idPendeta?: string | null) {
         id_induk_baru: m.id_induk_baru || null,
         nama_induk_lama: (m.jemaat_lama as any)?.nama_induk || m.nama_induk_lama || m.id_induk_lama || null,
         nama_induk_baru: (m.jemaat_baru as any)?.nama_induk || m.nama_induk_baru || m.id_induk_baru || null,
-        alasan: m.alasan || null,
+        alasan: m.alasan || '',
         catatan: m.catatan || null,
       }));
     },
-    staleTime: 1000 * 60 * 2,
+    enabled: !!idPendeta,
   });
 }
 

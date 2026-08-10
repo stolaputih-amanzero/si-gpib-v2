@@ -20,13 +20,20 @@ import { useNetworkStatus } from '@/hooks/use-network-status';
 import { PosCascadingSelector, HierarchyMetaInfo } from '@/components/hierarki/HierarkiSelector/PosCascadingSelector';
 import { useUserMupelAuth } from '@/hooks/use-hierarki-selector';
 import { useToast } from '@/components/ui/toast';
+import { cn } from '@/lib/utils';
 import { useFormDraft } from '@/hooks/use-form-draft';
 import { usePendingSubmissions } from '@/hooks/use-pending-submissions';
 import { formatPastoralKegiatanText } from '@/lib/formatters/pastoral-text';
 import { createLogPastoralAction } from '@/app/(dashboard)/dashboard/pastoral/actions';
 import { generateTimestampId } from '@/lib/constants/id-formats';
 
-export function PastoralFormClient() {
+export interface PastoralFormClientProps {
+  autoLockedPosId?: string | null;
+  onClose?: () => void;
+  isSheetMode?: boolean;
+}
+
+export function PastoralFormClient({ autoLockedPosId, onClose, isSheetMode }: PastoralFormClientProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryPosId = searchParams.get('id_pos');
@@ -117,29 +124,37 @@ export function PastoralFormClient() {
 
       if (userAuth) {
         if (userAuth.id_induk) setValue('id_induk', userAuth.id_induk, { shouldValidate: true });
-        if (userAuth.id_pos) {
+        
+        if (autoLockedPosId) {
+          setValue('id_pos', autoLockedPosId);
+          setTargetScope('pos');
+        } else if (userAuth.id_pos) {
           setValue('id_pos', userAuth.id_pos);
           setTargetScope('pos');
         } else if (queryPosId) {
           setValue('id_pos', queryPosId);
           setTargetScope('pos');
         }
+        
         if (userAuth.id_pendeta) {
           setValue('id_pendeta', userAuth.id_pendeta);
         } else {
           const { data: pData } = await supabase.from('m_pendeta').select('id_pendeta').limit(1);
           if (pData && pData[0]) setValue('id_pendeta', pData[0].id_pendeta);
         }
+      } else if (autoLockedPosId) {
+        setValue('id_pos', autoLockedPosId);
+        setTargetScope('pos');
       }
     };
     initDefaults();
-  }, [userAuth, queryPosId, setValue, watch]);
+  }, [userAuth, queryPosId, setValue, watch, autoLockedPosId]);
 
   const onSubmit = async (data: LogPastoralInput) => {
     setHasSubmitError(false);
 
     let pendetaId = data.id_pendeta || userAuth?.id_pendeta || 'PDT-00000001';
-    let finalPosId = data.id_pos && data.id_pos.trim() !== '' ? data.id_pos : null;
+    let finalPosId = autoLockedPosId || (data.id_pos && data.id_pos.trim() !== '' ? data.id_pos : null);
 
     if (targetScope === 'pos' && !finalPosId) {
       toast.error('Wilayah Belum Lengkap', 'Silakan pilih Wilayah Pos Pelkes / Bajem terlebih dahulu.');
@@ -179,6 +194,8 @@ export function PastoralFormClient() {
       clearDraft();
       reset();
       toast.info('Tersimpan di Antrean Offline', 'Koneksi internet tidak tersedia. Data tersimpan di antrean offline.');
+      if (onClose) onClose();
+      else router.push('/aid-requests'); // Adjust route if needed
       return;
     }
 
@@ -186,13 +203,15 @@ export function PastoralFormClient() {
       await createLogPastoralAction(payload);
       clearDraft();
       toast.success('Log Pastoral Disimpan', 'Catatan kunjungan pastoral berhasil disimpan.');
-      router.push('/laporan/pastoral');
+      if (onClose) onClose();
+      else router.push('/laporan/pastoral');
     } catch (err: any) {
       console.warn('Online sync failed, queuing to offline pending submissions:', err);
       addPendingSubmission('insert', 'create_log_pastoral', payload as Record<string, unknown>);
       clearDraft();
       toast.info('Tersimpan di Antrean Offline', 'Koneksi internet terputus. Data tersimpan di antrean offline.');
-      router.push('/laporan/pastoral');
+      if (onClose) onClose();
+      else router.push('/laporan/pastoral');
     }
   };
 
@@ -207,31 +226,33 @@ export function PastoralFormClient() {
   }
 
   return (
-    <div className="min-h-screen bg-surface-base pb-32 select-none">
+    <div className={cn("bg-surface-base select-none", isSheetMode ? "" : "min-h-screen pb-32")}>
       {/* Sticky Header with DraftIndicator */}
-      <div className="sticky top-0 z-40 bg-surface-1/85 backdrop-blur-md border-b border-border-subtle pt-safe">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="p-2 rounded-xl text-text-high hover:bg-surface-sunken transition-all border border-border-subtle/50 cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
-              aria-label="Tutup"
-            >
-              <X size={20} className="text-text-muted" />
-            </button>
-            <div>
-              <h1 className="text-lg font-display font-semibold text-text-high leading-tight">
-                Catat Kunjungan Pastoral
-              </h1>
-              <DraftIndicator status={draftStatus} pendingCount={pendingCount} className="mt-0.5" />
+      {!isSheetMode && (
+        <div className="sticky top-0 z-40 bg-surface-1/85 backdrop-blur-md border-b border-border-subtle pt-safe">
+          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="p-2 rounded-xl text-text-high hover:bg-surface-sunken transition-all border border-border-subtle/50 cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
+                aria-label="Tutup"
+              >
+                <X size={20} className="text-text-muted" />
+              </button>
+              <div>
+                <h1 className="text-lg font-display font-semibold text-text-high leading-tight">
+                  Catat Kunjungan Pastoral
+                </h1>
+                <DraftIndicator status={draftStatus} pendingCount={pendingCount} className="mt-0.5" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Main Form Fields Stack */}
-      <form onSubmit={handleSubmit(onSubmit)} className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className={cn("mx-auto space-y-6", isSheetMode ? "pb-24" : "max-w-4xl px-4 py-6")}>
         {/* Context Info (Read-only Header) */}
         <div className="p-4 rounded-2xl bg-surface-sunken/60 border border-border-subtle text-xs space-y-1">
           <div className="flex items-center justify-between text-text-muted font-medium">
@@ -240,58 +261,62 @@ export function PastoralFormClient() {
           </div>
         </div>
 
-        {/* 1. Target Scope Selector */}
-        <FormField label="Lingkup Pelayanan" required>
-          <div className="grid grid-cols-2 gap-2 bg-surface-sunken p-1 rounded-2xl border border-border-subtle">
-            <button
-              type="button"
-              data-testid="target-scope-jemaat"
-              onClick={() => {
-                setTargetScope('jemaat');
-                setValue('id_pos', undefined);
-              }}
-              className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer ${
-                targetScope === 'jemaat'
-                  ? 'bg-surface-1 text-brand-primary shadow-2xs'
-                  : 'text-text-muted hover:text-text-high'
-              }`}
-            >
-              <Church size={15} />
-              <span>Jemaat Induk</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setTargetScope('pos')}
-              className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer ${
-                targetScope === 'pos'
-                  ? 'bg-surface-1 text-brand-primary shadow-2xs'
-                  : 'text-text-muted hover:text-text-high'
-              }`}
-            >
-              <MapPin size={15} />
-              <span>Pos Pelkes / Bajem</span>
-            </button>
-          </div>
-        </FormField>
+        {/* 1. Target Scope Selector (Hidden if Auto-Locked) */}
+        {!autoLockedPosId && (
+          <FormField label="Lingkup Pelayanan" required>
+            <div className="grid grid-cols-2 gap-2 bg-surface-sunken p-1 rounded-2xl border border-border-subtle">
+              <button
+                type="button"
+                data-testid="target-scope-jemaat"
+                onClick={() => {
+                  setTargetScope('jemaat');
+                  setValue('id_pos', undefined);
+                }}
+                className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer ${
+                  targetScope === 'jemaat'
+                    ? 'bg-surface-1 text-brand-primary shadow-2xs'
+                    : 'text-text-muted hover:text-text-high'
+                }`}
+              >
+                <Church size={15} />
+                <span>Jemaat Induk</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setTargetScope('pos')}
+                className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer ${
+                  targetScope === 'pos'
+                    ? 'bg-surface-1 text-brand-primary shadow-2xs'
+                    : 'text-text-muted hover:text-text-high'
+                }`}
+              >
+                <MapPin size={15} />
+                <span>Pos Pelkes / Bajem</span>
+              </button>
+            </div>
+          </FormField>
+        )}
 
-        {/* 2. Cascading Selector */}
-        <Controller
-          name="id_pos"
-          control={control}
-          render={({ field }) => (
-            <PosCascadingSelector
-              value={field.value}
-              onChange={field.onChange}
-              onJemaatChange={(jemaatId) => setValue('id_induk', jemaatId || 'JMT-MOCK-001', { shouldValidate: true })}
-              onMetaChange={(meta) => setHierarchyMeta(meta)}
-              error={errors.id_pos?.message}
-              jemaatError={errors.id_induk?.message}
-              disabled={isSubmitting}
-              required={targetScope === 'pos'}
-              hidePos={targetScope === 'jemaat'}
-            />
-          )}
-        />
+        {/* 2. Cascading Selector (Hidden if Auto-Locked) */}
+        {!autoLockedPosId && (
+          <Controller
+            name="id_pos"
+            control={control}
+            render={({ field }) => (
+              <PosCascadingSelector
+                value={field.value}
+                onChange={field.onChange}
+                onJemaatChange={(jemaatId) => setValue('id_induk', jemaatId || 'JMT-MOCK-001', { shouldValidate: true })}
+                onMetaChange={(meta) => setHierarchyMeta(meta)}
+                error={errors.id_pos?.message}
+                jemaatError={errors.id_induk?.message}
+                disabled={isSubmitting}
+                required={targetScope === 'pos'}
+                hidePos={targetScope === 'jemaat'}
+              />
+            )}
+          />
+        )}
 
         {/* 3. Jenis Kegiatan (QuickSelectChips) */}
         <FormField label="Jenis Kegiatan Pastoral" required error={errors.kegiatan?.message}>
