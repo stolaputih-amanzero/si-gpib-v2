@@ -32,9 +32,17 @@ export function EditProfileModal({ isOpen, onClose, onSuccess }: EditProfileModa
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+  const isInitializedRef = useRef(false);
+
+  // Reset initialization when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      isInitializedRef.current = false;
+    }
+  }, [isOpen]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || isInitializedRef.current) return;
 
     const phoneValue =
       pelayanan?.no_telepon ||
@@ -77,6 +85,9 @@ export function EditProfileModal({ isOpen, onClose, onSuccess }: EditProfileModa
     setEditEmail(userEmail || user?.email || '');
     setEditNoHp(phoneValue);
     setEditAvatar(currentAvatar || '');
+
+    // Mark as initialized so background refetches don't overwrite user input
+    isInitializedRef.current = true;
   }, [isOpen, user, akun, pelayanan, userNama, userEmail, userAvatarUrl]);
 
   if (!isOpen) return null;
