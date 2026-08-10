@@ -8,7 +8,7 @@
 ## Blocker 2: `src/lib/domains/bantuan/bantuan.service.ts`
 | # | Caller File | Caller Line | Function Used | Supabase Client | Credential | Classification |
 |---|---|---|---|---|---|---|
-| - | N/A | N/A | N/A | N/A | N/A | `DEAD — Replaced` |
+| 1 | `src/lib/domains/bantuan/bantuan.queries.ts` | 18, 241 | Multiple (e.g., `ajukanUlangBantuan`) | Server Client | Auth Session | `ACTIVE — Unmigrated Domain Logic` |
 
 ## Blocker 3: `src/lib/domains/pastoral/pastoral.service.ts`
 | # | Caller File | Caller Line | Function Used | Supabase Client | Credential | Caller Context | Classification |
