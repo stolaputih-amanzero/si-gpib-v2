@@ -13,6 +13,7 @@ import { PastoralStats } from '@/components/pastoral/PastoralStats';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import { WelcomeGreetingBanner } from '@/components/dashboard/WelcomeGreetingBanner';
+import { getServerContext } from '@/lib/utils/context';
 
 interface DemografiRow {
   kategori_pelkat: string;
@@ -32,7 +33,8 @@ export default async function Dashboard() {
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
   // 1. Resolve logged in user session & role scope
-  const { data: { user } } = await supabaseServer.auth.getUser();
+  const context = await getServerContext();
+  const user = context?.user || (await supabaseServer.auth.getUser()).data.user;
 
   let userRole: string = 'guest';
   let userMupelId: string | null = null;
