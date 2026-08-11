@@ -72,9 +72,18 @@ v2.0.0 FINAL (🔒 Frozen Baseline)
 - Workspace is a **UI View Context**, NOT an authorization scope.
 - Navigating to a workspace MUST NEVER expand or alter user's F12 RLS authorization privileges.
 
-### 3.2 Contract 2: Canonical Routing Contract
-- Every workspace must have a single canonical entry route (`/domain/[id_entity]`).
-- Smart Entry shortcuts (e.g. `/org/me`, `/settings/profile`) act purely as server-side redirectors and MUST NOT create client payload state.
+### 3.2 Contract 2: Canonical Routing & Smart Entry Contract
+- **Canonical Workspace Route (`/domain/{id_entity}#section`):** The primary, deterministic entry point for deep linking and workspace rendering.
+- **Smart Entry Route (`/domain/me` or `/settings/profile`):** Acts purely as an entry & identity resolution mechanism. It resolves authenticated identity on the server and redirects to the canonical workspace route. Smart Entry is NOT a canonical deep-link target and MUST NOT hold client payload state.
+
+```text
+Smart Entry Route (/domain/me)
+      │
+      └── resolve identity/context
+             │
+             ▼
+Canonical Workspace Route (/domain/{id_entity}#section)
+```
 
 ### 3.3 Contract 3: Section Anchor Contract
 - Main content area must present 3 to 7 progressive vertical sections, each with a unique `id="section"`.
