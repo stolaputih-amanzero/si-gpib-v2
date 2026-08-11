@@ -1,112 +1,92 @@
 'use client';
 
-import { useState } from 'react';
-import { RefreshCw, Inbox, AlertTriangle } from 'lucide-react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useOfflineQueue } from '@/hooks/use-offline-queue';
-import { syncManager } from '@/lib/offline/sync-manager';
-import { haptic } from '@/lib/haptic/vibrate';
+import React from 'react';
+import { OfflineCommandItemViewModel } from '@/types/offlineSyncViewModel.types';
+import { Inbox, AlertTriangle, Trash2 } from 'lucide-react';
 
-const OPERATION_LABEL: Record<string, string> = {
-  rpc: 'RPC',
-  insert: 'Tambah',
-  update: 'Ubah',
-};
+interface OfflineQueuePanelProps {
+  items: OfflineCommandItemViewModel[];
+  onInspectConflict: (item: OfflineCommandItemViewModel) => void;
+  onDiscardItem: (commandId: string) => void;
+}
 
-export function OfflineQueuePanel() {
-  const [open, setOpen] = useState(false);
-  const [syncing, setSyncing] = useState(false);
-  const { pendingSubmissions, deadLetters, pendingCount, dlqCount } = useOfflineQueue();
-
-  const handleSyncNow = async () => {
-    setSyncing(true);
-    haptic('medium');
-    await syncManager.processQueue();
-    setSyncing(false);
-  };
+export const OfflineQueuePanel: React.FC<OfflineQueuePanelProps> = ({
+  items,
+  onInspectConflict,
+  onDiscardItem
+}) => {
+  if (items.length === 0) {
+    return (
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-10 text-center space-y-3">
+        <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
+          <Inbox className="w-6 h-6" />
+        </div>
+        <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">Antrian Perintah Lokal Kosong</h3>
+        <p className="text-xs text-slate-500 max-w-md mx-auto">
+          Seluruh perintah transaksi telah tersinkronisasi sempurna ke database server PostgreSQL.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger
-        render={
-          <Button variant="outline" size="sm" className="min-h-[44px] relative bg-white/5 border-border-strong hover:bg-surface-sunken" />
-        }
-      >
-        <Inbox className="w-4 h-4 mr-2" />
-        Antrean Offline
-        {pendingCount > 0 && (
-          <Badge className="ml-2 bg-amber-500 text-amber-950 border-amber-600">{pendingCount}</Badge>
-        )}
-      </SheetTrigger>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">Daftar Antrian Perintah Lokal ({items.length})</h2>
+      </div>
 
-      <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>Antrean Offline</SheetTitle>
-        </SheetHeader>
+      <div className="space-y-3">
+        {items.map(item => (
+          <div
+            key={item.command_id}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-xs space-y-3"
+          >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${item.statusBadgeColor}`}>
+                  {item.statusLabel}
+                </span>
+                <span className="text-xs font-mono text-slate-400">ID: {item.command_id}</span>
+              </div>
 
-        <div className="space-y-6 py-4">
-          <Button onClick={handleSyncNow} disabled={syncing || pendingCount === 0} className="w-full min-h-[44px]">
-            <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
-            {syncing ? 'Menyinkronkan...' : 'Sinkronisasi Sekarang'}
-          </Button>
+              <div className="text-[11px] text-slate-400">
+                Dibuat: {item.createdAtFormatted}
+              </div>
+            </div>
 
-          {/* Pending submissions */}
-          <section>
-            <h3 className="text-sm font-semibold mb-3">Menunggu ({pendingCount})</h3>
-            {pendingCount === 0 ? (
-              <p className="text-sm text-text-muted">Tidak ada data tertunda.</p>
-            ) : (
-              <ul className="space-y-3">
-                {pendingSubmissions.map((item) => (
-                  <li key={item.id} className="p-3 bg-surface-sunken border border-border-subtle rounded-xl">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-text-high">{item.targetIdentifier}</span>
-                      <Badge variant="secondary" className="text-[10px]">{OPERATION_LABEL[item.operationType] ?? item.operationType}</Badge>
-                    </div>
-                    <p className="text-[11px] text-text-muted mt-2">
-                      Status: <span className="font-semibold">{item.status}</span> · Percobaan: {item.attempts}
-                    </p>
-                    {item.lastError && <p className="text-[11px] text-red-600 dark:text-red-400 mt-1">{item.lastError}</p>}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/60 gap-3">
+              <div className="space-y-0.5">
+                <div className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  <span className="uppercase text-blue-600 dark:text-blue-400 font-extrabold">{item.action}</span>
+                  <span>➔</span>
+                  <span>{item.entity_type} ({item.entity_id})</span>
+                </div>
+                <div className="text-[11px] font-mono text-slate-500">Token Request ID: {item.request_id}</div>
+              </div>
 
-          {/* Dead Letter Queue */}
-          <section>
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-red-600" />
-              Gagal Permanen ({dlqCount})
-            </h3>
-            {dlqCount === 0 ? (
-              <p className="text-sm text-text-muted">Tidak ada kegagalan.</p>
-            ) : (
-              <ul className="space-y-3">
-                {deadLetters.map((dl) => (
-                  <li key={dl.id} className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/40 rounded-xl">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-red-900 dark:text-red-200">{dl.targetIdentifier}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 text-xs text-red-700 hover:text-red-800 hover:bg-red-100 dark:text-red-300 dark:hover:bg-red-900/50"
-                        onClick={() => syncManager.retryDeadLetter(dl.id!)}
-                      >
-                        <RefreshCw className="w-3 h-3 mr-1" />
-                        Coba lagi
-                      </Button>
-                    </div>
-                    <p className="text-[11px] text-red-700 dark:text-red-300 mt-2">{dl.failureReason}</p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        </div>
-      </SheetContent>
-    </Sheet>
+              <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                {item.status === 'CONFLICT' && (
+                  <button
+                    onClick={() => onInspectConflict(item)}
+                    className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-semibold hover:bg-rose-100 transition-colors"
+                  >
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <span>Inspeksi Konflik</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={() => onDiscardItem(item.command_id)}
+                  className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
+                  title="Buang dari Antrian"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
-}
+};
