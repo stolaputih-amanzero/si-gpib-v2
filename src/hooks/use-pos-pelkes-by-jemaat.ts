@@ -36,11 +36,7 @@ export function usePosPelkesByJemaat(id_induk: string, searchQuery: string = '',
       const supabase = createClient();
       let query = supabase
         .from('m_pos_pelkes')
-        .select(`
-          id_pos, id_induk, nama_pos, kategori, alamat, latitude, longitude, tgl_berdiri, keterangan, jumlah_kk, jumlah_jiwa, foto_url,
-          t_penugasan_pendeta(tgl_mulai, status_tugas, pendeta:m_pendeta(id_pendeta, nama_lengkap, no_wa, foto_url)),
-          t_demografi_pelkat(jml_kk, laki, perempuan)
-        `)
+        .select('id_pos, id_induk, nama_pos, alamat, latitude, longitude, tgl_berdiri, keterangan, foto_url')
         .eq('id_induk', id_induk)
         .order('nama_pos', { ascending: true });
 
@@ -51,11 +47,16 @@ export function usePosPelkesByJemaat(id_induk: string, searchQuery: string = '',
       const { data, error } = await query;
       if (error || !data) return [];
 
-      // Fetch PJ assignments from multiple fallback sources to ensure sync
-      const [{ data: pjData }, { data: pendetaData }] = await Promise.all([
+      // Fetch PJ assignments & demografi from fallback sources
+      const [pjRes, pendetaRes, demoRes] = await Promise.all([
         supabase.from('t_pj_jemaat').select('id_induk, id_pendeta, pendeta:m_pendeta(id_pendeta, nama_lengkap, no_wa)').is('tanggal_selesai', null),
         supabase.from('m_pendeta').select('id_pendeta, id_induk, nama_lengkap, no_wa, is_pj'),
+        supabase.from('t_demografi_pelkat').select('id_pos, jml_kk, laki, perempuan'),
       ]);
+
+      const pjData = pjRes.data || [];
+      const pendetaData = pendetaRes.data || [];
+      const demoData = demoRes.data || [];
 
       return data.map((item: any) => {
         const activeTugas = item.t_penugasan_pendeta?.find((t: any) => t.status_tugas === 'Aktif');
@@ -99,7 +100,7 @@ export function usePosPelkesByJemaat(id_induk: string, searchQuery: string = '',
             no_wa: posPj.no_wa,
             foto_url: posPj.foto_url,
           } : null,
-          demografi: item.t_demografi_pelkat || [],
+          demografi: demoData.filter((d: any) => d.id_pos === item.id_pos) || [],
         };
       });
     },

@@ -142,7 +142,7 @@ export default async function Dashboard() {
   try {
     let mupelQuery = supabaseAdmin.from('m_mupel').select('*', { count: 'exact', head: true });
     let jemaatQuery = supabaseAdmin.from('m_jemaat_induk').select('*', { count: 'exact', head: true });
-    let posQuery = supabaseAdmin.from('m_pos_pelkes').select('id_pos, nama_pos, kategori, jumlah_jiwa, id_induk');
+    let posQuery = supabaseAdmin.from('m_pos_pelkes').select('id_pos, nama_pos, id_induk');
 
     if (isLocked) {
       if (userRole === 'admin_mupel' && userMupelId) {
