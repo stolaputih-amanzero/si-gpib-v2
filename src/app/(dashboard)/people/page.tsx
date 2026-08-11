@@ -31,9 +31,9 @@ export default async function PeopleDirectoryPage({
       id_pendeta,
       id_person,
       nama_lengkap,
-      status_keaktifan,
+      status,
       foto_url,
-      m_jemaat_induk(id_mupel, nama_induk)
+      m_jemaat_induk!m_pendeta_id_induk_fkey(id_mupel, nama_induk)
     `);
 
   if (searchQuery) {
@@ -93,7 +93,7 @@ export default async function PeopleDirectoryPage({
                 </p>
                 <div className="mt-2">
                   <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-surface-sunken text-text-muted rounded-full">
-                    {person.status_keaktifan || 'Aktif'}
+                    {person.status || 'Aktif'}
                   </span>
                 </div>
               </div>

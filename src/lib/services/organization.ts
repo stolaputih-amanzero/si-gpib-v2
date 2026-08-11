@@ -105,7 +105,7 @@ export async function fetchUnifiedOrganizationData(rawIdOrg: string): Promise<Un
   let jemaat: any = null;
   const { data: jData } = await supabaseAdmin
     .from('m_jemaat_induk')
-    .select('id_induk, nama_induk, id_mupel, alamat, latitude, longitude, keterangan, mupel:m_mupel(nama_mupel), kmj:m_pendeta!id_kmj(nama_lengkap)')
+    .select('id_induk, nama_induk, id_mupel, id_kmj, alamat, latitude, longitude, keterangan, mupel:m_mupel(nama_mupel)')
     .eq('id_induk', id_org)
     .maybeSingle();
 
@@ -114,7 +114,7 @@ export async function fetchUnifiedOrganizationData(rawIdOrg: string): Promise<Un
   if (!jemaat) {
     const { data: jList } = await supabaseAdmin
       .from('m_jemaat_induk')
-      .select('id_induk, nama_induk, id_mupel, alamat, latitude, longitude, keterangan, mupel:m_mupel(nama_mupel), kmj:m_pendeta!id_kmj(nama_lengkap)');
+      .select('id_induk, nama_induk, id_mupel, id_kmj, alamat, latitude, longitude, keterangan, mupel:m_mupel(nama_mupel)');
 
     const compactTarget = id_org.replace(/\s+/g, '').toLowerCase();
     jemaat = (jList || []).find((j) => j.id_induk.replace(/\s+/g, '').toLowerCase() === compactTarget);
