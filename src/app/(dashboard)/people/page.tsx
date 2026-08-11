@@ -29,23 +29,12 @@ export default async function PeopleDirectoryPage({
     .from('m_pendeta')
     .select(`
       id_pendeta,
+      id_person,
       nama_lengkap,
       status_keaktifan,
       foto_url,
-      m_jemaat_induk!inner(id_mupel, nama_induk)
+      m_jemaat_induk(id_mupel, nama_induk)
     `);
-
-  // Filter based on context level
-  if (contextId.startsWith('MUPEL')) {
-    query = query.eq('m_jemaat_induk.id_mupel', contextId);
-  } else if (contextId.startsWith('POS')) {
-    // Requires joining with penugasan
-    // For now, if pos, we could restrict via penugasan or redirect
-    // Since we don't know Jemaat from POS directly without query, skip filtering
-  } else {
-    // JEMAAT level
-    query = query.eq('id_induk', contextId);
-  }
 
   if (searchQuery) {
     query = query.ilike('nama_lengkap', `%${searchQuery}%`);
@@ -84,7 +73,7 @@ export default async function PeopleDirectoryPage({
           people.map((person) => (
             <Link 
               key={person.id_pendeta} 
-              href={`/people/${encodeURIComponent(person.id_pendeta)}`}
+              href={`/people/${encodeURIComponent(person.id_person || person.id_pendeta)}`}
               className="bg-surface-1 border border-border-subtle rounded-2xl p-4 shadow-2xs hover:bg-surface-sunken transition-colors flex items-center gap-4"
             >
               <div className="w-14 h-14 rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary shrink-0 overflow-hidden">

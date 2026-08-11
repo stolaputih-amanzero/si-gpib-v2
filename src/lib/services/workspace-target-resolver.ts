@@ -80,10 +80,6 @@ export async function resolveWorkspaceTarget(
   }
 
   // Determine target URL according to Smart Entry Contract
-  if (role === 'super_user' || role === 'superadmin' || role === 'sinode') {
-    return { role: 'super_user', id_mupel, id_induk, id_pos, targetUrl: '/org' };
-  }
-
   if (id_pos) {
     return { role, id_mupel, id_induk, id_pos, targetUrl: `/org/${encodeURIComponent(id_pos)}` };
   }
@@ -95,6 +91,19 @@ export async function resolveWorkspaceTarget(
   if (id_mupel) {
     return { role, id_mupel, id_induk, id_pos, targetUrl: `/org/${encodeURIComponent(id_mupel)}` };
   }
+
+  // Fallback for Super User / unassigned users: Fetch primary active pos/jemaat workspace
+  try {
+    const { data: firstPos } = await supabaseAdmin
+      .from('m_pos_pelkes')
+      .select('id_pos')
+      .limit(1)
+      .maybeSingle();
+
+    if (firstPos?.id_pos) {
+      return { role, id_mupel, id_induk, id_pos: firstPos.id_pos, targetUrl: `/org/${encodeURIComponent(firstPos.id_pos)}` };
+    }
+  } catch {}
 
   return { role, id_mupel, id_induk, id_pos, targetUrl: '/org' };
 }
