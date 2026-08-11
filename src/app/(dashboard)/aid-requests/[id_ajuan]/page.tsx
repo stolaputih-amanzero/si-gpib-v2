@@ -1,34 +1,24 @@
-import { getServerContext } from '@/lib/utils/context';
-import { fetchUnifiedAidRequestData } from '@/lib/services/aid-request';
-import { notFound, redirect } from 'next/navigation';
-import { AidRequestDetailClient } from '@/components/bantuan/AidRequestDetailClient';
+import { fetchUnifiedAidRequestData } from '@/lib/services/aidRequest';
+import { notFound } from 'next/navigation';
+import { AidRequestWorkspaceShell } from '@/components/aid-request/AidRequestWorkspaceShell';
 
-export async function generateMetadata({ params }: { params: Promise<{ id_ajuan: string }> }) {
-  const { id_ajuan } = await params;
+export async function generateMetadata() {
   return {
-    title: `Aid Request | ${id_ajuan}`,
+    title: `Aid Request Detail View | SI GPIB`,
   };
 }
 
-export default async function AidRequestWorkspacePage({
+export default async function AidRequestDetailPage({
   params
 }: {
   params: Promise<{ id_ajuan: string }>
 }) {
-  const context = await getServerContext();
-  const contextId = context?.context_id;
-  
-  if (!context || !contextId) {
-    redirect('/auth/login');
-  }
-
   const { id_ajuan } = await params;
   const aidData = await fetchUnifiedAidRequestData(id_ajuan);
 
-  // Secure RBAC: fetchUnifiedAidRequestData returns null if context lacks permission
   if (!aidData) {
     notFound();
   }
 
-  return <AidRequestDetailClient data={aidData} contextId={contextId} />;
+  return <AidRequestWorkspaceShell initialData={aidData} />;
 }
