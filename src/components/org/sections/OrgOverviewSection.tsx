@@ -11,7 +11,7 @@ interface OrgOverviewSectionProps {
 
 export const OrgOverviewSection: React.FC<OrgOverviewSectionProps> = ({ overview }) => {
   return (
-    <section id="overview" className="scroll-mt-24 space-y-4">
+    <section id="overview" className="scroll-mt-36 md:scroll-mt-28 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
           <Building className="w-5 h-5 text-blue-500" />

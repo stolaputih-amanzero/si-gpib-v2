@@ -12,7 +12,7 @@ interface OrgPeopleSectionProps {
 
 export const OrgPeopleSection: React.FC<OrgPeopleSectionProps> = ({ people }) => {
   return (
-    <section id="people" className="scroll-mt-24 space-y-4">
+    <section id="people" className="scroll-mt-36 md:scroll-mt-28 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
           <Users className="w-5 h-5 text-blue-500" />

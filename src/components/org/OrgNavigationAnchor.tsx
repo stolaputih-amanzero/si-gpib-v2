@@ -29,31 +29,50 @@ export const OrgNavigationAnchor: React.FC = () => {
   const [activeAnchor, setActiveAnchor] = useState<string>('overview');
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollPos = window.scrollY + 120; // Offset threshold
-      for (const item of ANCHORS) {
-        const el = document.getElementById(item.id);
-        if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollPos >= top && scrollPos < top + height) {
-            setActiveAnchor(item.id);
-            break;
+    // 1. Initial Hash handling for cold-load deep linking
+    const rawHash = window.location.hash.replace('#', '');
+    if (rawHash) {
+      const match = ANCHORS.find((a) => a.id === rawHash);
+      if (match) {
+        setActiveAnchor(match.id);
+        const timer = setTimeout(() => {
+          const el = document.getElementById(match.id);
+          if (el) {
+            el.scrollIntoView({ behavior: 'auto' });
           }
-        }
+        }, 150);
+        return () => clearTimeout(timer);
       }
-    };
+    }
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    // 2. Active section tracking via IntersectionObserver
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveAnchor(entry.target.id);
+          }
+        });
+      },
+      {
+        rootMargin: '-20% 0px -60% 0px',
+        threshold: 0,
+      }
+    );
+
+    ANCHORS.forEach((item) => {
+      const el = document.getElementById(item.id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
   }, []);
 
   const scrollToAnchor = (id: string) => {
     setActiveAnchor(id);
     const el = document.getElementById(id);
     if (el) {
-      const top = el.offsetTop - 80; // Account for sticky nav height
-      window.scrollTo({ top, behavior: 'smooth' });
+      el.scrollIntoView({ behavior: 'smooth' });
       window.history.replaceState(null, '', `#${id}`);
     }
   };

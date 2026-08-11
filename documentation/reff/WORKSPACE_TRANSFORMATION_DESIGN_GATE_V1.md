@@ -101,7 +101,7 @@ Pengguna (khususnya Super User, Admin Mupel, atau KMJ) dapat mengoperasikan `Act
 
 | Parameter | Specification & Rule |
 | :--- | :--- |
-| **Bottom Nav Clearance** | Main container `pb-28 md:pb-12` untuk menjamin `SuperBottomNav` melayang tidak pernah menutupi tombol/konten bawah. |
+| **Bottom Nav Clearance** | Main container `pb-36 md:pb-16` untuk menjamin `SuperBottomNav` melayang tidak pernah menutupi tombol/konten bawah (Empirically verified). |
 | **Touch Target Size** | Semua elemen interaktif (tombol, tab, kartu, link) wajib memiliki ukuran minimal **44px × 44px**. |
 | **Header Behavior** | `MobileHeader` bersifat sticky `top-0 z-40` dengan `backdrop-blur-md` dan `safe-area-inset-top`. |
 | **Context Switcher** | Komponen `WorkspaceContextSwitcher` ditampilkan di header mobile dengan pembatasan teks (*truncate*) maks 160px. |
