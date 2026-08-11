@@ -32,5 +32,11 @@ export default defineConfig({
   projects: [
     { name: 'setup', testMatch: /auth\.setup\.ts/ },
     { name: 'cj1', dependencies: ['setup'], use: { storageState: 'e2e/.auth/pj-storage.json' } },
+    {
+      name: 'f15',
+      testMatch: /f15-org-directory\.spec\.ts/,
+      dependencies: ['setup'],
+      use: { storageState: 'e2e/.auth/pj-storage.json' },
+    },
   ],
 });
