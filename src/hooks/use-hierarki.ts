@@ -97,7 +97,7 @@ export function useMupelList(search?: string) {
       const [mupelRes, jemaatRes, posRes] = await Promise.all([
         supabase.from('m_mupel').select('*').order('nama_mupel', { ascending: true }),
         supabase.from('m_jemaat_induk').select('id_mupel, id_induk, nama_induk'),
-        supabase.from('m_pos_pelkes').select('id_pos, id_induk, nama_pos, kategori'),
+        supabase.from('m_pos_pelkes').select('id_pos, id_induk, nama_pos'),
       ]);
 
       if (mupelRes.error) throw mupelRes.error;
@@ -391,7 +391,7 @@ export function usePosByJemaat(id_induk?: string, search?: string) {
     queryFn: async () => {
       let query = supabase
         .from('m_pos_pelkes')
-        .select('*, jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, latitude, longitude, mupel:m_mupel(nama_mupel))')
+        .select('id_pos, id_induk, nama_pos, alamat, latitude, longitude, tgl_berdiri, keterangan, jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, latitude, longitude, mupel:m_mupel(nama_mupel))')
         .order('nama_pos', { ascending: true });
 
       if (id_induk && id_induk !== 'all') {
@@ -449,7 +449,7 @@ export function usePosByJemaat(id_induk?: string, search?: string) {
         }
 
         const cleanedName = cleanQuotes(p.nama_pos);
-        const derivedKategori = p.kategori || (cleanedName.toLowerCase().startsWith('bajem') ? 'Bajem' : 'Pos Pelkes');
+        const derivedKategori = (p as any).kategori || (cleanedName.toLowerCase().startsWith('bajem') ? 'Bajem' : 'Pos Pelkes');
 
         // Demografi totals calculation
         const posDemo = (demografiData || []).filter((d: any) => d.id_pos === p.id_pos);
@@ -496,7 +496,7 @@ export function usePosDetail(id_pos?: string) {
 
       const { data: p, error } = await supabase
         .from('m_pos_pelkes')
-        .select('*, jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, latitude, longitude, mupel:m_mupel(nama_mupel))')
+        .select('id_pos, id_induk, nama_pos, alamat, latitude, longitude, tgl_berdiri, keterangan, jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, latitude, longitude, mupel:m_mupel(nama_mupel))')
         .eq('id_pos', id_pos)
         .maybeSingle();
 
@@ -548,7 +548,7 @@ export function usePosDetail(id_pos?: string) {
       }
 
       const cleanedName = cleanQuotes(p.nama_pos);
-      const derivedKategori = p.kategori || (cleanedName.toLowerCase().startsWith('bajem') ? 'Bajem' : 'Pos Pelkes');
+      const derivedKategori = (p as any).kategori || (cleanedName.toLowerCase().startsWith('bajem') ? 'Bajem' : 'Pos Pelkes');
 
       const jmlKK = (demografiData || []).reduce((sum: number, d: any) => sum + (d.jml_kk || 0), 0);
       const jmlJiwa = (demografiData || []).reduce((sum: number, d: any) => sum + (d.laki || 0) + (d.perempuan || 0), 0);
@@ -560,7 +560,7 @@ export function usePosDetail(id_pos?: string) {
         jumlah_kk: jmlKK,
         jumlah_jiwa: jmlJiwa,
         pj: posPj ? (posPj as any) : null,
-      } as PosPelkesItem;
+      } as unknown as PosPelkesItem;
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
@@ -580,7 +580,7 @@ export function useHierarchyStats() {
       const [{ count: mCount }, { count: jCount }, { data: posData }, { data: demoData }, { data: jemaatData }] = await Promise.all([
         supabase.from('m_mupel').select('*', { count: 'exact', head: true }),
         supabase.from('m_jemaat_induk').select('*', { count: 'exact', head: true }),
-        supabase.from('m_pos_pelkes').select('kategori, nama_pos'),
+        supabase.from('m_pos_pelkes').select('nama_pos'),
         supabase.from('t_demografi_pelkat').select('jml_kk, laki, perempuan'),
         supabase.from('m_jemaat_induk').select('jumlah_kk, jumlah_jiwa'),
       ]);
