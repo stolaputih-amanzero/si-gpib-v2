@@ -121,7 +121,7 @@ export const WorkspaceContextSwitcher: React.FC = () => {
                   <Church size={16} className="text-emerald-500 shrink-0" />
                   <div className="min-w-0">
                     <p className="font-bold text-text-high truncate">{authData.id_pos}</p>
-                    <p className="text-[10px] text-text-muted truncate">Pos Pelkes Penugasan</p>
+                    <p className="text-[10px] text-text-muted truncate">Penugasan Pendeta Jemaat (PJ)</p>
                   </div>
                 </div>
                 {currentOrgId === authData.id_pos && <Check size={14} className="text-emerald-500 shrink-0" />}

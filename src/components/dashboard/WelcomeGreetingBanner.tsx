@@ -39,7 +39,7 @@ export const WelcomeGreetingBanner: React.FC<WelcomeGreetingBannerProps> = ({ cl
     roleBadgeLabel = 'Super User (Full Admin)';
     unitName = 'Seluruh Indonesia';
   } else if (userRole.includes('pj') || userRole.includes('pos')) {
-    roleBadgeLabel = 'Penanggung Jawab Pos (PJ)';
+    roleBadgeLabel = 'Pendeta Jemaat (PJ)';
     unitName = authData?.id_pos || authData?.id_induk || 'Pos Pelkes';
   } else if (userRole.includes('kmj') || userRole.includes('majelis')) {
     roleBadgeLabel = 'Ketua Majelis Jemaat (KMJ)';
@@ -48,7 +48,7 @@ export const WelcomeGreetingBanner: React.FC<WelcomeGreetingBannerProps> = ({ cl
     roleBadgeLabel = 'Admin Mupel';
     unitName = authData?.id_mupel ? `Mupel ${authData.id_mupel}` : 'Mupel';
   } else if (authData?.id_pos) {
-    roleBadgeLabel = 'Penanggung Jawab Pos (PJ)';
+    roleBadgeLabel = 'Pendeta Jemaat (PJ)';
     unitName = authData.id_pos;
   } else if (authData?.id_induk) {
     roleBadgeLabel = 'Ketua Majelis Jemaat (KMJ)';

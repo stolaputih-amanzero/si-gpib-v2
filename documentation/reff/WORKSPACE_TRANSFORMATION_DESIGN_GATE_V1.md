@@ -61,8 +61,8 @@ Pengguna (khususnya Super User, Admin Mupel, atau KMJ) dapat mengoperasikan `Act
 | :--- | :--- | :--- | :--- |
 | `super_user` | `/org` | Semua node dapat diakses | `/org` |
 | `admin_mupel` | `/org/{id_mupel}` | Memiliki `id_mupel` di `users` table | `/org` |
-| `kmj` | `/org/{id_induk}` | Memiliki `id_induk` / `id_kmj` di `m_jemaat_induk` | `/org` |
-| `pj` / `user` | `/org/{id_pos}` | Memiliki `id_pos` aktif di `t_penugasan_pendeta` (`status_tugas = 'Aktif'`) | `/org/{id_induk}` ➔ `/org` |
+| `kmj` (Ketua Majelis Jemaat) | `/org/{id_induk}` | Memiliki `id_induk` / `id_kmj` di `m_jemaat_induk` | `/org` |
+| `pj` (Pendeta Jemaat) | `/org/{id_pos}` | Memiliki `id_pos` aktif di `t_penugasan_pendeta` (`status_tugas = 'Aktif'`) | `/org/{id_induk}` ➔ `/org` |
 | `guest` / `read_only` | `/org` | Pengguna anonim / tanpa penugasan | `/login` |
 
 ---
