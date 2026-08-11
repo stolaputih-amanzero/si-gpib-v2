@@ -164,10 +164,10 @@ export async function fetchUnifiedPersonData(personId: string): Promise<UnifiedP
         email: pendeta?.email || null,
         alamat_tinggal: 'Perumahan Pelayanan GPIB',
         keluarga: [
-          { id_anggota: 'kel-1', hubungan: 'Kepala Keluarga', nama: namaLengkap, gender: pendeta?.gender || 'Laki-laki' }
+          { id_keluarga: 'kel-1', hubungan: 'Kepala Keluarga', nama_anggota: namaLengkap }
         ],
         kontak_darurat: [
-          { nama: 'Sekretariat Jemaat', hubungan: 'Kantor Jemaat', no_hp: noWa || '+6287730116407' }
+          { nama: 'Sekretariat Jemaat', hubungan: 'Kantor Jemaat', no_telp: noWa || '+6287730116407' }
         ],
         biometric_devices: [],
       },

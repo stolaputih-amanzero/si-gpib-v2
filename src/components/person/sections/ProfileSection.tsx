@@ -63,8 +63,8 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ profile }) => {
 
             {profile.keluarga.type === 'DATA' ? (
               <div className="space-y-1.5">
-                {profile.keluarga.value.map((member) => (
-                  <div key={member.id_keluarga} className="text-xs p-2 rounded bg-slate-50 dark:bg-slate-800 flex justify-between">
+                {profile.keluarga.value.map((member, idx) => (
+                  <div key={member.id_keluarga || `kel-${idx}`} className="text-xs p-2 rounded bg-slate-50 dark:bg-slate-800 flex justify-between">
                     <span className="font-medium text-slate-800 dark:text-slate-200">{member.nama_anggota}</span>
                     <span className="text-slate-500">{member.hubungan}</span>
                   </div>
@@ -89,7 +89,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ profile }) => {
             {profile.kontakDarurat.type === 'DATA' ? (
               <div className="space-y-1.5">
                 {profile.kontakDarurat.value.map((contact, i) => (
-                  <div key={i} className="text-xs p-2 rounded bg-slate-50 dark:bg-slate-800 flex justify-between">
+                  <div key={contact.nama || `contact-${i}`} className="text-xs p-2 rounded bg-slate-50 dark:bg-slate-800 flex justify-between">
                     <span className="font-medium text-slate-800 dark:text-slate-200">{contact.nama} ({contact.hubungan})</span>
                     <span className="text-slate-500">{contact.no_telp}</span>
                   </div>
