@@ -12,6 +12,7 @@ import { formatNumber } from '@/lib/utils';
 import { PastoralStats } from '@/components/pastoral/PastoralStats';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
+import { WelcomeGreetingBanner } from '@/components/dashboard/WelcomeGreetingBanner';
 
 interface DemografiRow {
   kategori_pelkat: string;
@@ -351,6 +352,9 @@ export default async function Dashboard() {
       </div>
 
       <main className="max-w-6xl mx-auto px-4 py-5 md:px-6 space-y-6">
+        {/* Welcome Greeting Banner with Integrated Quick Actions */}
+        <WelcomeGreetingBanner />
+
         <section className="ambient-glow">
           <StatCards stats={customStats} />
         </section>

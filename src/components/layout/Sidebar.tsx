@@ -47,9 +47,10 @@ export interface NavGroup {
 
 export const NAV_GROUPS: NavGroup[] = [
   {
-    label: 'Beranda',
+    label: 'Workspace & Beranda',
     icon: Home,
     items: [
+      { label: 'Workspace Saya', href: '/org/me', icon: Church },
       { label: 'Dashboard Utama', href: '/dashboard', icon: Home },
     ],
   },
