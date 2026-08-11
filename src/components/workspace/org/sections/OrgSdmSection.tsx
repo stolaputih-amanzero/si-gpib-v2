@@ -44,7 +44,7 @@ export function OrgSdmSection({ orgData }: { orgData: LegacyUnifiedOrganizationD
 
           if (isPendeta) {
             return (
-              <Link key={person.id} href={`/dashboard/people/${encodeURIComponent(person.id)}`} className="block">
+              <Link key={person.id} href={`/people/${encodeURIComponent(person.id)}`} className="block">
                 {Content}
               </Link>
             );

@@ -31,7 +31,7 @@ export const OrgPeopleSection: React.FC<OrgPeopleSectionProps> = ({ people }) =>
               Ketua Majelis Jemaat (KMJ) Aktif
             </div>
             <Link 
-              href={`/dashboard/people/${people.kmj.value.id_person}`}
+              href={`/people/${people.kmj.value.id_person}`}
               className="flex items-center justify-between group text-sm font-bold text-slate-900 dark:text-slate-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
             >
               <span>{people.kmj.value.nama_lengkap}</span>
@@ -57,7 +57,7 @@ export const OrgPeopleSection: React.FC<OrgPeopleSectionProps> = ({ people }) =>
               {people.pelayanList.value.map((person) => (
                 <Link
                   key={person.id_person}
-                  href={`/dashboard/people/${person.id_person}`}
+                  href={`/people/${person.id_person}`}
                   className="flex items-center justify-between p-3 rounded-lg border border-slate-100 dark:border-slate-800/80 hover:border-blue-200 dark:hover:border-blue-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
