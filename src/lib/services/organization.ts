@@ -1,14 +1,24 @@
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
 import { UnifiedOrganizationData } from '@/types/organization.types';
 
 export type { UnifiedOrganizationData };
 
-export async function fetchUnifiedOrganizationData(id_org: string): Promise<UnifiedOrganizationData | null> {
-  const supabase = await createClient();
+export async function fetchUnifiedOrganizationData(rawIdOrg: string): Promise<UnifiedOrganizationData | null> {
+  if (!rawIdOrg) return null;
+
+  const id_org = decodeURIComponent(rawIdOrg).trim();
+
+  // Create admin client for reliable server-side read model construction
+  const supabaseAdmin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   // 1. Primary: Call official F3 RPC get_organization_360
   try {
-    const { data, error } = await supabase.rpc('get_organization_360', {
+    const supabaseServer = await createClient();
+    const { data, error } = await supabaseServer.rpc('get_organization_360', {
       p_id_org: id_org,
     });
 
@@ -17,16 +27,27 @@ export async function fetchUnifiedOrganizationData(id_org: string): Promise<Unif
     }
   } catch {}
 
-  // 2. Resilient Fallback: Query master tables directly if RPC throws error or requires specific session
-  // Check m_mupel
-  const { data: mupel } = await supabase
+  // 2. Flexible Lookup: Check m_mupel
+  let mupel: any = null;
+  const { data: mData } = await supabaseAdmin
     .from('m_mupel')
     .select('id_mupel, nama_mupel, keterangan')
     .eq('id_mupel', id_org)
     .maybeSingle();
 
+  mupel = mData;
+
+  if (!mupel) {
+    const { data: mList } = await supabaseAdmin
+      .from('m_mupel')
+      .select('id_mupel, nama_mupel, keterangan');
+
+    const compactTarget = id_org.replace(/\s+/g, '').toLowerCase();
+    mupel = (mList || []).find((m) => m.id_mupel.replace(/\s+/g, '').toLowerCase() === compactTarget);
+  }
+
   if (mupel) {
-    const { data: jemaatList } = await supabase
+    const { data: jemaatList } = await supabaseAdmin
       .from('m_jemaat_induk')
       .select('id_induk, nama_induk')
       .eq('id_mupel', mupel.id_mupel);
@@ -80,15 +101,27 @@ export async function fetchUnifiedOrganizationData(id_org: string): Promise<Unif
     } as unknown as UnifiedOrganizationData;
   }
 
-  // Check m_jemaat_induk
-  const { data: jemaat } = await supabase
+  // 3. Flexible Lookup: Check m_jemaat_induk
+  let jemaat: any = null;
+  const { data: jData } = await supabaseAdmin
     .from('m_jemaat_induk')
     .select('id_induk, nama_induk, id_mupel, alamat, latitude, longitude, keterangan, mupel:m_mupel(nama_mupel), kmj:m_pendeta!id_kmj(nama_lengkap)')
     .eq('id_induk', id_org)
     .maybeSingle();
 
+  jemaat = jData;
+
+  if (!jemaat) {
+    const { data: jList } = await supabaseAdmin
+      .from('m_jemaat_induk')
+      .select('id_induk, nama_induk, id_mupel, alamat, latitude, longitude, keterangan, mupel:m_mupel(nama_mupel), kmj:m_pendeta!id_kmj(nama_lengkap)');
+
+    const compactTarget = id_org.replace(/\s+/g, '').toLowerCase();
+    jemaat = (jList || []).find((j) => j.id_induk.replace(/\s+/g, '').toLowerCase() === compactTarget);
+  }
+
   if (jemaat) {
-    const { data: posList } = await supabase
+    const { data: posList } = await supabaseAdmin
       .from('m_pos_pelkes')
       .select('id_pos, nama_pos')
       .eq('id_induk', jemaat.id_induk);
@@ -163,12 +196,24 @@ export async function fetchUnifiedOrganizationData(id_org: string): Promise<Unif
     } as unknown as UnifiedOrganizationData;
   }
 
-  // Check m_pos_pelkes
-  const { data: pos } = await supabase
+  // 4. Flexible Lookup: Check m_pos_pelkes
+  let pos: any = null;
+  const { data: pData } = await supabaseAdmin
     .from('m_pos_pelkes')
     .select('id_pos, id_induk, nama_pos, alamat, latitude, longitude, tgl_berdiri, keterangan, jemaat_induk:m_jemaat_induk(nama_induk)')
     .eq('id_pos', id_org)
     .maybeSingle();
+
+  pos = pData;
+
+  if (!pos) {
+    const { data: pList } = await supabaseAdmin
+      .from('m_pos_pelkes')
+      .select('id_pos, id_induk, nama_pos, alamat, latitude, longitude, tgl_berdiri, keterangan, jemaat_induk:m_jemaat_induk(nama_induk)');
+
+    const compactTarget = id_org.replace(/\s+/g, '').toLowerCase();
+    pos = (pList || []).find((p) => p.id_pos.replace(/\s+/g, '').toLowerCase() === compactTarget);
+  }
 
   if (pos) {
     const jObj = pos.jemaat_induk as any;
