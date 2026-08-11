@@ -38,11 +38,11 @@ export function SuperBottomNav() {
         role="navigation"
         aria-label="Navigasi utama"
       >
-        <div className="relative flex items-end justify-around px-2 h-[64px]">
+        <div className="grid grid-cols-5 w-full items-end justify-items-center h-[64px] px-1">
           {DIRECT_NAV_ITEMS.map((item) => {
-            if (item.order === 4) {
+            if (item.order === 3) {
               return (
-                <div key="quick-actions" className="flex-1 flex justify-center">
+                <div key="quick-actions" className="flex items-center justify-center w-full">
                   <SuperButton onClick={handleSuperButton} isOpen={isSheetOpen} />
                 </div>
               );

@@ -40,11 +40,11 @@ export interface SuperMenuGroupConfig {
 
 // ===== NAV LANGSUNG (1 tap = pindah halaman) =====
 export const DIRECT_NAV_ITEMS: NavItemConfig[] = [
-  { icon: Home,     label: 'Beranda',    href: '/dashboard',        order: 1 },
-  { icon: Church,   label: 'Organisasi', href: '/org',              order: 2 },
-  { icon: Users,    label: 'SDM',        href: '/people',           order: 3 },
-  { icon: ClipboardList, label: 'Quick Actions', href: '#',         order: 4 }, // Will be handled by SuperButton
-  { icon: Settings, label: 'Akun & Sistem', href: '/settings',      order: 5 },
+  { icon: Home,          label: 'Beranda',       href: '/dashboard',  order: 1 },
+  { icon: Church,        label: 'Organisasi',    href: '/org',        order: 2 },
+  { icon: ClipboardList, label: 'Quick Actions', href: '#',           order: 3 }, // Exact Center!
+  { icon: Users,         label: 'SDM',           href: '/people',     order: 4 },
+  { icon: Settings,      label: 'Akun & Sistem', href: '/settings',   order: 5 },
 ];
 
 // ===== SUPER BUTTON MENU (muncul di Bottom Sheet) =====
