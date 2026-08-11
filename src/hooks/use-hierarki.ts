@@ -391,18 +391,25 @@ export function usePosByJemaat(id_induk?: string, search?: string) {
     queryFn: async () => {
       let query = supabase
         .from('m_pos_pelkes')
-        .select('id_pos, id_induk, nama_pos, alamat, latitude, longitude, tgl_berdiri, keterangan, jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, latitude, longitude, mupel:m_mupel(nama_mupel))')
+        .select('id_pos, id_induk, nama_pos, alamat, latitude, longitude, tgl_berdiri, keterangan')
         .order('nama_pos', { ascending: true });
 
       if (id_induk && id_induk !== 'all') {
         query = query.eq('id_induk', id_induk);
       }
 
-      const { data: posData, error } = await query;
-      if (error) throw error;
-
-      // Fetch PJ assignments & demografi totals from multiple tables
-      const [{ data: pjData }, { data: penugasanData }, { data: pendetaData }, { data: demografiData }] = await Promise.all([
+      const [
+        { data: posData, error },
+        { data: jemaatData },
+        { data: mupelData },
+        { data: pjData },
+        { data: penugasanData },
+        { data: pendetaData },
+        { data: demografiData },
+      ] = await Promise.all([
+        query,
+        supabase.from('m_jemaat_induk').select('id_induk, nama_induk, id_mupel, latitude, longitude'),
+        supabase.from('m_mupel').select('id_mupel, nama_mupel'),
         supabase
           .from('t_pj_jemaat')
           .select('id_induk, id_pendeta, pendeta:m_pendeta(id_pendeta, nama_lengkap, no_wa)')
@@ -419,9 +426,28 @@ export function usePosByJemaat(id_induk?: string, search?: string) {
           .select('id_pos, jml_kk, laki, perempuan'),
       ]);
 
+      if (error) throw error;
+
+      const jMap = new Map((jemaatData || []).map((j: any) => [j.id_induk, j]));
+      const mMap = new Map((mupelData || []).map((m: any) => [m.id_mupel, m]));
+
       const result: PosPelkesItem[] = (posData || []).map((p: any) => {
+        const jObj = jMap.get(p.id_induk);
+        const mObj = jObj ? mMap.get(jObj.id_mupel) : null;
+        const jMerged = jObj
+          ? {
+              ...jObj,
+              mupel: mObj ? { nama_mupel: mObj.nama_mupel } : null,
+            }
+          : null;
+
+        const pItem = {
+          ...p,
+          jemaat_induk: jMerged,
+        };
+
         // Source 1: t_penugasan_pendeta
-        let posPj: any = (penugasanData || []).find((t: any) => t.id_pos === p.id_pos)?.pendeta;
+        let posPj: any = (penugasanData || []).find((t: any) => t.id_pos === pItem.id_pos)?.pendeta;
 
         // Source 2: t_pj_jemaat
         if (!posPj) {
@@ -496,15 +522,22 @@ export function usePosDetail(id_pos?: string) {
 
       const { data: p, error } = await supabase
         .from('m_pos_pelkes')
-        .select('id_pos, id_induk, nama_pos, alamat, latitude, longitude, tgl_berdiri, keterangan, jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, latitude, longitude, mupel:m_mupel(nama_mupel))')
+        .select('id_pos, id_induk, nama_pos, alamat, latitude, longitude, tgl_berdiri, keterangan')
         .eq('id_pos', id_pos)
         .maybeSingle();
 
       if (error) throw error;
       if (!p) return null;
 
-      // Fetch PJ assignments & demografi totals
-      const [{ data: pjData }, { data: penugasanData }, { data: pendetaData }, { data: demografiData }] = await Promise.all([
+      // Fetch Jemaat Induk & PJ assignments & demografi totals
+      const [{ data: jData }, { data: pjData }, { data: penugasanData }, { data: pendetaData }, { data: demografiData }] = await Promise.all([
+        p.id_induk
+          ? supabase
+              .from('m_jemaat_induk')
+              .select('id_induk, nama_induk, id_mupel, latitude, longitude, mupel:m_mupel(nama_mupel)')
+              .eq('id_induk', p.id_induk)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
         supabase
           .from('t_pj_jemaat')
           .select('id_induk, id_pendeta, pendeta:m_pendeta(id_pendeta, nama_lengkap, no_wa)')
@@ -524,6 +557,11 @@ export function usePosDetail(id_pos?: string) {
           .select('id_pos, jml_kk, laki, perempuan')
           .eq('id_pos', p.id_pos),
       ]);
+
+      const pMerged = {
+        ...p,
+        jemaat_induk: jData || null,
+      };
 
       let posPj: any = (penugasanData || []).find((t: any) => t.id_pos === p.id_pos)?.pendeta;
       if (!posPj) {
@@ -554,7 +592,7 @@ export function usePosDetail(id_pos?: string) {
       const jmlJiwa = (demografiData || []).reduce((sum: number, d: any) => sum + (d.laki || 0) + (d.perempuan || 0), 0);
 
       return {
-        ...p,
+        ...pMerged,
         nama_pos: cleanedName,
         kategori: derivedKategori,
         jumlah_kk: jmlKK,
