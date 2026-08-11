@@ -9,7 +9,7 @@ test.describe('F2 — Person Workspace Transformation & Privacy E2E Suite', () =
   // 01. Canonical /people/{id} -> Default load opens #overview
   test('01. Canonical /people/{id} default load opens #overview', async ({ page }) => {
     await page.goto(`/people/${TEST_PERSON_ID}`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const overviewSection = page.locator('#overview');
     await expect(overviewSection).toBeVisible();
