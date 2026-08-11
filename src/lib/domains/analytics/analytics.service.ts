@@ -11,7 +11,8 @@ export async function fetchAnalyticsData(filter?: AnalyticsFilter): Promise<Anal
   });
 
   if (error) {
-    console.error('Error fetching analytics data:', error);
+    const errorMsg = error.message || error.details || error.hint || (typeof error === 'object' ? JSON.stringify(error, Object.getOwnPropertyNames(error)) : String(error));
+    console.error('Error fetching analytics data:', errorMsg);
     // Fallback default structure if RPC doesn't exist yet or fails
     return {
       stats: {
