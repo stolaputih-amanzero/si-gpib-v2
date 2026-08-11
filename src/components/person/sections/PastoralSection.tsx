@@ -11,7 +11,7 @@ interface PastoralSectionProps {
 
 export const PastoralSection: React.FC<PastoralSectionProps> = ({ pastoral }) => {
   return (
-    <section id="pastoral" className="scroll-mt-24 space-y-4">
+    <section id="pastoral" className="scroll-mt-36 md:scroll-mt-28 space-y-4">
       <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
         <HeartHandshake className="w-5 h-5 text-primary-600 dark:text-primary-400" />
         <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Pelayanan & Aktivitas Pastoral</h2>

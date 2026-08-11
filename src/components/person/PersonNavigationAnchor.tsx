@@ -27,44 +27,66 @@ export const PersonNavigationAnchor: React.FC = () => {
   const [activeAnchor, setActiveAnchor] = useState<string>('overview');
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollPos = window.scrollY + 120; // Offset threshold
-      for (const item of ANCHORS) {
-        const el = document.getElementById(item.id);
-        if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollPos >= top && scrollPos < top + height) {
-            setActiveAnchor(item.id);
-            break;
+    // 1. Initial Hash handling for cold-load deep linking
+    const rawHash = window.location.hash.replace('#', '');
+    if (rawHash) {
+      const match = ANCHORS.find((a) => a.id === rawHash);
+      if (match) {
+        setActiveAnchor(match.id);
+        const timer = setTimeout(() => {
+          const el = document.getElementById(match.id);
+          if (el) {
+            el.scrollIntoView({ behavior: 'auto' });
           }
-        }
+        }, 150);
+        return () => clearTimeout(timer);
       }
-    };
+    }
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    // 2. Active section tracking via IntersectionObserver
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveAnchor(entry.target.id);
+          }
+        });
+      },
+      {
+        rootMargin: '-20% 0px -60% 0px',
+        threshold: 0,
+      }
+    );
+
+    ANCHORS.forEach((item) => {
+      const el = document.getElementById(item.id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
   }, []);
 
-  const scrollToAnchor = (id: string) => {
+  const handleClickAnchor = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
     setActiveAnchor(id);
     const el = document.getElementById(id);
     if (el) {
-      const top = el.offsetTop - 80; // Account for sticky nav height
-      window.scrollTo({ top, behavior: 'smooth' });
+      el.scrollIntoView({ behavior: 'smooth' });
       window.history.replaceState(null, '', `#${id}`);
     }
   };
 
   return (
-    <nav className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-y border-slate-200 dark:border-slate-800 shadow-2xs py-2 px-1">
+    <nav aria-label="Navigasi Seksi Person Workspace" className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-y border-slate-200 dark:border-slate-800 shadow-2xs py-2 px-1">
       <div className="flex items-center gap-1 overflow-x-auto no-scrollbar max-w-full">
         {ANCHORS.map((item) => {
           const isActive = activeAnchor === item.id;
           return (
-            <button
+            <a
               key={item.id}
-              onClick={() => scrollToAnchor(item.id)}
+              href={`#${item.id}`}
+              onClick={(e) => handleClickAnchor(e, item.id)}
+              aria-current={isActive ? 'location' : undefined}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium shrink-0 transition-all ${
                 isActive
                   ? 'bg-primary-50 dark:bg-primary-950/50 text-primary-600 dark:text-primary-400 font-semibold border border-primary-200 dark:border-primary-800'
@@ -73,7 +95,7 @@ export const PersonNavigationAnchor: React.FC = () => {
             >
               {item.icon}
               <span>{item.label}</span>
-            </button>
+            </a>
           );
         })}
       </div>

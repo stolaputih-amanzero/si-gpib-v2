@@ -20,7 +20,7 @@ export const PersonWorkspaceShell: React.FC<PersonWorkspaceShellProps> = ({ pers
   const vm = useMemo(() => adaptPersonToViewModel(person), [person]);
 
   return (
-    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 pb-16 space-y-6">
+    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 pb-36 md:pb-16 space-y-6">
       {/* 1. Header (Identity-First Banner) */}
       <div className="max-w-6xl mx-auto px-4 pt-6">
         <PersonHeader header={vm.header} />

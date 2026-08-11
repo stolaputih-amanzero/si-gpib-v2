@@ -46,22 +46,22 @@
 | :--- | :--- | :--- |
 | **Canonical Route** | `/people/[id_person]` | `/people` (Person Directory) |
 | **Identity Resolution** | Server-side `fetchUnifiedPersonData(id_person)` | Next.js `notFound()` if entity absent |
-| **Self Profile Shortcut** | `/settings/profile` | Server redirect to assigned `id_person` |
+| **Self Profile Shortcut** | `/settings/profile` | Exactly 1 assignment ➔ `/people/{id_person}`<br>No assignment ➔ `/people`<br>Ambiguous ➔ Fail-closed explicit resolution |
 | **Authorization Check** | Server-side `getServerContext()` | Privacy notice masking for unauthorized viewers |
 
 ---
 
 ## 3. PERSON NAVIGATION & ANCHOR CONTRACT
 
-The Person Workspace presents 5 progressive, deep-linkable section anchors:
+The Person Workspace presents 5 progressive, deep-linkable section anchors using semantic navigation links:
 
 ```text
 /people/{id_person}
-    ├── #overview       ➔ Ringkasan statistik personal, status tugas aktif, & log pastoral
-    ├── #profile        ➔ Identitas utama, biografi, & data keluarga (Privacy State Enforced)
-    ├── #roles          ➔ Penugasan pos pelkes, jabatan struktural, & riwayat mutasi
-    ├── #competencies   ➔ Kompetensi pastoral, karunia, & keterlibatan sinodal
-    └── #pastoral       ➔ Telemetri log pelayanan & supervisi pastoral
+    ├── <a href="#overview">       ➔ Ringkasan statistik personal, status tugas aktif, & log pastoral
+    ├── <a href="#profile">        ➔ Identitas utama, biografi, & data keluarga (Privacy State Enforced)
+    ├── <a href="#roles">          ➔ Penugasan pos pelkes, jabatan struktural, & riwayat mutasi
+    ├── <a href="#competencies">   ➔ Kompetensi pastoral, karunia, & keterlibatan sinodal
+    └── <a href="#pastoral">       ➔ Telemetri log pelayanan & supervisi pastoral
 ```
 
 ---
@@ -101,7 +101,7 @@ Missing / Null Data ➔ EMPTY ➔ EMPTY Payload ➔ Empty State Notice
 | Parameter | Specification & Rule | Verification Requirement |
 | :--- | :--- | :--- |
 | **Bottom Nav Clearance** | `pb-36 md:pb-16` | Main container padding guarantees `SuperBottomNav` clearance. |
-| **Touch Target Size** | `min-h-[44px] min-w-[44px]` | All anchor tabs, links, and action triggers satisfy 44px touch rule. |
+| **Touch Target Size** | `min-h-[44px] min-w-[44px]` | All anchor links, buttons, and triggers satisfy 44px touch rule. |
 | **Header Offset** | `scroll-mt-36 md:scroll-mt-28` | All 5 section anchors compensate for `MobileHeader` & `PersonNavigationAnchor`. |
 | **Geometry Assertion** | `target.top >= effectiveHeaderBottom` | Playwright E2E assertion satisfies `sectionBox.y + 5 >= headerBox.bottom`. |
 | **Active Anchor Observer** | `IntersectionObserver` (`rootMargin: '-20% 0px -60% 0px'`) | Dynamic section tracking across window or `<main className="overflow-y-auto">`. |
@@ -117,15 +117,35 @@ Missing / Null Data ➔ EMPTY ➔ EMPTY Payload ➔ Empty State Notice
 
 ---
 
-## 8. ACCESSIBILITY & TOUCH CONTRACT
+## 8. ACCESSIBILITY & NAVIGATION SEMANTICS
 
-- All interactive tabs in `PersonNavigationAnchor` include `aria-selected` and `role="button"`.
+- Anchor elements in `PersonNavigationAnchor` use semantic `<a href="#section">` navigation links.
+- Active section state is indicated using `aria-current="location"` rather than `role="button"` + `aria-selected`.
 - Keyboard navigation supported via standard Focus indicators (`focus-visible:outline-hidden focus-visible:ring-2`).
 - Contrast ratio compliant with WCAG AA standards (high-contrast text colors in light/dark mode).
 
 ---
 
-## 9. BASELINE COMPATIBILITY GATE & READ-ONLY AUDIT VERDICT
+## 9. MANDATORY 12-POINT E2E VERIFICATION MATRIX
+
+| ID | Test Scenario | Expected Outcome & Boundary Assertion |
+| :--- | :--- | :--- |
+| **01** | Canonical `/people/{id}` | Default load opens `#overview` in active viewport |
+| **02** | Cold-load `#profile` | Deterministic landing on `#profile` anchor |
+| **03** | Cold-load `#roles` | Deterministic landing on `#roles` anchor |
+| **04** | Cold-load `#competencies` | Deterministic landing on `#competencies` anchor |
+| **05** | Cold-load `#pastoral` | Deterministic landing on `#pastoral` anchor |
+| **06** | Internal anchor navigation | Click anchor link updates hash & scrolls smoothly |
+| **07** | Mobile geometry contract | Target section `top >= effectiveHeaderBottom` on mobile (390px) |
+| **08** | Desktop geometry contract | Target section `top >= effectiveHeaderBottom` on desktop (1280px) |
+| **09** | Unknown `id_person` | Next.js `notFound()` 404 page rendered |
+| **10** | Authorized viewer (Self/Super) | Full private data cards rendered (family & biometrics) |
+| **11** | Unauthorized viewer | `PrivacyStateNotice` component rendered in DOM |
+| **12** | Raw payload leak assertion | **Strict boundary:** DOM does NOT contain raw private payload string for unauthorized viewer |
+
+---
+
+## 10. BASELINE COMPATIBILITY GATE & READ-ONLY AUDIT VERDICT
 
 ```text
 READ-ONLY BASELINE CONTRACT AUDIT VERDICT (F2 TRANSFORMATION)
