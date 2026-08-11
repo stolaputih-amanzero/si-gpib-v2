@@ -59,7 +59,7 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://unpkg.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com",
               "style-src 'self' 'unsafe-inline' https://unpkg.com",
               "img-src 'self' data: https://*.tile.openstreetmap.org",
               "connect-src 'self' https://*.supabase.co",
@@ -80,7 +80,7 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://unpkg.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com",
               "style-src 'self' 'unsafe-inline' https://unpkg.com",
               "img-src 'self' data: https://*.tile.openstreetmap.org",
               "connect-src 'self' https://*.supabase.co",
@@ -124,7 +124,6 @@ const nextConfig = {
       // Maps & Reports
       
       { source: '/dashboard/peta', destination: '/maps', permanent: true },
-      { source: '/wilayah/:path*', destination: '/maps', permanent: true },
       { source: '/laporan/aset/:path*', destination: '/laporan', permanent: true },
       { source: '/laporan/pastoral/:path*', destination: '/laporan', permanent: true },
       { source: '/laporan/demografi/:path*', destination: '/laporan', permanent: true },
