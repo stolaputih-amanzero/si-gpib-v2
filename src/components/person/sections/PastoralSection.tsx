@@ -148,7 +148,7 @@ export const PastoralSection: React.FC<PastoralSectionProps> = ({ pastoral }) =>
                       <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border-l-4 border-l-indigo-500 border-y border-r border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-1 w-full overflow-hidden">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Catatan / Ringkasan Giat:</span>
                         <p className="text-slate-800 dark:text-slate-200 leading-relaxed font-medium whitespace-pre-line break-words w-full overflow-hidden">
-                          {log.notes.value}
+                          {log.notes.value.replace(/\[(?:📷\s*)?FOTO_BASE64:\s*[^\]]+\]/gi, '').trim()}
                         </p>
                       </div>
                     ) : log.notes.type === 'PRIVACY_MASKED' ? (

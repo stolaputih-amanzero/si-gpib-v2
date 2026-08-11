@@ -90,16 +90,28 @@ export async function fetchUnifiedPersonData(personId: string): Promise<UnifiedP
   const orgName = (pendeta?.m_jemaat_induk as any)?.nama_induk || 'GPIB';
   const jabatan = pendeta?.jabatan || 'Pendeta Jemaat';
 
-  // 1. Map Pastoral Logs (REAL DATA)
-  const mappedPastoralLogs = (pLogs || []).map((l: any) => ({
-    id_log: l.id_log,
-    tanggal: l.tgl || l.created_at,
-    tipe_layanan: l.kegiatan || 'Pelayanan Pastoral',
-    status: 'COMPLETED',
-    foto_url: l.foto_url || l.dokumentasi_url || null,
-    nama_pos: (l.pos as any)?.nama_pos || null,
-    notes: l.catatan || null,
-  }));
+  // 1. Map Pastoral Logs (REAL DATA with Base64 photo extraction)
+  const mappedPastoralLogs = (pLogs || []).map((l: any) => {
+    let rawCatatan: string = l.catatan || '';
+    let extractedFotoUrl = l.foto_url || l.dokumentasi_url || null;
+    let cleanNotes = rawCatatan;
+
+    const base64Match = rawCatatan.match(/\[(?:📷\s*)?FOTO_BASE64:\s*([^\]]+)\]/i);
+    if (base64Match && base64Match[1]) {
+      extractedFotoUrl = base64Match[1].trim();
+      cleanNotes = rawCatatan.replace(/\[(?:📷\s*)?FOTO_BASE64:\s*[^\]]+\]/gi, '').trim();
+    }
+
+    return {
+      id_log: l.id_log,
+      tanggal: l.tgl || l.created_at,
+      tipe_layanan: l.kegiatan || 'Pelayanan Pastoral',
+      status: 'COMPLETED',
+      foto_url: extractedFotoUrl,
+      nama_pos: (l.pos as any)?.nama_pos || null,
+      notes: cleanNotes || null,
+    };
+  });
 
   // 2. Map Assignments (REAL DATA from m_pendeta, t_keterlibatan_pendeta, t_penugasan_pendeta)
   const mappedAssignments: any[] = [];
