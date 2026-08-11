@@ -1,10 +1,10 @@
-import { UnifiedOrganizationData } from '@/lib/services/organization';
+import { LegacyUnifiedOrganizationData } from '../legacyTypes';
 import { Calendar, Activity } from 'lucide-react';
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
-export function OrgPastoralJadwalSection({ orgData }: { orgData: UnifiedOrganizationData }) {
+export function OrgPastoralJadwalSection({ orgData }: { orgData: LegacyUnifiedOrganizationData }) {
   const [activeTab, setActiveTab] = useState<'log' | 'jadwal'>('log');
   
   const logs = orgData.pastoral_logs || [];

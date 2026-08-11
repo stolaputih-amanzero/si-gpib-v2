@@ -1,23 +1,24 @@
-import { UnifiedOrganizationData } from '@/lib/services/organization';
+import { LegacyUnifiedOrganizationData } from '../legacyTypes';
 import { useState } from 'react';
 import { Building2, Map, TriangleAlert, ShieldCheck } from 'lucide-react';
 import { format } from 'date-fns';
+import Link from 'next/link';
 
-export function OrgAssetWilayahSection({ orgData }: { orgData: UnifiedOrganizationData }) {
+export function OrgAssetWilayahSection({ orgData }: { orgData: LegacyUnifiedOrganizationData }) {
   const [activeTab, setActiveTab] = useState<'tanah' | 'bangunan' | 'bergerak' | 'peta'>('tanah');
   
-  const assets = orgData.assets || [];
-  const wilayah = orgData.wilayah || [];
+  const assets: any[] = orgData.assets || [];
+  const wilayah: any[] = orgData.wilayah || [];
 
-  const tanah = assets.filter(a => a.category === 'TANAH');
-  const bangunan = assets.filter(a => a.category === 'BANGUNAN');
-  const bergerak = assets.filter(a => a.category === 'BERGERAK');
+  const tanah = assets.filter((a: any) => a.category === 'TANAH');
+  const bangunan = assets.filter((a: any) => a.category === 'BANGUNAN');
+  const bergerak = assets.filter((a: any) => a.category === 'BERGERAK');
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
   };
 
-  const renderAssetList = (list: typeof assets, emptyMsg: string) => {
+  const renderAssetList = (list: any[], emptyMsg: string) => {
     if (list.length === 0) {
       return (
         <div className="p-8 text-center bg-surface-1 border border-border-subtle rounded-2xl">
@@ -29,9 +30,10 @@ export function OrgAssetWilayahSection({ orgData }: { orgData: UnifiedOrganizati
     
     return (
       <div className="space-y-3">
-        {list.map(a => (
-          <div key={a.id} className="bg-surface-1 border border-border-subtle rounded-2xl p-4 shadow-2xs">
-            <div className="flex justify-between items-start mb-2">
+        {list.map((a: any) => (
+          <Link href={`/dashboard/assets/${a.id}`} key={a.id} className="block">
+            <div className="bg-surface-1 border border-border-subtle rounded-2xl p-4 shadow-2xs hover:border-brand-primary/50 transition-colors">
+              <div className="flex justify-between items-start mb-2">
               <h4 className="font-bold text-text-strong">{a.name}</h4>
               {a.value != null && (
                 <span className="text-sm font-bold text-brand-primary">{formatCurrency(a.value)}</span>
@@ -50,6 +52,7 @@ export function OrgAssetWilayahSection({ orgData }: { orgData: UnifiedOrganizati
               )}
             </div>
           </div>
+          </Link>
         ))}
       </div>
     );
@@ -87,7 +90,7 @@ export function OrgAssetWilayahSection({ orgData }: { orgData: UnifiedOrganizati
           </div>
           
           <div className="grid grid-cols-1 gap-3">
-            {wilayah.map(w => (
+            {wilayah.map((w: any) => (
               <div key={w.id} className="bg-surface-1 border border-border-subtle rounded-2xl p-4 shadow-2xs flex gap-3 items-start">
                 {w.type === 'RISIKO' ? (
                   <TriangleAlert size={20} className="text-amber-500 shrink-0 mt-0.5" />

@@ -1,4 +1,4 @@
-import { UnifiedPersonData } from '@/lib/services/person';
+import { LegacyUnifiedPersonData as UnifiedPersonData } from '../legacyTypes';
 import { Shield, Globe } from 'lucide-react';
 
 export function PersonInvolvementSection({ personData }: { personData: UnifiedPersonData }) {

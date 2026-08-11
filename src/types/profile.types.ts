@@ -20,7 +20,8 @@ export interface ProfileAkun {
   id_mupel?: string | null;
   id_induk?: string | null;
   id_pos?: string | null;
-  id_pendeta?: string | null;
+  id_person: string | null; // New Canonical Identity
+  id_pendeta: string | null; // Legacy Compatibility Identity
   status: 'Active' | 'Inactive' | 'Pending';
   last_login_at?: string | null;
   created_at?: string | null;

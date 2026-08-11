@@ -1,4 +1,4 @@
-import { UnifiedPersonData } from '@/lib/services/person';
+import { LegacyUnifiedPersonData as UnifiedPersonData } from '../legacyTypes';
 import { Activity, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { id as dateFnsId } from 'date-fns/locale';

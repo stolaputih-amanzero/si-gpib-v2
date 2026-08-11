@@ -12,9 +12,6 @@ export function SuperBottomNav() {
   const pathname = usePathname();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  const leftItems = DIRECT_NAV_ITEMS.filter(i => i.order <= 2);
-  const rightItems = DIRECT_NAV_ITEMS.filter(i => i.order >= 4);
-
   const handleSuperButton = () => {
     setIsSheetOpen(prev => !prev);
   };
@@ -42,31 +39,22 @@ export function SuperBottomNav() {
         aria-label="Navigasi utama"
       >
         <div className="relative flex items-end justify-around px-2 h-[64px]">
-          {/* Kiri: 2 item langsung */}
-          {leftItems.map(item => (
-            <NavItem
-              key={item.href}
-              {...item}
-              isActive={isActiveRoute(item.href)}
-            />
-          ))}
-
-          {/* Tengah: Super Button */}
-          <div className="flex-1 flex justify-center">
-             <SuperButton
-               onClick={handleSuperButton}
-               isOpen={isSheetOpen}
-             />
-          </div>
-
-          {/* Kanan: 2 item langsung */}
-          {rightItems.map(item => (
-            <NavItem
-              key={item.href}
-              {...item}
-              isActive={isActiveRoute(item.href)}
-            />
-          ))}
+          {DIRECT_NAV_ITEMS.map((item) => {
+            if (item.order === 4) {
+              return (
+                <div key="quick-actions" className="flex-1 flex justify-center">
+                  <SuperButton onClick={handleSuperButton} isOpen={isSheetOpen} />
+                </div>
+              );
+            }
+            return (
+              <NavItem
+                key={item.href}
+                {...item}
+                isActive={isActiveRoute(item.href)}
+              />
+            );
+          })}
         </div>
       </nav>
 

@@ -2,7 +2,7 @@
 
 import { BottomSheet } from '@/components/mobile/BottomSheet';
 import { PastoralFormClient } from './PastoralFormClient';
-import { usePosContext } from '@/stores/pos-context';
+import { useActiveContext } from '@/stores/active-context';
 
 export interface PastoralActionSheetProps {
   isOpen: boolean;
@@ -10,7 +10,7 @@ export interface PastoralActionSheetProps {
 }
 
 export function PastoralActionSheet({ isOpen, onClose }: PastoralActionSheetProps) {
-  const { activePosId } = usePosContext();
+  const { activeContextId } = useActiveContext();
 
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose} title="Catat Kunjungan Pastoral">
@@ -22,7 +22,7 @@ export function PastoralActionSheet({ isOpen, onClose }: PastoralActionSheetProp
       </div>
       
       <PastoralFormClient 
-        autoLockedPosId={activePosId} 
+        autoLockedPosId={activeContextId} 
         onClose={onClose} 
         isSheetMode={true} 
       />

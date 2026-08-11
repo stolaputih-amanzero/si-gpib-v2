@@ -115,12 +115,28 @@ SINODE GPIB (Nasional — tidak dimodelkan sebagai tabel, diwakili super_user)
 
 ---
 
+## 4. Entity Relationship Map (Human View)
+
+Pemetaan Entitas Utama berdasarkan Model Kanonikal UX v1.0:
+
+- **Person ≠ User Account**: Identitas otorisasi terpisah mutlak dari Rekam Data SDM (Person business logic).
+- **Asset**: Organisasi mempunyai `Asset` sebagai kapabilitas (Organization Capability). Ditampilkan sebagai Seksi (Section) pada Workspace Organisasi, diproyeksikan secara agregat pada `Asset Intelligence`, dan dapat dilihat detailnya pada `Asset Detail View`. Asset BUKAN Workspace.
+- **Aid Request**: Bantuan / Ajuan Bantuan adalah transaksi kerja (Workflow Transaction). Muncul sebagai Seksi dalam Workspace Organisasi, diproyeksikan pada `Aid Review Queue`, dan dapat dilihat detailnya pada `Aid Request Detail View`. Bantuan BUKAN Workspace.
+- **Territory / Map**: Pemetaan wilayah direpresentasikan sebagai Proyeksi (Projection), bukan struktur dasar menu.
+
+---
+
 ## 5. State Model (Dua Lapis)
 
 ### 5.1 Layer A — Lifecycle State
 
 - **Pengajuan Bantuan**: `Draft → Pending_KMJ → Pending_Mupel → Pending_Sinode → Approved / Rejected`
 - **Rejected**: Boleh **Ajukan Ulang** (membuat record baru dengan `id_ajuan_sebelumnya`).
+
+### 5.2 Layer B — Sync State (Offline-First)
+
+- **Sync Status**: `Draft → Pending Sync (Queue) → Syncing → Synced / Failed (Dead Letter)`
+- Dipergunakan utamanya pada entitas transaksional (Pastoral, Asset, Aid Request) saat berada di mode *Offline*.
 
 ---
 
@@ -133,3 +149,83 @@ SINODE GPIB (Nasional — tidak dimodelkan sebagai tabel, diwakili super_user)
 | **Keluarga** | ✅ | ✅ | ❌ | ❌ |
 | **Aktivitas (audit)** | ✅ | ✅ | ✅ (Mupel) | ✅ (Jemaat) |
 | **Perangkat Biometrik** | ✅ | ✅ | ❌ | ❌ |
+
+---
+
+## 7. Context Model
+
+Dalam SI GPIB v2.2, *Active Context* mengatur batas data yang tampil dan tindakan yang diizinkan untuk sesi user.
+
+### 7.1 Active Context Abstraction
+Lapisan Abstraksi UI (Frontend) sudah bersifat **Generalized**. Mendukung pergerakan hierarki secara penuh dari:
+`Sinode → Mupel → Jemaat Induk → Pos Pelkes / Bajem`
+
+### 7.2 Backend & API Gap (PARTIAL)
+Status terkini: **PARTIAL — BACKEND/API GAP**.
+- *Data Source* / API (`useAssignedPosList`, `t_penugasan_pendeta`) masih bersifat **Pos-only**.
+- `ContextResolver` masih me-resolve ke struktur hardcode (`context_level: 'POS'`).
+- Sesuai prinsip *Freeze*, gap ini tidak boleh di-"hack" lewat klien dan sepenuhnya dialokasikan untuk Fase/Sprint pembaruan Arsitektur Backend.
+
+---
+
+## 8. Navigation Model
+
+Sistem mengikuti Konvensi PWA *Mobile-First* secara ketat dengan **Tepat 5 Slot Navigasi Utama (Primary Navigation)** yang terkunci di Bottom Tab Bar:
+
+1. **Home** (Beranda)
+2. **Organisasi** (Akses ke Organization Workspace)
+3. **SDM** (Akses ke Person Workspace)
+4. **Quick Actions** (+) (Tindakan Cepat PWA)
+5. **Akun & Sistem** (Pengaturan & Profil Pengguna)
+
+Aturan Mutlak Kanonikal Navigasi:
+- **Map, Reports, Asset Intelligence, Aid Review Queue** BUKAN *Primary Navigation Nodes*. Ini semua diakses lewat *Cross-Context Entry* (Proyeksi).
+- **Detail View** (Asset Detail, Aid Request Detail) BUKAN *Primary Navigation Nodes*.
+
+---
+
+## 9. Workspace Pattern
+
+Setiap layar besar masuk ke dalam taksonomi *Workspace*, *Projection*, atau *Detail View*. BUKAN taksonomi asal buat.
+
+### 9.1 Exactly 2 Workspaces
+Hanya ada 2 (dua) Workspace dalam sistem:
+1. **Organization Workspace** (`/dashboard/org/[id_org]`) — Ruang sentral pengelolaan Entitas Jemaat/Mupel/Pos.
+2. **Person Workspace** (`/dashboard/people/[id_person]`) — Ruang 360° untuk profil Pelayan/SDM.
+
+*Asset* dan *Aid Request* telah dilebur menjadi Kapabilitas Organisasi (Organisasi Workspace Sections), **BUKAN Workspace mandiri**.
+
+### 9.2 Projections
+Projection adalah agregasi data melintasi beberapa konteks (Cross-Context View).
+- **Territory Map**
+- **Asset Intelligence** (`/dashboard/assets`)
+- **Aid Review Queue** (`/dashboard/aid-requests`)
+- **Reports & Analytics** (`/dashboard/analytics`)
+
+### 9.3 Canonical Detail Views
+Representasi detail spesifik satu baris data (Entitas). Bebas diakses dari Workspace maupun Projection dengan otorisasi *Server-Side* berbasis ID.
+- **Canonical Asset Detail**: `/dashboard/assets/[id_asset]`
+- **Canonical Aid Request Detail**: `/dashboard/aid-requests/[id_ajuan]`
+
+Detail view murni membaca data (Read-Only) dari basis data eksisting tanpa memicu struktur navigasi baru atau mengubah sesi pengguna secara tidak sah.
+
+---
+
+## 10. Traceability (EIA ↔ Sumber)
+
+- **UX Canonical Refactor 2026**: Transformasi dari Multi-Workspace ke 2-Workspace Pattern + 5-Slot Bottom Nav merujuk pada `05 — UX Canonical Model v1.0` (FROZEN).
+- **ContextResolver & Authorization**: Merujuk pada `Authorization Architecture & Implementation Specification` (FROZEN).
+
+---
+
+## 11. Open Questions
+
+1. **Active Context Backend Support**: Kapan pembaruan API dan skema penugasan lintas-hierarki (Sinode/Mupel/Jemaat) pada `t_penugasan` dan `ContextResolver` backend dilakukan? (Dideferensiasi sebagai Technical Debt).
+2. **Legacy E2E Mocking**: Kapan pembersihan *tech debt* pada Vitest mock (`pastoral.service.test.ts`) dan *Offline Sync Logic* akan dieksekusi?
+
+---
+
+## 12. Change Log
+
+- **v0.1.1 (Final Canonical)**: Pembaruan besar terhadap Model Ruang Kerja (Workspace) & Navigasi (Bottom Nav 5 slot), mengintegrasikan *Asset* & *Aid Request* ke dalam Struktur Organisasi (Section, Projection & Detail View). Konfirmasi RLS Authorization terpusat secara Server-Side.
+- **v0.1.0**: Rilis draf awal EIA (Arsitektur dasar).

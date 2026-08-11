@@ -51,8 +51,6 @@ export const NAV_GROUPS: NavGroup[] = [
     icon: Home,
     items: [
       { label: 'Dashboard Utama', href: '/dashboard', icon: Home },
-      { label: 'Analitik & KPI', href: '/analitik', icon: Activity },
-      { label: 'Peta Sebaran', href: '/maps', icon: Map },
     ],
   },
   {
@@ -60,17 +58,18 @@ export const NAV_GROUPS: NavGroup[] = [
     icon: Church,
     items: [
       { label: 'Direktori Organisasi', href: '/org', icon: GitFork },
-      { label: 'Personil & Pelayan', href: '/people', icon: Users },
-      { label: 'Jadwal Ibadah', href: '/sdm/jadwal', icon: Calendar },
+      { label: 'Direktori Personil', href: '/people', icon: Users },
+      { label: 'Jadwal Ibadah', href: '/jadwal', icon: Calendar },
     ],
   },
   {
-    label: 'Operasional',
-    icon: Box,
+    label: 'Proyeksi & Laporan',
+    icon: Activity,
     items: [
-      { label: 'Inventaris Aset', href: '/assets', icon: Box },
-      { label: 'Daftar Pengajuan', href: '/aid-requests', icon: HandHeart },
-      { label: 'Laporan', href: '/laporan', icon: FileText },
+      { label: 'Asset Intelligence', href: '/assets', icon: Box },
+      { label: 'Aid Review Queue', href: '/aid-requests', icon: HandHeart },
+      { label: 'Reports & Analytics', href: '/analytics', icon: FileText },
+      { label: 'Territory Map', href: '/maps', icon: Map },
     ],
   },
   {
@@ -289,7 +288,7 @@ export function Sidebar() {
                 <div className="ml-3 pl-3 border-l-2 border-border-subtle/60 space-y-1 my-1">
                   {validItems.map((item) => {
                     const isItemActive =
-                      item.href === '/dashboard' || item.href === '/settings' || item.href === '/laporan' || item.href === '/org' || item.href === '/assets' || item.href === '/aid-requests'
+                      item.href === '/dashboard' || item.href === '/settings' || item.href === '/analytics' || item.href === '/org' || item.href === '/assets' || item.href === '/aid-requests'
                         ? pathname === item.href
                         : pathname === item.href || pathname.startsWith(item.href + '/');
                     const ItemIcon = item.icon;

@@ -1,13 +1,18 @@
 'use client';
-import { usePosContext } from '@/stores/pos-context';
+import { useActiveContext } from '@/stores/active-context';
 import { Button } from '@/components/ui/button';
 import { MapPin, ChevronDown } from 'lucide-react';
-import { QuickPosSheet } from './QuickPosSheet';
+import { ContextSwitcherSheet } from './ContextSwitcherSheet';
 import { useState } from 'react';
 
 export function ContextChip() {
-  const { activePosId } = usePosContext();
+  const { activeContextId } = useActiveContext();
   const [isOpen, setIsOpen] = useState(false);
+
+  // Derive a simple label from ID if possible. Note: In a real app, 
+  // you'd look up the name or keep it in context state, 
+  // but for now we'll just show the ID or fallback.
+  const displayLabel = activeContextId || 'Pilih Konteks';
 
   return (
     <>
@@ -18,11 +23,11 @@ export function ContextChip() {
         onClick={() => setIsOpen(true)}
       >
         <MapPin className="w-3 h-3 mr-1.5 text-primary" />
-        <span className="truncate max-w-[120px]">{activePosId || 'Pilih Pos'}</span>
+        <span className="truncate max-w-[120px]">{displayLabel}</span>
         <ChevronDown className="w-3 h-3 ml-1.5 opacity-50" />
       </Button>
 
-      <QuickPosSheet open={isOpen} onOpenChange={setIsOpen} />
+      <ContextSwitcherSheet open={isOpen} onOpenChange={setIsOpen} />
     </>
   );
 }

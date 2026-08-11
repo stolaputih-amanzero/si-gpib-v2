@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { UnifiedOrganizationData } from '@/lib/services/organization';
+import { LegacyUnifiedOrganizationData } from './legacyTypes';
 import { CollapsingMapHeader } from '@/components/detail/CollapsingMapHeader';
 import { GlideTabs, TabOption } from '@/components/detail/GlideTabs';
 import { ContextualFab } from '@/components/detail/ContextualFab';
@@ -15,10 +15,10 @@ import { OrgPastoralJadwalSection } from './sections/OrgPastoralJadwalSection';
 import { OrgAssetWilayahSection } from './sections/OrgAssetWilayahSection';
 import { OrgBantuanSection } from './sections/OrgBantuanSection';
 
-import { Home, Users, User, Activity, Building2, LifeBuoy } from 'lucide-react';
+import { Home, User, Activity, Building2, LifeBuoy } from 'lucide-react';
 
 interface OrganizationWorkspaceClientProps {
-  orgData: UnifiedOrganizationData;
+  orgData: LegacyUnifiedOrganizationData;
   activeContext: { id: string; name: string; context_level: string };
 }
 
@@ -33,11 +33,10 @@ export function OrganizationWorkspaceClient({
   const TABS_CONFIG: TabOption[] = [
     { id: 'overview', label: 'Overview', icon: <Home size={15} /> },
     { id: 'profil', label: 'Profil', icon: <Home size={15} /> },
-    { id: 'sdm', label: 'SDM & Pelayan', icon: <User size={15} /> },
-    { id: 'demografi', label: 'Demografi', icon: <Users size={15} /> },
-    { id: 'pastoral', label: 'Pastoral & Jadwal', icon: <Activity size={15} /> },
-    { id: 'aset', label: 'Aset & Wilayah', icon: <Building2 size={15} /> },
+    { id: 'sdm', label: 'SDM', icon: <User size={15} /> },
+    { id: 'aset', label: 'Aset', icon: <Building2 size={15} /> },
     { id: 'bantuan', label: 'Bantuan', icon: <LifeBuoy size={15} /> },
+    { id: 'program', label: 'Program & Pastoral', icon: <Activity size={15} /> },
   ];
 
   // Map to legacy format for CollapsingMapHeader
@@ -91,12 +90,16 @@ export function OrganizationWorkspaceClient({
 
       <div className="pt-2">
         {activeTab === 'overview' && <OrgOverviewSection orgData={orgData} />}
-        {activeTab === 'profil' && <OrgProfileSection orgData={orgData} />}
+        {activeTab === 'profil' && (
+          <div className="space-y-6">
+            <OrgProfileSection orgData={orgData} canWrite={canWrite} />
+            <OrgDemografiSection orgData={orgData} />
+          </div>
+        )}
         {activeTab === 'sdm' && <OrgSdmSection orgData={orgData} />}
-        {activeTab === 'demografi' && <OrgDemografiSection orgData={orgData} />}
-        {activeTab === 'pastoral' && <OrgPastoralJadwalSection orgData={orgData} />}
         {activeTab === 'aset' && <OrgAssetWilayahSection orgData={orgData} />}
         {activeTab === 'bantuan' && <OrgBantuanSection orgData={orgData} />}
+        {activeTab === 'program' && <OrgPastoralJadwalSection orgData={orgData} />}
       </div>
 
       <ContextualFab id_pos={activeContext.id} activeTab={activeTab} canWrite={canWrite} />

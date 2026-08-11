@@ -64,10 +64,12 @@ export async function GET() {
         }
 
         const resolvedPhone = dbUser?.no_telepon || dbUser?.no_hp || user.no_telepon || user.no_hp || user.user_metadata?.no_telepon || user.user_metadata?.no_hp || '';
+        const resolvedPersonId = dbUser?.id_person || user.id_person || user.user_metadata?.id_person || null;
 
         user = {
           ...user,
           role: finalRole,
+          id_person: resolvedPersonId,
           id_pendeta: resolvedPdtId,
           nama_lengkap: dbUser?.nama_lengkap || user.nama_lengkap || user.user_metadata?.nama_lengkap,
           no_telepon: resolvedPhone,
@@ -77,6 +79,7 @@ export async function GET() {
           user_metadata: {
             ...(user.user_metadata || {}),
             role: finalRole,
+            id_person: resolvedPersonId,
             id_pendeta: resolvedPdtId,
             nama_lengkap: dbUser?.nama_lengkap || user.user_metadata?.nama_lengkap,
             no_telepon: resolvedPhone,

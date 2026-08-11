@@ -162,3 +162,31 @@ export async function submitAset(rawData: unknown, fotoBlob?: Blob) {
 
   return { success: true, queued: true };
 }
+
+export async function getAsetById(id: string) {
+  const supabase = await createClient();
+  
+  // Existing auth contract: RLS enforces visibility.
+  // We don't know the type, so we query all tables.
+  const [tanah, bangunan, bergerak] = await Promise.all([
+    supabase.from('t_aset_tanah').select('*, m_pos_pelkes(nama_pos)').eq('id_tanah', id).maybeSingle(),
+    supabase.from('t_aset_bangunan').select('*, m_pos_pelkes(nama_pos)').eq('id_bangunan', id).maybeSingle(),
+    supabase.from('t_aset_bergerak').select('*, m_pos_pelkes(nama_pos)').eq('id_aset_b', id).maybeSingle()
+  ]);
+
+  if (tanah.error) throw new Error(tanah.error.message);
+  if (bangunan.error) throw new Error(bangunan.error.message);
+  if (bergerak.error) throw new Error(bergerak.error.message);
+
+  if (tanah.data) return { ...tanah.data, type: 'tanah' as const };
+  if (bangunan.data) return { ...bangunan.data, type: 'bangunan' as const };
+  if (bergerak.data) return { ...bergerak.data, type: 'bergerak' as const };
+  
+  // Fallback for asset.ts typo pattern
+  const bbergerak = await supabase.from('t_aset_bbergerak').select('*, m_pos_pelkes(nama_pos)').eq('id_aset_b', id).maybeSingle();
+  if (bbergerak.data) return { ...bbergerak.data, type: 'bergerak' as const };
+
+  // If there are genuine RLS or DB errors, we could log them here.
+  // For now, if no data is found, return null.
+  return null;
+}

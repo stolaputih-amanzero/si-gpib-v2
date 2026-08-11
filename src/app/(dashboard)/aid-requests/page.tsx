@@ -3,7 +3,6 @@
 import { useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  Plus,
   Filter,
   Search,
   Loader2,
@@ -27,7 +26,6 @@ import {
   type StatusBantuan,
   type UrgensiLevel,
 } from '@/lib/domains/bantuan/bantuan.types';
-import { AidRequestFormSheet } from '@/components/bantuan/AidRequestFormSheet';
 
 const STATUS_LABELS: Record<StatusBantuan, string> = {
   Draft: 'Draft',
@@ -38,12 +36,11 @@ const STATUS_LABELS: Record<StatusBantuan, string> = {
   Rejected: 'Ditolak',
 };
 
-export default function AidRequestsListPage() {
+export default function AidReviewQueueProjection() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [showFilters, setShowFilters] = useState(false);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [search, setSearch] = useState(searchParams.get('search') ?? '');
 
   const statusFilter = (searchParams.get('status') as StatusBantuan) ?? undefined;
@@ -91,7 +88,7 @@ export default function AidRequestsListPage() {
         <div className="flex items-center justify-between mb-3">
           <div>
             <h1 className="text-lg font-semibold text-gray-900">
-              Pengajuan Bantuan
+              Aid Review Queue
             </h1>
             <p className="text-xs text-gray-500">
               {data?.pagination.total ?? 0} pengajuan
@@ -210,15 +207,9 @@ export default function AidRequestsListPage() {
             </h3>
             <p className="text-sm text-gray-500 max-w-xs mb-4">
               {hasActiveFilters
-                ? 'Coba ubah atau reset filter untuk melihat pengajuan lain.'
-                : 'Buat pengajuan bantuan pertama untuk Pos Pelkes Anda.'}
+                ? 'Coba ubah atau reset filter untuk melihat antrean lain.'
+                : 'Tidak ada pengajuan bantuan yang perlu direview saat ini.'}
             </p>
-            {!hasActiveFilters && (
-              <Button size="lg" className="min-h-[48px]" onClick={() => setIsCreateOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Buat Pengajuan Baru
-              </Button>
-            )}
           </div>
         )}
 
@@ -237,23 +228,6 @@ export default function AidRequestsListPage() {
           </div>
         )}
       </main>
-
-      {/* Floating Action Button untuk Mobile */}
-      <div className="fixed bottom-20 right-4 md:hidden z-40">
-        <Button
-          size="icon"
-          className="w-14 h-14 rounded-full shadow-heavy"
-          onClick={() => setIsCreateOpen(true)}
-        >
-          <Plus className="w-6 h-6" />
-        </Button>
-      </div>
-
-      <AidRequestFormSheet 
-        isOpen={isCreateOpen} 
-        onClose={() => setIsCreateOpen(false)} 
-        mode="create" 
-      />
     </div>
   );
 }

@@ -1,8 +1,8 @@
-import { UnifiedOrganizationData } from '@/lib/services/organization';
+import { LegacyUnifiedOrganizationData } from '../legacyTypes';
 import { User, Shield } from 'lucide-react';
 import Link from 'next/link';
 
-export function OrgSdmSection({ orgData }: { orgData: UnifiedOrganizationData }) {
+export function OrgSdmSection({ orgData }: { orgData: LegacyUnifiedOrganizationData }) {
   const sdmList = orgData.sdm_list || [];
   
   if (sdmList.length === 0) {
@@ -44,7 +44,7 @@ export function OrgSdmSection({ orgData }: { orgData: UnifiedOrganizationData })
 
           if (isPendeta) {
             return (
-              <Link key={person.id} href={`/people/${encodeURIComponent(person.id)}`} className="block">
+              <Link key={person.id} href={`/dashboard/people/${encodeURIComponent(person.id)}`} className="block">
                 {Content}
               </Link>
             );

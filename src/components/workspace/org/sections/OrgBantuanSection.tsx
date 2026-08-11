@@ -1,10 +1,10 @@
-import { UnifiedOrganizationData } from '@/lib/services/organization';
+import { LegacyUnifiedOrganizationData } from '../legacyTypes';
 import { LifeBuoy, Clock, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
-export function OrgBantuanSection({ orgData }: { orgData: UnifiedOrganizationData }) {
+export function OrgBantuanSection({ orgData }: { orgData: LegacyUnifiedOrganizationData }) {
   const requests = orgData.aid_requests || [];
 
   if (requests.length === 0) {
@@ -40,10 +40,10 @@ export function OrgBantuanSection({ orgData }: { orgData: UnifiedOrganizationDat
 
   return (
     <div className="space-y-3 animate-tab-fade pb-8">
-      {requests.map(req => (
+      {requests.map((req: any) => (
         <Link 
           key={req.id} 
-          href={`/aid-requests/${encodeURIComponent(req.id)}`}
+          href={`/dashboard/aid-requests/${encodeURIComponent(req.id)}`}
           className="block bg-surface-1 border border-border-subtle rounded-2xl p-4 shadow-2xs hover:bg-surface-sunken transition-colors"
         >
           <div className="flex justify-between items-start mb-3">

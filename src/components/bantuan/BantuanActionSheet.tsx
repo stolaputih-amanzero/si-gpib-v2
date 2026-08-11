@@ -2,7 +2,7 @@
 
 import { BottomSheet } from '@/components/mobile/BottomSheet';
 import { BantuanFormClient } from './BantuanFormClient';
-import { usePosContext } from '@/stores/pos-context';
+import { useActiveContext } from '@/stores/active-context';
 
 export interface BantuanActionSheetProps {
   isOpen: boolean;
@@ -10,7 +10,7 @@ export interface BantuanActionSheetProps {
 }
 
 export function BantuanActionSheet({ isOpen, onClose }: BantuanActionSheetProps) {
-  const { activePosId } = usePosContext();
+  const { activeContextId } = useActiveContext();
 
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose} title="Pengajuan Bantuan">
@@ -26,7 +26,7 @@ export function BantuanActionSheet({ isOpen, onClose }: BantuanActionSheetProps)
         We also pass onClose so the form can close the sheet on success.
       */}
       <BantuanFormClient 
-        autoLockedPosId={activePosId} 
+        autoLockedPosId={activeContextId} 
         onClose={onClose} 
         isSheetMode={true} 
       />

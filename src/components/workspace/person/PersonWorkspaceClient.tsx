@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { UnifiedPersonData } from '@/lib/services/person';
+import { LegacyUnifiedPersonData as UnifiedPersonData } from './legacyTypes';
 import { User, Activity, MapPin, Briefcase, FileText, ArrowRightLeft, Users, Shield } from 'lucide-react';
 import { PersonProfileSection } from './sections/PersonProfileSection';
 import { PersonStructuralSection } from './sections/PersonStructuralSection';

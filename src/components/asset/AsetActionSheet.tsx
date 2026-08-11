@@ -2,7 +2,7 @@
 
 import { BottomSheet } from '@/components/mobile/BottomSheet';
 import { AssetFormClient } from './AssetFormClient';
-import { usePosContext } from '@/stores/pos-context';
+import { useActiveContext } from '@/stores/active-context';
 
 export interface AsetActionSheetProps {
   isOpen: boolean;
@@ -10,7 +10,7 @@ export interface AsetActionSheetProps {
 }
 
 export function AsetActionSheet({ isOpen, onClose }: AsetActionSheetProps) {
-  const { activePosId } = usePosContext();
+  const { activeContextId } = useActiveContext();
 
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose} title="Foto / Input Aset">
@@ -22,7 +22,7 @@ export function AsetActionSheet({ isOpen, onClose }: AsetActionSheetProps) {
       </div>
       
       <AssetFormClient 
-        autoLockedPosId={activePosId} 
+        autoLockedPosId={activeContextId} 
         onClose={onClose} 
         isSheetMode={true} 
       />

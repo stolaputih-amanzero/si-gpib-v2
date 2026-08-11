@@ -1,7 +1,7 @@
 import { getServerContext } from '@/lib/utils/context';
 import { fetchUnifiedAidRequestData } from '@/lib/services/aid-request';
 import { notFound, redirect } from 'next/navigation';
-import { AidRequestWorkspaceClient } from '@/components/workspace/aid-request/AidRequestWorkspaceClient';
+import { AidRequestDetailClient } from '@/components/bantuan/AidRequestDetailClient';
 
 export async function generateMetadata({ params }: { params: Promise<{ id_ajuan: string }> }) {
   const { id_ajuan } = await params;
@@ -30,5 +30,5 @@ export default async function AidRequestWorkspacePage({
     notFound();
   }
 
-  return <AidRequestWorkspaceClient data={aidData} contextId={contextId} />;
+  return <AidRequestDetailClient data={aidData} contextId={contextId} />;
 }

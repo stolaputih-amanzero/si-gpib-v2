@@ -1,4 +1,4 @@
-import { UnifiedPersonData } from '@/lib/services/person';
+import { LegacyUnifiedPersonData as UnifiedPersonData } from '../legacyTypes';
 import { FileText, Award } from 'lucide-react';
 
 export function PersonCompetencySection({ personData }: { personData: UnifiedPersonData }) {

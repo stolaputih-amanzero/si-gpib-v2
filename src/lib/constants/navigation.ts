@@ -1,5 +1,5 @@
 import { 
-  Home, Map, FileText, User,
+  Home, Map,
   Camera, MapPin, Users, 
   ClipboardList, Package, HandHelping, Church, LucideIcon,
   Settings, HelpCircle, Activity, Building2
@@ -41,10 +41,10 @@ export interface SuperMenuGroupConfig {
 // ===== NAV LANGSUNG (1 tap = pindah halaman) =====
 export const DIRECT_NAV_ITEMS: NavItemConfig[] = [
   { icon: Home,     label: 'Beranda',    href: '/dashboard',        order: 1 },
-  { icon: Map,      label: 'Peta',       href: '/dashboard/peta',   order: 2 },
-  // Order 3 adalah Super Button
-  { icon: FileText, label: 'Laporan',    href: '/laporan',          order: 4 },
-  { icon: User,     label: 'Profil',     href: '/settings/profile', order: 5 },
+  { icon: Church,   label: 'Organisasi', href: '/org',              order: 2 },
+  { icon: Users,    label: 'SDM',        href: '/people',           order: 3 },
+  { icon: ClipboardList, label: 'Quick Actions', href: '#',         order: 4 }, // Will be handled by SuperButton
+  { icon: Settings, label: 'Akun & Sistem', href: '/settings',      order: 5 },
 ];
 
 // ===== SUPER BUTTON MENU (muncul di Bottom Sheet) =====

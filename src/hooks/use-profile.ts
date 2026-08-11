@@ -43,6 +43,7 @@ export function useProfileAkun(userId?: string) {
               return {
                 id: body.user.id,
                 email: body.user.email,
+                id_person: body.user.id_person || body.user.user_metadata?.id_person || null,
                 nama_lengkap: body.user.nama_lengkap || body.user.user_metadata?.nama_lengkap || body.user.email,
                 role: body.user.role || 'pelayan',
                 id_mupel: body.user.id_mupel || null,
@@ -105,6 +106,7 @@ export function useProfileAkun(userId?: string) {
           return {
             id: pdtData.id_pendeta,
             email: pdtData.email || '',
+            id_person: pdtData.id_person || null,
             nama_lengkap: pdtData.nama_lengkap || pdtData.nama_pendeta || 'Pendeta GPIB',
             role: 'pendeta',
             id_mupel: jObj?.id_mupel || mObj?.id_mupel || pdtData.id_mupel || null,
@@ -166,6 +168,7 @@ export function useProfileAkun(userId?: string) {
               return {
                 id: body.user.id,
                 email: body.user.email,
+                id_person: body.user.id_person || body.user.user_metadata?.id_person || null,
                 nama_lengkap: body.user.nama_lengkap || body.user.user_metadata?.nama_lengkap || body.user.email,
                 role: body.user.role || 'pj',
                 id_mupel: body.user.id_mupel || resolvedIdMupel || 'M - 20',
@@ -190,6 +193,7 @@ export function useProfileAkun(userId?: string) {
           return {
             id: u.id,
             email: u.email || '',
+            id_person: meta.id_person || null,
             nama_lengkap: meta.nama_lengkap || meta.full_name || u.email || 'Pengguna',
             role: meta.role || u.role || 'pendeta',
             id_mupel: meta.id_mupel || resolvedIdMupel || null,
@@ -221,6 +225,7 @@ export function useProfileAkun(userId?: string) {
       return {
         id: dbUser.id,
         email: dbUser.email,
+        id_person: dbUser.id_person || null,
         nama_lengkap: resolvedNamaLengkap,
         role: userRole,
         id_mupel: dbUser.id_mupel || resolvedIdMupel || null,

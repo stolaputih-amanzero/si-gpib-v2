@@ -7,7 +7,7 @@ import { createLogPastoralSchema, type CreateLogPastoralSchema } from '@/lib/dom
 import { useCreateLogPastoral } from '@/lib/domains/pastoral/pastoral.queries';
 import { useFormDraft } from '@/hooks/use-form-draft';
 import { FORM_KEYS } from '@/lib/constants/form-keys';
-import { usePosContext } from '@/stores/pos-context';
+import { useActiveContext } from '@/stores/active-context';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -17,13 +17,13 @@ import { Camera, Calendar as CalendarIcon, Users, FileText, Loader2, Mic } from 
 import { toast } from 'sonner';
 
 export default function PastoralForm() {
-  const { activePosId } = usePosContext();
+  const { activeContextId } = useActiveContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { mutateAsync: createLog } = useCreateLogPastoral();
   
   const defaultValues = {
     requestId: '',
-    id_pos: activePosId || '',
+    id_pos: activeContextId || '',
     tgl: new Date().toISOString().split('T')[0],
     kegiatan: '',
     catatan: '',
@@ -37,8 +37,8 @@ export default function PastoralForm() {
   // Sinkronisasi form dengan Context (jika user ubah Pos via switcher saat isi form)
   // Tapi kita hanya reset id_pos agar input lain tidak hilang
   useState(() => {
-    if (activePosId && form.getValues('id_pos') !== activePosId) {
-      form.setValue('id_pos', activePosId);
+    if (activeContextId && form.getValues('id_pos') !== activeContextId) {
+      form.setValue('id_pos', activeContextId);
     }
   });
 
@@ -48,7 +48,7 @@ export default function PastoralForm() {
   );
 
   const onSubmit = async (data: CreateLogPastoralSchema) => {
-    if (!activePosId) {
+    if (!activeContextId) {
       toast.error('Pilih Pos Pelkes terlebih dahulu.');
       return;
     }
@@ -59,7 +59,7 @@ export default function PastoralForm() {
     }
     
     // Pastikan id_pos selalu sesuai konteks terakhir
-    data.id_pos = activePosId;
+    data.id_pos = activeContextId;
 
     setIsSubmitting(true);
     try {
@@ -69,7 +69,7 @@ export default function PastoralForm() {
       form.reset({
         ...defaultValues,
         requestId: '',
-        id_pos: activePosId, // preserve active pos
+        id_pos: activeContextId, // preserve active pos
       });
     } catch (error) {
       console.error(error);
@@ -188,7 +188,7 @@ export default function PastoralForm() {
             <Button
               type="submit"
               className="w-full h-14 text-lg rounded-full shadow-lg"
-              disabled={isSubmitting || !activePosId}
+              disabled={isSubmitting || !activeContextId}
             >
               {isSubmitting ? (
                 <>
@@ -199,7 +199,7 @@ export default function PastoralForm() {
                 'Simpan Log Pastoral'
               )}
             </Button>
-            {!activePosId && (
+            {!activeContextId && (
               <p className="text-center text-sm text-destructive mt-2">
                 Pilih Pos Pelkes di atas terlebih dahulu
               </p>

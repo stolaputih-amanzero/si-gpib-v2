@@ -3,7 +3,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import MobileHeader from '@/components/layout/MobileHeader';
 import { SuperBottomNav } from '@/components/mobile/SuperBottomNav/SuperBottomNav';
 import { ReadOnlyNoticeBanner } from '@/components/auth/ReadOnlyNoticeBanner';
-import { PosProvider } from '@/stores/pos-context';
+import { ActiveContextProvider } from '@/stores/active-context';
 import { SyncManagerSheet } from '@/components/offline/SyncManagerSheet';
 
 export default async function DashboardLayout({
@@ -17,7 +17,7 @@ export default async function DashboardLayout({
   // We'll let page components handle authentication gaps or empty context
 
   return (
-    <PosProvider initialContextId={contextData.context_id}>
+    <ActiveContextProvider initialContextId={contextData.context_id}>
       <div className="flex h-screen bg-surface-base overflow-hidden">
       {/* Desktop Sidebar (Collapsible with grouped navigation) */}
       <Sidebar />
@@ -42,6 +42,6 @@ export default async function DashboardLayout({
         <SuperBottomNav />
       </div>
     </div>
-    </PosProvider>
+    </ActiveContextProvider>
   );
 }

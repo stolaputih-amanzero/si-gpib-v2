@@ -1,9 +1,9 @@
-import { UnifiedOrganizationData } from '@/lib/services/organization';
+import { LegacyUnifiedOrganizationData } from '../legacyTypes';
 import { DemografiBarChart } from '@/components/charts/DemografiBarChart';
 import { DemografiDonutChart } from '@/components/charts/DemografiDonutChart';
 import { Users } from 'lucide-react';
 
-export function OrgDemografiSection({ orgData }: { orgData: UnifiedOrganizationData }) {
+export function OrgDemografiSection({ orgData }: { orgData: LegacyUnifiedOrganizationData }) {
   const demographics = orgData.demographics || [];
   
   if (demographics.length === 0) {
@@ -16,17 +16,17 @@ export function OrgDemografiSection({ orgData }: { orgData: UnifiedOrganizationD
     );
   }
 
-  const barData = demographics.map(d => ({
+  const barData = demographics.map((d: any) => ({
     kategori: d.kategori_pelkat,
     total: d.laki + d.perempuan,
     laki: d.laki,
     perempuan: d.perempuan
   }));
 
-  const totalProfesiCount = demographics.slice(0, 5).reduce((acc, d) => acc + (d.laki + d.perempuan), 0);
+  const totalProfesiCount = demographics.slice(0, 5).reduce((acc: any, d: any) => acc + (d.laki + d.perempuan), 0);
   
   // Dummy profesi data mapping for donut chart since we don't have the exact aggregation yet
-  const profesiData = demographics.slice(0, 5).map((d) => {
+  const profesiData = demographics.slice(0, 5).map((d: any) => {
     const count = d.laki + d.perempuan;
     return {
       name: d.profesi || 'Lainnya',
