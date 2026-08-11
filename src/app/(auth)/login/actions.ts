@@ -168,12 +168,18 @@ export async function login(_prevState: any, formData: FormData) {
         no_telepon: dbUser.no_telepon,
         role: dbUser.role || 'user',
         id_mupel: dbUser.id_mupel,
+        id_induk: dbUser.id_induk,
+        id_pos: dbUser.id_pos,
         id_pendeta: dbUser.id_pendeta,
+        id_person: dbUser.id_person,
         nama_lengkap: dbUser.nama_lengkap || dbUser.email || dbUser.no_telepon,
         user_metadata: {
           role: dbUser.role || 'user',
           id_mupel: dbUser.id_mupel,
+          id_induk: dbUser.id_induk,
+          id_pos: dbUser.id_pos,
           id_pendeta: dbUser.id_pendeta,
+          id_person: dbUser.id_person,
           nama_lengkap: dbUser.nama_lengkap || dbUser.email || dbUser.no_telepon,
         },
       }

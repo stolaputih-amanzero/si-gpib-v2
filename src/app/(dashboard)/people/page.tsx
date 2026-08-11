@@ -14,10 +14,9 @@ export default async function PeopleDirectoryPage({
   searchParams: Promise<{ q?: string }>
 }) {
   const context = await getServerContext();
-  const contextId = context?.context_id;
 
-  if (!context || !contextId) {
-    redirect('/auth/login');
+  if (!context || context.status === 'UNAUTHORIZED') {
+    redirect('/login');
   }
 
   const supabase = await createClient();

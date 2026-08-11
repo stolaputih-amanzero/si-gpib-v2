@@ -11,8 +11,8 @@ export default async function AssetIntelligencePage() {
   const context = await getServerContext();
   const contextId = context?.context_id;
   
-  if (!context || !contextId || context.status === 'CONTEXT_STALE') {
-    redirect('/auth/login');
+  if (!context || context.status === 'UNAUTHORIZED') {
+    redirect('/login');
   }
 
   // Fetch cross-context intelligence data for the current scope
