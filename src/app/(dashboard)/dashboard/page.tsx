@@ -339,7 +339,8 @@ export default async function Dashboard() {
 
   return (
     <div className="w-full min-h-full bg-surface-base pb-24">
-      <div className="sticky top-0 z-40 bg-surface-1/85 backdrop-blur-md hairline-b px-4 py-3.5 md:px-6 pt-safe flex items-center justify-between">
+      {/* Desktop-only Title Header (Hidden on mobile where WelcomeGreetingBanner & MobileHeader act as main header) */}
+      <div className="hidden md:flex sticky top-0 z-40 bg-surface-1/85 backdrop-blur-md hairline-b px-4 py-3.5 md:px-6 pt-safe items-center justify-between">
         <div>
           <h1 className="text-xl md:text-2xl font-display font-semibold tracking-tightish text-ink-primary">
             Dashboard Utama

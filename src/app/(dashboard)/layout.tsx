@@ -4,7 +4,6 @@ import MobileHeader from '@/components/layout/MobileHeader';
 import { SuperBottomNav } from '@/components/mobile/SuperBottomNav/SuperBottomNav';
 import { ReadOnlyNoticeBanner } from '@/components/auth/ReadOnlyNoticeBanner';
 import { ActiveContextProvider } from '@/stores/active-context';
-import { SyncManagerSheet } from '@/components/offline/SyncManagerSheet';
 
 export default async function DashboardLayout({
   children,
@@ -31,9 +30,6 @@ export default async function DashboardLayout({
         <main className="flex-1 overflow-y-auto overflow-x-hidden pb-28 md:pb-12 px-3 sm:px-6 md:px-8 pt-3 sm:pt-6">
           <div className="max-w-7xl mx-auto min-h-full">
             <ReadOnlyNoticeBanner />
-            <div className="flex justify-end mb-4">
-              <SyncManagerSheet />
-            </div>
             {children}
           </div>
         </main>

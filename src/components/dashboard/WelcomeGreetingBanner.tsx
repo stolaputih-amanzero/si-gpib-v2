@@ -54,35 +54,35 @@ export const WelcomeGreetingBanner: React.FC<WelcomeGreetingBannerProps> = ({ cl
       sublabel: 'Input Kegiatan',
       href: '/dashboard/aktivitas',
       icon: FileEdit,
-      color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20',
+      color: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25',
     },
     {
       label: 'Workspace Saya',
       sublabel: 'Node Penugasan',
       href: '/org/me',
       icon: Building2,
-      color: 'bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20',
+      color: 'bg-brand-primary/15 text-brand-primary hover:bg-brand-primary/25',
     },
     {
       label: 'Ajuan Bantuan',
       sublabel: 'Queue Pelayanan',
       href: '/aid-requests',
       icon: HandHeart,
-      color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20',
+      color: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25',
     },
     {
       label: 'Data Pelayan',
       sublabel: 'Direktori SDM',
       href: '/people',
       icon: Users,
-      color: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20',
+      color: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/25',
     },
   ];
 
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-3xl p-5 sm:p-6',
+        'relative overflow-hidden rounded-3xl p-4 sm:p-6',
         'bg-gradient-to-br from-brand-primary/10 via-purple-500/5 to-amber-500/10',
         'border border-border-subtle dark:border-gray-800',
         'shadow-soft backdrop-blur-md',
@@ -94,30 +94,30 @@ export const WelcomeGreetingBanner: React.FC<WelcomeGreetingBannerProps> = ({ cl
       <div className="absolute right-1/3 -bottom-10 w-36 h-36 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header Row: Identity & Role Badge */}
-      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-primary/15 text-brand-primary font-bold text-[11px] uppercase tracking-wider">
-              <Sparkles size={12} className="shrink-0" />
-              <span>SI GPIB Workspace</span>
-            </span>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-elevated text-text-muted border border-border-subtle font-semibold text-[11px]">
-              <ShieldCheck size={12} className="text-emerald-500 shrink-0" />
-              <span>{roleBadgeLabel}</span>
-            </span>
-          </div>
+      <div className="relative z-10 space-y-2 mb-4">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-primary/15 text-brand-primary font-bold text-[10px] sm:text-[11px] uppercase tracking-wider">
+            <Sparkles size={11} className="shrink-0" />
+            <span>SI GPIB WORKSPACE</span>
+          </span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-elevated text-text-muted border border-border-subtle font-semibold text-[10px] sm:text-[11px]">
+            <ShieldCheck size={11} className="text-emerald-500 shrink-0" />
+            <span>{roleBadgeLabel}</span>
+          </span>
+        </div>
 
-          <h2 className="text-xl sm:text-2xl font-serif font-black text-text-high tracking-tight">
+        <div>
+          <h2 className="text-lg sm:text-2xl font-serif font-black text-text-high tracking-tight leading-tight">
             Selamat Datang, {formattedName}! 👋
           </h2>
-          <p className="text-xs text-text-muted">
+          <p className="text-[11px] sm:text-xs text-text-muted mt-0.5">
             Unit Penugasan Aktif: <strong className="text-text-high font-bold">{unitName}</strong>
           </p>
         </div>
       </div>
 
-      {/* Quick Action Grid Integrated Directly Inside Banner */}
-      <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+      {/* Quick Action Grid - Mobile Optimized (No Truncation) */}
+      <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
         {quickActions.map((action) => {
           const IconComponent = action.icon;
 
@@ -127,29 +127,27 @@ export const WelcomeGreetingBanner: React.FC<WelcomeGreetingBannerProps> = ({ cl
               href={action.href}
               onClick={() => haptic('light')}
               className={cn(
-                'group flex items-center justify-between p-3 rounded-2xl',
+                'group flex items-center gap-2.5 p-2.5 sm:p-3 rounded-2xl',
                 'bg-surface-elevated/90 dark:bg-gray-900/80 hover:bg-surface-elevated',
                 'border border-border-subtle/70 dark:border-gray-800',
                 'hover:border-brand-primary/40 hover:shadow-md',
                 'transition-all duration-200 active:scale-[0.98]',
-                'min-h-[56px] select-none'
+                'min-h-[48px] sm:min-h-[54px] select-none min-w-0'
               )}
             >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105', action.color)}>
-                  <IconComponent size={18} />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-bold text-xs text-text-high truncate group-hover:text-brand-primary transition-colors">
-                    {action.label}
-                  </p>
-                  <p className="text-[10px] text-text-muted truncate">
-                    {action.sublabel}
-                  </p>
-                </div>
+              <div className={cn('w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105', action.color)}>
+                <IconComponent size={16} className="sm:hidden shrink-0" />
+                <IconComponent size={18} className="hidden sm:block shrink-0" />
               </div>
-
-              <ChevronRight size={14} className="text-text-muted opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all shrink-0 ml-1" />
+              <div className="min-w-0 flex-1">
+                <p className="font-bold text-[11px] sm:text-xs text-text-high leading-tight group-hover:text-brand-primary transition-colors truncate">
+                  {action.label}
+                </p>
+                <p className="text-[9px] sm:text-[10px] text-text-muted truncate hidden sm:block">
+                  {action.sublabel}
+                </p>
+              </div>
+              <ChevronRight size={13} className="text-text-muted opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all shrink-0 hidden sm:block" />
             </Link>
           );
         })}

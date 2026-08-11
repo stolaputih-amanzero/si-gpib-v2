@@ -8,8 +8,8 @@ import { useSmoothTheme } from '@/hooks/useSmoothTheme';
 import { haptic } from '@/lib/haptic/vibrate';
 import { NetworkStatusBadge } from '@/components/ui/NetworkStatusBadge';
 import { NAV_GROUPS, NavGroup, NavItem } from '@/components/layout/Sidebar';
-import { ContextChip } from '@/components/mobile/ContextChip';
 import { WorkspaceContextSwitcher } from '@/components/navigation/WorkspaceContextSwitcher';
+import { SyncManagerSheet } from '@/components/offline/SyncManagerSheet';
 
 // Helper function to resolve breadcrumb crumbs from Desktop Sidebar NAV_GROUPS
 function getSidebarCrumbs(pathname: string) {
@@ -180,10 +180,10 @@ export function MobileHeader() {
           </nav>
         </div>
 
-        {/* Kanan Atas: WorkspaceContextSwitcher + ContextChip + NetworkStatus + Theme Toggle */}
+        {/* Kanan Atas: WorkspaceContextSwitcher + SyncManagerSheet + NetworkStatus + Theme Toggle */}
         <div className="flex items-center shrink-0 gap-1.5">
           <WorkspaceContextSwitcher />
-          <ContextChip />
+          <SyncManagerSheet />
           <NetworkStatusBadge showText={false} />
 
           <button
