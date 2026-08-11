@@ -79,7 +79,7 @@ export async function fetchUnifiedPersonData(personId: string): Promise<UnifiedP
     supabaseAdmin.from('t_keterlibatan_pendeta').select('*').or(`id_pendeta.eq.${pPendetaId},id_pendeta.eq.${targetUuid}`),
     supabaseAdmin.from('t_kompetensi_pendeta').select('*').or(`id_pendeta.eq.${pPendetaId},id_pendeta.eq.${targetUuid}`),
     supabaseAdmin.from('t_riwayat_mutasi_pendeta').select('*').or(`id_pendeta.eq.${pPendetaId},id_pendeta.eq.${targetUuid}`).order('tgl_mutasi', { ascending: false }),
-    supabaseAdmin.from('t_log_pastoral').select('*').or(`id_pendeta.eq.${pPendetaId},id_pendeta.eq.${targetUuid}`).order('tgl', { ascending: false }),
+    supabaseAdmin.from('t_log_pastoral').select('*, pos:m_pos_pelkes(nama_pos)').or(`id_pendeta.eq.${pPendetaId},id_pendeta.eq.${targetUuid}`).order('tgl', { ascending: false }),
     supabaseAdmin.from('t_penugasan_pendeta').select('*, pos:m_pos_pelkes(nama_pos)').or(`id_pendeta.eq.${pPendetaId},id_pendeta.eq.${targetUuid}`).order('created_at', { ascending: false }),
   ]);
 
@@ -96,6 +96,8 @@ export async function fetchUnifiedPersonData(personId: string): Promise<UnifiedP
     tanggal: l.tgl || l.created_at,
     tipe_layanan: l.kegiatan || 'Pelayanan Pastoral',
     status: 'COMPLETED',
+    foto_url: l.foto_url || l.dokumentasi_url || null,
+    nama_pos: (l.pos as any)?.nama_pos || null,
     notes: l.catatan || null,
   }));
 

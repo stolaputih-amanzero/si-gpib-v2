@@ -195,11 +195,13 @@ export interface PastoralLogEntry {
   tanggal: string;
   tipe_layanan: string;
   status: string | null;
+  foto_url?: string | null;
+  nama_pos?: string | null;
   
   // SANGAT RAHASIA (Strictly PRIVATE/SELF_ONLY)
   notes: string | null; 
   
-  _meta: {
+  _meta?: {
     notes: PrivacyState; 
   };
 }

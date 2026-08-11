@@ -126,6 +126,8 @@ export function adaptPersonToViewModel(person: UnifiedPersonData): PersonWorkspa
       tanggal: log.tanggal,
       tipe_layanan: log.tipe_layanan,
       status: log.status,
+      foto_url: log.foto_url || null,
+      nama_pos: log.nama_pos || null,
       notes: resolveFieldState(log.notes, log._meta?.notes, 'Tidak ada catatan khusus')
     }));
 

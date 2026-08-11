@@ -81,6 +81,8 @@ export interface PastoralLogItemViewModel {
   tanggal: string;
   tipe_layanan: string;
   status: string | null;
+  foto_url?: string | null;
+  nama_pos?: string | null;
   notes: FieldRenderState<string>;
 }
 
