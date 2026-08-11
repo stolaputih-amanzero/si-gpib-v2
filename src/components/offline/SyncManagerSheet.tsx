@@ -23,13 +23,13 @@ export function SyncManagerSheet() {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger
         render={
-          <Button variant="outline" size="sm" className="min-h-[44px] relative bg-white/5 border-border-strong hover:bg-surface-sunken" />
+          <Button variant="outline" size="sm" className="min-h-[40px] px-2.5 sm:px-3 relative bg-surface-elevated hover:bg-surface-sunken border-border-subtle text-text-high rounded-xl shrink-0" />
         }
       >
-        <Inbox className="w-4 h-4 mr-2" />
-        Antrean Offline
+        <Inbox className="w-4 h-4 sm:mr-2" />
+        <span className="hidden sm:inline">Antrean Offline</span>
         {totalCount > 0 && (
-          <Badge className={`ml-2 ${failedCount > 0 ? 'bg-red-500 text-red-950 border-red-600' : 'bg-amber-500 text-amber-950 border-amber-600'}`}>
+          <Badge className={`ml-1 sm:ml-2 ${failedCount > 0 ? 'bg-red-500 text-red-950 border-red-600' : 'bg-amber-500 text-amber-950 border-amber-600'}`}>
             {totalCount}
           </Badge>
         )}

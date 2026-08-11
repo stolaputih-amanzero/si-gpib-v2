@@ -193,7 +193,7 @@ export function StatCards({
             className={cn(
               'group relative',
               'bg-surface-1 dark:bg-gray-800',
-              'rounded-2xl p-4',
+              'rounded-2xl p-3 sm:p-4',
               'border border-border-subtle dark:border-gray-700',
               'hover:border-brand-primary/40',
               'hover:shadow-md hover:shadow-black/5 dark:hover:shadow-black/20',
@@ -202,7 +202,7 @@ export function StatCards({
               'focus:ring-brand-primary dark:focus:ring-blue-400',
               'transition-all duration-200',
               'cursor-pointer flex flex-col justify-between',
-              'min-h-[120px]',
+              'min-h-[100px] sm:min-h-[120px]',
               'overflow-hidden'
             )}
             aria-label={ariaLabel}
@@ -220,27 +220,27 @@ export function StatCards({
             />
 
             {/* Header: Label & Icon */}
-            <div className="relative z-10 flex items-center justify-between mb-2">
+            <div className="relative z-10 flex items-center justify-between mb-1.5 sm:mb-2">
               <p
                 className={cn(
-                  'text-xs font-bold uppercase tracking-wide',
+                  'text-[10px] sm:text-xs font-bold uppercase tracking-tight sm:tracking-wide',
                   'text-ink-tertiary dark:text-gray-400',
                   'group-hover:text-white/90',
                   'transition-colors duration-200',
-                  'line-clamp-1'
+                  'truncate'
                 )}
               >
                 {stat.label || stat.title}
               </p>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0.5 sm:gap-1">
                 <span
                   className={cn(
-                    'grid h-9 w-9 shrink-0 place-items-center rounded-xl transition-all duration-200',
+                    'grid h-7 w-7 sm:h-9 sm:w-9 shrink-0 place-items-center rounded-xl transition-all duration-200',
                     colors.bg,
                     'group-hover:bg-white/20 group-hover:text-white group-hover:backdrop-blur-sm'
                   )}
                 >
-                  <IconComponent className="h-4.5 w-4.5" />
+                  <IconComponent className="h-3.5 w-3.5 sm:h-4.5 sm:w-4.5" />
                 </span>
                 <ChevronRight
                   className={cn(
@@ -248,7 +248,7 @@ export function StatCards({
                     'text-ink-tertiary/40 dark:text-gray-600',
                     'group-hover:text-white',
                     'group-hover:translate-x-0.5',
-                    'opacity-0 group-hover:opacity-100'
+                    'opacity-0 group-hover:opacity-100 hidden sm:block'
                   )}
                   aria-hidden="true"
                 />
@@ -257,10 +257,10 @@ export function StatCards({
 
             {/* Content: Value with Fraunces / Font Display */}
             <div className="relative z-10">
-              <div className="flex items-baseline gap-2">
+              <div className="flex items-baseline gap-1.5 sm:gap-2">
                 <p
                   className={cn(
-                    'font-display tnum text-2xl sm:text-3xl lg:text-4xl font-black tracking-tighter2',
+                    'font-display tnum text-xl sm:text-3xl lg:text-4xl font-black tracking-tighter2',
                     'text-ink-primary dark:text-white',
                     'group-hover:text-white',
                     'transition-colors duration-200'

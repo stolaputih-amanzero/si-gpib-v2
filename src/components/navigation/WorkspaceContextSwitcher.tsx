@@ -72,7 +72,7 @@ export const WorkspaceContextSwitcher: React.FC = () => {
             aria-hidden="true"
           />
 
-          <div className="absolute right-0 sm:left-0 top-full mt-2 w-72 bg-surface-elevated border border-border-subtle rounded-2xl shadow-heavy p-2 z-50 space-y-1 text-xs">
+          <div className="absolute left-0 top-full mt-2 w-72 max-w-[calc(100vw-24px)] bg-surface-elevated border border-border-subtle rounded-2xl shadow-heavy p-2 z-50 space-y-1 text-xs origin-top-left">
             <div className="px-3 py-2 border-b border-border-subtle mb-1">
               <p className="font-bold text-text-high text-xs">Konteks Workspace Aktif</p>
               <p className="text-[10px] text-text-muted">UI Context Switching (Otorisasi oleh F12 RLS)</p>
