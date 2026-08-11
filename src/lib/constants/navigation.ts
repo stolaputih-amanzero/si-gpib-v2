@@ -60,10 +60,10 @@ export const SUPER_MENU_GROUPS: SuperMenuGroupConfig[] = [
   {
     title: 'Data Pelayanan',
     items: [
-      { icon: Users,         label: 'Data Pelayan',      href: '/pelayan',                   color: '#8B5CF6' }, // violet-500
+      { icon: Users,         label: 'Data Pelayan',      href: '/people',                    color: '#8B5CF6' }, // violet-500
       { icon: MapPin,        label: 'Pos Pelkes Baru',   actionId: 'pos_baru',               color: '#EF4444' }, // red-500
-      { icon: Package,       label: 'Demografi',         href: '/demografi',                 color: '#06B6D4' }, // cyan-500
-      { icon: Church,        label: 'Jadwal Ibadah',     href: '/jadwal',                    color: '#EC4899' }, // pink-500
+      { icon: Package,       label: 'Demografi',         href: '/analytics',                 color: '#06B6D4' }, // cyan-500
+      { icon: Church,        label: 'Jadwal Ibadah',     href: '/org',                       color: '#EC4899' }, // pink-500
     ],
   },
 ];
@@ -74,22 +74,22 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
     title: 'Pelayanan Utama',
     items: [
       { icon: Home, label: 'Dashboard', href: '/dashboard', description: 'Ringkasan & statistik pelayanan' },
-      { icon: Map, label: 'Pos Pelkes', href: '/dashboard/pos-pelkes', description: 'Daftar & peta pos pelkes' },
-      { icon: Building2, label: 'Hierarki GPIB', href: '/hierarki', description: 'Mupel & Jemaat Induk' },
+      { icon: Map, label: 'Pos Pelkes', href: '/org', description: 'Daftar & peta pos pelkes' },
+      { icon: Building2, label: 'Hierarki GPIB', href: '/org', description: 'Mupel & Jemaat Induk' },
     ],
   },
   {
     title: 'SDM & Pastoral',
     items: [
-      { icon: Users, label: 'Pelayan & Presbiter', href: '/pelayan', description: 'Daftar pelayan pelayanan' },
-      { icon: Activity, label: 'Log Pastoral', href: '/laporan/pastoral', description: 'Pencatatan kegiatan pastoral' },
+      { icon: Users, label: 'Pelayan & Presbiter', href: '/people', description: 'Daftar pelayan pelayanan' },
+      { icon: Activity, label: 'Log Pastoral', href: '/dashboard/aktivitas', description: 'Pencatatan kegiatan pastoral' },
     ],
   },
   {
     title: 'Pengaturan & Bantuan',
     items: [
       { icon: Settings, label: 'Pengaturan', href: '/settings/profile', description: 'Profil & akun pengguna' },
-      { icon: HelpCircle, label: 'Bantuan', href: '/bantuan', description: 'Pusat bantuan & tiket' },
+      { icon: HelpCircle, label: 'Bantuan', href: '/settings', description: 'Pusat bantuan & sistem' },
     ],
   },
 ];

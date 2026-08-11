@@ -13,33 +13,29 @@ export function getStatRoutes(scope?: StatRouteScopeParams) {
   const indukId = scope?.id_induk || null;
   const posId = scope?.id_pos || null;
 
-  // 1. Mupel: Go directly to user's assigned Mupel detail, or to Hierarki Mupel list
+  // 1. Mupel: Go directly to Mupel tab in /org
   const mupelHref = mupelId
-    ? `/mupel/${encodeURIComponent(mupelId)}`
-    : '/hierarki';
+    ? `/org/${encodeURIComponent(mupelId)}`
+    : '/org?tab=mupel';
 
-  // 2. Jemaat Induk: Go directly to user's assigned Jemaat detail, or Mupel jemaat tab, or Hierarki Jemaat list
+  // 2. Jemaat Induk: Go directly to Jemaat tab in /org
   const jemaatHref = indukId
-    ? `/jemaat/${encodeURIComponent(indukId)}`
-    : mupelId
-      ? `/mupel/${encodeURIComponent(mupelId)}?tab=jemaat`
-      : '/hierarki?view=jemaat';
+    ? `/org/${encodeURIComponent(indukId)}`
+    : '/org?tab=jemaat';
 
-  // 3. Bajem: Filter strictly by Bajem in Pos Pelkes list
-  // Role scoping is handled natively by /dashboard/pos-pelkes page server code
-  const bajemHref = '/dashboard/pos-pelkes?filter=bajem';
+  // 3. Bajem: Filter strictly by Bajem in /org
+  const bajemHref = '/org?tab=pos';
 
-  // 4. Pos Pelkes: Go directly to user's Pos detail, or filter strictly by Pos Pelkes in Pos Pelkes list
-  // Role scoping is handled natively by /dashboard/pos-pelkes page server code
+  // 4. Pos Pelkes: Go directly to Pos detail in /org
   const posHref = posId
-    ? `/dashboard/pos-pelkes/${encodeURIComponent(posId)}`
-    : '/dashboard/pos-pelkes?filter=pos_pelkes';
+    ? `/org/${encodeURIComponent(posId)}`
+    : '/org?tab=pos';
 
-  // 5. Total Jiwa: Demografi dashboard
-  const jiwaHref = '/demografi';
+  // 5. Total Jiwa: Analytics dashboard
+  const jiwaHref = '/analytics';
 
-  // 6. Giat Pastoral: Laporan Pastoral
-  const giatHref = '/laporan/pastoral';
+  // 6. Giat Pastoral: Dashboard aktivitas
+  const giatHref = '/dashboard/aktivitas';
 
   return {
     mupel: mupelHref,

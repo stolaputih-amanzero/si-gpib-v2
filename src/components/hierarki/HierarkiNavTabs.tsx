@@ -11,17 +11,17 @@ export function HierarkiNavTabs() {
   const tabs = [
     {
       label: 'Struktur Hierarki',
-      href: '/hierarki',
+      href: '/org',
       icon: GitFork,
     },
     {
       label: 'Peta Sebaran',
-      href: '/dashboard/peta',
+      href: '/maps',
       icon: Map,
     },
     {
       label: 'Pos & Bajem',
-      href: '/dashboard/pos-pelkes',
+      href: '/org',
       icon: Database,
     },
   ];
