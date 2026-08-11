@@ -15,7 +15,23 @@ const withSerwistConfig = withSerwist({
 const nextConfig = {
   reactStrictMode: true,
 
-  // Next.js 16: cacheComponents (formerly PPR) removed due to conflicts
+  serverExternalPackages: [
+    '@sentry/node',
+    '@sentry/nextjs',
+    '@opentelemetry/instrumentation',
+    'require-in-the-middle',
+  ],
+
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.ignoreWarnings = [
+        ...(config.ignoreWarnings || []),
+        { module: /require-in-the-middle/ },
+        { module: /@opentelemetry\/instrumentation/ },
+      ];
+    }
+    return config;
+  },
 
   images: {
     formats: ['image/avif', 'image/webp'],
