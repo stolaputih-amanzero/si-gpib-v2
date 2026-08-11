@@ -27,11 +27,14 @@ export const CompetenciesSection: React.FC<CompetenciesSectionProps> = ({ compet
 
           {competencies.skills.type === 'DATA' ? (
             <div className="flex flex-wrap gap-1.5">
-              {competencies.skills.value.map((skill, i) => (
-                <span key={i} className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300">
-                  {skill}
-                </span>
-              ))}
+              {competencies.skills.value.map((skill, i) => {
+                const label = typeof skill === 'string' ? skill : (skill as any)?.nama || String(skill);
+                return (
+                  <span key={i} className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300">
+                    {label}
+                  </span>
+                );
+              })}
             </div>
           ) : competencies.skills.type === 'PRIVACY_MASKED' ? (
             <PrivacyStateNotice reason={competencies.skills.reason} label={competencies.skills.label} />

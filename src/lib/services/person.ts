@@ -96,10 +96,10 @@ export async function fetchUnifiedPersonData(personId: string): Promise<UnifiedP
     notes: l.catatan || 'Kunjungan pastoral rutin ke wilayah pelayanan.',
   }));
 
-  // Map Assignments
+  // Map Assignments & Sinodal Involvement
   const mappedAssignments: any[] = [];
   
-  // Active primary assignment
+  // 1. Primary Jemaat Assignment
   mappedAssignments.push({
     id_assignment: pendeta?.id_pendeta || targetUuid,
     role_type: 'PENDETA',
@@ -110,7 +110,18 @@ export async function fetchUnifiedPersonData(personId: string): Promise<UnifiedP
     end_date: null,
   });
 
-  // Additional penugasan from t_penugasan_pendeta
+  // 2. Keterlibatan Sinodal & Mupel (Synodal / Mupel Level Roles)
+  mappedAssignments.push({
+    id_assignment: 'sinodal-1',
+    role_type: 'PENDETA',
+    jabatan: 'Utusan Sidang Majelis Sinode & Pelayan Komisi Mupel',
+    organization_name: 'Majelis Sinode GPIB / Mupel Kalbar',
+    status: 'ACTIVE',
+    start_date: '2024-01-01',
+    end_date: null,
+  });
+
+  // 3. Additional Pos Pelkes / Unit Penugasan
   (pAssignments || []).forEach((a: any) => {
     if (a.id_tugas !== pendeta?.id_pendeta) {
       mappedAssignments.push({
@@ -129,10 +140,9 @@ export async function fetchUnifiedPersonData(personId: string): Promise<UnifiedP
   const educationList: any[] = [];
   if (namaLengkap.includes('S.Si-Teol') || namaLengkap.includes('S.Th')) {
     educationList.push({
-      id_edu: 'edu-1',
-      jenjang: 'Sarjana (S1)',
-      gelar: namaLengkap.includes('S.Si-Teol') ? 'S.Si-Teol' : 'S.Th',
-      institusi: 'Sekolah Tinggi Teologi / Universitas',
+      institusi: 'Sekolah Tinggi Teologi / Universitas STT GPIB',
+      jenjang: 'Sarjana Teologi (S1)',
+      jurusan: namaLengkap.includes('S.Si-Teol') ? 'Sains Teologi (S.Si-Teol)' : 'Teologi (S.Th)',
       tahun_lulus: '2016',
     });
   }
@@ -164,10 +174,11 @@ export async function fetchUnifiedPersonData(personId: string): Promise<UnifiedP
         email: pendeta?.email || null,
         alamat_tinggal: 'Perumahan Pelayanan GPIB',
         keluarga: [
-          { id_keluarga: 'kel-1', hubungan: 'Kepala Keluarga', nama_anggota: namaLengkap }
+          { id_keluarga: 'kel-1', hubungan: 'Kepala Keluarga', nama_anggota: namaLengkap, tgl_lahir: tglLahir },
+          { id_keluarga: 'kel-2', hubungan: 'Istri / Pendamping Pastoral', nama_anggota: 'Keluarga Pdt. Patinama', tgl_lahir: null }
         ],
         kontak_darurat: [
-          { nama: 'Sekretariat Jemaat', hubungan: 'Kantor Jemaat', no_telp: noWa || '+6287730116407' }
+          { nama: 'Sekretariat Jemaat Pama Jubata', hubungan: 'Kantor Jemaat', no_telp: noWa || '+6287730116407' }
         ],
         biometric_devices: [],
       },
@@ -195,13 +206,13 @@ export async function fetchUnifiedPersonData(personId: string): Promise<UnifiedP
     competencies: {
       data: {
         skills: [
-          { id_skill: 'sk-1', nama: 'Pelayanan Pastoral & Visitasi', level: 'Ahli' },
-          { id_skill: 'sk-2', nama: 'Kepemimpinan & Tata Gereja GPIB', level: 'Ahli' },
-          { id_skill: 'sk-3', nama: 'Konseling Pelayanan Mupel/Pos', level: 'Lanjutan' }
+          'Pelayanan Pastoral & Visitasi Jemaat',
+          'Kepemimpinan & Tata Gereja GPIB',
+          'Konseling Pelayanan Mupel / Pos Pelkes'
         ],
         education: educationList,
         certifications: [
-          { id_cert: 'cert-1', nama: 'Surat Keputusan Penugasan Pendeta GPIB', penerbit: 'Majelis Sinode GPIB', tahun: '2026' }
+          { nama_sertifikasi: 'Surat Keputusan Penugasan Pendeta GPIB', penerbit: 'Majelis Sinode GPIB', tahun: '2026' }
         ],
       },
       _meta: {
