@@ -12,6 +12,42 @@ Aplikasi ini mengintegrasikan pemetaan digital Pos Pelkes, pencatatan log pastor
 
 ---
 
+## 🏛️ Platform Architecture Baseline v2.0 & Governance Status
+
+```text
+PLATFORM ARCHITECTURE BASELINE v2.0
+─────────────────────────────────────────────────────────────────────────────
+F2–F14 ARCHITECTURE CONTRACTS            : 🔒 FROZEN (v2.0.0-rc.1)
+CROSS-CUTTING INVARIANTS                 : 🔒 FROZEN
+
+GATE S1 RUNTIME REALITY                  : 🟢 VERIFIED
+GATE S2 SECRET SECURITY                  : 🟢 VERIFIED
+GATE S3 FAILURE & RECOVERY               : 🟢 VERIFIED
+GATE S4 TECHNICAL DEBT                   : 🟢 VERIFIED
+GATE S5 BASELINE CERTIFICATION           : 🟢 CERTIFIED (v2.0.0-rc.1)
+
+STEP R1 CLEAN-ROOM SNAPSHOT              : 🟢 VERIFIED
+STEP R2 PROD-LIKE READINESS              : 🟢 VERIFIED
+STEP R3 OPERATIONAL RESILIENCE & RECOVERY: 🟢 VERIFIED
+STEP R4 ADR GOVERNANCE & SIGN-OFF        : 🟢 VERIFIED & CLOSED
+
+RELEASE-READINESS AUDIT (14 GATES)       : 🟢 14/14 GATES PASSED — RELEASE READY
+
+RC OPERATIONALLY HARDENED                : 🟢 CERTIFIED
+ARCHITECTURE CONTRACT CERTIFIED         : 🟢 CERTIFIED
+
+PRODUCTION-SCALE PROVEN                  : ⚪ NOT CLAIMED
+EXACTLY-ONCE PRODUCTION DELIVERY        : ⚪ NOT CLAIMED
+
+RELEASE CANDIDATE TAG                    : 🏷️ v2.0.0-rc.1
+FINAL RELEASE TAG                        : 🏷️ v2.0.0 (AUTHORIZED FOR TAGGING)
+F15+ FEATURE DEVELOPMENT                 : 🟢 UNLOCKED FOR F15+ (POST-TAGGING)
+```
+
+Refer to [RELEASE_READINESS_REVIEW_V1.md](file:///d:/PROJECT/si-gpib-v2/documentation/reff/RELEASE_READINESS_REVIEW_V1.md), [R4_GOVERNANCE_CLOSURE_V1.md](file:///d:/PROJECT/si-gpib-v2/documentation/reff/R4_GOVERNANCE_CLOSURE_V1.md), [ADR_GOVERNANCE_POLICY_V1.md](file:///d:/PROJECT/si-gpib-v2/documentation/reff/ADR_GOVERNANCE_POLICY_V1.md), and [RELEASE_TRANSITION_CHECKLIST_V1.md](file:///d:/PROJECT/si-gpib-v2/documentation/reff/RELEASE_TRANSITION_CHECKLIST_V1.md) for master architecture governance documentation.
+
+---
+
 ## 🌟 Visi & Fitur Utama
 
 1. **🗺️ Pemetaan Pos Pelkes & Bajem**: Peta interaktif berbasis Leaflet dengan *clustering marker* dan filter hierarki (Sinode -> Mupel -> Jemaat Induk -> Pos Pelkes).
