@@ -30,21 +30,29 @@ export const WelcomeGreetingBanner: React.FC<WelcomeGreetingBannerProps> = ({ cl
   const formattedName = username.charAt(0).toUpperCase() + username.slice(1);
 
   // Resolve role label & unit assignment
+  const userRole = (authData?.role || currentUser?.role || '').toLowerCase().trim();
+
   let roleBadgeLabel = 'Pelayan Pastoral';
   let unitName = 'Sinode GPIB';
 
   if (currentUser?.isSuperUser) {
     roleBadgeLabel = 'Super User (Full Admin)';
     unitName = 'Seluruh Indonesia';
+  } else if (userRole.includes('pj') || userRole.includes('pos')) {
+    roleBadgeLabel = 'Penanggung Jawab Pos (PJ)';
+    unitName = authData?.id_pos || authData?.id_induk || 'Pos Pelkes';
+  } else if (userRole.includes('kmj') || userRole.includes('majelis')) {
+    roleBadgeLabel = 'Ketua Majelis Jemaat (KMJ)';
+    unitName = authData?.id_induk || 'Jemaat Induk';
+  } else if (userRole.includes('mupel')) {
+    roleBadgeLabel = 'Admin Mupel';
+    unitName = authData?.id_mupel ? `Mupel ${authData.id_mupel}` : 'Mupel';
   } else if (authData?.id_pos) {
-    roleBadgeLabel = 'Penanggung Jawab Pos';
+    roleBadgeLabel = 'Penanggung Jawab Pos (PJ)';
     unitName = authData.id_pos;
   } else if (authData?.id_induk) {
-    roleBadgeLabel = 'Ketua Majelis Jemaat';
+    roleBadgeLabel = 'Ketua Majelis Jemaat (KMJ)';
     unitName = authData.id_induk;
-  } else if (authData?.id_mupel) {
-    roleBadgeLabel = 'Admin Mupel';
-    unitName = `Mupel ${authData.id_mupel}`;
   }
 
   // 4 Integrated Quick Actions
