@@ -7,7 +7,7 @@ test.describe('F3 — Organization Workspace Deep-Link & Geometry Contract Audit
 
   // 1. /org/me -> Resolves to fallback or canonical route
   test('1. /org/me resolves via server redirect', async ({ page }) => {
-    const response = await page.goto('/org/me', { waitUntil: 'networkidle' });
+    await page.goto('/org/me', { waitUntil: 'networkidle' });
     // Verify server redirect status (307/308) or resolved target URL
     expect(page.url()).not.toBe('http://localhost:3000/org/me');
   });
