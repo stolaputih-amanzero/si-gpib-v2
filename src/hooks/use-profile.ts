@@ -323,26 +323,42 @@ export function useProfilePelayanan(idPendeta?: string | null | undefined) {
       let idPos: string | null = pendetaRow.id_pos || null;
 
       if (!posNama && idPendeta) {
-        const { data: tugasRow } = await supabase
-          .from('t_penugasan_pendeta')
-          .select('id_pos, pos:m_pos_pelkes(nama_pos)')
-          .eq('id_pendeta', idPendeta)
-          .maybeSingle();
-
-        if (tugasRow?.pos) {
-          posNama = (tugasRow.pos as any)?.nama_pos || null;
-          idPos = tugasRow.id_pos || null;
-        } else {
-          const { data: pjRow } = await supabase
-            .from('t_pj_jemaat')
-            .select('id_pos, pos:m_pos_pelkes(nama_pos)')
+        try {
+          const { data: tugasRow } = await supabase
+            .from('t_penugasan_pendeta')
+            .select('id_pos')
             .eq('id_pendeta', idPendeta)
             .maybeSingle();
 
-          if (pjRow?.pos) {
-            posNama = (pjRow.pos as any)?.nama_pos || null;
-            idPos = pjRow.id_pos || null;
+          if (tugasRow?.id_pos) {
+            idPos = tugasRow.id_pos;
+            const { data: posData } = await supabase
+              .from('m_pos_pelkes')
+              .select('nama_pos')
+              .eq('id_pos', idPos)
+              .maybeSingle();
+            posNama = posData?.nama_pos || null;
           }
+        } catch {}
+
+        if (!posNama) {
+          try {
+            const { data: pjRow } = await supabase
+              .from('t_pj_jemaat')
+              .select('id_pos')
+              .eq('id_pendeta', idPendeta)
+              .maybeSingle();
+
+            if (pjRow?.id_pos) {
+              idPos = pjRow.id_pos;
+              const { data: posData } = await supabase
+                .from('m_pos_pelkes')
+                .select('nama_pos')
+                .eq('id_pos', idPos)
+                .maybeSingle();
+              posNama = posData?.nama_pos || null;
+            }
+          } catch {}
         }
       }
 
@@ -454,35 +470,31 @@ export function usePenugasanPj(idPendeta?: string | null) {
       if (!idPendeta) return [];
 
       let rawData: any[] = [];
-      const { data, error } = await supabase
-        .from('t_penugasan_pendeta')
-        .select(`
-          id_tugas,
-          id_pendeta,
-          id_pos,
-          tgl_mulai,
-          tgl_selesai,
-          status_tugas,
-          pos:m_pos_pelkes(nama_pos, id_induk)
-        `)
-        .eq('id_pendeta', idPendeta);
-
-      if (!error && data) {
-        rawData = data;
-      } else {
-        const { data: altData } = await supabase
-          .from('t_pj_jemaat')
-          .select('*, pos:m_pos_pelkes(nama_pos, id_induk)')
+      try {
+        const { data, error } = await supabase
+          .from('t_penugasan_pendeta')
+          .select('id_tugas, id_pendeta, id_pos, tgl_mulai, tgl_selesai, status_tugas')
           .eq('id_pendeta', idPendeta);
-        if (altData) rawData = altData;
+
+        if (!error && data) {
+          rawData = data;
+        } else {
+          const { data: altData } = await supabase
+            .from('t_pj_jemaat')
+            .select('id_induk, id_pendeta')
+            .eq('id_pendeta', idPendeta);
+          if (altData) rawData = altData;
+        }
+      } catch {
+        rawData = [];
       }
 
       return rawData.map((p: any) => ({
         id_penugasan: p.id_tugas || p.id_penugasan || String(p.id || ''),
         id_pendeta: p.id_pendeta,
-        id_pos: p.id_pos,
-        nama_pos: (p.pos as any)?.nama_pos || null,
-        id_induk: (p.pos as any)?.id_induk || null,
+        id_pos: p.id_pos || null,
+        nama_pos: null,
+        id_induk: p.id_induk || null,
         tgl_mulai: p.tgl_mulai || p.tanggal_mulai || null,
         tgl_selesai: p.tgl_selesai || p.tanggal_selesai || null,
         status_aktif: p.status_tugas === 'Aktif' || p.status === 'Aktif' || true,

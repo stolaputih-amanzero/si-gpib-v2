@@ -294,14 +294,16 @@ export function useUserMupelAuth() {
       }
 
       if (id_pendeta && !id_pos) {
-        const { data: penugasan } = await supabase
-          .from('t_penugasan_pendeta')
-          .select('id_pos')
-          .eq('id_pendeta', id_pendeta)
-          .maybeSingle();
-        if (penugasan?.id_pos) {
-          id_pos = penugasan.id_pos;
-        }
+        try {
+          const { data: penugasan } = await supabase
+            .from('t_penugasan_pendeta')
+            .select('id_pos')
+            .eq('id_pendeta', id_pendeta)
+            .maybeSingle();
+          if (penugasan?.id_pos) {
+            id_pos = penugasan.id_pos;
+          }
+        } catch {}
       }
 
       if (id_pendeta && !id_induk) {
