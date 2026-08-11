@@ -351,7 +351,6 @@ export function useWilayahMapData() {
         .select(`
           id_pos, 
           nama_pos, 
-          kategori,
           latitude, 
           longitude,
           jemaat_induk:m_jemaat_induk(nama_induk, id_mupel)
@@ -782,7 +781,7 @@ export function useMapSummaryStats() {
       const [resMupel, resJemaat, resPos, resDemo] = await Promise.all([
         supabase.from('m_mupel').select('*', { count: 'exact', head: true }),
         supabase.from('m_jemaat_induk').select('*', { count: 'exact', head: true }),
-        supabase.from('m_pos_pelkes').select('id_pos, nama_pos, kategori'),
+        supabase.from('m_pos_pelkes').select('id_pos, nama_pos'),
         supabase.from('t_demografi_pelkat').select('laki, perempuan'),
       ]);
 

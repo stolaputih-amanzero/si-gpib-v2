@@ -325,7 +325,7 @@ export function useProfilePelayanan(idPendeta?: string | null | undefined) {
       if (!posNama && idPendeta) {
         const { data: tugasRow } = await supabase
           .from('t_penugasan_pendeta')
-          .select('id_pos, pos:m_pos_pelkes(nama_pos, kategori)')
+          .select('id_pos, pos:m_pos_pelkes(nama_pos)')
           .eq('id_pendeta', idPendeta)
           .maybeSingle();
 
@@ -335,7 +335,7 @@ export function useProfilePelayanan(idPendeta?: string | null | undefined) {
         } else {
           const { data: pjRow } = await supabase
             .from('t_pj_jemaat')
-            .select('id_pos, pos:m_pos_pelkes(nama_pos, kategori)')
+            .select('id_pos, pos:m_pos_pelkes(nama_pos)')
             .eq('id_pendeta', idPendeta)
             .maybeSingle();
 
@@ -512,7 +512,7 @@ export function useHierarkiInfo(idMupel?: string | null, idInduk?: string | null
       if (idPos) {
         const { data: posData } = await supabase
           .from('m_pos_pelkes')
-          .select('id_pos, nama_pos, kategori, id_induk, jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, mupel:m_mupel(id_mupel, nama_mupel))')
+          .select('id_pos, nama_pos, id_induk, jemaat_induk:m_jemaat_induk(id_induk, nama_induk, id_mupel, mupel:m_mupel(id_mupel, nama_mupel))')
           .eq('id_pos', idPos)
           .maybeSingle();
 
@@ -545,7 +545,7 @@ export function useHierarkiInfo(idMupel?: string | null, idInduk?: string | null
 
         const { data: posRows } = await supabase
           .from('m_pos_pelkes')
-          .select('id_pos, nama_pos, kategori')
+          .select('id_pos, nama_pos')
           .eq('id_induk', resolvedIdInduk)
           .order('nama_pos', { ascending: true });
 

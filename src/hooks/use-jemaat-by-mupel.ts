@@ -32,7 +32,7 @@ export function useJemaatByMupel(id_mupel: string, searchQuery: string = '', ini
         .from('m_jemaat_induk')
         .select(`
           id_induk, id_mupel, nama_induk, alamat, latitude, longitude, id_kmj, keterangan, jumlah_kk, jumlah_jiwa,
-          m_pos_pelkes(id_pos, nama_pos, kategori, jumlah_kk, jumlah_jiwa, t_demografi_pelkat(jml_kk, laki, perempuan))
+          m_pos_pelkes(id_pos, nama_pos, t_demografi_pelkat(jml_kk, laki, perempuan))
         `)
         .eq('id_mupel', id_mupel)
         .order('nama_induk', { ascending: true });
