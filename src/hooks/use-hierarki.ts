@@ -417,12 +417,20 @@ export function usePosByJemaat(id_induk?: string, search?: string) {
           .select('id_pos, jml_kk, laki, perempuan'),
       ]);
 
-      if (posRes.error) {
-        console.warn('m_pos_pelkes query error fallback:', posRes.error);
-        return [];
-      }
+      let posData = posRes.data || [];
 
-      const posData = posRes.data || [];
+      if (posRes.error || posData.length === 0) {
+        try {
+          const params = id_induk && id_induk !== 'all' ? `?id_induk=${encodeURIComponent(id_induk)}` : '';
+          const apiRes = await fetch(`/api/org/pos${params}`);
+          if (apiRes.ok) {
+            const body = await apiRes.json();
+            if (body.data && Array.isArray(body.data)) {
+              posData = body.data;
+            }
+          }
+        } catch {}
+      }
       const jemaatData = jemaatRes.data || [];
       const mupelData = mupelRes.data || [];
       const pjData = pjRes.data || [];
