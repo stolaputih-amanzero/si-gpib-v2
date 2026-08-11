@@ -31,7 +31,7 @@ export function OrgAssetWilayahSection({ orgData }: { orgData: LegacyUnifiedOrga
     return (
       <div className="space-y-3">
         {list.map((a: any) => (
-          <Link href={`/dashboard/assets/${a.id}`} key={a.id} className="block">
+          <Link href={`/assets/${a.id}`} key={a.id} className="block">
             <div className="bg-surface-1 border border-border-subtle rounded-2xl p-4 shadow-2xs hover:border-brand-primary/50 transition-colors">
               <div className="flex justify-between items-start mb-2">
               <h4 className="font-bold text-text-strong">{a.name}</h4>

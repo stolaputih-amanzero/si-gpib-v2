@@ -101,7 +101,7 @@ export function WilayahTab({ id_pos, initialKerawanan, initialPotensi }: Wilayah
                       {k.frekuensi || 'Tercatat'}
                     </span>
                   }
-                  href="/laporan/kerawanan"
+                  href="/wilayah"
                 />
               );
             })}
@@ -132,7 +132,7 @@ export function WilayahTab({ id_pos, initialKerawanan, initialPotensi }: Wilayah
                     Potensi
                   </span>
                 }
-                href="/laporan/potensi"
+                href="/wilayah"
               />
             ))}
           </div>

@@ -62,12 +62,10 @@ export function HierarkiPelayananSection({ userId, idPendeta }: HierarkiPelayana
   }
 
   // Safe URI Routes
-  const mupelHref = effMupelId ? `/hierarki/${encodeURIComponent(effMupelId)}` : '/hierarki';
-  const jemaatHref = effJemaatId && effMupelId 
-    ? `/hierarki/${encodeURIComponent(effMupelId)}/${encodeURIComponent(effJemaatId)}`
-    : effJemaatId
-    ? `/dashboard/jemaat/${encodeURIComponent(effJemaatId)}`
-    : '/hierarki';
+  const mupelHref = effMupelId ? `/org/${encodeURIComponent(effMupelId)}` : '/org';
+  const jemaatHref = effJemaatId 
+    ? `/org/${encodeURIComponent(effJemaatId)}`
+    : '/org';
 
   return (
     <div className="card-flat p-5 space-y-5 bg-surface-1 animate-rise">
@@ -136,7 +134,7 @@ export function HierarkiPelayananSection({ userId, idPendeta }: HierarkiPelayana
             displayPosList.map((pos) => (
               <Link
                 key={pos.id_pos}
-                href={`/dashboard/pos-pelkes/${encodeURIComponent(pos.id_pos)}`}
+                href={`/org/${encodeURIComponent(pos.id_pos)}`}
                 className="card-flat p-3.5 flex items-center justify-between gap-3 hover:border-brand-500/50 hover:bg-surface-sunken transition-all tap group border-l-4 border-l-emerald-500"
               >
                 <div className="flex items-center gap-3">

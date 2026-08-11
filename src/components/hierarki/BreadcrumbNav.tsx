@@ -20,11 +20,11 @@ export function BreadcrumbNav({ items }: BreadcrumbNavProps) {
       className="w-full overflow-x-auto no-scrollbar py-2 px-1 flex items-center gap-1.5 text-xs font-medium text-text-muted select-none"
     >
       <Link
-        href="/hierarki"
+        href="/org"
         className="flex items-center gap-1 min-h-[36px] px-2 py-1 rounded-lg hover:bg-surface-sunken hover:text-brand-primary transition-colors shrink-0 font-semibold"
       >
         <Home size={14} className="text-brand-primary" />
-        <span>Hierarki</span>
+        <span>Organisasi</span>
       </Link>
 
       {items.map((item, index) => {

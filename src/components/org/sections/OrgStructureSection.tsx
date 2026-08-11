@@ -37,7 +37,7 @@ export const OrgStructureSection: React.FC<OrgStructureSectionProps> = ({ struct
                   Organisasi Induk (Parent)
                 </div>
                 <Link 
-                  href={`/dashboard/org/${structState.value.parent.id_org}`}
+                  href={`/org/${structState.value.parent.id_org}`}
                   className="flex items-center justify-between group text-sm font-semibold text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
                   <div className="flex items-center gap-2">
@@ -64,7 +64,7 @@ export const OrgStructureSection: React.FC<OrgStructureSectionProps> = ({ struct
                   {structState.value.children.map((child) => (
                     <Link
                       key={child.id_org}
-                      href={`/dashboard/org/${child.id_org}`}
+                      href={`/org/${child.id_org}`}
                       className="flex items-center justify-between p-3 rounded-lg border border-slate-100 dark:border-slate-800/80 hover:border-blue-200 dark:hover:border-blue-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group"
                     >
                       <div className="min-w-0 pr-2">

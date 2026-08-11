@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { AidRequestProposalViewModel } from '@/types/aidRequestViewModel.types';
-import { Building, ExternalLink } from 'lucide-react';
+import { Building, ExternalLink, FileText, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 interface AidRequestAssetsSectionProps {
@@ -33,33 +33,37 @@ export const AidRequestAssetsSection: React.FC<AidRequestAssetsSectionProps> = (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
             {hasTanah && (
               <Link 
-                href={`/dashboard/assets/${(proposal.idTanah as any).value}`}
-                className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 hover:border-blue-500 transition-colors space-y-1 block"
+                href={`/assets/${(proposal.idTanah as any).value}`}
+                className="p-3 bg-surface-1 rounded-xl border border-border-subtle hover:border-brand-primary transition-colors flex items-center justify-between group"
               >
-                <div className="font-semibold text-slate-900 dark:text-slate-100 flex items-center justify-between">
-                  <span>Aset Tanah</span>
-                  <ExternalLink className="w-3.5 h-3.5 text-blue-500" />
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-brand-primary" />
+                  <span className="text-sm font-semibold text-text-strong">
+                    Tanah #{(proposal.idTanah as any).value}
+                  </span>
                 </div>
-                <div className="font-mono text-slate-500">ID: {(proposal.idTanah as any).value}</div>
+                <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-brand-primary transition-colors" />
               </Link>
             )}
 
-            {hasBangunan && (
+            {proposal.idBangunan?.type === 'DATA' && (proposal.idBangunan as any).value && (
               <Link 
-                href={`/dashboard/assets/${(proposal.idBangunan as any).value}`}
-                className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 hover:border-blue-500 transition-colors space-y-1 block"
+                href={`/assets/${(proposal.idBangunan as any).value}`}
+                className="p-3 bg-surface-1 rounded-xl border border-border-subtle hover:border-brand-primary transition-colors flex items-center justify-between group"
               >
-                <div className="font-semibold text-slate-900 dark:text-slate-100 flex items-center justify-between">
-                  <span>Aset Bangunan</span>
-                  <ExternalLink className="w-3.5 h-3.5 text-blue-500" />
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-brand-primary" />
+                  <span className="text-sm font-semibold text-text-strong">
+                    Bangunan #{(proposal.idBangunan as any).value}
+                  </span>
                 </div>
-                <div className="font-mono text-slate-500">ID: {(proposal.idBangunan as any).value}</div>
+                <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-brand-primary transition-colors" />
               </Link>
             )}
 
-            {hasAsetB && (
+            {proposal.idAsetB?.type === 'DATA' && (proposal.idAsetB as any).value && (
               <Link 
-                href={`/dashboard/assets/${(proposal.idAsetB as any).value}`}
+                href={`/assets/${(proposal.idAsetB as any).value}`}
                 className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 hover:border-blue-500 transition-colors space-y-1 block"
               >
                 <div className="font-semibold text-slate-900 dark:text-slate-100 flex items-center justify-between">

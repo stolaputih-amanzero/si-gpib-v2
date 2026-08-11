@@ -250,7 +250,7 @@ export default function WilayahMapInner({ data, jemaatData = [], selectedPosId, 
       {/* Action Button */}
       <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
         <Link
-          href={`/dashboard/pos-pelkes/${item.id_pos}`}
+          href={`/org/${encodeURIComponent(item.id_pos)}`}
           className="w-full min-h-[38px] bg-blue-600 hover:bg-blue-700 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-md"
           style={{ color: '#ffffff !important' }}
         >
@@ -332,7 +332,7 @@ export default function WilayahMapInner({ data, jemaatData = [], selectedPosId, 
 
                         <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
                           <Link
-                            href={`/hierarki/${encodeURIComponent(jemaat.id_mupel)}/${encodeURIComponent(jemaat.id_induk)}`}
+                            href={`/org/${encodeURIComponent(jemaat.id_induk)}`}
                             className="w-full min-h-[38px] bg-indigo-600 hover:bg-indigo-700 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 text-white"
                             style={{ color: '#ffffff !important' }}
                           >

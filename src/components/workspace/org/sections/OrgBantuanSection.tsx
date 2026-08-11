@@ -43,7 +43,7 @@ export function OrgBantuanSection({ orgData }: { orgData: LegacyUnifiedOrganizat
       {requests.map((req: any) => (
         <Link 
           key={req.id} 
-          href={`/dashboard/aid-requests/${encodeURIComponent(req.id)}`}
+          href={`/aid-requests/${encodeURIComponent(req.id)}`}
           className="block bg-surface-1 border border-border-subtle rounded-2xl p-4 shadow-2xs hover:bg-surface-sunken transition-colors"
         >
           <div className="flex justify-between items-start mb-3">

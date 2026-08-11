@@ -127,7 +127,7 @@ export function AssetIntelligenceClient({ assetData }: AssetIntelligenceClientPr
                 <EmptyState icon={MapPin} title="Belum ada data tanah" />
               ) : (
                 assetData.tanah.map((item: any) => (
-                  <Link href={`/dashboard/assets/${item.id_tanah}`} key={item.id_tanah} className="block">
+                  <Link href={`/assets/${item.id_tanah}`} key={item.id_tanah} className="block">
                     <Card className="mb-3 bg-bg-surface border-border-subtle hover:border-brand-primary/50 transition-colors">
                       <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-2">
@@ -150,7 +150,7 @@ export function AssetIntelligenceClient({ assetData }: AssetIntelligenceClientPr
                 <EmptyState icon={Building} title="Belum ada data bangunan" />
               ) : (
                 assetData.bangunan.map((item: any) => (
-                  <Link href={`/dashboard/assets/${item.id_bangunan}`} key={item.id_bangunan} className="block">
+                  <Link href={`/assets/${item.id_bangunan}`} key={item.id_bangunan} className="block">
                     <Card className="mb-3 bg-bg-surface border-border-subtle hover:border-brand-secondary/50 transition-colors">
                       <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-2">
@@ -173,7 +173,7 @@ export function AssetIntelligenceClient({ assetData }: AssetIntelligenceClientPr
                 <EmptyState icon={Car} title="Belum ada data aset bergerak" />
               ) : (
                 assetData.bergerak.map((item: any) => (
-                  <Link href={`/dashboard/assets/${item.id_aset_b}`} key={item.id_aset_b} className="block">
+                  <Link href={`/assets/${item.id_aset_b}`} key={item.id_aset_b} className="block">
                     <Card className="mb-3 bg-bg-surface border-border-subtle hover:border-brand-tertiary/50 transition-colors">
                       <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-2">

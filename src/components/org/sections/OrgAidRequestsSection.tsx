@@ -72,7 +72,7 @@ export const OrgAidRequestsSection: React.FC<OrgAidRequestsSectionProps> = ({ ai
             {aidRequests.items.value.map((item) => (
               <Link
                 key={item.id_ajuan}
-                href={`/dashboard/aid-requests/${item.id_ajuan}`}
+                href={`/aid-requests/${item.id_ajuan}`}
                 className="flex items-center justify-between p-3 rounded-lg border border-slate-100 dark:border-slate-800/80 hover:border-blue-200 dark:hover:border-blue-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group"
               >
                 <div className="min-w-0 pr-2">

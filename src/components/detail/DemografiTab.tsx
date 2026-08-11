@@ -173,7 +173,6 @@ export function DemografiTab({ id_pos }: DemografiTabProps) {
                     {item.total} Jiwa
                   </span>
                 }
-                href="/laporan/demografi"
               />
             );
           })}

@@ -51,7 +51,7 @@ export function PeranPenugasanSection({ idPendeta }: PeranPenugasanSectionProps)
 
           {pelayanan.id_induk && (
             <Link
-              href={`/hierarki/${pelayanan.mupel_nama ? 'mupel' : '1'}/${pelayanan.id_induk}`}
+              href={`/org/${encodeURIComponent(pelayanan.id_induk)}`}
               className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-600 hover:underline pt-1"
             >
               <span>Lihat Halaman Jemaat Induk</span>
@@ -94,7 +94,7 @@ export function PeranPenugasanSection({ idPendeta }: PeranPenugasanSectionProps)
                 </div>
 
                 <Link
-                  href={`/dashboard/pos-pelkes/${p.id_pos}`}
+                  href={`/org/${encodeURIComponent(p.id_pos)}`}
                   className="btn btn-ghost text-xs min-h-[44px] shrink-0"
                 >
                   <span>Buka Pos</span>

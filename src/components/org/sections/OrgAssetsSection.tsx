@@ -55,7 +55,7 @@ export const OrgAssetsSection: React.FC<OrgAssetsSectionProps> = ({ assets }) =>
             {assets.items.value.map((item) => (
               <Link
                 key={item.id_asset}
-                href={`/dashboard/assets/${item.id_asset}`}
+                href={`/assets/${item.id_asset}`}
                 className="flex items-center justify-between p-3 rounded-lg border border-slate-100 dark:border-slate-800/80 hover:border-blue-200 dark:hover:border-blue-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group"
               >
                 <div className="flex items-center gap-3 min-w-0">

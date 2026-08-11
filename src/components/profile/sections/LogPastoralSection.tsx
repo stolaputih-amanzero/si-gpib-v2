@@ -202,7 +202,7 @@ export function LogPastoralSection({ idPendeta }: LogPastoralSectionProps) {
       {/* Footer Link */}
       <div className="pt-3 border-t border-border-subtle/60 flex justify-end">
         <Link
-          href="/laporan/pastoral"
+          href="/dashboard/aktivitas"
           className="px-4 py-2 rounded-xl text-xs font-bold text-brand-primary hover:bg-brand-primary/10 transition-all flex items-center gap-1.5 min-h-[44px]"
         >
           <span>Lihat Semua Log Pastoral</span>
@@ -347,7 +347,7 @@ export function LogPastoralSection({ idPendeta }: LogPastoralSectionProps) {
                     </button>
 
                     <Link
-                      href="/laporan/pastoral"
+                      href="/dashboard/aktivitas"
                       className="flex-1 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary-dark transition-all shadow-soft min-h-[44px] flex items-center justify-center gap-1.5"
                     >
                       <span>Buka di Halaman Laporan</span>

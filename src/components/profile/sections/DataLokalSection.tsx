@@ -100,7 +100,7 @@ export function DataLokalSection({ userId, isSelf = true }: DataLokalSectionProp
                     </button>
 
                     <Link
-                      href={`/laporan/pastoral/baru?draft=${encodeURIComponent(draft.key_name)}`}
+                      href={`/dashboard/aktivitas?draft=${encodeURIComponent(draft.key_name)}`}
                       className="btn btn-primary text-xs min-h-[48px]"
                     >
                       <span>Lanjutkan</span>
