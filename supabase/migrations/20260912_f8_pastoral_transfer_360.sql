@@ -3,6 +3,18 @@
 -- Reference Implementation #7 (Dual-Context Relocation & Service Continuity)
 -- ============================================================================
 
+-- 0. RECONCILIATION AUDIT TRAIL LOG TABLE
+CREATE TABLE IF NOT EXISTS public.sys_reconciliation_audit_logs (
+    id_log TEXT PRIMARY KEY DEFAULT ('RECON-' || gen_random_uuid()::text),
+    table_name TEXT NOT NULL,
+    entity_id TEXT NOT NULL,
+    id_person TEXT,
+    action TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    metadata JSONB,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- 1. PHYSICAL TABLE: TRANSFER PROPOSALS (t_mutasi_pelayan)
 CREATE TABLE IF NOT EXISTS public.t_mutasi_pelayan (
     id_mutasi TEXT PRIMARY KEY DEFAULT ('MUTASI-' || gen_random_uuid()::text),
@@ -54,8 +66,10 @@ ALTER TABLE public.t_penugasan_pendeta ADD COLUMN IF NOT EXISTS tanggal_mulai DA
 ALTER TABLE public.t_penugasan_pendeta ADD COLUMN IF NOT EXISTS tanggal_selesai DATE;
 ALTER TABLE public.t_penugasan_pendeta ADD COLUMN IF NOT EXISTS status_penugasan TEXT DEFAULT 'ACTIVE';
 
--- Populate id_person from legacy id_pendeta if id_person is null
+-- Populate id_person & reconcile legacy status_tugas values with strict mapping & audit trail
 DO $$
+DECLARE
+    r RECORD;
 BEGIN
     IF EXISTS (
         SELECT 1 FROM information_schema.columns 
@@ -65,6 +79,67 @@ BEGIN
         SET id_person = COALESCE(id_person, id_pendeta) 
         WHERE id_person IS NULL;
     END IF;
+
+    -- Strict Mapping (No Guesswork)
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = 'public' AND table_name = 't_penugasan_pendeta' AND column_name = 'status_tugas'
+    ) THEN
+        UPDATE public.t_penugasan_pendeta 
+        SET status_penugasan = CASE 
+            WHEN status_tugas ILIKE 'aktif' THEN 'ACTIVE' 
+            WHEN status_tugas ILIKE 'selesai' THEN 'TRANSFERRED'
+            WHEN status_tugas ILIKE 'mutasi' THEN 'TRANSFERRED'
+            ELSE 'INACTIVE'
+        END
+        WHERE status_penugasan IS NULL;
+    END IF;
+
+    -- Deduplicate pre-existing duplicate ACTIVE assignments with Audit Logging:
+    FOR r IN (
+        WITH RankedActiveAssignments AS (
+            SELECT 
+                id_penugasan,
+                id_person,
+                id_pos,
+                nama_organisasi,
+                ROW_NUMBER() OVER (
+                    PARTITION BY id_person 
+                    ORDER BY COALESCE(tanggal_mulai, created_at::date) DESC, created_at DESC
+                ) as rn
+            FROM public.t_penugasan_pendeta
+            WHERE status_penugasan = 'ACTIVE' AND id_person IS NOT NULL
+        )
+        SELECT * FROM RankedActiveAssignments WHERE rn > 1
+    ) LOOP
+        -- Archive older active assignment
+        UPDATE public.t_penugasan_pendeta
+        SET 
+            status_penugasan = 'TRANSFERRED',
+            tanggal_selesai = COALESCE(tanggal_selesai, CURRENT_DATE)
+        WHERE id_penugasan = r.id_penugasan;
+
+        -- Record Audit Log for Historical Integrity
+        INSERT INTO public.sys_reconciliation_audit_logs (
+            table_name,
+            entity_id,
+            id_person,
+            action,
+            reason,
+            metadata
+        ) VALUES (
+            't_penugasan_pendeta',
+            r.id_penugasan,
+            r.id_person,
+            'ARCHIVE_DUPLICATE_ACTIVE',
+            'Legacy data reconciliation: archived older duplicate ACTIVE assignment while retaining historical continuity.',
+            jsonb_build_object(
+                'id_pos', r.id_pos,
+                'nama_organisasi', r.nama_organisasi,
+                'reconciled_at', NOW()
+            )
+        );
+    END LOOP;
 END $$;
 
 -- Indexing for fast lookup
@@ -79,6 +154,7 @@ WHERE (status_penugasan = 'ACTIVE' AND id_person IS NOT NULL);
 -- Enable RLS
 ALTER TABLE public.t_mutasi_pelayan ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.t_penugasan_pendeta ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.sys_reconciliation_audit_logs ENABLE ROW LEVEL SECURITY;
 
 -- 4. ATOMIC RELOCATION & STATE TRANSITION RPC
 CREATE OR REPLACE FUNCTION public.transition_pastoral_transfer_atomic(
