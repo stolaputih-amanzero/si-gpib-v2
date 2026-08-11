@@ -417,7 +417,10 @@ export function usePosByJemaat(id_induk?: string, search?: string) {
           .select('id_pos, jml_kk, laki, perempuan'),
       ]);
 
-      if (posRes.error) throw posRes.error;
+      if (posRes.error) {
+        console.warn('m_pos_pelkes query error fallback:', posRes.error);
+        return [];
+      }
 
       const posData = posRes.data || [];
       const jemaatData = jemaatRes.data || [];

@@ -32,13 +32,13 @@ export function useOrgDirectory() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // 1. Consume certified F3 hooks (which apply F12/RLS role scoping on data layer)
-  const { data: stats, isLoading: isStatsLoading, isError: isStatsError, refetch: refetchStats } = useHierarchyStats();
+  const { data: stats, isLoading: isStatsLoading, refetch: refetchStats } = useHierarchyStats();
   const { data: mupelList, isLoading: isMupelLoading, isError: isMupelError, refetch: refetchMupel } = useMupelList();
   const { data: jemaatList, isLoading: isJemaatLoading, isError: isJemaatError, refetch: refetchJemaat } = useJemaatByMupel('all');
-  const { data: posList, isLoading: isPosLoading, isError: isPosError, refetch: refetchPos } = usePosByJemaat('all');
+  const { data: posList, refetch: refetchPos } = usePosByJemaat('all');
 
-  const isLoading = isStatsLoading || isMupelLoading || isJemaatLoading || isPosLoading;
-  const isError = isStatsError || isJemaatError || isPosError || isMupelError;
+  const isLoading = isStatsLoading || isMupelLoading || isJemaatLoading;
+  const isError = Boolean(isMupelError && isJemaatError);
 
   const refetchAll = () => {
     refetchStats();
