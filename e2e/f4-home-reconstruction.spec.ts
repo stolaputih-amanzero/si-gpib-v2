@@ -15,9 +15,9 @@ test.describe('Fase 4 — Home Reconstruction Attention-First E2E Suite (/dashbo
 
     // Layer 3: Action Layer Shortcuts
     await expect(page.locator('text=Aksi Informasi Ringkas').first()).toBeVisible();
-    await expect(page.locator('a[href="/dashboard/aktivitas"]').first()).toBeVisible();
-    await expect(page.locator('a[href="/dashboard/aid-requests"]').first()).toBeVisible();
-    await expect(page.locator('a[href="/people"]').first()).toBeVisible();
+    await expect(page.locator('main a[href="/dashboard/aktivitas"]')).toBeVisible();
+    await expect(page.locator('main a[href="/dashboard/aid-requests"]')).toBeVisible();
+    await expect(page.locator('main a[href="/people"]')).toBeVisible();
 
     // Layer 4: Insight Layer Statistics
     await expect(page.locator('text=Ringkasan Statistik & Demografi').first()).toBeVisible();
