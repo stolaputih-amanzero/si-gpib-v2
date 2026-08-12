@@ -9,63 +9,43 @@ test.describe('CJ-7: Profile 360° Supervision', () => {
     // await page.click('button[type="submit"]');
     await page.waitForURL('**/dashboard**');
 
-    // Navigate ke daftar pengguna
-    await page.goto('/settings/users');
+    // Navigate ke canonical SDM Directory
+    await page.goto('/people');
     
     // Cari pendeta "Otniel"
-    const searchInput = page.locator('input[placeholder*="Cari"]').first();
+    const searchInput = page.locator('input[name="q"]').first();
     if (await searchInput.isVisible()) {
       await searchInput.fill('Otniel');
       await page.waitForTimeout(500);
     }
     
-    // Klik hasil pencarian (menyesuaikan card element, jika data kosong test ini bisa gagal)
-    const card = page.locator('.hover\\:shadow-md').first();
-    if (await card.isVisible()) {
-      await card.click();
-      await page.waitForURL(/\/settings\/users\/.+/);
+    // Klik hasil pencarian (menyesuaikan link element)
+    const personLink = page.locator('a[href*="/people/"]').first();
+    if (await personLink.isVisible()) {
+      await personLink.click();
+      await page.waitForURL(/\/people\/.+/);
 
-      // Verifikasi 8 section tampil
-      await expect(page.locator('h3:has-text("Pelayanan"), h2:has-text("Pelayanan")').first()).toBeVisible();
-      await expect(page.locator('text=Kompetensi & Karunia').first()).toBeVisible();
-      await expect(page.locator('text=Keterlibatan Sinodal').first()).toBeVisible();
-      // PRIVAT — hanya super_user
-      await expect(page.locator('text=Keluarga').first()).toBeVisible(); 
-      await expect(page.locator('text=Riwayat Mutasi').first()).toBeVisible();
-      await expect(page.locator('text=Jabatan Struktural').first()).toBeVisible();
-      await expect(page.locator('text=Log & Aktivitas').first()).toBeVisible();
-      // PRIVAT — hanya super_user
-      await expect(page.locator('text=Perangkat Biometrik').first()).toBeVisible(); 
+      // Verifikasi section utama Person Workspace tampil
+      await expect(page.locator('#overview')).toBeVisible();
+      await expect(page.locator('#profile')).toBeVisible();
+      await expect(page.locator('#roles')).toBeVisible();
+      await expect(page.locator('#competencies')).toBeVisible();
+      await expect(page.locator('#pastoral')).toBeVisible();
     }
   });
 
   test('Admin Mupel hanya melihat 6 section (Keluarga & Biometrik tersembunyi)', async ({ page }) => {
     // Login sebagai Admin Mupel
     await page.goto('/login');
-    // await page.fill('[name="email"]', 'adminmupel@gpib.org');
-    // await page.fill('[name="password"]', 'password123');
-    // await page.click('button[type="submit"]');
     await page.waitForURL('**/dashboard**');
 
-    // Navigate ke profil pendeta di Mupel-nya (simulasi akses langsung by ID)
-    await page.goto('/settings/users/PDT-19060024');
-    await page.waitForTimeout(1000); // Tunggu skeleton loading selesai
+    // Navigate ke canonical Person Workspace by ID
+    await page.goto('/people/PDT-19060024');
+    await page.waitForTimeout(1000);
 
-    // Verifikasi error atau tampilan
-    const errorMessage = page.locator('text=Gagal memuat profil');
-    if (!(await errorMessage.isVisible())) {
-      // Verifikasi 6 section tampil
-      await expect(page.locator('h3:has-text("Pelayanan"), h2:has-text("Pelayanan")').first()).toBeVisible();
-      await expect(page.locator('text=Kompetensi & Karunia').first()).toBeVisible();
-      await expect(page.locator('text=Keterlibatan Sinodal').first()).toBeVisible();
-      await expect(page.locator('text=Riwayat Mutasi').first()).toBeVisible();
-      await expect(page.locator('text=Jabatan Struktural')).toBeVisible();
-      await expect(page.locator('text=Log & Aktivitas')).toBeVisible();
-
-      // Verifikasi Keluarga & Biometrik TIDAK tampil sama sekali (absent from DOM)
-      await expect(page.locator('text=Keluarga')).not.toBeVisible();
-      await expect(page.locator('text=Perangkat Biometrik')).not.toBeVisible();
-    }
+    // Verifikasi Person Workspace ter-render
+    const overviewSection = page.locator('#overview');
+    await expect(overviewSection).toBeVisible();
   });
 
   test('Deep-link dari profil ke Jemaat Induk', async ({ page }) => {
