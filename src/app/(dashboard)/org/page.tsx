@@ -114,11 +114,11 @@ export default function OrgDirectoryPage() {
         </div>
       )}
 
-      {/* Directory Cards Grid */}
+      {/* Directory Semantic Row List */}
       {!isLoading && !isError && items.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {items.map((item) => (
-            <OrgCard key={`${item.type}-${item.id}`} item={item} />
+        <div className="bg-surface-1 border border-border-subtle rounded-card overflow-hidden divide-y divide-border-subtle shadow-2xs">
+          {items.map((item, idx) => (
+            <OrgCard key={`${item.type}-${item.id}`} item={item} isLast={idx === items.length - 1} />
           ))}
         </div>
       )}
