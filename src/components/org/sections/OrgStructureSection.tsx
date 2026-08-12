@@ -22,7 +22,7 @@ export const OrgStructureSection: React.FC<OrgStructureSectionProps> = ({ struct
         </h2>
       </div>
 
-      <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 shadow-xs space-y-5">
+      <div className="bg-slate-900/90 border border-border-subtle rounded-2xl p-5 shadow-xs space-y-5">
         {structState.type === 'PRIVACY_MASKED' ? (
           <PrivacyStateNotice reason={structState.reason} label={structState.label} />
         ) : structState.type === 'EMPTY' ? (
@@ -66,7 +66,7 @@ export const OrgStructureSection: React.FC<OrgStructureSectionProps> = ({ struct
                     <Link
                       key={child.id_org}
                       href={`/org/${child.id_org}`}
-                      className="flex items-center justify-between p-3.5 rounded-xl border border-slate-800/80 hover:border-blue-500/40 hover:bg-slate-800/60 transition-all group min-h-[56px]"
+                      className="flex items-center justify-between p-3.5 rounded-xl border border-border-subtle hover:border-blue-500/40 hover:bg-slate-800/60 transition-all group min-h-[56px]"
                       aria-label={`Buka unit ${child.nama}`}
                     >
                       <div className="min-w-0 pr-2">

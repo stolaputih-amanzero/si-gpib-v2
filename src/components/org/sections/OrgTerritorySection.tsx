@@ -19,9 +19,9 @@ export const OrgTerritorySection: React.FC<OrgTerritorySectionProps> = ({ territ
         </h2>
       </div>
 
-      <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 shadow-xs space-y-5">
+      <div className="bg-slate-900/90 border border-border-subtle rounded-2xl p-5 shadow-xs space-y-5">
         {/* Kerawanan Wilayah */}
-        <div className="space-y-2 pt-3 border-t border-slate-800/80">
+        <div className="space-y-2 pt-3 border-t border-border-subtle">
           <div className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
             <AlertTriangle className="w-4 h-4" />
             Kerawanan Wilayah
@@ -44,7 +44,7 @@ export const OrgTerritorySection: React.FC<OrgTerritorySectionProps> = ({ territ
         </div>
 
         {/* Potensi Wilayah */}
-        <div className="space-y-2 pt-3 border-t border-slate-800/80">
+        <div className="space-y-2 pt-3 border-t border-border-subtle">
           <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
             <Lightbulb className="w-4 h-4" />
             Potensi Pelayanan &amp; SDA/SDM

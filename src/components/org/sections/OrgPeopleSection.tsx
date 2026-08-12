@@ -20,7 +20,7 @@ export const OrgPeopleSection: React.FC<OrgPeopleSectionProps> = ({ people }) =>
         </h2>
       </div>
 
-      <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 shadow-xs space-y-4">
+      <div className="bg-slate-900/90 border border-border-subtle rounded-2xl p-5 shadow-xs space-y-4">
         {/* Active KMJ Card */}
         {people.kmj.type === 'PRIVACY_MASKED' ? (
           <PrivacyStateNotice reason={people.kmj.reason} label={people.kmj.label} />
@@ -59,7 +59,7 @@ export const OrgPeopleSection: React.FC<OrgPeopleSectionProps> = ({ people }) =>
                 <Link
                   key={person.id_person}
                   href={`/people/${person.id_person}`}
-                  className="flex items-center justify-between p-3.5 rounded-xl border border-slate-800/80 hover:border-blue-500/40 hover:bg-slate-800/60 transition-all group min-h-[56px]"
+                  className="flex items-center justify-between p-3.5 rounded-xl border border-border-subtle hover:border-blue-500/40 hover:bg-slate-800/60 transition-all group min-h-[56px]"
                   aria-label={`Buka profil ${person.nama_lengkap}`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">

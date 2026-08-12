@@ -20,10 +20,10 @@ export const OrgAssetsSection: React.FC<OrgAssetsSectionProps> = ({ assets }) =>
         </h2>
       </div>
 
-      <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 shadow-xs space-y-4">
+      <div className="bg-slate-900/90 border border-border-subtle rounded-2xl p-5 shadow-xs space-y-4">
         {/* Aggregate Stats Bar */}
         {assets.totalCount.type === 'DATA' && (
-          <div className="grid grid-cols-3 gap-2 text-center p-3 rounded-xl bg-slate-950 border border-slate-800/80">
+          <div className="grid grid-cols-3 gap-2 text-center p-3 rounded-xl bg-slate-950 border border-border-subtle">
             <div>
               <div className="text-xs text-slate-400 font-medium">Tanah</div>
               <div className="text-base font-bold text-slate-100 font-sans tabular-nums">
@@ -56,7 +56,7 @@ export const OrgAssetsSection: React.FC<OrgAssetsSectionProps> = ({ assets }) =>
               <Link
                 key={item.id_asset}
                 href={`/assets/${item.id_asset}`}
-                className="flex items-center justify-between p-3.5 rounded-xl border border-slate-800/80 hover:border-blue-500/40 hover:bg-slate-800/60 transition-all group min-h-[56px]"
+                className="flex items-center justify-between p-3.5 rounded-xl border border-border-subtle hover:border-blue-500/40 hover:bg-slate-800/60 transition-all group min-h-[56px]"
                 aria-label={`Buka detail aset ${item.nama_aset}`}
               >
                 <div className="flex items-center gap-3 min-w-0">

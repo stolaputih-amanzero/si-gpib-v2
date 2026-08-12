@@ -6,6 +6,7 @@ import { haptic } from '@/lib/haptic/vibrate';
 import { NetworkStatusBadge } from '@/components/ui/NetworkStatusBadge';
 import { ContextChip } from '@/components/mobile/ContextChip';
 import { SyncManagerSheet } from '@/components/offline/SyncManagerSheet';
+import { GlobalSearchSheet } from '@/components/search/GlobalSearchSheet';
 
 export function MobileHeader() {
   const pathname = usePathname();
@@ -19,7 +20,7 @@ export function MobileHeader() {
     pathname === '/settings';
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-slate-900/95 backdrop-blur-md border-b border-slate-800/80 md:hidden shadow-xs select-none pt-[env(safe-area-inset-top)]">
+    <header className="sticky top-0 z-40 w-full bg-slate-900/95 backdrop-blur-md border-b border-border-subtle md:hidden shadow-xs select-none pt-[env(safe-area-inset-top)]">
       <div className="flex items-center justify-between min-h-[56px] px-4 py-1.5">
         {/* Left Side: ContextChip on Root Tab, [←] History Back + ContextChip on Pushed Views */}
         <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
@@ -43,8 +44,9 @@ export function MobileHeader() {
           <ContextChip />
         </div>
 
-        {/* Right Side: SyncManager + NetworkStatus (Theme Toggle moved to Akun -> Preferensi) */}
+        {/* Right Side: Global Search + SyncManager + NetworkStatus */}
         <div className="flex items-center shrink-0 gap-2">
+          <GlobalSearchSheet />
           <SyncManagerSheet />
           <NetworkStatusBadge showText={false} />
         </div>

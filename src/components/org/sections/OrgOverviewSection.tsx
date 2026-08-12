@@ -21,7 +21,7 @@ export const OrgOverviewSection: React.FC<OrgOverviewSectionProps> = ({ overview
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Alamat & Geolocation Card */}
-        <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
+        <div className="bg-slate-900/90 border border-border-subtle rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
             <MapPin className="w-4 h-4 text-blue-400" />
             Lokasi &amp; Alamat Resmi
@@ -38,21 +38,21 @@ export const OrgOverviewSection: React.FC<OrgOverviewSectionProps> = ({ overview
           )}
 
           {overview.geolocation.type === 'DATA' && (
-            <div className="text-xs font-sans tabular-nums text-slate-400 bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+            <div className="text-xs font-sans tabular-nums text-slate-400 bg-slate-950 p-2.5 rounded-xl border border-border-subtle">
               Lat: {overview.geolocation.value.latitude.toFixed(6)}, Long: {overview.geolocation.value.longitude.toFixed(6)}
             </div>
           )}
         </div>
 
         {/* Status Operasional & Tanggal Berdiri Card */}
-        <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
+        <div className="bg-slate-900/90 border border-border-subtle rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
             <Calendar className="w-4 h-4 text-blue-400" />
             Informasi Pendirian &amp; Statistik
           </div>
 
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between items-center py-2 border-b border-slate-800/80">
+            <div className="flex justify-between items-center py-2 border-b border-border-subtle">
               <span className="text-slate-400">Tanggal Berdiri</span>
               {overview.tglBerdiri.type === 'DATA' ? (
                 <span className="font-semibold text-slate-100 font-sans tabular-nums">{overview.tglBerdiri.value}</span>
@@ -61,7 +61,7 @@ export const OrgOverviewSection: React.FC<OrgOverviewSectionProps> = ({ overview
               )}
             </div>
 
-            <div className="flex justify-between items-center py-2 border-b border-slate-800/80">
+            <div className="flex justify-between items-center py-2 border-b border-border-subtle">
               <span className="text-slate-400">KMJ / Penanggung Jawab</span>
               {overview.kmjNama.type === 'DATA' ? (
                 <span className="font-semibold text-blue-400 flex items-center gap-1">

@@ -21,7 +21,7 @@ export const CompetenciesSection: React.FC<CompetenciesSectionProps> = ({ compet
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Skills Card */}
-        <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 shadow-xs space-y-3">
+        <div className="p-5 rounded-2xl bg-slate-900/90 border border-border-subtle shadow-xs space-y-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
             <Wrench className="w-3.5 h-3.5 text-blue-400" />
             <span>Keahlian &amp; Spesialisasi</span>
@@ -41,14 +41,14 @@ export const CompetenciesSection: React.FC<CompetenciesSectionProps> = ({ compet
           ) : competencies.skills.type === 'PRIVACY_MASKED' ? (
             <PrivacyStateNotice reason={competencies.skills.reason} label={competencies.skills.label} />
           ) : (
-            <p className="text-xs italic text-slate-500 p-3 text-center bg-slate-950 rounded-xl border border-slate-800/80">
+            <p className="text-xs italic text-slate-500 p-3 text-center bg-slate-950 rounded-xl border border-border-subtle">
               {competencies.skills.label}
             </p>
           )}
         </div>
 
         {/* Education Card */}
-        <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 shadow-xs space-y-3">
+        <div className="p-5 rounded-2xl bg-slate-900/90 border border-border-subtle shadow-xs space-y-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
             <GraduationCap className="w-3.5 h-3.5 text-blue-400" />
             <span>Pendidikan Formal</span>
@@ -57,7 +57,7 @@ export const CompetenciesSection: React.FC<CompetenciesSectionProps> = ({ compet
           {competencies.education.type === 'DATA' ? (
             <div className="space-y-2">
               {competencies.education.value.map((edu, i) => (
-                <div key={i} className="p-3 rounded-xl bg-slate-950 text-xs space-y-0.5 border border-slate-800/80">
+                <div key={i} className="p-3 rounded-xl bg-slate-950 text-xs space-y-0.5 border border-border-subtle">
                   <p className="font-bold text-slate-100">{edu.jenjang} {edu.jurusan ? `- ${edu.jurusan}` : ''}</p>
                   <p className="text-slate-400">{edu.institusi} {edu.tahun_lulus ? `(${edu.tahun_lulus})` : ''}</p>
                 </div>
@@ -66,14 +66,14 @@ export const CompetenciesSection: React.FC<CompetenciesSectionProps> = ({ compet
           ) : competencies.education.type === 'PRIVACY_MASKED' ? (
             <PrivacyStateNotice reason={competencies.education.reason} label={competencies.education.label} />
           ) : (
-            <p className="text-xs italic text-slate-500 p-3 text-center bg-slate-950 rounded-xl border border-slate-800/80">
+            <p className="text-xs italic text-slate-500 p-3 text-center bg-slate-950 rounded-xl border border-border-subtle">
               {competencies.education.label}
             </p>
           )}
         </div>
 
         {/* Certifications Card */}
-        <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 shadow-xs space-y-3">
+        <div className="p-5 rounded-2xl bg-slate-900/90 border border-border-subtle shadow-xs space-y-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
             <Award className="w-3.5 h-3.5 text-blue-400" />
             <span>Sertifikasi &amp; Pelatihan</span>
@@ -82,7 +82,7 @@ export const CompetenciesSection: React.FC<CompetenciesSectionProps> = ({ compet
           {competencies.certifications.type === 'DATA' ? (
             <div className="space-y-2">
               {competencies.certifications.value.map((cert, i) => (
-                <div key={i} className="p-3 rounded-xl bg-slate-950 text-xs space-y-0.5 border border-slate-800/80">
+                <div key={i} className="p-3 rounded-xl bg-slate-950 text-xs space-y-0.5 border border-border-subtle">
                   <p className="font-bold text-slate-100">{cert.nama_sertifikasi}</p>
                   <p className="text-slate-400">{cert.penerbit} ({cert.tahun})</p>
                 </div>
@@ -91,7 +91,7 @@ export const CompetenciesSection: React.FC<CompetenciesSectionProps> = ({ compet
           ) : competencies.certifications.type === 'PRIVACY_MASKED' ? (
             <PrivacyStateNotice reason={competencies.certifications.reason} label={competencies.certifications.label} />
           ) : (
-            <p className="text-xs italic text-slate-500 p-3 text-center bg-slate-950 rounded-xl border border-slate-800/80">
+            <p className="text-xs italic text-slate-500 p-3 text-center bg-slate-950 rounded-xl border border-border-subtle">
               {competencies.certifications.label}
             </p>
           )}

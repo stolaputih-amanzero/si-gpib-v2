@@ -58,6 +58,14 @@ export const SUPER_MENU_GROUPS: SuperMenuGroupConfig[] = [
     ],
   },
   {
+    title: 'Proyeksi & Lensa Analitis',
+    items: [
+      { icon: HandHelping,   label: 'Antrean Bantuan',   href: '/projections/aid-queue',     color: '#F59E0B' }, // amber-500
+      { icon: Map,           label: 'Peta Spasial',      href: '/projections/territory-map', color: '#3B82F6' }, // blue-500
+      { icon: Building2,     label: 'Intelijen Aset',    href: '/projections/asset-intel',    color: '#8B5CF6' }, // violet-500
+    ],
+  },
+  {
     title: 'Data Pelayanan',
     items: [
       { icon: Users,         label: 'Data Pelayan',      href: '/people',                    color: '#8B5CF6' }, // violet-500

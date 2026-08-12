@@ -19,7 +19,7 @@ export const OrgDemographySection: React.FC<OrgDemographySectionProps> = ({ demo
         </h2>
       </div>
 
-      <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 shadow-xs">
+      <div className="bg-slate-900/90 border border-border-subtle rounded-2xl p-5 shadow-xs">
         {demography.demografi.type === 'PRIVACY_MASKED' ? (
           <PrivacyStateNotice reason={demography.demografi.reason} label={demography.demografi.label} />
         ) : demography.demografi.type === 'EMPTY' ? (
@@ -27,7 +27,7 @@ export const OrgDemographySection: React.FC<OrgDemographySectionProps> = ({ demo
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {demography.demografi.value.map((item, idx) => (
-              <div key={idx} className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 space-y-2">
+              <div key={idx} className="p-4 rounded-xl bg-slate-950 border border-border-subtle space-y-2">
                 <div className="text-xs font-bold text-slate-300 uppercase tracking-wider">
                   {item.kategori_pelkat}
                 </div>

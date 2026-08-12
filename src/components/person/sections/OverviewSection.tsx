@@ -21,7 +21,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({ overview }) =>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Current Role Card */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 shadow-xs space-y-1">
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-border-subtle shadow-xs space-y-1">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
             <Building className="w-4 h-4 text-blue-400" />
             <span>Jabatan &amp; Organisasi</span>
@@ -41,7 +41,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({ overview }) =>
         </div>
 
         {/* Active Status Card */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 shadow-xs space-y-1">
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-border-subtle shadow-xs space-y-1">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
             <Activity className="w-4 h-4 text-blue-400" />
             <span>Status Layanan</span>
@@ -60,7 +60,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({ overview }) =>
         </div>
 
         {/* Pastoral Activity Count Card */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 shadow-xs space-y-1">
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-border-subtle shadow-xs space-y-1">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
             <HeartHandshake className="w-4 h-4 text-blue-400" />
             <span>Aktivitas Pastoral</span>
@@ -77,7 +77,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({ overview }) =>
         </div>
 
         {/* Affiliation Origin */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 shadow-xs space-y-1">
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-border-subtle shadow-xs space-y-1">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
             <ShieldCheck className="w-4 h-4 text-blue-400" />
             <span>Afiliasi Organisasi</span>

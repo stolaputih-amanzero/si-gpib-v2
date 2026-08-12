@@ -15,7 +15,7 @@ export const PastoralSection: React.FC<PastoralSectionProps> = ({ pastoral }) =>
   return (
     <section id="pastoral" className="scroll-mt-36 md:scroll-mt-28 space-y-5 w-full max-w-full overflow-hidden">
       {/* Header Section */}
-      <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+      <div className="flex items-center justify-between border-b border-border-subtle pb-3">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
             <HeartHandshake className="w-5 h-5" />
@@ -33,7 +33,7 @@ export const PastoralSection: React.FC<PastoralSectionProps> = ({ pastoral }) =>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 w-full">
         {/* Card 1: Upcoming Schedules */}
-        <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 shadow-xs space-y-4 w-full overflow-hidden">
+        <div className="p-5 rounded-2xl bg-slate-900/90 border border-border-subtle shadow-xs space-y-4 w-full overflow-hidden">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
               <Calendar className="w-4 h-4 text-blue-400 shrink-0" />
@@ -44,7 +44,7 @@ export const PastoralSection: React.FC<PastoralSectionProps> = ({ pastoral }) =>
           {pastoral.upcomingSchedules.type === 'DATA' ? (
             <div className="space-y-3">
               {pastoral.upcomingSchedules.value.map((sch) => (
-                <div key={sch.id_jadwal} className="p-3.5 rounded-xl bg-slate-950 border border-slate-800/80 space-y-1.5 w-full overflow-hidden">
+                <div key={sch.id_jadwal} className="p-3.5 rounded-xl bg-slate-950 border border-border-subtle space-y-1.5 w-full overflow-hidden">
                   <div className="flex items-center justify-between font-bold text-sm text-slate-100 gap-2">
                     <span className="truncate">{sch.nama_kegiatan}</span>
                     <span className="text-xs font-bold text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 font-sans tabular-nums shrink-0">
@@ -61,7 +61,7 @@ export const PastoralSection: React.FC<PastoralSectionProps> = ({ pastoral }) =>
           ) : pastoral.upcomingSchedules.type === 'PRIVACY_MASKED' ? (
             <PrivacyStateNotice reason={pastoral.upcomingSchedules.reason} label={pastoral.upcomingSchedules.label} />
           ) : (
-            <div className="p-6 border border-slate-800/80 bg-slate-950 rounded-xl text-center space-y-1">
+            <div className="p-6 border border-border-subtle bg-slate-950 rounded-xl text-center space-y-1">
               <Calendar className="w-6 h-6 text-slate-600 mx-auto" />
               <p className="text-xs italic text-slate-500">{pastoral.upcomingSchedules.label}</p>
             </div>
@@ -69,7 +69,7 @@ export const PastoralSection: React.FC<PastoralSectionProps> = ({ pastoral }) =>
         </div>
 
         {/* Card 2: Pastoral Logs Timeline & Dokumentasi Foto */}
-        <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 shadow-xs space-y-4 w-full overflow-hidden">
+        <div className="p-5 rounded-2xl bg-slate-900/90 border border-border-subtle shadow-xs space-y-4 w-full overflow-hidden">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
               <FileText className="w-4 h-4 text-emerald-500 shrink-0" />

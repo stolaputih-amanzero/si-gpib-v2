@@ -84,7 +84,7 @@ export const OrgNavigationAnchor: React.FC = () => {
   return (
     <nav 
       aria-label="Navigasi Seksi Organisasi" 
-      className="sticky top-0 z-30 bg-[#111A2B]/95 backdrop-blur-md border-y border-slate-800/80 shadow-xs py-2 px-1"
+      className="sticky top-0 z-30 bg-[#111A2B]/95 backdrop-blur-md border-y border-border-subtle shadow-xs py-2 px-1"
     >
       <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-full">
         {ANCHORS.map((item) => {

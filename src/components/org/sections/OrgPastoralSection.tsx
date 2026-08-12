@@ -30,7 +30,7 @@ export const OrgPastoralSection: React.FC<OrgPastoralSectionProps> = ({ pastoral
         )}
       </div>
 
-      <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 shadow-xs space-y-5">
+      <div className="bg-slate-900/90 border border-border-subtle rounded-2xl p-5 shadow-xs space-y-5">
         {/* Worship Schedule Sub-section */}
         <div className="space-y-2">
           <div className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -45,7 +45,7 @@ export const OrgPastoralSection: React.FC<OrgPastoralSectionProps> = ({ pastoral
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {pastoral.jadwalIbadah.value.map((item) => (
-                <div key={item.id_jadwal} className="p-3.5 rounded-xl bg-slate-950 border border-slate-800/80 text-xs flex justify-between items-center">
+                <div key={item.id_jadwal} className="p-3.5 rounded-xl bg-slate-950 border border-border-subtle text-xs flex justify-between items-center">
                   <div>
                     <div className="font-bold text-slate-100">{item.nama_ibadah}</div>
                     <div className="text-slate-400 mt-0.5">{item.hari}</div>
@@ -61,7 +61,7 @@ export const OrgPastoralSection: React.FC<OrgPastoralSectionProps> = ({ pastoral
         </div>
 
         {/* Log Pastoral Sub-section */}
-        <div className="space-y-2 pt-3 border-t border-slate-800/80">
+        <div className="space-y-2 pt-3 border-t border-border-subtle">
           <div className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
             <BookOpen className="w-4 h-4 text-blue-400" />
             Jejak &amp; Log Pastoral (`t_log_pastoral`)
@@ -77,7 +77,7 @@ export const OrgPastoralSection: React.FC<OrgPastoralSectionProps> = ({ pastoral
                 <Link
                   key={log.id_log}
                   href={`/dashboard/aktivitas?id=${log.id_log}`}
-                  className="flex items-center justify-between p-3.5 rounded-xl border border-slate-800/80 hover:border-blue-500/40 hover:bg-slate-800/60 transition-all group min-h-[56px]"
+                  className="flex items-center justify-between p-3.5 rounded-xl border border-border-subtle hover:border-blue-500/40 hover:bg-slate-800/60 transition-all group min-h-[56px]"
                   aria-label={`Buka detail log pastoral ${log.jenis_kegiatan}`}
                 >
                   <div className="min-w-0 pr-2">

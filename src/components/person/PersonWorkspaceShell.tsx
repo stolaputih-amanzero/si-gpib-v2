@@ -7,9 +7,16 @@ import { PersonHeader } from './PersonHeader';
 import { PersonNavigationAnchor } from './PersonNavigationAnchor';
 import { OverviewSection } from './sections/OverviewSection';
 import { ProfileSection } from './sections/ProfileSection';
-import { RolesSection } from './sections/RolesSection';
+import { FamilySection } from './sections/FamilySection';
+import { AssignmentSection } from './sections/AssignmentSection';
+import { StructuralRoleSection } from './sections/StructuralRoleSection';
+import { TransferHistorySection } from './sections/TransferHistorySection';
 import { CompetenciesSection } from './sections/CompetenciesSection';
+import { ExternalInvolvementSection } from './sections/ExternalInvolvementSection';
 import { PastoralSection } from './sections/PastoralSection';
+import { ServicePeriodSection } from './sections/ServicePeriodSection';
+import { ServiceFieldSection } from './sections/ServiceFieldSection';
+import { ActivitiesSection } from './sections/ActivitiesSection';
 
 interface PersonWorkspaceShellProps {
   person: UnifiedPersonData;
@@ -48,22 +55,39 @@ export const PersonWorkspaceShell: React.FC<PersonWorkspaceShellProps> = ({ pers
         <PersonNavigationAnchor />
       </div>
 
-      {/* 3. Progressive Single Workspace Sections (PR-03 ADR-04 Matrix) */}
+      {/* 3. Progressive Single Workspace Sections (Strict ADR-04 Matrix per Person Type) */}
       <main className="max-w-5xl mx-auto px-4 space-y-10">
-        {/* Ringkasan Overview */}
         <OverviewSection overview={vm.overview} />
+        <ProfileSection profile={vm.profile} />
 
-        {/* Profil Section */}
-        <ProfileSection profile={vm.profile} isSelfPerson={isSelfPerson} />
-
-        {/* Penugasan & Peran */}
-        <RolesSection roles={vm.roles} />
-
-        {/* Kompetensi (A-1 Neutrality W-6) */}
-        <CompetenciesSection competencies={vm.competencies} />
-
-        {/* Pastoral & Aktivitas Pelayanan */}
-        <PastoralSection pastoral={vm.pastoral} />
+        {personType === 'PENDETA' ? (
+          <>
+            <AssignmentSection roles={vm.roles} />
+            <StructuralRoleSection roles={vm.roles} />
+            <TransferHistorySection roles={vm.roles} />
+            <FamilySection profile={vm.profile} isSelfPerson={isSelfPerson} />
+            <CompetenciesSection competencies={vm.competencies} />
+            <ExternalInvolvementSection roles={vm.roles} />
+            <PastoralSection pastoral={vm.pastoral} />
+          </>
+        ) : personType === 'PELAYAN' ? (
+          <>
+            <AssignmentSection roles={vm.roles} />
+            <StructuralRoleSection roles={vm.roles} />
+            <ServicePeriodSection roles={vm.roles} />
+            <CompetenciesSection competencies={vm.competencies} />
+            <ActivitiesSection pastoral={vm.pastoral} />
+            <PastoralSection pastoral={vm.pastoral} />
+          </>
+        ) : (
+          <>
+            <AssignmentSection roles={vm.roles} />
+            <ServiceFieldSection roles={vm.roles} />
+            <CompetenciesSection competencies={vm.competencies} />
+            <ActivitiesSection pastoral={vm.pastoral} />
+            <PastoralSection pastoral={vm.pastoral} />
+          </>
+        )}
       </main>
     </div>
   );

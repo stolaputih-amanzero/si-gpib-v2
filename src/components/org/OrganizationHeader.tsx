@@ -35,7 +35,7 @@ export const OrganizationHeader: React.FC<OrganizationHeaderProps> = ({ header }
   const isActiveContextUnit = activeContextId === header.id_org;
 
   return (
-    <header className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-xs space-y-4">
+    <header className="bg-slate-900/90 border border-border-subtle rounded-2xl p-5 md:p-6 shadow-xs space-y-4">
       {/* Primary Identity Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         {/* Org Icon Badge */}
@@ -85,7 +85,7 @@ export const OrganizationHeader: React.FC<OrganizationHeaderProps> = ({ header }
       </div>
 
       {/* Technical Identity Affordance & Status */}
-      <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+      <div className="pt-3 border-t border-border-subtle flex items-center justify-between text-xs text-slate-400">
         <div className="flex items-center gap-2 font-mono text-slate-400">
           <span>ID: {header.id_org}</span>
           <button 

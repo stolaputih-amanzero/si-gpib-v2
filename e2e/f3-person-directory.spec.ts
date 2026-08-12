@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Fase 3 — Person Directory Projection Surface E2E Suite (/people)', () => {
   test.use({ storageState: 'e2e/.auth/pj-storage.json' });
 
-  test('01. /people renders SDM Directory title, search bar, and Projection Filter Chips', async ({ page }) => {
+  test('01. /people renders SDM Directory title, search bar, and Ministry Identity Filter Chips', async ({ page }) => {
     await page.goto('/people');
     await page.waitForLoadState('networkidle');
 
@@ -11,7 +11,7 @@ test.describe('Fase 3 — Person Directory Projection Surface E2E Suite (/people
     await expect(page.locator('h1:has-text("Direktori SDM")').first()).toBeVisible();
     await expect(page.locator('input[name="q"]')).toBeVisible();
 
-    // Projection Filter Chips inside filter container
+    // Ministry Identity Filter Chips inside filter container
     await expect(page.locator('.no-scrollbar a[href="/people"]')).toBeVisible();
     await expect(page.locator('.no-scrollbar a[href*="type=pendeta"]')).toBeVisible();
     await expect(page.locator('.no-scrollbar a[href*="type=pelayan"]')).toBeVisible();

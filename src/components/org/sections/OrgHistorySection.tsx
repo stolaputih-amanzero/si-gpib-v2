@@ -19,7 +19,7 @@ export const OrgHistorySection: React.FC<OrgHistorySectionProps> = ({ history })
         </h2>
       </div>
 
-      <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 shadow-xs">
+      <div className="bg-slate-900/90 border border-border-subtle rounded-2xl p-5 shadow-xs">
         {history.events.type === 'PRIVACY_MASKED' ? (
           <PrivacyStateNotice reason={history.events.reason} label={history.events.label} />
         ) : history.events.type === 'EMPTY' ? (

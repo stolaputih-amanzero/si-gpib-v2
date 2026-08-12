@@ -379,12 +379,12 @@ export default async function Dashboard() {
           </div>
         </section>
 
-        {/* LAYER 2: ATTENTION LAYER (Perhatian Utama Operasional) */}
+        {/* LAYER 2: ATTENTION LAYER (Perhatian Utama Operasional & Proyeksi Antrean) */}
         <section className="space-y-3">
           <div className="flex items-center justify-between px-1">
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
               <AlertCircle className="w-4 h-4 text-amber-500" />
-              <span>Perlu Perhatian</span>
+              <span>Perlu Perhatian &amp; Proyeksi Operasional</span>
             </h2>
           </div>
 
@@ -392,7 +392,7 @@ export default async function Dashboard() {
             {pendingAidCount > 0 ? (
               <Card className="border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 transition-colors">
                 <CardContent className="p-3.5 sm:p-4">
-                  <Link href="/dashboard/aid-requests" className="flex items-center justify-between group min-h-[44px]" aria-label="Review permohonan bantuan">
+                  <Link href="/projections/aid-queue" className="flex items-center justify-between group min-h-[44px]" aria-label="Review antrean permohonan bantuan">
                     <div className="flex items-center gap-3 min-w-0 pr-2">
                       <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 shrink-0">
                         <HeartHandshake className="w-5 h-5" />
@@ -403,7 +403,7 @@ export default async function Dashboard() {
                             {pendingAidCount} Permohonan Bantuan Menunggu Review
                           </span>
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950 shrink-0 uppercase tracking-wider">
-                            Penting
+                            Proyeksi Review
                           </span>
                         </div>
                         <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
@@ -416,7 +416,7 @@ export default async function Dashboard() {
                 </CardContent>
               </Card>
             ) : (
-              <Card className="border-slate-800/80 bg-slate-900/60">
+              <Card className="border-border-subtle bg-slate-900/60">
                 <CardContent className="p-3.5 sm:p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 shrink-0">
@@ -427,6 +427,9 @@ export default async function Dashboard() {
                       <span className="text-xs text-slate-400 block">Tidak ada antrean persetujuan bantuan atau tugas mendesak yang tertunda.</span>
                     </div>
                   </div>
+                  <Link href="/projections/aid-queue" className="text-xs font-bold text-indigo-400 hover:underline min-h-[44px] flex items-center" aria-label="Review antrean permohonan bantuan">
+                    Buka Antrean Bantuan
+                  </Link>
                 </CardContent>
               </Card>
             )}
