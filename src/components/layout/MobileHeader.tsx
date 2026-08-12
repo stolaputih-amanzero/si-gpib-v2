@@ -3,7 +3,6 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
 import { haptic } from '@/lib/haptic/vibrate';
-import { NetworkStatusBadge } from '@/components/ui/NetworkStatusBadge';
 import { ContextChip } from '@/components/mobile/ContextChip';
 import { SyncManagerSheet } from '@/components/offline/SyncManagerSheet';
 import { GlobalSearchSheet } from '@/components/search/GlobalSearchSheet';
@@ -44,11 +43,10 @@ export function MobileHeader() {
           <ContextChip />
         </div>
 
-        {/* Right Side: Global Search + SyncManager + NetworkStatus */}
+        {/* Right Side: Global Search + SyncManager */}
         <div className="flex items-center shrink-0 gap-2">
           <GlobalSearchSheet />
           <SyncManagerSheet />
-          <NetworkStatusBadge showText={false} />
         </div>
       </div>
     </header>
