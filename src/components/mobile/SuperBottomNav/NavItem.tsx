@@ -29,14 +29,11 @@ export function NavItem({ icon: Icon, label, href, isActive }: NavItemProps) {
     >
       <Icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 1.5} />
       <span className={cn(
-        'text-[11px] mt-1 leading-tight',
-        isActive ? 'font-semibold' : 'font-medium'
+        'text-[11px] mt-0.5 leading-none whitespace-nowrap tracking-tight',
+        isActive ? 'font-bold text-brand-primary' : 'font-medium text-text-muted'
       )}>
         {label}
       </span>
-      {isActive && (
-        <div className="w-1 h-1 rounded-full bg-[#1E40AF] dark:bg-blue-400 mt-0.5" />
-      )}
     </Link>
   );
 }

@@ -138,6 +138,43 @@
     --radius-2xl: 30px;
     --radius-full: 9999px;
 
+    /* ============================================================
+       SURFACE NORMALIZATION GATE V1 — DESIGN TOKENS VOCABULARY (F1.1)
+       ============================================================ */
+    /* Color Semantics */
+    --color-primary: var(--brand-600);
+    --color-success: var(--success);
+    --color-warning: var(--warning);
+    --color-danger: var(--error);
+    --color-neutral: var(--text-primary);
+    --color-surface-bg: var(--surface-base);
+    --color-surface-fg: var(--text-primary);
+    --color-surface-border: var(--border-subtle);
+
+    /* Reserved Color Tokens (Strictly governed - NOT free for general use) */
+    --color-reserved-purple: #9333EA;
+
+    /* Spacing Vocabulary (4, 8, 12, 16, 24, 32, 48) */
+    --space-4: 4px;
+    --space-8: 8px;
+    --space-12: 12px;
+    --space-16: 16px;
+    --space-24: 24px;
+    --space-32: 32px;
+    --space-48: 48px;
+
+    /* Geometry Vocabulary */
+    --gutter-mobile: 16px;
+    --gutter-desktop: 24px;
+    --radius-control: 12px;
+    --radius-card: 16px;
+    --radius-sheet: 24px;
+    --radius-chip: 9999px;
+
+    /* Layout Geometry Tokens */
+    --layout-header-height: 60px;
+    --layout-bottom-nav-height: 64px;
+
     /* Motion — kurva iOS-style, bukan linear */
     --ease-ios:    cubic-bezier(0.32, 0.72, 0, 1);
     --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
@@ -214,6 +251,12 @@
     --color-text-muted: #A6B0C4;
     --color-border-subtle: #27324A;
     --color-border-strong: #36425C;
+
+    --color-primary: #5B8DEF;
+    --color-surface-bg: #0B1120;
+    --color-surface-fg: #F2F5FA;
+    --color-surface-border: #27324A;
+    --color-neutral: #F2F5FA;
   }
 
   /* System preference fallback jika JS/next-themes belum load */

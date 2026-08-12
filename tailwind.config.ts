@@ -61,9 +61,19 @@ const config: Config = {
         'text-muted': 'var(--text-secondary)',
         'border-subtle': 'var(--border-subtle)',
         'border-strong': 'var(--border-strong)',
-        'surface-base': 'var(--surface-base)',
-        'surface-elevated': 'var(--surface-1)',
-        'surface-sunken': 'var(--surface-sunken)',
+        /* Surface Normalization Gate V1 Vocabulary Tokens (F1.1) */
+        primary: 'var(--color-primary)',
+        success: 'var(--color-success)',
+        warning: 'var(--color-warning)',
+        danger: 'var(--color-danger)',
+        neutral: 'var(--color-neutral)',
+        'reserved-purple': 'var(--color-reserved-purple)',
+      },
+      spacing: {
+        'gutter-mobile': 'var(--gutter-mobile)',
+        'gutter-desktop': 'var(--gutter-desktop)',
+        'header-height': 'var(--layout-header-height)',
+        'bottom-nav-height': 'var(--layout-bottom-nav-height)',
       },
       fontFamily: {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
@@ -76,6 +86,10 @@ const config: Config = {
         lg: 'var(--radius-lg)',
         xl: 'var(--radius-xl)',
         '2xl': 'var(--radius-2xl)',
+        control: 'var(--radius-control)',
+        card: 'var(--radius-card)',
+        sheet: 'var(--radius-sheet)',
+        chip: 'var(--radius-chip)',
       },
       boxShadow: {
         xs: 'var(--shadow-xs)',

@@ -27,8 +27,8 @@ export default async function DashboardLayout({
         <MobileHeader />
 
         {/* Scrollable Main Content */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden pb-36 md:pb-16 px-3 sm:px-6 md:px-8 pt-3 sm:pt-6">
-          <div className="max-w-7xl mx-auto min-h-full">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden pb-36 md:pb-16 px-gutter-mobile md:px-gutter-desktop pt-4 md:pt-6">
+          <div className="max-w-7xl mx-auto min-h-full w-full">
             <ReadOnlyNoticeBanner />
             {children}
           </div>

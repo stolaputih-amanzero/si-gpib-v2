@@ -80,8 +80,8 @@ export function MasterMenuSheet({ isOpen, onClose }: MasterMenuSheetProps) {
 
         {/* Header */}
         <div className="px-6 pt-2 pb-4">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Menu Utama</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Akses cepat ke semua fitur pelayanan</p>
+          <h2 className="text-xl font-bold text-text-high">Aksi Cepat</h2>
+          <p className="text-sm text-text-muted">Akses cepat kontekstual sesuai unit penugasan & hak akses</p>
         </div>
 
         {/* Menu Groups */}

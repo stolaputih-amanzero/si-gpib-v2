@@ -122,21 +122,26 @@ export function MobileHeader() {
   useEffect(() => setMounted(true), []);
 
   const crumbs = getSidebarCrumbs(pathname);
-  const isRoot = pathname === '/dashboard' || pathname === '/';
+  const isRootTabDestination = 
+    pathname === '/' || 
+    pathname === '/dashboard' || 
+    pathname === '/org' || 
+    pathname === '/people' || 
+    pathname === '/settings';
 
   return (
     <header className="sticky top-0 z-40 w-full bg-surface-1/95 backdrop-blur-md hairline-b md:hidden shadow-xs select-none pt-[env(safe-area-inset-top)]">
-      <div className="flex items-center justify-between min-h-[56px] px-3 py-1">
-        {/* Kiri Atas: Back button + Breadcrumbs */}
+      <div className="flex items-center justify-between min-h-[56px] px-gutter-mobile py-1">
+        {/* Left Side: Back button on pushed views only */}
         <div className="flex items-center gap-1.5 flex-1 min-w-0 pr-2">
-          {!isRoot && (
+          {!isRootTabDestination && (
             <button
               type="button"
               onClick={() => {
                 haptic.selection();
                 router.back();
               }}
-              className="flex items-center justify-center min-h-[40px] min-w-[40px] rounded-xl text-ink-primary hover:bg-surface-sunken active:scale-95 transition-all shrink-0 border border-line-subtle/40"
+              className="flex items-center justify-center min-h-[40px] min-w-[40px] rounded-control text-ink-primary hover:bg-surface-sunken active:scale-95 transition-all shrink-0 border border-line-subtle/40"
               aria-label="Kembali"
               title="Kembali"
             >

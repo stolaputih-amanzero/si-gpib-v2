@@ -44,7 +44,7 @@ export const DIRECT_NAV_ITEMS: NavItemConfig[] = [
   { icon: Church,        label: 'Organisasi',    href: '/org',        order: 2 },
   { icon: ClipboardList, label: 'Quick Actions', href: '#',           order: 3 }, // Exact Center!
   { icon: Users,         label: 'SDM',           href: '/people',     order: 4 },
-  { icon: Settings,      label: 'Akun & Sistem', href: '/settings',   order: 5 },
+  { icon: Settings,      label: 'Akun',           href: '/settings',   order: 5 },
 ];
 
 // ===== SUPER BUTTON MENU (muncul di Bottom Sheet) =====
