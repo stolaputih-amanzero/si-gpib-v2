@@ -38,16 +38,8 @@ Capability ➔ DB Entity ➔ Projection ➔ Workspace ➔ Action Owner ➔ RLS �
 | **Permohonan Bantuan** | `t_ajuan_bantuan` | `/dashboard/aid-requests` | `/dashboard/aid-requests` | `BantuanActionSheet` | aid-requests service | 🔒 Pass | 🟢 `f4-home-reconstruction.spec.ts` | 🟢 **CERTIFIED** |
 | **Pengelolaan Aset** | `m_asset` / `t_histori` | `/dashboard/assets` | `/org/[id_org]#assets` | `AsetActionSheet` | asset service | 🔒 Pass | 🟢 `f3-org-deep-link.spec.ts` | 🟢 **CERTIFIED** |
 | **Pos Pelkes Elevation**| `m_pos_pelkes` | `/org` | `/org/[id_org]` | Elevation History | `useOrgDirectory()` | 🔒 Pass | 🟢 `f15-org-directory.spec.ts` | 🟢 **CERTIFIED** |
-| **Transfers SDM** | `t_transfer_person` | `/transfers` | `/people/[id_person]` | Transfer Form Sheet | `TransferService` | 🔒 Pass | 🟡 **E2E SPEC GAP** | 🟡 **E2E GAP** |
-| **Vault Dokumen** | `t_vault_document` | `/vault` | `/org/[id_org]` | Vault Action Sheet | `VaultService` | 🔒 Pass | 🟡 **E2E SPEC GAP** | 🟡 **E2E GAP** |
-
----
-
-## 🔍 2. CAPABILITY GAP ANALYSIS & MAP
-
-### Identified Coverage Gaps (Read-Only Audit):
-1. **Transfers SDM (`t_transfer_person`)**: Route `/transfers` and `TransferService` exist with active RLS policies, but lack a dedicated Playwright E2E spec suite.
-2. **Vault Dokumen (`t_vault_document`)**: Route `/vault` and `VaultService` exist with active RLS policies, but lack a dedicated Playwright E2E spec suite.
+| **Transfers SDM** | `t_transfer_person` | `/transfers` | `/people/[id_person]` | Transfer Form Sheet | `TransferService` | 🔒 Pass | 🟢 `f16-transfers.spec.ts` | 🟢 **CERTIFIED** |
+| **Vault Dokumen** | `t_vault_document` | `/vault` | `/org/[id_org]` | Vault Action Sheet | `VaultService` | 🔒 Pass | 🟢 `f17-vault.spec.ts` | 🟢 **CERTIFIED** |
 
 ---
 
@@ -59,14 +51,14 @@ DOMAIN & BUSINESS CAPABILITY AUDIT VERDICT
 ===========================================================================
 Architecture Baseline              🔒 100% FROZEN (Baseline v2.2.0)
 Total Audited Business Capabilities 10 Capabilities Evaluated
-Fully Certified Capabilities       🟢 8 Capabilities 100% Certified (E2E Pass)
-E2E Spec Coverage Gaps             🟡 2 Capabilities Mapped (/transfers, /vault)
+Fully Certified Capabilities       🟢 10 / 10 CAPABILITIES 100% CERTIFIED (E2E Pass)
+E2E Spec Coverage Gaps             🟢 0 GAPS (Transfers & Vault Specs Certified)
 Unimplemented Architectural Gaps   🔴 ZERO UNIMPLEMENTED GAPS
-Source Code Modifications          🔒 ZERO MODIFICATIONS (Read-Only Audit)
+Application Source Code Edits      🔒 ZERO CODE MODIFICATIONS (Specs Only)
 ===========================================================================
-FINAL AUDIT VERDICT                🟢 CAPABILITY AUDIT COMPLETED
+FINAL AUDIT VERDICT                🟢 10/10 BUSINESS CAPABILITIES CERTIFIED CLOSED
 ===========================================================================
 ```
 
 ### Governance Summary:
-All 10 core business capabilities of SI GPIB v2.2.0 have certified data services, DB models, RLS policies, and canonical workspace owners. 8 out of 10 capabilities have 100% verified E2E test specs. The repository remains strictly **PAUSED AT GOVERNANCE CHECKPOINT**.
+All 10 core business capabilities of SI GPIB v2.2.0 are 100% certified with dedicated Playwright E2E test spec suites, active data services, DB models, RLS policies, and canonical workspace owners. The repository remains strictly **PAUSED AT GOVERNANCE CHECKPOINT**.
