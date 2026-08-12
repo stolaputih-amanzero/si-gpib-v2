@@ -18,16 +18,27 @@ export const OrgPastoralSection: React.FC<OrgPastoralSectionProps> = ({ pastoral
           <BookOpen className="w-5 h-5 text-blue-400" />
           Pelayanan Pastoral
         </h2>
-        {pastoral.canCreate && (
+        <div className="flex items-center gap-2">
           <Link
-            href="/dashboard/aktivitas"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-xs transition-colors min-h-[44px]"
-            aria-label="Catat Log Pastoral Baru"
+            href="/projections/pastoral-dashboard"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-colors min-h-[44px]"
+            aria-label="Lihat Dashboard Pastoral"
           >
-            <Plus className="w-4 h-4" />
-            <span>Catat Log Pastoral</span>
+            <span>Dashboard Pastoral</span>
+            <ArrowUpRight className="w-3.5 h-3.5" />
           </Link>
-        )}
+
+          {pastoral.canCreate && (
+            <Link
+              href="/dashboard/aktivitas"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-xs transition-colors min-h-[44px]"
+              aria-label="Catat Log Pastoral Baru"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Catat Log Pastoral</span>
+            </Link>
+          )}
+        </div>
       </div>
 
       <div className="bg-slate-900/90 border border-border-subtle rounded-2xl p-5 shadow-xs space-y-5">

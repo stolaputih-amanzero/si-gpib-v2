@@ -63,6 +63,7 @@ export const SUPER_MENU_GROUPS: SuperMenuGroupConfig[] = [
       { icon: HandHelping,   label: 'Antrean Bantuan',   href: '/projections/aid-queue',     color: '#F59E0B' }, // amber-500
       { icon: Map,           label: 'Peta Spasial',      href: '/projections/territory-map', color: '#3B82F6' }, // blue-500
       { icon: Building2,     label: 'Intelijen Aset',    href: '/projections/asset-intel',    color: '#8B5CF6' }, // violet-500
+      { icon: Activity,      label: 'Laporan & Analitik', href: '/projections/reports',      color: '#EC4899' }, // pink-500
     ],
   },
   {

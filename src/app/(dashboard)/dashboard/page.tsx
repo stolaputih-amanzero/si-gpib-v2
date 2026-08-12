@@ -13,7 +13,9 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import { getServerContext } from '@/lib/utils/context';
 import { getHumanReadableRoleLabel } from '@/lib/utils/role-presentation';
-import { AlertCircle, ChevronRight, FileText, HeartHandshake, Users, CheckCircle2 } from 'lucide-react';
+import { 
+  Users, ChevronRight, AlertCircle, FileText, CheckCircle2, HeartHandshake, ArrowUpRight
+} from 'lucide-react';
 
 interface DemografiRow {
   kategori_pelkat: string;
@@ -511,9 +513,19 @@ export default async function Dashboard() {
 
         {/* LAYER 4: INSIGHT LAYER (Statistik & Demografi Ringkas) */}
         <section className="space-y-4 pt-2">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">
-            Ringkasan Statistik &amp; Demografi
-          </h2>
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Ringkasan Statistik &amp; Demografi
+            </h2>
+            <Link
+              href="/projections/reports"
+              className="text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 min-h-[44px]"
+              aria-label="Buka Laporan & Analitik Full"
+            >
+              <span>Buka Laporan Full</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
 
           <div className="ambient-glow">
             <StatCards stats={customStats} />

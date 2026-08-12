@@ -236,6 +236,38 @@ export default function SettingsHubPage() {
         </Card>
       </section>
 
+      {/* SECTION 2.5: PREFERENSI SISTEM (UTILITAS) */}
+      <section className="space-y-3 pt-2">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">
+          PREFERENSI SISTEM &amp; UTILITAS
+        </h2>
+
+        <Card className="border-slate-800/80 bg-slate-900/90 overflow-hidden shadow-xs">
+          <CardContent className="p-0 divide-y divide-slate-800/80">
+            <Link
+              href="/offline-sync"
+              className="flex items-center justify-between w-full p-4 hover:bg-slate-800/60 transition-colors text-left min-h-[52px] group"
+              aria-label="Buka Manajer Sinkronisasi Offline"
+            >
+              <div className="flex items-center gap-3 min-w-0 pr-4">
+                <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 shrink-0">
+                  <RefreshCw className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-sm font-semibold text-slate-100 block group-hover:text-blue-400 transition-colors">
+                    Manajer Sinkronisasi Offline
+                  </span>
+                  <span className="text-xs text-slate-400 block">
+                    Kelola antrean draf offline (t_form_draft) &amp; status sinkronisasi PWA
+                  </span>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-blue-400 transition-colors shrink-0" />
+            </Link>
+          </CardContent>
+        </Card>
+      </section>
+
       {/* SECTION 3: ADMINISTRASI */}
       {isSuperUser && (
         <section className="space-y-3 pt-2">
