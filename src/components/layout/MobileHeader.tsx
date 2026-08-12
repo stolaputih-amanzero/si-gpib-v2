@@ -20,7 +20,7 @@ export function MobileHeader() {
     pathname === '/settings';
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-slate-900/95 backdrop-blur-md border-b border-border-subtle md:hidden shadow-xs select-none pt-[env(safe-area-inset-top)]">
+    <header className="sticky top-0 z-40 w-full bg-surface-elevated/95 backdrop-blur-md border-b border-border-subtle md:hidden shadow-xs select-none pt-[env(safe-area-inset-top)]">
       <div className="flex items-center justify-between min-h-[56px] px-4 py-1.5">
         {/* Left Side: ContextChip on Root Tab, [←] History Back + ContextChip on Pushed Views */}
         <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
@@ -32,7 +32,7 @@ export function MobileHeader() {
                 // ROUTING (PR-06): Pushed views back button MUST use history-based navigation
                 router.back();
               }}
-              className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-xl text-slate-200 hover:bg-slate-800 active:scale-95 transition-all shrink-0 border border-slate-700/60"
+              className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-xl text-text-high hover:bg-surface-sunken active:scale-95 transition-all shrink-0 border border-border-subtle"
               aria-label="Kembali ke halaman sebelumnya"
               title="Kembali"
             >

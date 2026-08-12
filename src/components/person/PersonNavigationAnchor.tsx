@@ -75,7 +75,7 @@ export const PersonNavigationAnchor: React.FC = () => {
   };
 
   return (
-    <nav aria-label="Navigasi Seksi Person Workspace" className="sticky top-0 z-30 bg-[#111A2B]/95 backdrop-blur-md border-y border-border-subtle shadow-xs py-2 px-1">
+    <nav aria-label="Navigasi Seksi Person Workspace" className="sticky top-0 z-30 bg-surface-elevated/95 backdrop-blur-md border-y border-border-subtle shadow-xs py-2 px-1">
       <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-full">
         {ANCHORS.map((item) => {
           const isActive = activeAnchor === item.id;
@@ -89,7 +89,7 @@ export const PersonNavigationAnchor: React.FC = () => {
               className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold shrink-0 transition-all min-h-[44px] ${
                 isActive
                   ? 'bg-blue-600 text-white border border-blue-500 shadow-xs'
-                  : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
+                  : 'text-text-muted hover:bg-surface-sunken hover:text-text-high'
               }`}
             >
               {item.icon}

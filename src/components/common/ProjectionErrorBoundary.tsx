@@ -42,16 +42,16 @@ export class ProjectionErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-[400px] bg-[#0B1220] p-6 rounded-2xl border border-red-500/20 flex flex-col items-center justify-center text-center space-y-4 my-6">
+        <div className="min-h-[400px] bg-surface-base p-6 rounded-2xl border border-red-500/20 flex flex-col items-center justify-center text-center space-y-4 my-6">
           <div className="p-3 rounded-2xl bg-red-500/10 text-red-400 border border-red-500/20">
             <AlertTriangle className="w-8 h-8" />
           </div>
 
           <div className="space-y-1 max-w-md">
-            <h2 className="text-lg font-bold text-slate-100">
+            <h2 className="text-lg font-bold text-text-high">
               {this.props.fallbackTitle || 'Gagal Memuat Lensa Proyeksi'}
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-text-muted">
               Terjadi kesalahan saat mengolah agregasi data proyeksi ({this.state.error?.message || 'Error tidak terduga'}). Data Anda tetap aman.
             </p>
           </div>
@@ -60,7 +60,7 @@ export class ProjectionErrorBoundary extends Component<Props, State> {
             <button
               type="button"
               onClick={this.handleReload}
-              className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs font-bold border border-border-subtle flex items-center gap-2 min-h-[44px]"
+              className="px-4 py-2 rounded-xl bg-surface-sunken hover:bg-surface-1 text-text-high text-xs font-bold border border-border-subtle flex items-center gap-2 min-h-[44px]"
             >
               <RefreshCw className="w-4 h-4 text-blue-400" />
               <span>Muat Ulang</span>

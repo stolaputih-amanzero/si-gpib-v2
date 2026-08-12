@@ -24,7 +24,7 @@ export const OrganizationWorkspaceShell: React.FC<OrganizationWorkspaceShellProp
   const vm = useMemo(() => adaptOrganizationToViewModel(organization), [organization]);
 
   return (
-    <div className="min-h-screen bg-[#0B1220] pb-20 space-y-6">
+    <div className="min-h-screen bg-surface-base pb-20 space-y-6">
       {/* 1. Header (Identity-First Banner) */}
       <div className="max-w-5xl mx-auto px-4 pt-6">
         <OrganizationHeader header={vm.header} />

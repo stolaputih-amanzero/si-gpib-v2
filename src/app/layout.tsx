@@ -71,7 +71,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#0B1220" />
         <ThemeScript />
       </head>
-      <body className={`${inter.variable} ${fraunces.variable} font-sans bg-[#0B1220] text-ink-primary`} suppressHydrationWarning>
+      <body className={`${inter.variable} ${fraunces.variable} font-sans bg-surface-base text-ink-primary`} suppressHydrationWarning>
         <ThemeProvider>
           <QueryProvider>
             <ToastProvider>

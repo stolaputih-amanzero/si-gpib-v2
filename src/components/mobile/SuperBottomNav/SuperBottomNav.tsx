@@ -27,8 +27,8 @@ export function SuperBottomNav() {
       <nav
         className={cn(
           'fixed bottom-0 left-0 right-0 z-30 md:hidden',
-          'bg-[#111A2B]/95 backdrop-blur-xl',
-          'border-t border-slate-800/80',
+          'bg-surface-elevated/95 backdrop-blur-xl',
+          'border-t border-border-subtle',
           'pb-[env(safe-area-inset-bottom)]',
           'transition-all duration-300',
           isSheetOpen && 'translate-y-full opacity-0 pointer-events-none' 

@@ -25,14 +25,14 @@ export default async function MapsPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-bg-base pb-32">
+    <div className="flex flex-col min-h-screen bg-surface-base pb-32">
       {/* Header */}
-      <header className="bg-bg-surface border-b border-border-subtle pt-12 pb-6 px-4 sticky top-0 z-20">
+      <header className="bg-surface-elevated border-b border-border-subtle pt-12 pb-6 px-4 sticky top-0 z-20">
         <div className="flex flex-col gap-1">
-          <h1 className="text-xl font-bold text-text-strong leading-tight">
+          <h1 className="text-xl font-bold text-text-high leading-tight">
             Territory Intelligence
           </h1>
-          <p className="text-sm text-text-subtle">
+          <p className="text-sm text-text-muted">
             Peta sebaran organisasi, risiko kerawanan, dan potensi wilayah
           </p>
         </div>

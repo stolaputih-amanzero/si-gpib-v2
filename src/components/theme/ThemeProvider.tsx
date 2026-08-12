@@ -54,7 +54,6 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       enableSystem
       disableTransitionOnChange={false}
       storageKey="si-gpib-theme"
-      themes={['light', 'dark', 'system']}
     >
       <ThemeTransitionObserver />
       {children}

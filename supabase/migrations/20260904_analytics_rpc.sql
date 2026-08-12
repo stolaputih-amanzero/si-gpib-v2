@@ -24,7 +24,7 @@ DECLARE
   v_pos_locations JSONB;
 BEGIN
   -- 1. Total Pos Pelkes
-  SELECT COUNT(*), COUNT(*) FILTER (WHERE created_at >= date_trunc('month', CURRENT_DATE))
+  SELECT COUNT(*), COUNT(*) FILTER (WHERE p.created_at >= date_trunc('month', CURRENT_DATE))
   INTO v_total_pos, v_pos_growth_month
   FROM m_pos_pelkes p
   JOIN m_jemaat_induk j ON p.id_induk = j.id_induk
@@ -32,7 +32,7 @@ BEGIN
     AND (p_id_induk IS NULL OR p.id_induk = p_id_induk);
 
   -- 2. Total Pendeta
-  SELECT COUNT(*), COUNT(*) FILTER (WHERE created_at >= date_trunc('month', CURRENT_DATE))
+  SELECT COUNT(*), COUNT(*) FILTER (WHERE p.created_at >= date_trunc('month', CURRENT_DATE))
   INTO v_total_pendeta, v_pendeta_growth_month
   FROM m_pendeta p
   LEFT JOIN m_jemaat_induk j ON p.id_induk = j.id_induk
@@ -40,14 +40,14 @@ BEGIN
     AND (p_id_induk IS NULL OR p.id_induk = p_id_induk);
 
   -- 3. Total Jemaat Induk
-  SELECT COUNT(*), COUNT(*) FILTER (WHERE created_at >= date_trunc('month', CURRENT_DATE))
+  SELECT COUNT(*), COUNT(*) FILTER (WHERE j.created_at >= date_trunc('month', CURRENT_DATE))
   INTO v_total_jemaat, v_jemaat_growth_month
   FROM m_jemaat_induk j
   WHERE (p_id_mupel IS NULL OR j.id_mupel = p_id_mupel)
     AND (p_id_induk IS NULL OR j.id_induk = p_id_induk);
 
   -- 4. Total Log Pastoral Bulan Ini
-  SELECT COUNT(*), COUNT(*) FILTER (WHERE created_at >= date_trunc('month', CURRENT_DATE))
+  SELECT COUNT(*), COUNT(*) FILTER (WHERE l.created_at >= date_trunc('month', CURRENT_DATE))
   INTO v_total_log_pastoral_month, v_log_growth_month
   FROM t_log_pastoral l
   JOIN m_pos_pelkes p ON l.id_pos = p.id_pos
@@ -77,7 +77,7 @@ BEGIN
         SELECT COUNT(*) FROM t_log_pastoral l
         JOIN m_pos_pelkes p ON l.id_pos = p.id_pos
         JOIN m_jemaat_induk j ON p.id_induk = j.id_induk
-        WHERE l.tgl_kunjungan >= m.m AND l.tgl_kunjungan < (m.m + INTERVAL '1 month')
+        WHERE l.tgl >= m.m AND l.tgl < (m.m + INTERVAL '1 month')
           AND (p_id_mupel IS NULL OR j.id_mupel = p_id_mupel)
           AND (p_id_induk IS NULL OR p.id_induk = p_id_induk)
       )
@@ -86,21 +86,28 @@ BEGIN
   FROM months m;
 
   -- 6. Mupel Distribution
+  WITH mupel_stats AS (
+    SELECT
+      m.nama_mupel,
+      COUNT(DISTINCT p.id_pos) AS pos_count,
+      COUNT(DISTINCT pdt.id_pendeta) AS pendeta_count
+    FROM m_mupel m
+    LEFT JOIN m_jemaat_induk j ON m.id_mupel = j.id_mupel
+    LEFT JOIN m_pos_pelkes p ON j.id_induk = p.id_induk
+    LEFT JOIN m_pendeta pdt ON j.id_induk = pdt.id_induk
+    WHERE (p_id_mupel IS NULL OR m.id_mupel = p_id_mupel)
+      AND (p_id_induk IS NULL OR j.id_induk = p_id_induk)
+    GROUP BY m.id_mupel, m.nama_mupel
+    ORDER BY m.nama_mupel
+  )
   SELECT jsonb_agg(
     jsonb_build_object(
-      'nama_mupel', m.nama_mupel,
-      'pos_count', COUNT(DISTINCT p.id_pos),
-      'pendeta_count', COUNT(DISTINCT pdt.id_pendeta)
+      'nama_mupel', nama_mupel,
+      'pos_count', pos_count,
+      'pendeta_count', pendeta_count
     )
   ) INTO v_mupel_distribution
-  FROM m_mupel m
-  LEFT JOIN m_jemaat_induk j ON m.id_mupel = j.id_mupel
-  LEFT JOIN m_pos_pelkes p ON j.id_induk = p.id_induk
-  LEFT JOIN m_pendeta pdt ON j.id_induk = pdt.id_induk
-  WHERE (p_id_mupel IS NULL OR m.id_mupel = p_id_mupel)
-    AND (p_id_induk IS NULL OR j.id_induk = p_id_induk)
-  GROUP BY m.id_mupel, m.nama_mupel
-  ORDER BY m.nama_mupel;
+  FROM mupel_stats;
 
   -- 7. Pos Pelkes Locations (with GPS lat/lng)
   SELECT jsonb_agg(
@@ -109,7 +116,7 @@ BEGIN
       'nama_pos', p.nama_pos,
       'latitude', COALESCE(p.latitude, -6.2088),
       'longitude', COALESCE(p.longitude, 106.8456),
-      'nama_jemaat', j.nama_jemaat,
+      'nama_jemaat', j.nama_induk,
       'nama_mupel', m.nama_mupel
     )
   ) INTO v_pos_locations

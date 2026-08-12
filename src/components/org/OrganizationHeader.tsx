@@ -35,18 +35,18 @@ export const OrganizationHeader: React.FC<OrganizationHeaderProps> = ({ header }
   const isActiveContextUnit = activeContextId === header.id_org;
 
   return (
-    <header className="bg-slate-900/90 border border-border-subtle rounded-2xl p-5 md:p-6 shadow-xs space-y-4">
+    <header className="bg-surface-elevated border border-border-subtle rounded-2xl p-5 md:p-6 shadow-xs space-y-4">
       {/* Primary Identity Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         {/* Org Icon Badge */}
-        <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+        <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0">
           <Building2 className="w-8 h-8 md:w-10 md:h-10" />
         </div>
 
         {/* Identity & Canonical Name */}
         <div className="space-y-1.5 min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl md:text-2xl font-bold text-slate-100 tracking-tight">
+            <h1 className="text-xl md:text-2xl font-bold text-text-high tracking-tight">
               {header.identity.nama}
             </h1>
             <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${getLevelBadgeColor(header.identity.org_level)}`}>
@@ -54,30 +54,30 @@ export const OrganizationHeader: React.FC<OrganizationHeaderProps> = ({ header }
               {header.identity.org_level.replace('_', ' ')}
             </span>
             {isBajemPhase && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">
                 Fase Bajem
               </span>
             )}
             {isActiveContextUnit && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
-                <Church className="w-3.5 h-3.5 text-blue-400" />
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-primary/20 text-brand-primary border border-brand-primary/40">
+                <Church className="w-3.5 h-3.5 text-brand-primary" />
                 Konteks Aktif
               </span>
             )}
           </div>
 
           {/* Descriptive Hierarchy Context */}
-          <div className="flex items-center gap-3 text-sm text-slate-400 flex-wrap">
+          <div className="flex items-center gap-3 text-sm text-text-muted flex-wrap">
             {header.parentName && (
-              <span className="flex items-center gap-1 font-medium text-slate-300">
-                <MapPin className="w-3.5 h-3.5 text-slate-500" />
+              <span className="flex items-center gap-1 font-medium text-text-high">
+                <MapPin className="w-3.5 h-3.5 text-text-muted" />
                 {header.parentName}
               </span>
             )}
             {header.kmjName && (
-              <span className="flex items-center gap-1 text-slate-400">
-                <User className="w-3.5 h-3.5 text-blue-400" />
-                KMJ/PJ: <span className="font-semibold text-slate-200">{header.kmjName}</span>
+              <span className="flex items-center gap-1 text-text-muted">
+                <User className="w-3.5 h-3.5 text-brand-primary" />
+                KMJ/PJ: <span className="font-semibold text-text-high">{header.kmjName}</span>
               </span>
             )}
           </div>
@@ -85,20 +85,20 @@ export const OrganizationHeader: React.FC<OrganizationHeaderProps> = ({ header }
       </div>
 
       {/* Technical Identity Affordance & Status */}
-      <div className="pt-3 border-t border-border-subtle flex items-center justify-between text-xs text-slate-400">
-        <div className="flex items-center gap-2 font-mono text-slate-400">
+      <div className="pt-3 border-t border-border-subtle flex items-center justify-between text-xs text-text-muted">
+        <div className="flex items-center gap-2 font-mono text-text-muted">
           <span>ID: {header.id_org}</span>
           <button 
             type="button"
             onClick={handleCopyId}
-            className="p-1 hover:text-slate-200 transition-colors min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-lg"
+            className="p-1 hover:text-text-high transition-colors min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-lg"
             title="Salin Organization ID"
             aria-label="Salin Organization ID"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
           </button>
         </div>
-        <span className="text-[11px] bg-slate-800/80 text-slate-300 px-2 py-0.5 rounded border border-slate-700/60 font-medium">
+        <span className="text-[11px] bg-surface-sunken text-text-high px-2 py-0.5 rounded border border-border-subtle font-medium">
           Identitas Organisasi Kanonis
         </span>
       </div>

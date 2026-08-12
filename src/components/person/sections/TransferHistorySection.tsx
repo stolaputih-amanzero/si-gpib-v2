@@ -13,24 +13,24 @@ export const TransferHistorySection: React.FC<TransferHistorySectionProps> = ({ 
   return (
     <section id="mutasi" className="scroll-mt-36 md:scroll-mt-28 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-          <History className="w-5 h-5 text-blue-400" />
+        <h2 className="text-lg font-bold text-text-high flex items-center gap-2">
+          <History className="w-5 h-5 text-brand-primary" />
           Riwayat Mutasi Pendeta (`t_riwayat_mutasi_pendeta`)
         </h2>
       </div>
 
-      <div className="p-5 rounded-2xl bg-slate-900/90 border border-border-subtle shadow-xs space-y-3">
+      <div className="p-5 rounded-2xl bg-surface-elevated border border-border-subtle shadow-xs space-y-3">
         {roles.mutations.type === 'DATA' ? (
           <div className="space-y-2">
             {roles.mutations.value.map((mut) => (
-              <div key={mut.id_mutasi} className="p-3.5 rounded-xl bg-slate-950 border border-border-subtle text-xs space-y-1">
-                <div className="flex items-center justify-between text-slate-400">
-                  <span className="font-bold text-slate-300">{mut.jenis_mutasi}</span>
+              <div key={mut.id_mutasi} className="p-3.5 rounded-xl bg-surface-sunken border border-border-subtle text-xs space-y-1">
+                <div className="flex items-center justify-between text-text-muted">
+                  <span className="font-bold text-text-high">{mut.jenis_mutasi}</span>
                   <span className="font-sans tabular-nums">{mut.tanggal_mutasi}</span>
                 </div>
-                <div className="flex items-center gap-2 font-semibold text-slate-100">
+                <div className="flex items-center gap-2 font-semibold text-text-high">
                   <span>{mut.asal_organisasi}</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                  <ArrowRight className="w-3.5 h-3.5 text-brand-primary shrink-0" />
                   <span>{mut.tujuan_organisasi}</span>
                 </div>
               </div>
@@ -39,7 +39,7 @@ export const TransferHistorySection: React.FC<TransferHistorySectionProps> = ({ 
         ) : roles.mutations.type === 'PRIVACY_MASKED' ? (
           <PrivacyStateNotice reason={roles.mutations.reason} label={roles.mutations.label} />
         ) : (
-          <p className="text-xs italic text-slate-500 p-4 text-center bg-slate-950 rounded-xl border border-border-subtle">
+          <p className="text-xs italic text-text-disabled p-4 text-center bg-surface-sunken rounded-xl border border-border-subtle">
             {roles.mutations.label}
           </p>
         )}
