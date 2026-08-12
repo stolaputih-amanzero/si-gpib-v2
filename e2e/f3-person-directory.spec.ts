@@ -11,18 +11,18 @@ test.describe('Fase 3 — Person Directory Projection Surface E2E Suite (/people
     await expect(page.locator('h1').first()).toBeVisible();
     await expect(page.locator('input[name="q"]')).toBeVisible();
 
-    // Projection Filter Chips
-    await expect(page.locator('a[href="/people"]').first()).toBeVisible();
-    await expect(page.locator('a[href*="type=pendeta"]').first()).toBeVisible();
-    await expect(page.locator('a[href*="type=pelayan"]').first()).toBeVisible();
-    await expect(page.locator('a[href*="type=relawan"]').first()).toBeVisible();
+    // Projection Filter Chips inside filter container
+    await expect(page.locator('.no-scrollbar a[href="/people"]')).toBeVisible();
+    await expect(page.locator('.no-scrollbar a[href*="type=pendeta"]')).toBeVisible();
+    await expect(page.locator('.no-scrollbar a[href*="type=pelayan"]')).toBeVisible();
+    await expect(page.locator('.no-scrollbar a[href*="type=relawan"]')).toBeVisible();
   });
 
   test('02. Clicking Pendeta filter chip updates URL query parameter', async ({ page }) => {
     await page.goto('/people');
     await page.waitForLoadState('networkidle');
 
-    const pendetaChip = page.locator('a[href*="type=pendeta"]').first();
+    const pendetaChip = page.locator('.no-scrollbar a[href*="type=pendeta"]');
     await pendetaChip.click();
 
     await expect(page).toHaveURL(/type=pendeta/);
