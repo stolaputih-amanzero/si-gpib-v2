@@ -152,7 +152,7 @@ export default async function Dashboard() {
   try {
     let mupelQuery = supabaseAdmin.from('m_mupel').select('*', { count: 'exact', head: true });
     let jemaatQuery = supabaseAdmin.from('m_jemaat_induk').select('*', { count: 'exact', head: true });
-    let posQuery = supabaseAdmin.from('m_pos_pelkes').select('id_pos, nama_pos, id_induk');
+    let posQuery = supabaseAdmin.from('m_pos_pelkes').select('id_pos, nama_pos, id_induk, status, status_perkembangan');
 
     if (isLocked) {
       if (userRole === 'admin_mupel' && userMupelId) {
@@ -221,7 +221,8 @@ export default async function Dashboard() {
 
     if (posPelkesSumData) {
       posPelkesSumData.forEach((item: any) => {
-        const isBajem = item.kategori === 'Bajem' || (item.nama_pos || '').toLowerCase().includes('bajem');
+        const combinedStatus = `${item.status || ''} ${item.status_perkembangan || ''} ${item.nama_pos || ''}`.toLowerCase();
+        const isBajem = combinedStatus.includes('bajem') || combinedStatus.includes('bakal jemaat');
         if (isBajem) {
           bajemCount++;
         } else {
