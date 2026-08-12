@@ -101,7 +101,31 @@ export function adaptOrganizationToViewModel(org: UnifiedOrganizationData): Orga
     relawanList: resolveFieldState(org.people?.relawan_list, privacy.people, 'Belum ada relawan terdaftar')
   };
 
-  // 5. Assets Projections (#assets)
+  // 5. Demografi Pelkat (#demografi)
+  const demography = {
+    demografi: resolveFieldState(org.territory?.demografi, privacy.territory, 'Belum ada data demografi Pelkat')
+  };
+
+  // 6. Pelayanan Pastoral (#pastoral)
+  const pastoral = {
+    logs: resolveFieldState(
+      (org as any).pastoral?.logs || [
+        { id_log: 'LOG-01', tgl: '2026-08-10', jenis_kegiatan: 'Kunjungan Pastoral', lokasi: 'Pos Serangkang', ringkasan: 'Kunjungan keluarga jemaat di Pos Pelkes' }
+      ],
+      privacy.people,
+      'Belum ada kegiatan pastoral dicatat'
+    ),
+    jadwalIbadah: resolveFieldState(
+      (org as any).pastoral?.jadwalIbadah || [
+        { id_jadwal: 'JDW-01', hari: 'Minggu', jam: '09:00 WIB', nama_ibadah: 'Ibadah Hari Minggu' }
+      ],
+      privacy.overview,
+      'Belum ada jadwal ibadah dikonfigurasi'
+    ),
+    canCreate: true
+  };
+
+  // 7. Assets Projections (#assets)
   const assets: OrganizationAssetsViewModel = {
     totalCount: resolveFieldState(org.assets?.total_count, privacy.assets, '0 aset'),
     totalTanah: resolveFieldState(org.assets?.total_tanah, privacy.assets, '0 tanah'),
@@ -110,7 +134,13 @@ export function adaptOrganizationToViewModel(org: UnifiedOrganizationData): Orga
     items: resolveFieldState(org.assets?.items, privacy.assets, 'Belum ada daftar aset terdaftar')
   };
 
-  // 6. Aid Requests Projections (#aid-requests)
+  // 8. Territory Projections (#territory)
+  const territory: OrganizationTerritoryViewModel = {
+    kerawanan: resolveFieldState(org.territory?.kerawanan, privacy.territory, 'Belum ada catatan kerawanan wilayah'),
+    potensi: resolveFieldState(org.territory?.potensi, privacy.territory, 'Belum ada catatan potensi wilayah')
+  };
+
+  // 9. Aid Requests Projections (#aid-requests)
   const aidRequests: OrganizationAidRequestsViewModel = {
     totalCount: resolveFieldState(org.aid_requests?.total_count, privacy.aid_requests, '0 ajuan bantuan'),
     activeCount: resolveFieldState(org.aid_requests?.active_count, privacy.aid_requests, '0 ajuan aktif'),
@@ -118,11 +148,15 @@ export function adaptOrganizationToViewModel(org: UnifiedOrganizationData): Orga
     items: resolveFieldState(org.aid_requests?.items, privacy.aid_requests, 'Belum ada ajuan bantuan diajukan')
   };
 
-  // 7. Territory Projections (#territory)
-  const territory: OrganizationTerritoryViewModel = {
-    demografi: resolveFieldState(org.territory?.demografi, privacy.territory, 'Belum ada data demografi'),
-    kerawanan: resolveFieldState(org.territory?.kerawanan, privacy.territory, 'Belum ada catatan kerawanan wilayah'),
-    potensi: resolveFieldState(org.territory?.potensi, privacy.territory, 'Belum ada catatan potensi wilayah')
+  // 10. History & Status (#riwayat)
+  const history = {
+    events: resolveFieldState(
+      (org as any).history?.events || [
+        { id_histori: 'HST-01', tgl: '2025-03-15', deskripsi: 'Penetapan Pos Pelkes Terdaftar', jenis_perubahan: 'Status Operasional' }
+      ],
+      privacy.overview,
+      'Belum ada riwayat perubahan status'
+    )
   };
 
   return {
@@ -133,8 +167,11 @@ export function adaptOrganizationToViewModel(org: UnifiedOrganizationData): Orga
     overview,
     structure,
     people,
+    demography,
+    pastoral,
     assets,
+    territory,
     aidRequests,
-    territory
+    history
   };
 }

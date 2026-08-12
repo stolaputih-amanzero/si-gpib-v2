@@ -15,16 +15,16 @@ export const PastoralSection: React.FC<PastoralSectionProps> = ({ pastoral }) =>
   return (
     <section id="pastoral" className="scroll-mt-36 md:scroll-mt-28 space-y-5 w-full max-w-full overflow-hidden">
       {/* Header Section */}
-      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+      <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-sm shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
             <HeartHandshake className="w-5 h-5" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-lg font-display font-bold text-slate-900 dark:text-slate-100 truncate">
+            <h2 className="text-lg font-bold text-slate-100 truncate">
               Pelayanan &amp; Aktivitas Pastoral
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+            <p className="text-xs text-slate-400 truncate">
               Catatan rekam jejak giat pastoral, dokumentasi &amp; perjumpaan jemaat
             </p>
           </div>
@@ -33,10 +33,10 @@ export const PastoralSection: React.FC<PastoralSectionProps> = ({ pastoral }) =>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 w-full">
         {/* Card 1: Upcoming Schedules */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 w-full overflow-hidden">
+        <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 shadow-xs space-y-4 w-full overflow-hidden">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-indigo-500 shrink-0" />
+              <Calendar className="w-4 h-4 text-blue-400 shrink-0" />
               <span>Jadwal Pelayanan Mendatang</span>
             </h3>
           </div>
@@ -44,15 +44,15 @@ export const PastoralSection: React.FC<PastoralSectionProps> = ({ pastoral }) =>
           {pastoral.upcomingSchedules.type === 'DATA' ? (
             <div className="space-y-3">
               {pastoral.upcomingSchedules.value.map((sch) => (
-                <div key={sch.id_jadwal} className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 space-y-1.5 hover:border-indigo-200 dark:hover:border-indigo-800 transition-colors w-full overflow-hidden">
-                  <div className="flex items-center justify-between font-semibold text-sm text-slate-900 dark:text-slate-100 gap-2">
+                <div key={sch.id_jadwal} className="p-3.5 rounded-xl bg-slate-950 border border-slate-800/80 space-y-1.5 w-full overflow-hidden">
+                  <div className="flex items-center justify-between font-bold text-sm text-slate-100 gap-2">
                     <span className="truncate">{sch.nama_kegiatan}</span>
-                    <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50 px-2 py-0.5 rounded-full border border-indigo-200/60 dark:border-indigo-800/60 shrink-0">
+                    <span className="text-xs font-bold text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 font-sans tabular-nums shrink-0">
                       {sch.tanggal}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 truncate">
-                    <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                  <p className="text-xs text-slate-400 flex items-center gap-1 truncate">
+                    <Clock className="w-3 h-3 text-slate-500 shrink-0" />
                     <span className="truncate">{sch.lokasi}</span>
                   </p>
                 </div>
@@ -61,15 +61,15 @@ export const PastoralSection: React.FC<PastoralSectionProps> = ({ pastoral }) =>
           ) : pastoral.upcomingSchedules.type === 'PRIVACY_MASKED' ? (
             <PrivacyStateNotice reason={pastoral.upcomingSchedules.reason} label={pastoral.upcomingSchedules.label} />
           ) : (
-            <div className="p-6 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl text-center space-y-1">
-              <Calendar className="w-6 h-6 text-slate-300 dark:text-slate-600 mx-auto" />
-              <p className="text-xs italic text-slate-400">{pastoral.upcomingSchedules.label}</p>
+            <div className="p-6 border border-slate-800/80 bg-slate-950 rounded-xl text-center space-y-1">
+              <Calendar className="w-6 h-6 text-slate-600 mx-auto" />
+              <p className="text-xs italic text-slate-500">{pastoral.upcomingSchedules.label}</p>
             </div>
           )}
         </div>
 
         {/* Card 2: Pastoral Logs Timeline & Dokumentasi Foto */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 w-full overflow-hidden">
+        <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 shadow-xs space-y-4 w-full overflow-hidden">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
               <FileText className="w-4 h-4 text-emerald-500 shrink-0" />

@@ -349,30 +349,31 @@ export default async function Dashboard() {
   ];
 
   return (
-    <div className="w-full min-h-full bg-surface-base pb-24">
-      <main className="max-w-6xl mx-auto px-4 py-5 md:px-6 space-y-6">
+    <div className="w-full min-h-full bg-[#0B1220] pb-20">
+      <main className="max-w-6xl mx-auto space-y-6">
         
         {/* LAYER 1: CONTEXT LAYER (Konteks Kerja User) */}
-        <section className="bg-surface-1 border border-border-subtle rounded-card p-4 shadow-2xs">
+        <section className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
+            <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-brand-primary">
+                <span className="text-xs font-bold uppercase tracking-wider text-blue-400">
                   ⛪ Sinode GPIB
                 </span>
-                <span className="text-border-subtle">•</span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
+                <span className="text-slate-600">•</span>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">
                   {humanRole}
                 </span>
+                <span className="text-slate-600">•</span>
+                <span className="text-xs font-semibold text-slate-400">
+                  {scopeLabel}
+                </span>
               </div>
-              <h1 className="text-lg md:text-xl font-bold text-text-high mt-1 tracking-tight">
+              <h1 className="text-xl md:text-2xl font-bold text-slate-100 tracking-tight">
                 Selamat Datang, {userNama}
               </h1>
-              <p className="text-xs text-text-muted mt-0.5">
-                Konteks Cakupan: <span className="font-semibold text-text-high">{scopeLabel}</span>
-              </p>
             </div>
-            <div className="shrink-0 pt-2 sm:pt-0">
+            <div className="shrink-0">
               <ScopeIndicator scope={roleScopeObj} />
             </div>
           </div>
@@ -381,32 +382,31 @@ export default async function Dashboard() {
         {/* LAYER 2: ATTENTION LAYER (Perhatian Utama Operasional) */}
         <section className="space-y-3">
           <div className="flex items-center justify-between px-1">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
               <AlertCircle className="w-4 h-4 text-amber-500" />
               <span>Perlu Perhatian</span>
             </h2>
           </div>
 
           <div className="space-y-2.5">
-            {/* Pending Aid Requests Attention Item */}
             {pendingAidCount > 0 ? (
-              <Card className="border-amber-500/30 bg-amber-500/5 dark:bg-amber-950/10 hover:bg-amber-500/10 transition-colors">
+              <Card className="border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 transition-colors">
                 <CardContent className="p-3.5 sm:p-4">
-                  <Link href="/dashboard/aid-requests" className="flex items-center justify-between group min-h-[44px]">
+                  <Link href="/dashboard/aid-requests" className="flex items-center justify-between group min-h-[44px]" aria-label="Review permohonan bantuan">
                     <div className="flex items-center gap-3 min-w-0 pr-2">
-                      <div className="p-2 rounded-control bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
+                      <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 shrink-0">
                         <HeartHandshake className="w-5 h-5" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-text-high truncate group-hover:text-amber-600 transition-colors">
+                          <span className="text-sm font-bold text-slate-100 truncate group-hover:text-amber-400 transition-colors">
                             {pendingAidCount} Permohonan Bantuan Menunggu Review
                           </span>
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white shrink-0">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950 shrink-0 uppercase tracking-wider">
                             Penting
                           </span>
                         </div>
-                        <p className="text-xs text-text-muted mt-0.5 line-clamp-1">
+                        <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
                           Ajuan bantuan pos pelkes memerlukan verifikasi &amp; persetujuan KMJ / Sinode
                         </p>
                       </div>
@@ -416,15 +416,15 @@ export default async function Dashboard() {
                 </CardContent>
               </Card>
             ) : (
-              <Card className="border-border-subtle bg-surface-1">
+              <Card className="border-slate-800/80 bg-slate-900/60">
                 <CardContent className="p-3.5 sm:p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-control bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                    <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 shrink-0">
                       <CheckCircle2 className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-sm font-bold text-text-high block">Semua Operasional Lancar</span>
-                      <span className="text-xs text-text-muted block">Tidak ada ajuan bantuan atau tugas tertunda yang memerlukan tindakan mendesak</span>
+                      <span className="text-sm font-bold text-slate-100 block">Semua Operasional Lancar</span>
+                      <span className="text-xs text-slate-400 block">Tidak ada antrean persetujuan bantuan atau tugas mendesak yang tertunda.</span>
                     </div>
                   </div>
                 </CardContent>
@@ -435,53 +435,72 @@ export default async function Dashboard() {
 
         {/* LAYER 3: ACTION LAYER (Entri Aksi Informasi Shortcuts) */}
         <section className="space-y-3">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-text-muted px-1">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">
             Aksi Informasi Ringkas
           </h2>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             <Link
               href="/dashboard/aktivitas"
-              className="p-3.5 rounded-card bg-surface-1 border border-border-subtle hover:bg-surface-sunken hover:border-brand-primary/30 transition-all flex flex-col justify-between group min-h-[84px] shadow-2xs"
+              className="p-4 rounded-xl bg-slate-900/90 border border-slate-800/80 hover:bg-slate-800/60 hover:border-blue-500/40 transition-all flex flex-col justify-between group min-h-[88px] shadow-xs"
+              aria-label="Buka Log Pastoral"
             >
-              <div className="p-2 rounded-control bg-brand-primary/10 text-brand-primary w-fit group-hover:scale-105 transition-transform border border-brand-primary/20">
+              <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400 w-fit group-hover:scale-105 transition-transform border border-blue-500/20">
                 <FileText className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-xs font-bold text-text-high block truncate group-hover:text-brand-primary transition-colors">
+                <span className="text-xs font-bold text-slate-100 block truncate group-hover:text-blue-400 transition-colors">
                   Log Pastoral
                 </span>
-                <span className="text-[11px] text-text-muted block truncate">Catatan kegiatan</span>
+                <span className="text-[11px] text-slate-400 block truncate">Catatan kegiatan</span>
               </div>
             </Link>
 
             <Link
               href="/dashboard/aid-requests"
-              className="p-3.5 rounded-card bg-surface-1 border border-border-subtle hover:bg-surface-sunken hover:border-brand-primary/30 transition-all flex flex-col justify-between group min-h-[84px] shadow-2xs"
+              className="p-4 rounded-xl bg-slate-900/90 border border-slate-800/80 hover:bg-slate-800/60 hover:border-amber-500/40 transition-all flex flex-col justify-between group min-h-[88px] shadow-xs"
+              aria-label="Buka Permohonan Bantuan"
             >
-              <div className="p-2 rounded-control bg-amber-500/10 text-amber-600 dark:text-amber-400 w-fit group-hover:scale-105 transition-transform border border-amber-500/20">
+              <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 w-fit group-hover:scale-105 transition-transform border border-amber-500/20">
                 <HeartHandshake className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-xs font-bold text-text-high block truncate group-hover:text-amber-600 transition-colors">
-                  Ajuan Bantuan
+                <span className="text-xs font-bold text-slate-100 block truncate group-hover:text-amber-400 transition-colors">
+                  Ajukan Bantuan
                 </span>
-                <span className="text-[11px] text-text-muted block truncate">Permohonan pos</span>
+                <span className="text-[11px] text-slate-400 block truncate">Permohonan pos</span>
               </div>
             </Link>
 
             <Link
               href="/people"
-              className="p-3.5 rounded-card bg-surface-1 border border-border-subtle hover:bg-surface-sunken hover:border-brand-primary/30 transition-all flex flex-col justify-between group min-h-[84px] shadow-2xs col-span-2 sm:col-span-1"
+              className="p-4 rounded-xl bg-slate-900/90 border border-slate-800/80 hover:bg-slate-800/60 hover:border-emerald-500/40 transition-all flex flex-col justify-between group min-h-[88px] shadow-xs"
+              aria-label="Buka Direktori SDM"
             >
-              <div className="p-2 rounded-control bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 w-fit group-hover:scale-105 transition-transform border border-emerald-500/20">
+              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 w-fit group-hover:scale-105 transition-transform border border-emerald-500/20">
                 <Users className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-xs font-bold text-text-high block truncate group-hover:text-emerald-600 transition-colors">
+                <span className="text-xs font-bold text-slate-100 block truncate group-hover:text-emerald-400 transition-colors">
                   Direktori SDM
                 </span>
-                <span className="text-[11px] text-text-muted block truncate">Pendeta &amp; Pelayan</span>
+                <span className="text-[11px] text-slate-400 block truncate">Pendeta &amp; Pelayan</span>
+              </div>
+            </Link>
+
+            <Link
+              href="/org"
+              className="p-4 rounded-xl bg-slate-900/90 border border-slate-800/80 hover:bg-slate-800/60 hover:border-purple-500/40 transition-all flex flex-col justify-between group min-h-[88px] shadow-xs"
+              aria-label="Buka Direktori Organisasi"
+            >
+              <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400 w-fit group-hover:scale-105 transition-transform border border-purple-500/20">
+                <Users className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-slate-100 block truncate group-hover:text-purple-400 transition-colors">
+                  Direktori Org
+                </span>
+                <span className="text-[11px] text-slate-400 block truncate">Pos &amp; Jemaat Induk</span>
               </div>
             </Link>
           </div>
@@ -489,7 +508,7 @@ export default async function Dashboard() {
 
         {/* LAYER 4: INSIGHT LAYER (Statistik & Demografi Ringkas) */}
         <section className="space-y-4 pt-2">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-text-muted px-1">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">
             Ringkasan Statistik &amp; Demografi
           </h2>
 
@@ -507,11 +526,11 @@ export default async function Dashboard() {
           </div>
 
           {userRole === 'kmj' && userIndukId && (
-            <Card className="mt-6 border-border-subtle bg-surface-1">
+            <Card className="mt-6 border-slate-800/80 bg-slate-900/90">
               <CardHeader>
-                <CardTitle className="flex items-center justify-between text-base font-bold">
+                <CardTitle className="flex items-center justify-between text-base font-bold text-slate-100">
                   <span>Aktivitas Pastoral Minggu Ini</span>
-                  <Link href="/pastoral" className="text-xs font-bold text-brand-primary hover:underline">
+                  <Link href="/pastoral" className="text-xs font-bold text-blue-400 hover:underline">
                     Lihat Semua
                   </Link>
                 </CardTitle>

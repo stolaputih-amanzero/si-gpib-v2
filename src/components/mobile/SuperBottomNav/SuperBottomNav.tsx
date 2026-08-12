@@ -16,7 +16,6 @@ export function SuperBottomNav() {
     setIsSheetOpen(prev => !prev);
   };
 
-  // Helper untuk cek active state
   const isActiveRoute = (href: string) => {
     if (href === '/dashboard') return pathname === '/' || pathname === '/dashboard';
     return pathname.startsWith(href);
@@ -28,17 +27,16 @@ export function SuperBottomNav() {
       <nav
         className={cn(
           'fixed bottom-0 left-0 right-0 z-30 md:hidden',
-          'bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl',
-          'border-t border-gray-200/50 dark:border-gray-700/50',
+          'bg-[#111A2B]/95 backdrop-blur-xl',
+          'border-t border-slate-800/80',
           'pb-[env(safe-area-inset-bottom)]',
           'transition-all duration-300',
-          // Sembunyikan nav bar saat sheet terbuka agar fokus ke sheet
           isSheetOpen && 'translate-y-full opacity-0 pointer-events-none' 
         )}
         role="navigation"
         aria-label="Navigasi utama"
       >
-        <div className="grid grid-cols-5 w-full items-end justify-items-center h-[64px] px-1">
+        <div className="grid grid-cols-5 w-full items-end justify-items-center h-[60px] px-1">
           {DIRECT_NAV_ITEMS.map((item) => {
             if (item.order === 3) {
               return (

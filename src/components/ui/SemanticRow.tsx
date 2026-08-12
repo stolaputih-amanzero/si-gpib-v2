@@ -55,7 +55,7 @@ export function SemanticRow({
           {badge}
         </div>
         {subtitle && (
-          <p className="text-xs text-text-muted mt-0.5 truncate">{subtitle}</p>
+          <div className="text-xs text-text-muted mt-0.5 truncate">{subtitle}</div>
         )}
       </div>
 

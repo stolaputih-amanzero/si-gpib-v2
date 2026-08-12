@@ -2,11 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  LayoutDashboard, 
   User, 
   Briefcase, 
   GraduationCap, 
-  HeartHandshake 
+  Users,
+  Award,
+  BookOpen,
+  Calendar,
+  Layers
 } from 'lucide-react';
 
 interface AnchorItem {
@@ -16,18 +19,20 @@ interface AnchorItem {
 }
 
 const ANCHORS: AnchorItem[] = [
-  { id: 'overview', label: 'Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
-  { id: 'profile', label: 'Profil', icon: <User className="w-4 h-4" /> },
-  { id: 'roles', label: 'Penugasan & Peran', icon: <Briefcase className="w-4 h-4" /> },
-  { id: 'competencies', label: 'Kapasitas', icon: <GraduationCap className="w-4 h-4" /> },
-  { id: 'pastoral', label: 'Pastoral', icon: <HeartHandshake className="w-4 h-4" /> }
+  { id: 'profil', label: 'Profil', icon: <User className="w-4 h-4" /> },
+  { id: 'penugasan', label: 'Penugasan', icon: <Briefcase className="w-4 h-4" /> },
+  { id: 'jabatan', label: 'Jabatan & Penunjukan', icon: <Award className="w-4 h-4" /> },
+  { id: 'mutasi', label: 'Riwayat Mutasi', icon: <Layers className="w-4 h-4" /> },
+  { id: 'keluarga', label: 'Keluarga', icon: <Users className="w-4 h-4" /> },
+  { id: 'kompetensi', label: 'Kompetensi', icon: <GraduationCap className="w-4 h-4" /> },
+  { id: 'pastoral', label: 'Log Pastoral', icon: <BookOpen className="w-4 h-4" /> },
+  { id: 'aktivitas', label: 'Aktivitas Pelayanan', icon: <Calendar className="w-4 h-4" /> }
 ];
 
 export const PersonNavigationAnchor: React.FC = () => {
-  const [activeAnchor, setActiveAnchor] = useState<string>('overview');
+  const [activeAnchor, setActiveAnchor] = useState<string>('profil');
 
   useEffect(() => {
-    // 1. Initial Hash handling for cold-load deep linking
     const rawHash = window.location.hash.replace('#', '');
     if (rawHash) {
       const match = ANCHORS.find((a) => a.id === rawHash);
@@ -43,7 +48,6 @@ export const PersonNavigationAnchor: React.FC = () => {
       }
     }
 
-    // 2. Active section tracking via IntersectionObserver
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -77,8 +81,8 @@ export const PersonNavigationAnchor: React.FC = () => {
   };
 
   return (
-    <nav aria-label="Navigasi Seksi Person Workspace" className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-y border-slate-200 dark:border-slate-800 shadow-2xs py-2 px-1">
-      <div className="flex items-center gap-1 overflow-x-auto no-scrollbar max-w-full">
+    <nav aria-label="Navigasi Seksi Person Workspace" className="sticky top-0 z-30 bg-[#111A2B]/95 backdrop-blur-md border-y border-slate-800/80 shadow-xs py-2 px-1">
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-full">
         {ANCHORS.map((item) => {
           const isActive = activeAnchor === item.id;
           return (
@@ -87,10 +91,11 @@ export const PersonNavigationAnchor: React.FC = () => {
               href={`#${item.id}`}
               onClick={(e) => handleClickAnchor(e, item.id)}
               aria-current={isActive ? 'location' : undefined}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium shrink-0 transition-all ${
+              aria-label={`Pindah ke seksi ${item.label}`}
+              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold shrink-0 transition-all min-h-[44px] ${
                 isActive
-                  ? 'bg-primary-50 dark:bg-primary-950/50 text-primary-600 dark:text-primary-400 font-semibold border border-primary-200 dark:border-primary-800'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200'
+                  ? 'bg-blue-600 text-white border border-blue-500 shadow-xs'
+                  : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
               }`}
             >
               {item.icon}

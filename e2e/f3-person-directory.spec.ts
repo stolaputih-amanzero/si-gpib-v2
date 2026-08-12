@@ -8,7 +8,7 @@ test.describe('Fase 3 — Person Directory Projection Surface E2E Suite (/people
     await page.waitForLoadState('networkidle');
 
     // Title & Search
-    await expect(page.locator('h1').first()).toBeVisible();
+    await expect(page.locator('h1:has-text("Direktori SDM")').first()).toBeVisible();
     await expect(page.locator('input[name="q"]')).toBeVisible();
 
     // Projection Filter Chips inside filter container

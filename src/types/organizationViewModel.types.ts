@@ -60,7 +60,38 @@ export interface OrganizationPeopleViewModel {
 }
 
 /**
- * Section 4: Assets Projections (#assets)
+ * Section 4: Demography (#demografi)
+ */
+export interface OrganizationDemographyViewModel {
+  demografi: FieldRenderState<OrganizationDemografiItem[]>;
+}
+
+/**
+ * Section 5: Pastoral (#pastoral)
+ */
+export interface OrganizationPastoralLogItem {
+  id_log: string;
+  tgl: string;
+  jenis_kegiatan: string;
+  lokasi?: string;
+  ringkasan: string;
+}
+
+export interface OrganizationWorshipScheduleItem {
+  id_jadwal: string;
+  hari: string;
+  jam: string;
+  nama_ibadah: string;
+}
+
+export interface OrganizationPastoralViewModel {
+  logs: FieldRenderState<OrganizationPastoralLogItem[]>;
+  jadwalIbadah: FieldRenderState<OrganizationWorshipScheduleItem[]>;
+  canCreate: boolean;
+}
+
+/**
+ * Section 6: Assets Projections (#assets)
  */
 export interface OrganizationAssetsViewModel {
   totalCount: FieldRenderState<number>;
@@ -71,7 +102,15 @@ export interface OrganizationAssetsViewModel {
 }
 
 /**
- * Section 5: Aid Requests Projections (#aid-requests)
+ * Section 7: Territory Projections (#territory)
+ */
+export interface OrganizationTerritoryViewModel {
+  kerawanan: FieldRenderState<OrganizationKerawananItem[]>;
+  potensi: FieldRenderState<OrganizationPotensiItem[]>;
+}
+
+/**
+ * Section 8: Aid Requests Projections (#aid-requests)
  */
 export interface OrganizationAidRequestsViewModel {
   totalCount: FieldRenderState<number>;
@@ -81,12 +120,17 @@ export interface OrganizationAidRequestsViewModel {
 }
 
 /**
- * Section 6: Territory Projections (#territory)
+ * Section 9: History & Status (#riwayat)
  */
-export interface OrganizationTerritoryViewModel {
-  demografi: FieldRenderState<OrganizationDemografiItem[]>;
-  kerawanan: FieldRenderState<OrganizationKerawananItem[]>;
-  potensi: FieldRenderState<OrganizationPotensiItem[]>;
+export interface OrganizationHistoryEventItem {
+  id_histori: string;
+  tgl: string;
+  deskripsi: string;
+  jenis_perubahan: string;
+}
+
+export interface OrganizationHistoryViewModel {
+  events: FieldRenderState<OrganizationHistoryEventItem[]>;
 }
 
 /**
@@ -100,7 +144,10 @@ export interface OrganizationWorkspaceViewModel {
   overview: OrganizationOverviewViewModel;
   structure: OrganizationStructureViewModel;
   people: OrganizationPeopleViewModel;
+  demography: OrganizationDemographyViewModel;
+  pastoral: OrganizationPastoralViewModel;
   assets: OrganizationAssetsViewModel;
-  aidRequests: OrganizationAidRequestsViewModel;
   territory: OrganizationTerritoryViewModel;
+  aidRequests: OrganizationAidRequestsViewModel;
+  history: OrganizationHistoryViewModel;
 }

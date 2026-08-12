@@ -14,31 +14,31 @@ export const OrgAssetsSection: React.FC<OrgAssetsSectionProps> = ({ assets }) =>
   return (
     <section id="assets" className="scroll-mt-36 md:scroll-mt-28 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-          <Building className="w-5 h-5 text-blue-500" />
-          Proyeksi Kapabilitas Aset
+        <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+          <Building className="w-5 h-5 text-blue-400" />
+          Aset &amp; Properti Organisasi
         </h2>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs space-y-4">
+      <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 shadow-xs space-y-4">
         {/* Aggregate Stats Bar */}
         {assets.totalCount.type === 'DATA' && (
-          <div className="grid grid-cols-3 gap-2 text-center p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+          <div className="grid grid-cols-3 gap-2 text-center p-3 rounded-xl bg-slate-950 border border-slate-800/80">
             <div>
-              <div className="text-xs text-slate-500 font-medium">Tanah</div>
-              <div className="text-base font-bold text-slate-900 dark:text-slate-100">
+              <div className="text-xs text-slate-400 font-medium">Tanah</div>
+              <div className="text-base font-bold text-slate-100 font-sans tabular-nums">
                 {assets.totalTanah.type === 'DATA' ? assets.totalTanah.value : 0}
               </div>
             </div>
             <div>
-              <div className="text-xs text-slate-500 font-medium">Bangunan</div>
-              <div className="text-base font-bold text-slate-900 dark:text-slate-100">
+              <div className="text-xs text-slate-400 font-medium">Bangunan</div>
+              <div className="text-base font-bold text-slate-100 font-sans tabular-nums">
                 {assets.totalBangunan.type === 'DATA' ? assets.totalBangunan.value : 0}
               </div>
             </div>
             <div>
-              <div className="text-xs text-slate-500 font-medium">Bergerak</div>
-              <div className="text-base font-bold text-slate-900 dark:text-slate-100">
+              <div className="text-xs text-slate-400 font-medium">Bergerak</div>
+              <div className="text-base font-bold text-slate-100 font-sans tabular-nums">
                 {assets.totalBergerak.type === 'DATA' ? assets.totalBergerak.value : 0}
               </div>
             </div>
@@ -49,21 +49,22 @@ export const OrgAssetsSection: React.FC<OrgAssetsSectionProps> = ({ assets }) =>
         {assets.items.type === 'PRIVACY_MASKED' ? (
           <PrivacyStateNotice reason={assets.items.reason} label={assets.items.label} />
         ) : assets.items.type === 'EMPTY' ? (
-          <p className="text-sm text-slate-400 italic text-center py-4">{assets.items.label}</p>
+          <p className="text-sm text-slate-500 italic text-center py-4">{assets.items.label}</p>
         ) : (
           <div className="space-y-2">
             {assets.items.value.map((item) => (
               <Link
                 key={item.id_asset}
                 href={`/assets/${item.id_asset}`}
-                className="flex items-center justify-between p-3 rounded-lg border border-slate-100 dark:border-slate-800/80 hover:border-blue-200 dark:hover:border-blue-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group"
+                className="flex items-center justify-between p-3.5 rounded-xl border border-slate-800/80 hover:border-blue-500/40 hover:bg-slate-800/60 transition-all group min-h-[56px]"
+                aria-label={`Buka detail aset ${item.nama_aset}`}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/20">
                     {item.kategori === 'tanah' ? <Landmark className="w-4 h-4" /> : <Box className="w-4 h-4" />}
                   </div>
                   <div className="min-w-0">
-                    <div className="text-sm font-medium text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate">
+                    <div className="text-sm font-bold text-slate-100 group-hover:text-blue-400 truncate transition-colors">
                       {item.nama_aset}
                     </div>
                     <div className="text-xs text-slate-400">
@@ -71,7 +72,7 @@ export const OrgAssetsSection: React.FC<OrgAssetsSectionProps> = ({ assets }) =>
                     </div>
                   </div>
                 </div>
-                <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-blue-500 shrink-0 transition-colors" />
+                <ArrowUpRight className="w-4 h-4 text-slate-500 group-hover:text-blue-400 shrink-0 transition-colors" />
               </Link>
             ))}
           </div>

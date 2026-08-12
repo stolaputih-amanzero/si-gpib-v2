@@ -17,7 +17,7 @@ export default async function DashboardLayout({
 
   return (
     <ActiveContextProvider initialContextId={contextData.context_id}>
-      <div className="flex h-screen bg-surface-base overflow-hidden">
+      <div className="flex h-screen bg-[#0B1220] overflow-hidden">
       {/* Desktop Sidebar (Collapsible with grouped navigation) */}
       <Sidebar />
 

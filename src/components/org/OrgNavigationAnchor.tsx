@@ -7,7 +7,10 @@ import {
   Users, 
   Building, 
   HandHeart, 
-  Map 
+  Map,
+  BookOpen,
+  History,
+  UsersRound
 } from 'lucide-react';
 
 interface AnchorItem {
@@ -17,19 +20,21 @@ interface AnchorItem {
 }
 
 const ANCHORS: AnchorItem[] = [
-  { id: 'overview', label: 'Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
-  { id: 'structure', label: 'Struktur', icon: <Network className="w-4 h-4" /> },
+  { id: 'overview', label: 'Ringkasan', icon: <LayoutDashboard className="w-4 h-4" /> },
+  { id: 'identitas', label: 'Identitas & Struktur', icon: <Network className="w-4 h-4" /> },
   { id: 'people', label: 'SDM', icon: <Users className="w-4 h-4" /> },
+  { id: 'demografi', label: 'Demografi', icon: <UsersRound className="w-4 h-4" /> },
+  { id: 'pastoral', label: 'Pastoral', icon: <BookOpen className="w-4 h-4" /> },
   { id: 'assets', label: 'Aset', icon: <Building className="w-4 h-4" /> },
+  { id: 'territory', label: 'Wilayah', icon: <Map className="w-4 h-4" /> },
   { id: 'aid-requests', label: 'Bantuan', icon: <HandHeart className="w-4 h-4" /> },
-  { id: 'territory', label: 'Wilayah', icon: <Map className="w-4 h-4" /> }
+  { id: 'riwayat', label: 'Riwayat', icon: <History className="w-4 h-4" /> }
 ];
 
 export const OrgNavigationAnchor: React.FC = () => {
   const [activeAnchor, setActiveAnchor] = useState<string>('overview');
 
   useEffect(() => {
-    // 1. Initial Hash handling for cold-load deep linking
     const rawHash = window.location.hash.replace('#', '');
     if (rawHash) {
       const match = ANCHORS.find((a) => a.id === rawHash);
@@ -45,7 +50,6 @@ export const OrgNavigationAnchor: React.FC = () => {
       }
     }
 
-    // 2. Active section tracking via IntersectionObserver
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -80,7 +84,7 @@ export const OrgNavigationAnchor: React.FC = () => {
   return (
     <nav 
       aria-label="Navigasi Seksi Organisasi" 
-      className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-y border-slate-200 dark:border-slate-800 shadow-2xs py-2 px-1"
+      className="sticky top-0 z-30 bg-[#111A2B]/95 backdrop-blur-md border-y border-slate-800/80 shadow-xs py-2 px-1"
     >
       <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-full">
         {ANCHORS.map((item) => {
@@ -88,12 +92,14 @@ export const OrgNavigationAnchor: React.FC = () => {
           return (
             <button
               key={item.id}
+              type="button"
               onClick={() => scrollToAnchor(item.id)}
               aria-selected={isActive}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium shrink-0 transition-all ${
+              aria-label={`Pindah ke seksi ${item.label}`}
+              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold shrink-0 transition-all min-h-[44px] ${
                 isActive
-                  ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-semibold border border-blue-200 dark:border-blue-800'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200'
+                  ? 'bg-blue-600 text-white border border-blue-500 shadow-xs'
+                  : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
               }`}
             >
               {item.icon}

@@ -109,46 +109,46 @@ export default function SettingsHubPage() {
   const humanRoleLabel = getHumanReadableRoleLabel(currentUser?.role || role);
 
   return (
-    <div className="space-y-6 max-w-4xl pb-12">
-      {/* Page Title & Subtitle */}
+    <div className="space-y-6 max-w-4xl pb-16">
+      {/* Page Header */}
       <div>
-        <h1 className="text-xl md:text-2xl font-bold text-text-high tracking-tight">
-          Akun & Pengaturan
+        <h1 className="text-xl md:text-2xl font-bold text-slate-100 tracking-tight">
+          Akun
         </h1>
-        <p className="text-xs md:text-sm text-text-muted mt-1">
-          Kelola identitas akun, keamanan, otorisasi, dan preferensi aplikasi SI GPIB.
+        <p className="text-xs md:text-sm text-slate-400 mt-1">
+          Kelola identitas, keamanan, otorisasi, dan preferensi aplikasi SI GPIB.
         </p>
       </div>
 
-      {/* SECTION 1: IDENTITAS & PROFIL PELAYANAN */}
+      {/* SECTION 1: AKUN */}
       <section className="space-y-3">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-text-muted px-1">
-          Identitas & Profil Pelayanan
+        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">
+          AKUN
         </h2>
 
         {/* Identity Header Card */}
-        <Card className="relative overflow-hidden border-border-subtle bg-surface-1">
+        <Card className="relative overflow-hidden border-slate-800/80 bg-slate-900/90 shadow-xs">
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4 min-w-0">
-                <div className="w-16 h-16 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold text-xl overflow-hidden shrink-0 border border-brand-primary/20">
+                <div className="w-16 h-16 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-xl overflow-hidden shrink-0 border border-blue-500/20">
                   {displayAvatar ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={displayAvatar} alt={nama} className="w-full h-full object-cover" />
                   ) : (
-                    <UserIcon className="w-8 h-8 text-brand-primary" />
+                    <UserIcon className="w-8 h-8 text-blue-400" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <CardTitle className="truncate text-lg">{isLoading ? 'Memuat Profil...' : nama}</CardTitle>
-                    {isLoading && <RefreshCw className="w-3.5 h-3.5 animate-spin text-text-muted" />}
+                    <CardTitle className="truncate text-lg text-slate-100">{isLoading ? 'Memuat Profil...' : nama}</CardTitle>
+                    {isLoading && <RefreshCw className="w-3.5 h-3.5 animate-spin text-slate-500" />}
                   </div>
-                  <CardDescription className="truncate mt-0.5 font-mono text-xs text-text-muted">
+                  <CardDescription className="truncate mt-0.5 font-mono text-xs text-slate-400">
                     {email}
                   </CardDescription>
                   <div className="flex items-center gap-2 mt-2 flex-wrap">
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
                       {humanRoleLabel}
                     </span>
                   </div>
@@ -159,136 +159,188 @@ export default function SettingsHubPage() {
         </Card>
 
         {/* Smart Entry Link to F2 Canonical Person Workspace */}
-        <Card className="border-border-subtle bg-surface-1 hover:bg-surface-sunken/50 transition-colors">
-          <CardHeader className="p-4 sm:p-6">
+        <Card className="border-slate-800/80 bg-slate-900/90 hover:bg-slate-800/60 transition-colors shadow-xs">
+          <CardHeader className="p-4 sm:p-5">
             <Link
               href="/settings/profile"
               className="flex items-center justify-between w-full group min-h-[44px]"
+              aria-label="Buka Profil Pelayanan Saya"
             >
               <div className="flex items-center gap-3 min-w-0 pr-4">
-                <div className="p-2.5 rounded-control bg-brand-primary/10 text-brand-primary shrink-0 group-hover:scale-105 transition-transform border border-brand-primary/20">
+                <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 shrink-0 group-hover:scale-105 transition-transform border border-blue-500/20">
                   <UserIcon className="w-5 h-5" />
                 </div>
                 <div className="min-w-0 text-left">
-                  <CardTitle className="text-base truncate group-hover:text-brand-primary transition-colors font-bold">
+                  <CardTitle className="text-base truncate group-hover:text-blue-400 transition-colors font-bold text-slate-100">
                     Profil Pelayanan Saya
                   </CardTitle>
-                  <CardDescription className="line-clamp-1 mt-0.5">
-                    Buka ruang kerja Profil 360° personal (identitas, keluarga, jabatan, &amp; log pastoral)
+                  <CardDescription className="line-clamp-1 mt-0.5 text-slate-400">
+                    Buka ruang kerja Profil personal (identitas, penugasan, &amp; log pastoral)
                   </CardDescription>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-text-muted group-hover:text-brand-primary group-hover:translate-x-1 transition-all shrink-0" />
+              <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-blue-400 group-hover:translate-x-1 transition-all shrink-0" />
             </Link>
           </CardHeader>
         </Card>
       </section>
 
-      {/* SECTION 2: KEAMANAN & SESI */}
+      {/* SECTION 2: KEAMANAN */}
       <section className="space-y-3 pt-2">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-text-muted px-1">
-          Keamanan & Akun
+        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">
+          KEAMANAN
         </h2>
 
         {/* Biometric Setup & Security */}
         <BiometricSetup initialEnabled={biometricsEnabled} />
 
         {/* Password & Session Controls */}
-        <Card className="border-border-subtle bg-surface-1 overflow-hidden">
-          <CardContent className="p-0 divide-y divide-border-subtle">
+        <Card className="border-slate-800/80 bg-slate-900/90 overflow-hidden shadow-xs">
+          <CardContent className="p-0 divide-y divide-slate-800/80">
             <button
               type="button"
               onClick={() => setIsChangingPassword(true)}
-              className="flex items-center justify-between w-full p-4 hover:bg-surface-sunken transition-colors text-left min-h-[52px]"
+              className="flex items-center justify-between w-full p-4 hover:bg-slate-800/60 transition-colors text-left min-h-[52px]"
+              aria-label="Ubah kata sandi"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-surface-sunken text-text-high">
+                <div className="p-2 rounded-lg bg-slate-800 text-slate-200">
                   <KeyRound className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-sm font-semibold text-text-high block">Ubah Kata Sandi</span>
-                  <span className="text-xs text-text-muted block">Perbarui sandi akun untuk akses aplikasi</span>
+                  <span className="text-sm font-semibold text-slate-100 block">Ubah Kata Sandi</span>
+                  <span className="text-xs text-slate-400 block">Perbarui sandi akun untuk akses aplikasi</span>
                 </div>
               </div>
-              <ChevronRight className="w-4 h-4 text-text-muted" />
+              <ChevronRight className="w-4 h-4 text-slate-500" />
             </button>
 
             <button
               type="button"
               onClick={handleLogoutClick}
-              className="flex items-center justify-between w-full p-4 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-left text-red-600 dark:text-red-400 font-semibold min-h-[52px]"
+              className="flex items-center justify-between w-full p-4 hover:bg-red-950/20 transition-colors text-left text-red-400 font-semibold min-h-[52px]"
+              aria-label="Keluar sesi"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">
+                <div className="p-2 rounded-lg bg-red-900/30 text-red-400">
                   <LogOut className="w-4 h-4" />
                 </div>
                 <div>
                   <span className="text-sm block">Keluar Sesi</span>
-                  <span className="text-xs text-red-500/80 dark:text-red-400/80 font-normal block">Akhiri sesi aktif pada perangkat ini</span>
+                  <span className="text-xs text-red-400/80 font-normal block">Akhiri sesi aktif pada perangkat ini</span>
                 </div>
               </div>
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4 text-red-400" />
             </button>
           </CardContent>
         </Card>
       </section>
 
-      {/* SECTION 3: ADMINISTRASI SISTEM (GATED SUPERADMIN) */}
+      {/* SECTION 3: ADMINISTRASI */}
       {isSuperUser && (
         <section className="space-y-3 pt-2">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-text-muted px-1">
-            Administrasi Sistem
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">
+            ADMINISTRASI
           </h2>
 
-          <Card className="border-border-subtle bg-surface-1 hover:bg-surface-sunken/50 transition-colors">
-            <CardHeader className="p-4 sm:p-6">
+          <Card className="border-slate-800/80 bg-slate-900/90 overflow-hidden shadow-xs">
+            <CardContent className="p-0 divide-y divide-slate-800/80">
               <Link
                 href="/settings/users"
-                className="flex items-center justify-between w-full group min-h-[44px]"
+                className="flex items-center justify-between w-full p-4 hover:bg-slate-800/60 transition-colors text-left min-h-[52px] group"
+                aria-label="Buka Manajemen Pengguna"
               >
                 <div className="flex items-center gap-3 min-w-0 pr-4">
-                  <div className="p-2.5 rounded-control bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0 group-hover:scale-105 transition-transform border border-amber-500/20">
-                    <Crown className="w-5 h-5" />
+                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+                    <Crown className="w-4 h-4" />
                   </div>
-                  <div className="min-w-0 text-left">
+                  <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <CardTitle className="text-base truncate group-hover:text-amber-600 transition-colors font-bold">
-                        Manajemen User & Role
-                      </CardTitle>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                      <span className="text-sm font-bold text-slate-100 block group-hover:text-amber-400 transition-colors">
+                        Manajemen Pengguna &amp; Peran
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
                         Admin
                       </span>
                     </div>
-                    <CardDescription className="line-clamp-1 mt-0.5">
-                      Kelola daftar pengguna, penetapan peran, dan otorisasi hak akses sistem
-                    </CardDescription>
+                    <span className="text-xs text-slate-400 block truncate">Kelola daftar pengguna dan otorisasi hak akses sistem</span>
                   </div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-text-muted group-hover:text-amber-600 group-hover:translate-x-1 transition-all shrink-0" />
+                <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0" />
               </Link>
-            </CardHeader>
+
+              <Link
+                href="/developer/audit-trail"
+                className="flex items-center justify-between w-full p-4 hover:bg-slate-800/60 transition-colors text-left min-h-[52px] group"
+                aria-label="Buka Audit Trail Sistem"
+              >
+                <div className="flex items-center gap-3 min-w-0 pr-4">
+                  <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20 shrink-0">
+                    <RefreshCw className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-slate-100 block group-hover:text-purple-400 transition-colors">
+                        Audit Trail Sistem
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                        Admin
+                      </span>
+                    </div>
+                    <span className="text-xs text-slate-400 block truncate">Jejak aktivitas operasional &amp; log autentikasi</span>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-purple-400 group-hover:translate-x-0.5 transition-all shrink-0" />
+              </Link>
+            </CardContent>
           </Card>
         </section>
       )}
 
       {/* SECTION 4: PREFERENSI SISTEM */}
       <section className="space-y-3 pt-2">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-text-muted px-1">
-          Preferensi Sistem
+        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">
+          PREFERENSI SISTEM
         </h2>
 
+        {/* Sync Manager Canonical Entry */}
+        <Card className="border-slate-800/80 bg-slate-900/90 shadow-xs">
+          <CardHeader className="p-4 sm:p-5">
+            <Link
+              href="/offline-sync"
+              className="flex items-center justify-between w-full group min-h-[44px]"
+              aria-label="Buka Status Sinkronisasi Offline"
+            >
+              <div className="flex items-center gap-3 min-w-0 pr-4">
+                <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 shrink-0 border border-blue-500/20">
+                  <RefreshCw className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <CardTitle className="text-base truncate font-bold text-slate-100 group-hover:text-blue-400 transition-colors">
+                    Manajer Sinkronisasi (Sync Manager)
+                  </CardTitle>
+                  <CardDescription className="line-clamp-1 text-slate-400">
+                    Kelola antrean draf offline (`t_form_draft`) &amp; status konektivitas
+                  </CardDescription>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-blue-400 group-hover:translate-x-1 transition-all shrink-0" />
+            </Link>
+          </CardHeader>
+        </Card>
+
         {/* Theme & Appearance Settings */}
-        <Card className="border-border-subtle bg-surface-1">
-          <CardHeader className="p-4 sm:p-6">
+        <Card className="border-slate-800/80 bg-slate-900/90 shadow-xs">
+          <CardHeader className="p-4 sm:p-5">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0 pr-4">
-                <div className="p-2.5 rounded-control bg-surface-brand text-brand-primary shrink-0 border border-brand-primary/20">
+                <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 shrink-0 border border-blue-500/20">
                   <Palette className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <CardTitle className="text-base truncate font-bold">Tema Tampilan</CardTitle>
-                  <CardDescription className="line-clamp-1">
-                    Pilih tema terang, gelap, atau sesuaikan dengan preferensi perangkat
+                  <CardTitle className="text-base truncate font-bold text-slate-100">Tema Tampilan</CardTitle>
+                  <CardDescription className="line-clamp-1 text-slate-400">
+                    Pilih tema terang, gelap, atau sesuaikan dengan sistem perangkat
                   </CardDescription>
                 </div>
               </div>
@@ -300,17 +352,17 @@ export default function SettingsHubPage() {
         </Card>
 
         {/* Notifications */}
-        <Card className="border-border-subtle bg-surface-1">
-          <CardHeader className="p-4 sm:p-6">
+        <Card className="border-slate-800/80 bg-slate-900/90 shadow-xs">
+          <CardHeader className="p-4 sm:p-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0 pr-4">
-                <div className="p-2.5 rounded-control bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0 border border-amber-500/20">
+                <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 shrink-0 border border-amber-500/20">
                   <Bell className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <CardTitle className="text-base truncate font-bold">Notifikasi Sistem</CardTitle>
-                  <CardDescription className="line-clamp-1">
-                    Pemberitahuan bantuan, permohonan pos, &amp; pengingat ibadah
+                  <CardTitle className="text-base truncate font-bold text-slate-100">Notifikasi Sistem</CardTitle>
+                  <CardDescription className="line-clamp-1 text-slate-400">
+                    Pemberitahuan permohonan bantuan pos &amp; pengingat kegiatan
                   </CardDescription>
                 </div>
               </div>
@@ -318,8 +370,9 @@ export default function SettingsHubPage() {
                 type="button"
                 onClick={handleToggleNotifications}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  notificationsEnabled ? 'bg-brand-primary' : 'bg-surface-sunken border-border-strong'
+                  notificationsEnabled ? 'bg-blue-600' : 'bg-slate-800 border-slate-700'
                 }`}
+                aria-label="Toggle notifikasi sistem"
               >
                 <span
                   className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
@@ -334,15 +387,15 @@ export default function SettingsHubPage() {
 
       {/* Modal Ubah Kata Sandi */}
       {isChangingPassword && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-          <div className="bg-surface-elevated w-full max-w-md rounded-t-sheet sm:rounded-card p-5 border border-border-subtle shadow-heavy max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
-            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-slate-900 w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 border border-slate-800 shadow-2xl max-h-[90vh] overflow-y-auto space-y-4 animate-slide-up">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
-                <h2 className="text-base font-bold text-brand-primary flex items-center gap-2">
+                <h2 className="text-base font-bold text-blue-400 flex items-center gap-2">
                   <Lock size={18} />
                   <span>Ubah Kata Sandi</span>
                 </h2>
-                <p className="text-xs text-text-muted mt-0.5">
+                <p className="text-xs text-slate-400 mt-0.5">
                   Masukkan kata sandi baru Anda untuk akun ini
                 </p>
               </div>
@@ -353,43 +406,41 @@ export default function SettingsHubPage() {
                   setNewPassword('');
                   setConfirmPassword('');
                 }}
-                className="w-9 h-9 rounded-full bg-surface-sunken flex items-center justify-center text-text-muted hover:text-text-high min-h-[44px] min-w-[44px]"
+                className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-100 min-h-[44px] min-w-[44px]"
+                aria-label="Tutup modal"
               >
                 <X size={18} />
               </button>
             </div>
 
             <form onSubmit={handleUpdatePassword} className="space-y-4">
-              {/* Password Baru */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-high">Kata Sandi Baru *</label>
+                <label className="text-xs font-semibold text-slate-200">Kata Sandi Baru *</label>
                 <input
                   type="password"
                   placeholder="Min. 6 karakter"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-control border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px]"
                   required
                   minLength={6}
                 />
               </div>
 
-              {/* Konfirmasi Password Baru */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-high">Konfirmasi Kata Sandi Baru *</label>
+                <label className="text-xs font-semibold text-slate-200">Konfirmasi Kata Sandi Baru *</label>
                 <input
                   type="password"
                   placeholder="Ketik ulang kata sandi baru"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-control border border-border-subtle bg-surface-base text-sm text-text-high focus:outline-none focus:ring-2 focus:ring-brand-primary min-h-[44px]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px]"
                   required
                   minLength={6}
                 />
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2 pt-3 border-t border-border-subtle">
+              <div className="flex items-center gap-2 pt-3 border-t border-slate-800">
                 <button
                   type="button"
                   onClick={() => {
@@ -397,14 +448,14 @@ export default function SettingsHubPage() {
                     setNewPassword('');
                     setConfirmPassword('');
                   }}
-                  className="flex-1 py-2.5 rounded-control border border-border-subtle text-xs font-bold text-text-high hover:bg-surface-sunken transition-all min-h-[44px]"
+                  className="flex-1 py-2.5 rounded-xl border border-slate-800 text-xs font-bold text-slate-300 hover:bg-slate-800 transition-all min-h-[44px]"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingPassword}
-                  className="flex-1 py-2.5 rounded-control bg-brand-primary text-white text-xs font-bold hover:opacity-90 active:scale-95 transition-all shadow-soft min-h-[44px] disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-500 active:scale-95 transition-all min-h-[44px] disabled:opacity-50"
                 >
                   {isSubmittingPassword ? 'Memproses...' : 'Simpan Sandi'}
                 </button>

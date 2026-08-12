@@ -216,47 +216,50 @@
   /* Deep-navy dark mode (aktif saat class .dark ada di <html>) */
   .dark {
     color-scheme: dark;
-    --brand-600: #5B8DEF;
-    --brand-500: #6B9BF2;
-    --brand-400: #8EAAFF;
-    --accent-600: #E0A82E;
+    --brand-600: #3B82F6;
+    --brand-500: #60A5FA;
+    --brand-400: #93C5FD;
+    --accent-600: #F59E0B;
     --accent-soft: #2A2110;
 
-    --surface-base:   #0B1120;
-    --surface-1:      #121A2B;
-    --surface-2:      #0E1626;
-    --surface-sunken: #1A2438;
-    --surface-overlay: rgba(0, 0, 0, 0.6);
-    --surface-brand:  #16233F;
+    --surface-base:   #0B1220;
+    --surface-1:      #111A2B;
+    --surface-2:      #16233A;
+    --surface-sunken: #070D18;
+    --surface-overlay: rgba(0, 0, 0, 0.65);
+    --surface-brand:  #16233A;
     --surface-accent: #2A2110;
 
-    --text-primary:   #F2F5FA;
-    --text-secondary: #A6B0C4;
-    --text-tertiary:  #6B768C;
-    --text-disabled:  #3A4458;
+    --text-primary:   #F2F5F9;
+    --text-secondary: #9AA7B8;
+    --text-tertiary:  #64748B;
+    --text-disabled:  #334155;
 
-    --border-hairline: #1E2940;
-    --border-subtle:   #27324A;
-    --border-strong:   #36425C;
+    --border-hairline: rgba(255, 255, 255, 0.05);
+    --border-subtle:   rgba(255, 255, 255, 0.08);
+    --border-strong:   rgba(255, 255, 255, 0.16);
 
     --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 8px -2px rgba(0, 0, 0, 0.5);
     --shadow-md: 0 4px 16px -4px rgba(0, 0, 0, 0.55);
     --shadow-lg: 0 16px 40px -12px rgba(0, 0, 0, 0.7);
 
-    --color-surface-base: #0B1120;
-    --color-surface-elevated: #121A2B;
-    --color-surface-sunken: #1A2438;
-    --color-text-high: #F2F5FA;
-    --color-text-muted: #A6B0C4;
-    --color-border-subtle: #27324A;
-    --color-border-strong: #36425C;
+    --color-surface-base: #0B1220;
+    --color-surface-elevated: #111A2B;
+    --color-surface-sunken: #070D18;
+    --color-text-high: #F2F5F9;
+    --color-text-muted: #9AA7B8;
+    --color-border-subtle: rgba(255, 255, 255, 0.08);
+    --color-border-strong: rgba(255, 255, 255, 0.16);
 
-    --color-primary: #5B8DEF;
-    --color-surface-bg: #0B1120;
-    --color-surface-fg: #F2F5FA;
-    --color-surface-border: #27324A;
-    --color-neutral: #F2F5FA;
+    --color-primary: #3B82F6;
+    --color-success: #22C55E;
+    --color-warning: #F59E0B;
+    --color-danger: #EF4444;
+    --color-surface-bg: #0B1220;
+    --color-surface-fg: #F2F5F9;
+    --color-surface-border: rgba(255, 255, 255, 0.08);
+    --color-neutral: #F2F5F9;
   }
 
   /* System preference fallback jika JS/next-themes belum load */
