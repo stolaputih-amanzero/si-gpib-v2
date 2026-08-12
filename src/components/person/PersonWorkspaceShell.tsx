@@ -18,6 +18,8 @@ import { ServicePeriodSection } from './sections/ServicePeriodSection';
 import { ServiceFieldSection } from './sections/ServiceFieldSection';
 import { ActivitiesSection } from './sections/ActivitiesSection';
 
+import { WorkspaceErrorBoundary } from '../common/WorkspaceErrorBoundary';
+
 interface PersonWorkspaceShellProps {
   person: UnifiedPersonData;
 }
@@ -39,7 +41,8 @@ export const PersonWorkspaceShell: React.FC<PersonWorkspaceShellProps> = ({ pers
   const assignmentSummary = `${person.overview?.current_organization_name || 'GPIB'}${person.overview?.current_role_label ? ` · ${person.overview.current_role_label}` : ''}`;
 
   return (
-    <div className="min-h-screen bg-[#0B1220] pb-20 space-y-6">
+    <WorkspaceErrorBoundary>
+      <div className="min-h-screen bg-[#0B1220] pb-20 space-y-6">
       {/* 1. Header (Identity-First Banner) */}
       <div className="max-w-5xl mx-auto px-4 pt-6">
         <PersonHeader 
@@ -89,6 +92,7 @@ export const PersonWorkspaceShell: React.FC<PersonWorkspaceShellProps> = ({ pers
           </>
         )}
       </main>
-    </div>
+      </div>
+    </WorkspaceErrorBoundary>
   );
 };

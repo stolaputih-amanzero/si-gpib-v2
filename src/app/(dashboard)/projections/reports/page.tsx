@@ -1,11 +1,13 @@
 'use client';
 
+import { ProjectionErrorBoundary } from '@/components/common/ProjectionErrorBoundary';
 import { ProjectionHeader } from '@/components/projections/ProjectionHeader';
 import { BarChart3, Users, HeartHandshake, Building2, TrendingUp, Download } from 'lucide-react';
 
 export default function ReportsProjectionPage() {
   return (
-    <div className="min-h-screen bg-[#0B1220] pb-24">
+    <ProjectionErrorBoundary fallbackTitle="Gagal Memuat Proyeksi Laporan">
+      <div className="min-h-screen bg-[#0B1220] pb-24">
       {/* U-1 Lens Boundary Header */}
       <ProjectionHeader
         title="Laporan & Analitik Pelayanan"
@@ -75,5 +77,6 @@ export default function ReportsProjectionPage() {
         </div>
       </main>
     </div>
+    </ProjectionErrorBoundary>
   );
 }

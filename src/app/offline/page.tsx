@@ -50,6 +50,18 @@ export default function OfflinePage() {
           <Map className="w-5 h-5" />
           <span>Kembali ke Beranda Dashboard</span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            if (typeof window !== 'undefined') {
+              window.location.href = '/offline-sync';
+            }
+          }}
+          className="w-full min-h-[48px] px-4 rounded-xl font-semibold text-sm text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+        >
+          <span>Buka Manajer Sinkronisasi Offline</span>
+        </button>
       </div>
 
       <div className="mt-8 p-4 rounded-xl bg-surface-elevated border border-border-subtle max-w-sm space-y-2 text-xs text-text-muted">

@@ -47,6 +47,7 @@ test.describe('F18 — Projections & Access Hierarchy E2E Suite', () => {
     const searchBtn = page.locator('button[aria-label="Cari global di aplikasi"]').first();
     await expect(searchBtn).toBeVisible();
     await searchBtn.click();
+    await page.waitForTimeout(500);
 
     const searchModal = page.locator('input[placeholder*="Cari SDM, Organisasi"]');
     await expect(searchModal).toBeVisible();
