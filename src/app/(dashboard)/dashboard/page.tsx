@@ -4,7 +4,6 @@ import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { StatCards } from '@/components/dashboard/StatCards';
 import { DemografiChart } from '@/components/dashboard/DemografiChart';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
-import { QuickActions } from '@/components/dashboard/QuickActions';
 import { KATEGORI_PELKAT } from '@/lib/constants/pelkat';
 import { ScopeIndicator, UserRoleScope } from '@/components/analitik/ScopeIndicator';
 import { getStatRoutes } from '@/lib/utils/stat-routes';
@@ -12,8 +11,9 @@ import { formatNumber } from '@/lib/utils';
 import { PastoralStats } from '@/components/pastoral/PastoralStats';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
-import { WelcomeGreetingBanner } from '@/components/dashboard/WelcomeGreetingBanner';
 import { getServerContext } from '@/lib/utils/context';
+import { getHumanReadableRoleLabel } from '@/lib/utils/role-presentation';
+import { AlertCircle, ChevronRight, FileText, HeartHandshake, Users, CheckCircle2 } from 'lucide-react';
 
 interface DemografiRow {
   kategori_pelkat: string;
@@ -40,18 +40,19 @@ export default async function Dashboard() {
   let userMupelId: string | null = null;
   let userIndukId: string | null = null;
   let userPosId: string | null = null;
+  let userNama: string = 'Pengguna';
 
   if (user) {
     let { data: profile } = await supabaseAdmin
       .from('users')
-      .select('role, id_mupel, id_induk, id_pos, email, id_pendeta')
+      .select('role, id_mupel, id_induk, id_pos, email, id_pendeta, nama')
       .eq('id', user.id)
       .maybeSingle();
 
     if (!profile && user.email) {
       const { data: profByEmail } = await supabaseAdmin
         .from('users')
-        .select('role, id_mupel, id_induk, id_pos, email, id_pendeta')
+        .select('role, id_mupel, id_induk, id_pos, email, id_pendeta, nama')
         .eq('email', user.email)
         .maybeSingle();
       profile = profByEmail;
@@ -62,6 +63,7 @@ export default async function Dashboard() {
       userMupelId = profile.id_mupel || null;
       userIndukId = profile.id_induk || null;
       userPosId = profile.id_pos || null;
+      if (profile.nama) userNama = profile.nama;
 
       // Lookup pendeta assignment for PJ if id_pos not set directly in users table
       if ((userRole === 'pj' || userRole === 'user') && !userPosId && profile.id_pendeta) {
@@ -97,7 +99,7 @@ export default async function Dashboard() {
         const { data: jemaatObj } = await supabaseAdmin
           .from('m_jemaat_induk')
           .select('id_mupel')
-          .eq('id_induk', userIndukId)
+          .eq('id_mupel', userIndukId)
           .maybeSingle();
 
         if (jemaatObj?.id_mupel) {
@@ -122,6 +124,8 @@ export default async function Dashboard() {
     scopeLabel,
   };
 
+  const humanRole = getHumanReadableRoleLabel(userRole);
+
   // 2. Resolve Jemaat IDs inside user's Mupel
   let jemaatIdsInMupel: string[] = [];
   if (isLocked && userMupelId) {
@@ -132,12 +136,13 @@ export default async function Dashboard() {
     jemaatIdsInMupel = jemaatListInMupel?.map((j) => j.id_induk) || [];
   }
 
-  // 3. Fetch scoped data (Option A - Strict Personal Scope for PJ/KMJ/Mupel)
+  // 3. Fetch scoped data & Attention Layer items
   let mupelCount = 0;
   let jemaatCount = 0;
   let bajemCount = 0;
   let posPelkesCount = 0;
   let logCount = 0;
+  let pendingAidCount = 0;
   let demografiData: any[] | null = [];
   let posPelkesSumData: any[] | null = [];
   let recentLogs: any[] | null = [];
@@ -169,7 +174,7 @@ export default async function Dashboard() {
       }
     }
 
-    const [resMupel, resJemaat, resLog, resDemo, resSum, resPastoral, resHistori] = await Promise.all([
+    const [resMupel, resJemaat, resLog, resDemo, resSum, resPastoral, resHistori, resPendingAid] = await Promise.all([
       mupelQuery,
       jemaatQuery,
       supabaseAdmin
@@ -198,12 +203,17 @@ export default async function Dashboard() {
           pos_pelkes:m_pos_pelkes(nama_pos)
         `)
         .order('created_at', { ascending: false })
-        .limit(5)
+        .limit(5),
+      supabaseAdmin
+        .from('t_ajuan_bantuan')
+        .select('*', { count: 'exact', head: true })
+        .eq('status_persetujuan', 'PENDING')
     ]);
 
     mupelCount = resMupel.count || (userMupelId ? 1 : 0);
     jemaatCount = resJemaat.count || (userIndukId ? 1 : 0);
     logCount = resLog.count || 0;
+    pendingAidCount = resPendingAid.count || 0;
     demografiData = resDemo.data;
     posPelkesSumData = resSum.data;
 
@@ -279,7 +289,6 @@ export default async function Dashboard() {
   const totalJiwaFromPos = (posPelkesSumData || []).reduce((acc: number, curr: any) => acc + (curr.jumlah_jiwa || 0), 0);
   const totalJiwa = totalJiwaFromPos > 0 ? totalJiwaFromPos : totalJiwaFromPelkat;
 
-  // Canonical Order: PA -> PT -> GP -> PKP -> PKB -> PKLU
   const chartData = KATEGORI_PELKAT.map((pelkat) => ({
     name: pelkat.kode,
     fullName: pelkat.nama,
@@ -341,54 +350,179 @@ export default async function Dashboard() {
 
   return (
     <div className="w-full min-h-full bg-surface-base pb-24">
-      {/* Desktop-only Title Header (Hidden on mobile where WelcomeGreetingBanner & MobileHeader act as main header) */}
-      <div className="hidden md:flex sticky top-0 z-40 bg-surface-1/85 backdrop-blur-md hairline-b px-4 py-3.5 md:px-6 pt-safe items-center justify-between">
-        <div>
-          <h1 className="text-xl md:text-2xl font-display font-semibold tracking-tightish text-ink-primary">
-            Dashboard Utama
-          </h1>
-          <p className="text-xs md:text-sm text-ink-secondary mt-0.5">
-            Sistem Informasi Pelayanan &amp; Kesaksian GPIB
-          </p>
-        </div>
-        <ScopeIndicator scope={roleScopeObj} />
-      </div>
-
       <main className="max-w-6xl mx-auto px-4 py-5 md:px-6 space-y-6">
-        {/* Welcome Greeting Banner with Integrated Quick Actions */}
-        <WelcomeGreetingBanner />
-
-        <section className="ambient-glow">
-          <StatCards stats={customStats} />
+        
+        {/* LAYER 1: CONTEXT LAYER (Konteks Kerja User) */}
+        <section className="bg-surface-1 border border-border-subtle rounded-card p-4 shadow-2xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-brand-primary">
+                  ⛪ Sinode GPIB
+                </span>
+                <span className="text-border-subtle">•</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
+                  {humanRole}
+                </span>
+              </div>
+              <h1 className="text-lg md:text-xl font-bold text-text-high mt-1 tracking-tight">
+                Selamat Datang, {userNama}
+              </h1>
+              <p className="text-xs text-text-muted mt-0.5">
+                Konteks Cakupan: <span className="font-semibold text-text-high">{scopeLabel}</span>
+              </p>
+            </div>
+            <div className="shrink-0 pt-2 sm:pt-0">
+              <ScopeIndicator scope={roleScopeObj} />
+            </div>
+          </div>
         </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <DemografiChart data={chartData} />
+        {/* LAYER 2: ATTENTION LAYER (Perhatian Utama Operasional) */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
+              <AlertCircle className="w-4 h-4 text-amber-500" />
+              <span>Perlu Perhatian</span>
+            </h2>
           </div>
-          <div>
-            <RecentActivity logs={recentLogs as any || []} />
-          </div>
-        </div>
 
-        {userRole === 'kmj' && userIndukId && (
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Aktivitas Pastoral Minggu Ini</span>
-                <Link href="/pastoral" className="text-sm font-medium text-blue-600 hover:underline">
-                  Lihat Semua
-                </Link>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <PastoralStats idJemaat={userIndukId} />
-            </CardContent>
-          </Card>
-        )}
+          <div className="space-y-2.5">
+            {/* Pending Aid Requests Attention Item */}
+            {pendingAidCount > 0 ? (
+              <Card className="border-amber-500/30 bg-amber-500/5 dark:bg-amber-950/10 hover:bg-amber-500/10 transition-colors">
+                <CardContent className="p-3.5 sm:p-4">
+                  <Link href="/dashboard/aid-requests" className="flex items-center justify-between group min-h-[44px]">
+                    <div className="flex items-center gap-3 min-w-0 pr-2">
+                      <div className="p-2 rounded-control bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
+                        <HeartHandshake className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-text-high truncate group-hover:text-amber-600 transition-colors">
+                            {pendingAidCount} Permohonan Bantuan Menunggu Review
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white shrink-0">
+                            Penting
+                          </span>
+                        </div>
+                        <p className="text-xs text-text-muted mt-0.5 line-clamp-1">
+                          Ajuan bantuan pos pelkes memerlukan verifikasi &amp; persetujuan KMJ / Sinode
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-amber-500 group-hover:translate-x-1 transition-all shrink-0" />
+                  </Link>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border-border-subtle bg-surface-1">
+                <CardContent className="p-3.5 sm:p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-control bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                      <CheckCircle2 className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-bold text-text-high block">Semua Operasional Lancar</span>
+                      <span className="text-xs text-text-muted block">Tidak ada ajuan bantuan atau tugas tertunda yang memerlukan tindakan mendesak</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </section>
+
+        {/* LAYER 3: ACTION LAYER (Entri Aksi Informasi Shortcuts) */}
+        <section className="space-y-3">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-text-muted px-1">
+            Aksi Informasi Ringkas
+          </h2>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <Link
+              href="/dashboard/aktivitas"
+              className="p-3.5 rounded-card bg-surface-1 border border-border-subtle hover:bg-surface-sunken hover:border-brand-primary/30 transition-all flex flex-col justify-between group min-h-[84px] shadow-2xs"
+            >
+              <div className="p-2 rounded-control bg-brand-primary/10 text-brand-primary w-fit group-hover:scale-105 transition-transform border border-brand-primary/20">
+                <FileText className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-text-high block truncate group-hover:text-brand-primary transition-colors">
+                  Log Pastoral
+                </span>
+                <span className="text-[11px] text-text-muted block truncate">Catatan kegiatan</span>
+              </div>
+            </Link>
+
+            <Link
+              href="/dashboard/aid-requests"
+              className="p-3.5 rounded-card bg-surface-1 border border-border-subtle hover:bg-surface-sunken hover:border-brand-primary/30 transition-all flex flex-col justify-between group min-h-[84px] shadow-2xs"
+            >
+              <div className="p-2 rounded-control bg-amber-500/10 text-amber-600 dark:text-amber-400 w-fit group-hover:scale-105 transition-transform border border-amber-500/20">
+                <HeartHandshake className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-text-high block truncate group-hover:text-amber-600 transition-colors">
+                  Ajuan Bantuan
+                </span>
+                <span className="text-[11px] text-text-muted block truncate">Permohonan pos</span>
+              </div>
+            </Link>
+
+            <Link
+              href="/people"
+              className="p-3.5 rounded-card bg-surface-1 border border-border-subtle hover:bg-surface-sunken hover:border-brand-primary/30 transition-all flex flex-col justify-between group min-h-[84px] shadow-2xs col-span-2 sm:col-span-1"
+            >
+              <div className="p-2 rounded-control bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 w-fit group-hover:scale-105 transition-transform border border-emerald-500/20">
+                <Users className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-text-high block truncate group-hover:text-emerald-600 transition-colors">
+                  Direktori SDM
+                </span>
+                <span className="text-[11px] text-text-muted block truncate">Pendeta &amp; Pelayan</span>
+              </div>
+            </Link>
+          </div>
+        </section>
+
+        {/* LAYER 4: INSIGHT LAYER (Statistik & Demografi Ringkas) */}
+        <section className="space-y-4 pt-2">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-text-muted px-1">
+            Ringkasan Statistik &amp; Demografi
+          </h2>
+
+          <div className="ambient-glow">
+            <StatCards stats={customStats} />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <DemografiChart data={chartData} />
+            </div>
+            <div>
+              <RecentActivity logs={recentLogs as any || []} />
+            </div>
+          </div>
+
+          {userRole === 'kmj' && userIndukId && (
+            <Card className="mt-6 border-border-subtle bg-surface-1">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between text-base font-bold">
+                  <span>Aktivitas Pastoral Minggu Ini</span>
+                  <Link href="/pastoral" className="text-xs font-bold text-brand-primary hover:underline">
+                    Lihat Semua
+                  </Link>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <PastoralStats idJemaat={userIndukId} />
+              </CardContent>
+            </Card>
+          )}
+        </section>
       </main>
-
-      <QuickActions />
     </div>
   );
 }
