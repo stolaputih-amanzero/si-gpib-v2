@@ -5,11 +5,8 @@ import {
   User, 
   Briefcase, 
   GraduationCap, 
-  Users,
-  Award,
   BookOpen,
-  Calendar,
-  Layers
+  LayoutDashboard
 } from 'lucide-react';
 
 interface AnchorItem {
@@ -19,14 +16,11 @@ interface AnchorItem {
 }
 
 const ANCHORS: AnchorItem[] = [
-  { id: 'profil', label: 'Profil', icon: <User className="w-4 h-4" /> },
-  { id: 'penugasan', label: 'Penugasan', icon: <Briefcase className="w-4 h-4" /> },
-  { id: 'jabatan', label: 'Jabatan & Penunjukan', icon: <Award className="w-4 h-4" /> },
-  { id: 'mutasi', label: 'Riwayat Mutasi', icon: <Layers className="w-4 h-4" /> },
-  { id: 'keluarga', label: 'Keluarga', icon: <Users className="w-4 h-4" /> },
-  { id: 'kompetensi', label: 'Kompetensi', icon: <GraduationCap className="w-4 h-4" /> },
-  { id: 'pastoral', label: 'Log Pastoral', icon: <BookOpen className="w-4 h-4" /> },
-  { id: 'aktivitas', label: 'Aktivitas Pelayanan', icon: <Calendar className="w-4 h-4" /> }
+  { id: 'overview', label: 'Ringkasan', icon: <LayoutDashboard className="w-4 h-4" /> },
+  { id: 'profile', label: 'Profil', icon: <User className="w-4 h-4" /> },
+  { id: 'roles', label: 'Penugasan', icon: <Briefcase className="w-4 h-4" /> },
+  { id: 'competencies', label: 'Kompetensi', icon: <GraduationCap className="w-4 h-4" /> },
+  { id: 'pastoral', label: 'Pastoral', icon: <BookOpen className="w-4 h-4" /> }
 ];
 
 export const PersonNavigationAnchor: React.FC = () => {

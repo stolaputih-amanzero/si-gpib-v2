@@ -11,7 +11,7 @@ interface CompetenciesSectionProps {
 
 export const CompetenciesSection: React.FC<CompetenciesSectionProps> = ({ competencies }) => {
   return (
-    <section id="kompetensi" className="scroll-mt-36 md:scroll-mt-28 space-y-4">
+    <section id="competencies" className="scroll-mt-36 md:scroll-mt-28 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
           <GraduationCap className="w-5 h-5 text-blue-400" />

@@ -5,6 +5,7 @@ import { UnifiedPersonData } from '../../types/person.types';
 import { adaptPersonToViewModel } from '../../adapters/personViewModelAdapter';
 import { PersonHeader } from './PersonHeader';
 import { PersonNavigationAnchor } from './PersonNavigationAnchor';
+import { OverviewSection } from './sections/OverviewSection';
 import { ProfileSection } from './sections/ProfileSection';
 import { RolesSection } from './sections/RolesSection';
 import { CompetenciesSection } from './sections/CompetenciesSection';
@@ -49,13 +50,16 @@ export const PersonWorkspaceShell: React.FC<PersonWorkspaceShellProps> = ({ pers
 
       {/* 3. Progressive Single Workspace Sections (PR-03 ADR-04 Matrix) */}
       <main className="max-w-5xl mx-auto px-4 space-y-10">
-        {/* Profil Section (All types) */}
+        {/* Ringkasan Overview */}
+        <OverviewSection overview={vm.overview} />
+
+        {/* Profil Section */}
         <ProfileSection profile={vm.profile} isSelfPerson={isSelfPerson} />
 
-        {/* Penugasan & Peran (All types) */}
+        {/* Penugasan & Peran */}
         <RolesSection roles={vm.roles} />
 
-        {/* Kompetensi (All types - A-1 Neutrality W-6) */}
+        {/* Kompetensi (A-1 Neutrality W-6) */}
         <CompetenciesSection competencies={vm.competencies} />
 
         {/* Pastoral & Aktivitas Pelayanan */}

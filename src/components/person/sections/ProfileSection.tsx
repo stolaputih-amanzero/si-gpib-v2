@@ -31,7 +31,7 @@ function renderFieldRow(label: string, icon: React.ReactNode, state: FieldRender
 
 export const ProfileSection: React.FC<ProfileSectionProps> = ({ profile, isSelfPerson = false }) => {
   return (
-    <section id="profil" className="scroll-mt-36 md:scroll-mt-28 space-y-4">
+    <section id="profile" className="scroll-mt-36 md:scroll-mt-28 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
           <User className="w-5 h-5 text-blue-400" />
