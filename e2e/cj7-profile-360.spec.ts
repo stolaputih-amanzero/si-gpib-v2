@@ -40,7 +40,7 @@ test.describe('CJ-7: Profile 360° Supervision', () => {
     await page.waitForURL('**/dashboard**');
 
     // Navigate ke canonical Person Workspace by ID
-    await page.goto('/people/PDT-19060024');
+    await page.goto('/people/82e47866-ddf2-4e11-9146-76dd5abb8155');
     await page.waitForTimeout(1000);
 
     // Verifikasi Person Workspace ter-render
