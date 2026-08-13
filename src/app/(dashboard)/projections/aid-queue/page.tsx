@@ -1,9 +1,7 @@
 import { getAidQueueProjectionData } from '@/lib/domains/aid-requests/aid-queue.queries';
 import { AidQueueClientView } from './AidQueueClientView';
 
-export const instant = false;
-
-export default async function AidQueueProjectionPage() {
+export default async function AidQueuePage() {
   // T-1: Server-side authorization & scope resolution
   const projectionData = await getAidQueueProjectionData();
 

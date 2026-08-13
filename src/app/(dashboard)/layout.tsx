@@ -1,7 +1,5 @@
 import { ReadOnlyNoticeBanner } from '@/components/auth/ReadOnlyNoticeBanner';
 
-export const instant = false;
-
 export default async function DashboardLayout({
   children,
 }: {

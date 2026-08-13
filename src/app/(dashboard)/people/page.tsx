@@ -4,8 +4,6 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { User, Search, ChevronRight } from 'lucide-react';
 
-export const instant = false;
-
 export const metadata = {
   title: 'Direktori SDM | SI GPIB',
 };

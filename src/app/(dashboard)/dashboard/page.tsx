@@ -23,8 +23,6 @@ interface DemografiRow {
   perempuan: number;
 }
 
-export const instant = false;
-
 export default async function Dashboard() {
   const supabaseServer = await createServerClient();
   const supabaseAdmin = createAdminClient(

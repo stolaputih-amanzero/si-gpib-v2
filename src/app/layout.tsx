@@ -83,8 +83,6 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
-export const instant = false;
-
 export default async function RootLayout({
   children,
 }: {

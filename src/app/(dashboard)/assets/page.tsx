@@ -7,8 +7,6 @@ export const metadata = {
   title: 'Asset Intelligence | SI GPIB',
 };
 
-export const instant = false;
-
 export default async function AssetIntelligencePage() {
   const context = await getServerContext();
   const contextId = context?.context_id;

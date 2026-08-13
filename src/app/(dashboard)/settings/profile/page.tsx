@@ -6,8 +6,6 @@ import { createClient as createAdminClient } from '@supabase/supabase-js';
  * F2 Person Workspace Self Profile Shortcut (/settings/profile)
  * Resolves authenticated user identity and redirects to canonical /people/{id_person} workspace.
  */
-export const instant = false;
-
 export default async function SettingsProfileShortcutPage() {
   // 1. Resolve authenticated identity (supporting both Supabase Auth session & DB cookie session)
   const context = await getServerContext();

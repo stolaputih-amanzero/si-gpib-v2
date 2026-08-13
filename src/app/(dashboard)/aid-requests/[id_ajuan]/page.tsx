@@ -8,8 +8,6 @@ export async function generateMetadata() {
   };
 }
 
-export const instant = false;
-
 export default async function AidRequestDetailPage({
   params
 }: {

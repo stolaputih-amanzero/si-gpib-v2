@@ -7,8 +7,6 @@ export const metadata = {
   title: 'Territory Intelligence | SI GPIB',
 };
 
-export const instant = false;
-
 export default async function MapsPage() {
   const context = await getServerContext();
 

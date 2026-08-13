@@ -36,8 +36,6 @@ const STATUS_LABELS: Record<StatusBantuan, string> = {
   Rejected: 'Ditolak',
 };
 
-export const instant = false;
-
 export default function AidReviewQueueProjection() {
   const router = useRouter();
   const searchParams = useSearchParams();

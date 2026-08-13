@@ -3,8 +3,6 @@ import { getServerContext } from '@/lib/utils/context';
 import { fetchUnifiedOrganizationData } from '@/lib/services/organization';
 import { OrganizationWorkspaceShell } from '@/components/org/OrganizationWorkspaceShell';
 
-export const instant = false;
-
 export default async function OrganisasiPage() {
   const context = await getServerContext();
   

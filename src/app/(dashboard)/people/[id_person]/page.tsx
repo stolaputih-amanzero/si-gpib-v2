@@ -2,8 +2,6 @@ import { fetchUnifiedPersonData } from '@/lib/services/person';
 import { notFound } from 'next/navigation';
 import { PersonWorkspaceShell } from '@/components/person/PersonWorkspaceShell';
 
-export const instant = false;
-
 export async function generateMetadata() {
   return {
     title: `Person Workspace | SI GPIB`,

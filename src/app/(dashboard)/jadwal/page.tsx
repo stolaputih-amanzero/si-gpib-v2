@@ -7,8 +7,6 @@ export const metadata = {
   description: 'Manajemen Jadwal Ibadah Hari Minggu, Pelkat, dan Sektor / Rumah Tangga',
 };
 
-export const instant = false;
-
 export default async function JadwalPage() {
   const context = await getServerContext();
 
