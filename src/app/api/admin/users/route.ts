@@ -3,8 +3,6 @@ import { createClient } from '@/lib/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
-export const dynamic = 'force-dynamic';
-
 export async function GET() {
   try {
     const supabase = await createClient();
