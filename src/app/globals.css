@@ -523,3 +523,30 @@ html.theme-transitioning *::after {
   }
 }
 
+/* 🚀 Performance & Render Acceleration */
+html {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+  touch-action: manipulation;
+}
+
+body {
+  overscroll-behavior-y: none;
+}
+
+/* GPU Accelerated Transitions */
+.smooth-gpu {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Content visibility optimization for long directory & activity lists */
+.virtual-list-item {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 72px;
+}
+
+

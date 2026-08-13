@@ -13,15 +13,11 @@ export function ServiceWorkerRegister() {
     // Setup listener untuk Sinkronisasi Latar Belakang (Online/Visibility)
     setupSyncListener();
 
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
       // Register service worker when page finishes loading
       window.addEventListener('load', () => {
         navigator.serviceWorker
           .register('/sw.js')
-          .then((registration) => {
-            // Check for updates on page focus
-            registration.update().catch(() => {});
-          })
           .catch((err) => {
             console.error('Service worker registration failed:', err);
           });

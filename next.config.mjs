@@ -6,9 +6,8 @@ const withSerwistConfig = withSerwist({
   swSrc: 'src/sw.ts',
   swDest: 'public/sw.js',
   disable: !isProd,
-  // Jangan cache halaman Next.js secara default — biarkan sw.ts yang atur
-  cacheOnNavigation: true,
-  reloadOnOnline: true,
+  cacheOnNavigation: false,
+  reloadOnOnline: false,
 });
 
 /** @type {import('next').NextConfig} */

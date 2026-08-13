@@ -64,7 +64,7 @@ export function OrgCard({ item, isLast = false }: OrgCardProps) {
   );
 
   return (
-    <Link href={item.detailUrl} className="block w-full">
+    <Link href={item.detailUrl} className="block w-full virtual-list-item">
       <SemanticRow
         isLast={isLast}
         leftSlot={
