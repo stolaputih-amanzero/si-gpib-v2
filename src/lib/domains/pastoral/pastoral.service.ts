@@ -8,14 +8,14 @@ import { createLogPastoralSchema } from './pastoral.schema';
 import { db } from '@/lib/offline/dexie';
 import { syncManager } from '@/lib/offline/sync-manager';
 import { PASTORAL_TARGETS } from './pastoral.types';
-import { createLogPastoral } from '@/app/actions/log-pastoral';
+import { createLogPastoralAction } from '@/app/actions/log-pastoral';
 
 export async function submitLogPastoral(rawData: unknown) {
   // Check online status if we are on client
   const isOnline = typeof navigator !== 'undefined' && navigator.onLine;
 
   if (isOnline) {
-    return createLogPastoral(rawData as any);
+    return createLogPastoralAction(rawData as any);
   }
 
   const validation = createLogPastoralSchema.safeParse(rawData);
@@ -119,16 +119,22 @@ export async function exportLogPastoralToExcel(filter: PastoralFilter) {
 
 
   
-  const result = await enforceContract('OC-PASTORAL-004', {
-    target_entity: {
-      entity_type: 'Pastoral',
-      entity_id: null,
-      owning_context_id: filter.idJemaat || '',
-    },
-    operation_payload: {},
-  });
+  const targetEntity = {
+    entityId: filter.idJemaat || '',
+    entityType: 'Context' as const,
+    contextAffinityId: filter.idJemaat || '',
+    contextAffinityLevel: 'POS' as const,
+  };
+  
+  const result = await enforceContract(
+    'OC-PASTORAL-004',
+    { targetEntity },
+    supabase,
+    user.id,
+    filter.idJemaat || ''
+  );
 
-  if (result.status === 'CONTRACT_RESOLUTION_FAILURE' || result.decision.result === 'DENY') {
+  if (result.status === 'RESOLUTION_FAILURE' || result.status === 'DENY') {
     throw new Error('Unauthorized: hanya KMJ dari jemaat ini yang bisa export');
   }
 

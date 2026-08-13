@@ -5,7 +5,7 @@
 | **Dokumen** | `02-UX-Entity-Classification-v1.1.2.md` |
 | **Project** | SI GPIB v2.2 (Mobile-First PWA) |
 | **Phase** | 2A — Architecture Decisions (Gate 2 Freeze Package) |
-| **Status** | ✅ `READY FOR SIGN-OFF` — 3 correction items resolved |
+| **Status** | ✅ `FROZEN` |
 | **Ontological Authority** | `05-UX-Canonical-Model-v1.0.md` (FROZEN) |
 | **Consistency Constraints** | `03-UX-Architecture-Decision-Log-v1.0.md` · `04-UX-Architecture-Principles-v1.0.md` · VC-01 s.d. VC-05 |
 | **Sumber Data** | `entity_inventory.md` (35 entitas) · `current_state_inventory.md` (35 tabel) |

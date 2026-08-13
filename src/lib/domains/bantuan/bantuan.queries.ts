@@ -278,17 +278,11 @@ export function useCreateBantuan() {
 
   return useMutation({
     mutationFn: async (input: CreateBantuanInput) => {
-      const result = await createPengajuanBantuanAction({
-        id_pos: input.id_pos,
-        jenis_bantuan: input.jenis_bantuan,
-        estimasi_biaya: input.estimasi_biaya,
-        urgensi: input.urgensi,
-        deskripsi: input.deskripsi,
-        id_tanah: input.id_aset_tanah,
-        id_bangunan: input.id_aset_bangunan,
-        id_aset_b: input.id_aset_bergerak,
+      const formData = new FormData();
+      Object.entries(input).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) formData.append(k, v.toString());
       });
-      return result;
+      return createPengajuanBantuanAction(formData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: bantuanKeys.lists() });
@@ -305,8 +299,11 @@ export function useUpdateBantuan() {
 
   return useMutation({
     mutationFn: async (input: UpdateBantuanInput) => {
-      const result = await updatePengajuanBantuanAction(input);
-      return result;
+      const formData = new FormData();
+      Object.entries(input).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) formData.append(k, v.toString());
+      });
+      return updatePengajuanBantuanAction(formData);
     },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: bantuanKeys.lists() });
@@ -323,8 +320,9 @@ export function useSubmitBantuan() {
 
   return useMutation({
     mutationFn: async (idAjuan: string) => {
-      const result = await submitBantuanAction(idAjuan);
-      return result;
+      const formData = new FormData();
+      formData.append('id_ajuan', idAjuan);
+      return submitBantuanAction(formData);
     },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: bantuanKeys.lists() });
@@ -342,13 +340,13 @@ export function useReviewKMJ() {
 
   return useMutation({
     mutationFn: async (input: ReviewBantuanInput) => {
-      await processApprovalAction({
-        id_ajuan: input.id_ajuan,
-        aksi: input.keputusan,
-        catatan: input.catatan || '',
-        step: 1
+      const formData = new FormData();
+      Object.entries(input).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) formData.append(k, v.toString());
       });
-      return { id_ajuan: input.id_ajuan }; // processApprovalAction returns {success: true}
+      formData.append('step', '1');
+      await processApprovalAction(formData);
+      return { id_ajuan: input.id_ajuan };
     },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: bantuanKeys.lists() });
@@ -415,8 +413,11 @@ export function useAjukanUlang() {
 
   return useMutation({
     mutationFn: async (input: AjukanUlangInput) => {
-      const result = await resubmitPengajuanBantuanAction(input);
-      return result;
+      const formData = new FormData();
+      Object.entries(input).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) formData.append(k, v.toString());
+      });
+      return resubmitPengajuanBantuanAction(formData);
     },
     onSuccess: (data: any) => {
       // Invalidate list + detail lama + detail baru

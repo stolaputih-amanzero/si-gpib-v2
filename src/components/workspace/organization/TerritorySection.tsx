@@ -1,0 +1,1 @@
+import { enforceReadAccess } from '@/lib/authorization/helpers/enforce-read'; export async function TerritorySection({ contextId }: { contextId: string }) { await enforceReadAccess('OC-TERRITORY-001', { targetEntity: { entityId: contextId, entityType: 'Context' } }); return <div className='p-4 border rounded-xl bg-card'><h3>Batas Wilayah</h3></div>; }

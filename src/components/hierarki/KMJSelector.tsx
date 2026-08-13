@@ -48,7 +48,7 @@ export function KMJSelector({
         });
 
         if (!res.success) {
-          setErrorMsg(res.detail || res.error || 'Gagal memproses penetapan KMJ.');
+          setErrorMsg('Gagal memproses penetapan KMJ.');
           if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([50, 100, 50]);
           return;
         }

@@ -1,0 +1,1 @@
+import { enforceReadAccess } from '@/lib/authorization/helpers/enforce-read'; export async function SdmSection({ contextId }: { contextId: string }) { await enforceReadAccess('OC-PERSON-005', { targetEntity: { entityId: contextId, entityType: 'Context' } }); return <div className='p-4 border rounded-xl bg-card'><h3>SDM & Personel</h3></div>; }

@@ -44,13 +44,14 @@ export async function flushOfflineQueueAction(items: QueuedMutation[]): Promise<
       const authResult = await enforceContract(
         item.contract_id as ContractId,
         {
-          target_entity: item.target_entity,
-          operation_payload: item.operation_payload
+          targetEntity: item.target_entity,
         },
+        supabase,
+        userId,
         item.origin_context_id
       );
 
-      if (authResult.status === 'CONTRACT_RESOLUTION_FAILURE') {
+      if (authResult.status === 'RESOLUTION_FAILURE') {
         results.push({
           queue_id: item.queue_id,
           status: 'REJECTED',
@@ -60,12 +61,12 @@ export async function flushOfflineQueueAction(items: QueuedMutation[]): Promise<
         continue;
       }
 
-      if (authResult.decision?.result === 'DENY') {
+      if (authResult.status === 'DENY') {
         results.push({
           queue_id: item.queue_id,
           status: 'REJECTED',
-          error_code: authResult.decision.error_code || 'UNAUTHORIZED',
-          error_detail: authResult.decision.error_detail || undefined
+          error_code: authResult.errorCode || 'UNAUTHORIZED',
+          error_detail: authResult.errorDetail || undefined
         });
         continue;
       }

@@ -2,8 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
-import { enforceContract } from '@/lib/authorization'
-import type { ContractId } from '@/lib/authorization/types'
+import { enforceAction } from '@/app/actions/helpers/enforce-action'
 
 function createAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -80,35 +79,26 @@ export async function createUserAction(payload: {
     const supabase = await createClient()
 
     // 1. Authorization (OC-USER-001)
-    const contractId: ContractId = 'OC-USER-001';
-    const result = await enforceContract(contractId, {
-      target_entity: {
-        entity_type: 'User',
-        entity_id: null,
-        owning_context_id: payload.id_pos || payload.id_induk || payload.id_mupel || null,
-      },
-      operation_payload: {
-        role: payload.role,
-      },
-    });
-
-    if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
-      return { success: false, error: 'System configuration error (Authorization).' }
-    }
-    if (result.decision.result === 'DENY') {
-      return { success: false, error: result.decision.error_detail || 'Access denied.' }
-    }
+    const contextAffinityId = payload.id_pos || payload.id_induk || payload.id_mupel || '';
+    const outcome = await enforceAction('OC-USER-001', {
+      targetEntity: {
+        entityId: 'NEW',
+        entityType: 'UserAccount',
+        contextAffinityId: contextAffinityId,
+        contextAffinityLevel: payload.id_pos ? 'POS' : (payload.id_induk ? 'JEMAAT' : 'MUPEL'),
+      }
+    }, contextAffinityId);
 
     const adminClient = createAdminClient()
     const clientForRead = adminClient || supabase
 
     // Inject session context
     await clientForRead.rpc('set_authorization_context', {
-      p_context_id: result.context_resolution.active_context?.context_id || '',
-      p_context_level: result.context_resolution.active_context?.context_level || '',
-      p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
-      p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
-      p_effective_role: result.role_binding.effective_system_role || '',
+      p_context_id: outcome.sessionContext.activeContextId || '',
+      p_context_level: outcome.sessionContext.activeContextLevel || '',
+      p_user_id: outcome.userId || '',
+      p_person_id: outcome.sessionContext.linkedPersonId || '',
+      p_effective_role: outcome.sessionContext.effectiveSystemRole || '',
     });
 
     // Resolve hierarchy IDs defensively
@@ -167,11 +157,11 @@ export async function createUserAction(payload: {
     // Layer 8 Audit
     await clientForWrite.from('t_log_aktivitas').insert({
       id_log: `LOG-USR-${Date.now()}`,
-      id_user: result.identity_resolution.base_identity?.user_account_id,
+      id_user: outcome.userId,
       aksi: 'user.create',
       objek_type: 'User',
       objek_id: newUserId,
-      aktor: result.role_binding.effective_system_role,
+      aktor: outcome.sessionContext.effectiveSystemRole,
       keterangan: `Membuat pengguna baru ${payload.email}`
     });
 
@@ -195,36 +185,26 @@ export async function updateUserRoleAction(payload: {
     const supabase = await createClient()
 
     // 1. Authorization (OC-USER-002)
-    const contractId: ContractId = 'OC-USER-002';
-    const result = await enforceContract(contractId, {
-      target_entity: {
-        entity_type: 'User',
-        entity_id: payload.id,
-        owning_context_id: payload.id_pos || payload.id_induk || payload.id_mupel || null,
-      },
-      operation_payload: {
-        role: payload.role,
-        status: payload.status,
-      },
-    });
-
-    if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
-      return { success: false, error: 'System configuration error (Authorization).' }
-    }
-    if (result.decision.result === 'DENY') {
-      return { success: false, error: result.decision.error_detail || 'Access denied.' }
-    }
+    const contextAffinityId = payload.id_pos || payload.id_induk || payload.id_mupel || '';
+    const outcome = await enforceAction('OC-USER-002', {
+      targetEntity: {
+        entityId: payload.id,
+        entityType: 'UserAccount',
+        contextAffinityId: contextAffinityId,
+        contextAffinityLevel: payload.id_pos ? 'POS' : (payload.id_induk ? 'JEMAAT' : 'MUPEL'),
+      }
+    }, contextAffinityId);
 
     const adminClient = createAdminClient()
     const clientForRead = adminClient || supabase
 
     // Inject session context
     await clientForRead.rpc('set_authorization_context', {
-      p_context_id: result.context_resolution.active_context?.context_id || '',
-      p_context_level: result.context_resolution.active_context?.context_level || '',
-      p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
-      p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
-      p_effective_role: result.role_binding.effective_system_role || '',
+      p_context_id: outcome.sessionContext.activeContextId || '',
+      p_context_level: outcome.sessionContext.activeContextLevel || '',
+      p_user_id: outcome.userId || '',
+      p_person_id: outcome.sessionContext.linkedPersonId || '',
+      p_effective_role: outcome.sessionContext.effectiveSystemRole || '',
     });
 
     // Resolve hierarchy IDs defensively
@@ -276,11 +256,11 @@ export async function updateUserRoleAction(payload: {
     // Layer 8 Audit
     await clientForWrite.from('t_log_aktivitas').insert({
       id_log: `LOG-USR-${Date.now()}`,
-      id_user: result.identity_resolution.base_identity?.user_account_id,
+      id_user: outcome.userId,
       aksi: 'user.update_role',
       objek_type: 'User',
       objek_id: payload.id,
-      aktor: result.role_binding.effective_system_role,
+      aktor: outcome.sessionContext.effectiveSystemRole,
       keterangan: `Memperbarui pengguna ${payload.email}`
     });
 
@@ -295,33 +275,25 @@ export async function deleteUserAction(id: string) {
     const supabase = await createClient()
 
     // 1. Authorization (OC-USER-004)
-    const contractId: ContractId = 'OC-USER-004';
-    const result = await enforceContract(contractId, {
-      target_entity: {
-        entity_type: 'User',
-        entity_id: id,
-        owning_context_id: null,
-      },
-      operation_payload: {},
-    });
-
-    if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
-      return { success: false, error: 'System configuration error (Authorization).' }
-    }
-    if (result.decision.result === 'DENY') {
-      return { success: false, error: result.decision.error_detail || 'Access denied.' }
-    }
+    const outcome = await enforceAction('OC-USER-004', {
+      targetEntity: {
+        entityId: id,
+        entityType: 'UserAccount',
+        contextAffinityId: 'SINODE',
+        contextAffinityLevel: 'SINODE',
+      }
+    }, 'SINODE');
 
     const adminClient = createAdminClient()
     const clientForRead = adminClient || supabase
 
     // Inject session context
     await clientForRead.rpc('set_authorization_context', {
-      p_context_id: result.context_resolution.active_context?.context_id || '',
-      p_context_level: result.context_resolution.active_context?.context_level || '',
-      p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
-      p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
-      p_effective_role: result.role_binding.effective_system_role || '',
+      p_context_id: outcome.sessionContext.activeContextId || '',
+      p_context_level: outcome.sessionContext.activeContextLevel || '',
+      p_user_id: outcome.userId || '',
+      p_person_id: outcome.sessionContext.linkedPersonId || '',
+      p_effective_role: outcome.sessionContext.effectiveSystemRole || '',
     });
 
     const clientForWrite = adminClient || supabase
@@ -348,11 +320,11 @@ export async function deleteUserAction(id: string) {
     // Layer 8 Audit
     await clientForWrite.from('t_log_aktivitas').insert({
       id_log: `LOG-USR-${Date.now()}`,
-      id_user: result.identity_resolution.base_identity?.user_account_id,
+      id_user: outcome.userId,
       aksi: 'user.delete',
       objek_type: 'User',
       objek_id: id,
-      aktor: result.role_binding.effective_system_role,
+      aktor: outcome.sessionContext.effectiveSystemRole,
       keterangan: `Menghapus pengguna ${id}`
     });
 

@@ -27,23 +27,30 @@ export async function addKeluargaAction(pendetaId: string, payload: KeluargaSche
   const validated = keluargaSchema.parse(payload);
 
   // 2. Authorization
-  const authResult = await enforceContract('OC-PERSON-006', {
-    target_entity: {
-      entity_type: 'Pendeta',
-      entity_id: pendetaId,
-      owning_context_id: pendetaId,
-    },
-    operation_payload: {
-      action: 'add_keluarga',
-      ...validated,
-    },
-  });
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: 'UNAUTHENTICATED' };
+  const userId = user.id;
 
-  if (authResult.status === 'CONTRACT_RESOLUTION_FAILURE') {
+  const authResult = await enforceContract(
+    'OC-PERSON-006',
+    {
+      targetEntity: {
+        entityId: pendetaId,
+        entityType: 'Pendeta' as const,
+        contextAffinityId: pendetaId,
+        contextAffinityLevel: 'JEMAAT' as const,
+      }
+    },
+    supabase,
+    userId,
+    pendetaId
+  );
+
+  if (authResult.status === 'RESOLUTION_FAILURE') {
     return { success: false, error: 'Authorization Failure', detail: 'Sesi tidak valid atau hak akses ditolak.' };
   }
-  if (authResult.decision?.result === 'DENY') {
-    return { success: false, error: authResult.decision.error_code, detail: authResult.decision.error_detail };
+  if (authResult.status === 'DENY') {
+    return { success: false, error: authResult.errorCode, detail: authResult.errorDetail };
   }
 
   // 3. Execution
@@ -66,23 +73,30 @@ export async function addKeterlibatanAction(pendetaId: string, payload: Keterlib
   const validated = keterlibatanSchema.parse(payload);
 
   // 2. Authorization (Fallback to OC-PERSON-002 as instructed)
-  const authResult = await enforceContract('OC-PERSON-002', {
-    target_entity: {
-      entity_type: 'Pendeta',
-      entity_id: pendetaId,
-      owning_context_id: pendetaId,
-    },
-    operation_payload: {
-      action: 'add_keterlibatan',
-      ...validated,
-    },
-  });
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: 'UNAUTHENTICATED' };
+  const userId = user.id;
 
-  if (authResult.status === 'CONTRACT_RESOLUTION_FAILURE') {
+  const authResult = await enforceContract(
+    'OC-PERSON-002',
+    {
+      targetEntity: {
+        entityId: pendetaId,
+        entityType: 'Pendeta' as const,
+        contextAffinityId: pendetaId,
+        contextAffinityLevel: 'JEMAAT' as const,
+      }
+    },
+    supabase,
+    userId,
+    pendetaId
+  );
+
+  if (authResult.status === 'RESOLUTION_FAILURE') {
     return { success: false, error: 'Authorization Failure', detail: 'Sesi tidak valid atau hak akses ditolak.' };
   }
-  if (authResult.decision?.result === 'DENY') {
-    return { success: false, error: authResult.decision.error_code, detail: authResult.decision.error_detail };
+  if (authResult.status === 'DENY') {
+    return { success: false, error: authResult.errorCode, detail: authResult.errorDetail };
   }
 
   // 3. Execution
@@ -135,22 +149,34 @@ export async function addKompetensiAction(pendetaId: string, payload: Kompetensi
 export async function updateKeluargaAction(id_keluarga: string, pendetaId: string, payload: KeluargaSchemaInput) {
   const supabase = await createClient();
   const validated = keluargaSchema.parse(payload);
-  const authResult = await enforceContract('OC-PERSON-006', {
-    target_entity: { entity_type: 'Pendeta', entity_id: pendetaId, owning_context_id: pendetaId },
-    operation_payload: { action: 'update_keluarga', id_keluarga, ...validated },
-  });
-  if (authResult.decision?.result === 'DENY') return { success: false, error: authResult.decision.error_code };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: 'UNAUTHENTICATED' };
+  const userId = user.id;
+  const authResult = await enforceContract(
+    'OC-PERSON-006',
+    { targetEntity: { entityId: pendetaId, entityType: 'Pendeta' as const, contextAffinityId: pendetaId, contextAffinityLevel: 'JEMAAT' as const } },
+    supabase,
+    userId,
+    pendetaId
+  );
+  if (authResult.status === 'DENY') return { success: false, error: authResult.errorCode };
   const { error } = await supabase.from('t_keluarga_pendeta').update(validated).eq('id_keluarga', id_keluarga);
   return { success: !error, error: error?.message };
 }
 
 export async function deleteKeluargaAction(id_keluarga: string, pendetaId: string) {
   const supabase = await createClient();
-  const authResult = await enforceContract('OC-PERSON-006', {
-    target_entity: { entity_type: 'Pendeta', entity_id: pendetaId, owning_context_id: pendetaId },
-    operation_payload: { action: 'delete_keluarga', id_keluarga },
-  });
-  if (authResult.decision?.result === 'DENY') return { success: false, error: authResult.decision.error_code };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: 'UNAUTHENTICATED' };
+  const userId = user.id;
+  const authResult = await enforceContract(
+    'OC-PERSON-006',
+    { targetEntity: { entityId: pendetaId, entityType: 'Pendeta' as const, contextAffinityId: pendetaId, contextAffinityLevel: 'JEMAAT' as const } },
+    supabase,
+    userId,
+    pendetaId
+  );
+  if (authResult.status === 'DENY') return { success: false, error: authResult.errorCode };
   const { error } = await supabase.from('t_keluarga_pendeta').delete().eq('id_keluarga', id_keluarga);
   return { success: !error, error: error?.message };
 }
@@ -158,22 +184,34 @@ export async function deleteKeluargaAction(id_keluarga: string, pendetaId: strin
 export async function updateKeterlibatanAction(id: string, pendetaId: string, payload: KeterlibatanSchemaInput) {
   const supabase = await createClient();
   const validated = keterlibatanSchema.parse(payload);
-  const authResult = await enforceContract('OC-PERSON-002', {
-    target_entity: { entity_type: 'Pendeta', entity_id: pendetaId, owning_context_id: pendetaId },
-    operation_payload: { action: 'update_keterlibatan', id, ...validated },
-  });
-  if (authResult.decision?.result === 'DENY') return { success: false, error: authResult.decision.error_code };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: 'UNAUTHENTICATED' };
+  const userId = user.id;
+  const authResult = await enforceContract(
+    'OC-PERSON-002',
+    { targetEntity: { entityId: pendetaId, entityType: 'Pendeta' as const, contextAffinityId: pendetaId, contextAffinityLevel: 'JEMAAT' as const } },
+    supabase,
+    userId,
+    pendetaId
+  );
+  if (authResult.status === 'DENY') return { success: false, error: authResult.errorCode };
   const { error } = await supabase.from('t_keterlibatan_pendeta').update(validated).eq('id_keterlibatan', id);
   return { success: !error, error: error?.message };
 }
 
 export async function deleteKeterlibatanAction(id: string, pendetaId: string) {
   const supabase = await createClient();
-  const authResult = await enforceContract('OC-PERSON-002', {
-    target_entity: { entity_type: 'Pendeta', entity_id: pendetaId, owning_context_id: pendetaId },
-    operation_payload: { action: 'delete_keterlibatan', id },
-  });
-  if (authResult.decision?.result === 'DENY') return { success: false, error: authResult.decision.error_code };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: 'UNAUTHENTICATED' };
+  const userId = user.id;
+  const authResult = await enforceContract(
+    'OC-PERSON-002',
+    { targetEntity: { entityId: pendetaId, entityType: 'Pendeta' as const, contextAffinityId: pendetaId, contextAffinityLevel: 'JEMAAT' as const } },
+    supabase,
+    userId,
+    pendetaId
+  );
+  if (authResult.status === 'DENY') return { success: false, error: authResult.errorCode };
   const { error } = await supabase.from('t_keterlibatan_pendeta').delete().eq('id_keterlibatan', id);
   return { success: !error, error: error?.message };
 }

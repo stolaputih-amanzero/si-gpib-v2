@@ -1,0 +1,1 @@
+import { enforceReadAccess } from '@/lib/authorization/helpers/enforce-read'; export async function PastoralSection({ contextId }: { contextId: string }) { await enforceReadAccess('OC-PASTORAL-004', { targetEntity: { entityId: contextId, entityType: 'Context' } }); return <div className='p-4 border rounded-xl bg-card'><h3>Pelayanan Pastoral</h3></div>; }

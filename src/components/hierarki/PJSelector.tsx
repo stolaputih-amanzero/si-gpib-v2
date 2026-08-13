@@ -61,7 +61,7 @@ export function PJSelector({
             setTimeout(() => onSuccess(), 1200);
           }
         } else {
-          setErrorMsg(res.error || 'Gagal memproses penugasan PJ.');
+          setErrorMsg('Gagal memproses penugasan PJ.');
         }
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Gagal memproses penugasan PJ.';

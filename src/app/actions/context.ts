@@ -3,8 +3,9 @@
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import { MockIdentityResolver } from '@/lib/authorization/engine/identity-resolver';
-import { MockContextResolver } from '@/lib/authorization/engine/context-resolver';
+import { SupabaseIdentityResolver } from '@/lib/authorization/engine/identity-resolver';
+import { SupabaseContextResolver } from '@/lib/authorization/engine/context-resolver';
+import { isResolutionFailure } from '@/lib/authorization/engine/resolver.types';
 import { getServerContext } from '@/lib/utils/context';
 
 export async function setWorkingContext(context_id: string) {
@@ -15,15 +16,19 @@ export async function setWorkingContext(context_id: string) {
     throw new Error('Unauthorized: No active session');
   }
 
-  const identityResolver = new MockIdentityResolver();
-  const baseIdentity = await identityResolver.resolveBase(session);
+  const identityResolver = new SupabaseIdentityResolver(supabase);
+  const baseIdentity = await identityResolver.resolveBaseIdentity(session.user.id);
 
-  const contextResolver = new MockContextResolver();
-  const activeContext = await contextResolver.resolve(context_id, baseIdentity);
+  if (!baseIdentity) {
+    throw new Error('Unauthorized: User identity could not be resolved');
+  }
 
-  if (!activeContext) {
+  const contextResolver = new SupabaseContextResolver(supabase);
+  const activeContext = await contextResolver.resolveActiveContext(session.user.id, context_id);
+
+  if (isResolutionFailure(activeContext)) {
     // If invalid context, reject the change
-    throw new Error('Forbidden: Context resolution failed or unauthorized access to this context.');
+    throw new Error(`Forbidden: ${activeContext.diagnosticMessage}`);
   }
 
   // Constraint A: Minimal payload (only context_id)
@@ -51,4 +56,13 @@ export async function getAssignedPosListAction() {
   ];
 
   return defaultList;
+}
+
+export async function switchActiveContextAction(formData: FormData) {
+  const contextId = formData.get('contextId') as string;
+  if (!contextId) {
+    throw new Error('Context ID is required');
+  }
+  
+  return await setWorkingContext(contextId);
 }

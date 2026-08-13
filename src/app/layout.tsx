@@ -8,6 +8,10 @@ import { MobileSplashScreen } from '@/components/mobile/MobileSplashScreen';
 import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { ThemeScript } from '@/components/theme/ThemeScript';
+import { BottomNavigation } from '@/components/layout/BottomNavigation';
+import { ContextChip, ContextSwitcherSheet } from '@/components/layout/ContextSwitcher';
+import { getAssignedPosListAction } from '@/app/actions/context';
+import { getServerContext } from '@/lib/utils/context';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -60,11 +64,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const contextData = await getServerContext();
+  const validContexts = await getAssignedPosListAction();
+  const activeContextId = contextData.context_id;
+
   return (
     <html lang="id" suppressHydrationWarning>
       <head>
@@ -78,7 +86,27 @@ export default function RootLayout({
               <ServiceWorkerRegister />
               <MobileSplashScreen />
               <NetworkBanner />
-              {children}
+              <div className="flex flex-col min-h-[100dvh]">
+                {contextData.status === 'VALID' && (
+                  <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+                    <div className="container flex h-14 items-center justify-between px-4">
+                      <div className="font-display font-bold text-lg tracking-tight">SI GPIB</div>
+                      <ContextChip activeContextId={activeContextId} validContexts={validContexts} />
+                    </div>
+                  </header>
+                )}
+                
+                <main className="flex-1 pb-16">
+                  {children}
+                </main>
+                
+                {contextData.status === 'VALID' && (
+                  <>
+                    <BottomNavigation />
+                    <ContextSwitcherSheet activeContextId={activeContextId} validContexts={validContexts} />
+                  </>
+                )}
+              </div>
             </ToastProvider>
           </QueryProvider>
         </ThemeProvider>

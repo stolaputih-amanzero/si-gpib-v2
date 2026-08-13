@@ -44,7 +44,7 @@ class SyncManager {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       const isPaused = typeof window !== 'undefined' && window.localStorage.getItem('gp_sync_paused') === 'true';
       
-      if (isPaused || (sessionError && !session)) {
+      if (isPaused || sessionError || !session) {
         console.error('[SYNC_SESSION_CHECK_FAILED]', { sessionError, session, isPaused });
         this.emit('session-expired');
         logger.error('Session expired or sync paused, halting sync');
@@ -100,7 +100,7 @@ class SyncManager {
           const err = error as { status?: number; code?: string; message?: string };
           const isClientError = err.status && err.status >= 400 && err.status < 500;
           
-          if (isClientError || item.attempts >= MAX_SYNC_ATTEMPTS) {
+          if (isClientError || (item.attempts + 1) >= MAX_SYNC_ATTEMPTS) {
             // Gagal permanen 4xx atau max attempts -> DeadLetter Queue
             await db.transaction('rw', db.pendingSubmissions, db.deadLetters, db.pendingAttachments, async () => {
               await db.deadLetters.add({

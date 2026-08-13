@@ -1,0 +1,1 @@
+import { enforceReadAccess } from '@/lib/authorization/helpers/enforce-read'; export async function AidRequestsSection({ contextId }: { contextId: string }) { await enforceReadAccess('OC-AID-004', { targetEntity: { entityId: contextId, entityType: 'Context' } }); return <div className='p-4 border rounded-xl bg-card'><h3>Pengajuan Bantuan</h3></div>; }

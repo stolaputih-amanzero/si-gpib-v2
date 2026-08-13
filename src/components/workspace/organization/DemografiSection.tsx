@@ -1,0 +1,1 @@
+import { enforceReadAccess } from '@/lib/authorization/helpers/enforce-read'; export async function DemografiSection({ contextId }: { contextId: string }) { await enforceReadAccess('OC-DEMO-002', { targetEntity: { entityId: contextId, entityType: 'Context' } }); return <div className='p-4 border rounded-xl bg-card'><h3>Demografi Pelkat</h3></div>; }

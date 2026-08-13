@@ -21,27 +21,34 @@ export async function createAsetAction(
 
   const supabase = await createClient();
   
-  const result = await enforceContract('OC-ASSET-001', {
-    target_entity: {
-      entity_type: 'Asset',
-      entity_id: null,
-      owning_context_id: data.id_pos || '',
-    },
-    operation_payload: data,
-  });
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user?.id || '';
 
-  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
-    return { success: false, error: 'INTERNAL_ERROR', message: 'System configuration error.' };
+  const targetEntity = {
+    entityId: '',
+    entityType: 'Asset' as const,
+    contextAffinityId: data.id_pos || '',
+    contextAffinityLevel: 'POS' as const,
+  };
+
+  const result = await enforceContract(
+    'OC-ASSET-001',
+    { targetEntity },
+    supabase,
+    userId,
+    data.id_pos || ''
+  );
+
+  if (result.status === 'RESOLUTION_FAILURE') {
+    return { success: false, error: 'INTERNAL_ERROR', message: result.diagnosticMessage };
   }
-  if (result.decision.result === 'DENY') {
+  if (result.status === 'DENY') {
     return { 
         success: false, 
-        error: result.decision.error_code || 'ACCESS_DENIED',
-        message: result.decision.error_detail || 'Access denied.'
+        error: result.errorCode || 'ACCESS_DENIED',
+        message: result.errorDetail || 'Access denied.'
     };
   }
-  
-  let userId = result.identity_resolution?.base_identity?.user_account_id || '';
 
   let rpcName: 'cj5_create_aset_tanah' | 'cj5_create_aset_bangunan' | 'cj5_create_aset_bergerak';
   let payload: Record<string, any>;

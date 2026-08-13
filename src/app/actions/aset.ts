@@ -5,8 +5,7 @@ import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 import { uploadFile } from '@/lib/services/storage';
 import { asetTanahSchema, asetBangunanSchema, asetBergerakSchema } from '@/lib/validations/aset.schema';
 import { revalidatePath } from 'next/cache';
-import { enforceContract } from '@/lib/authorization';
-import type { ContractId } from '@/lib/authorization/types';
+import { enforceAction } from './helpers/enforce-action';
 
 function getDbClient(supabaseServerClient: any) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -32,29 +31,25 @@ export async function createAsetAction(payload: {
   let insertedData: any = null;
   let asetId: string = '';
 
-  const contractId: ContractId = 'OC-ASSET-001';
-  const result = await enforceContract(contractId, {
-    target_entity: {
-      entity_type: 'Asset',
-      entity_id: null,
-      owning_context_id: payload.id_pos,
+  const outcome = await enforceAction(
+    'OC-ASSET-001',
+    {
+      targetEntity: {
+        entityId: 'NEW',
+        entityType: 'Asset',
+        contextAffinityId: payload.id_pos,
+        contextAffinityLevel: 'POS',
+      },
     },
-    operation_payload: {},
-  });
-
-  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
-    throw new Error('System configuration error (Authorization).');
-  }
-  if (result.decision.result === 'DENY') {
-    throw new Error(result.decision.error_detail || 'Access denied.');
-  }
+    payload.id_pos,
+  );
 
   await db.rpc('set_authorization_context', {
-    p_context_id: result.context_resolution.active_context?.context_id || '',
-    p_context_level: result.context_resolution.active_context?.context_level || '',
-    p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
-    p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
-    p_effective_role: result.role_binding.effective_system_role || '',
+    p_context_id: outcome.sessionContext.activeContextId || '',
+    p_context_level: outcome.sessionContext.activeContextLevel || '',
+    p_user_id: outcome.userId || '',
+    p_person_id: outcome.sessionContext.linkedPersonId || '',
+    p_effective_role: outcome.sessionContext.effectiveSystemRole || '',
   });
 
   if (payload.jenis_aset === 'tanah') {
@@ -160,11 +155,11 @@ export async function createAsetAction(payload: {
 
   await db.from('t_log_aktivitas').insert({
     id_log: `LOG-ASET-${Date.now()}`,
-    id_user: result.identity_resolution.base_identity?.user_account_id,
+    id_user: outcome.userId,
     aksi: 'asset.create',
     objek_type: 'Asset',
     objek_id: asetId,
-    aktor: result.role_binding.effective_system_role,
+    aktor: outcome.sessionContext.effectiveSystemRole,
     keterangan: `Membuat aset ${payload.jenis_aset} untuk pos pelkes ${payload.id_pos}`
   });
 

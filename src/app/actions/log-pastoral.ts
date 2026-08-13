@@ -1,158 +1,222 @@
+/**
+ * src/app/actions/log-pastoral.ts
+ *
+ * Tier 3: Ordinary CRUD & reads.
+ *
+ * Contract traceability: OC-PASTORAL-001–004.
+ * P1: Context-Owned Entity (Pos-level).
+ * P6: Creator-Based Access (parametric).
+ * P7: Context Scope with Downward Reach (Read).
+ */
+
 'use server';
 
+import { enforceAction } from './helpers/enforce-action';
+import { executeInTransaction } from './helpers/transaction-context';
+import { logAuditEvent } from './helpers/audit-logger';
+import type { TargetEntityState } from '@/lib/authorization';
 import { createClient } from '@/lib/supabase/server';
-import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
-import { uploadFile } from '@/lib/services/storage';
-import { logPastoralSchema } from '@/lib/validations/log-pastoral.schema';
-import { revalidatePath } from 'next/cache';
-import { enforceContract } from '@/lib/authorization';
-import type { ContractId } from '@/lib/authorization/types';
 
-function getDbClient(supabaseServerClient: any) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (url && key) {
-    return createSupabaseAdmin(url, key, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-  }
-  return supabaseServerClient;
-}
+/**
+ * Create Pastoral Log.
+ *
+ * Contract: OC-PASTORAL-001 (pastoral.create).
+ * P1: Context-Owned Entity (Pos-level).
+ *
+ * @param formData - Form data containing pastoral log fields.
+ */
+export async function createLogPastoralAction(formData: FormData) {
+  const claimedContextId = formData.get('contextId') as string;
+  const posId = formData.get('idPos') as string;
 
-export async function createLogPastoral(payload: {
-  id_log?: string;
-  id_pos?: string | null;
-  id_induk?: string | null;
-  id_pendeta?: string | null;
-  tgl: string | Date;
-  kegiatan: string;
-  jml_jiwa?: number | null;
-  catatan?: string | null;
-  foto_url?: string | null;
-}) {
-  const supabase = await createClient();
-  const db = getDbClient(supabase);
+  const targetEntity: TargetEntityState = {
+    entityId: '', // New record, no ID yet
+    entityType: 'PastoralLog',
+    contextAffinityId: posId,
+    contextAffinityLevel: 'POS',
+  };
 
-  // 1. Auth check
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // ECB-02: 'OC-PASTORAL-001' is STATIC.
+  const outcome = await enforceAction(
+    'OC-PASTORAL-001',
+    { targetEntity },
+    claimedContextId,
+  );
 
-  const pendetaId = payload.id_pendeta || user?.user_metadata?.id_pendeta || 'PDT-001';
+  let newLogId: string = '';
 
-  // 2. Validate
-  const validated = logPastoralSchema.parse({
-    id_induk: payload.id_induk || 'JMT-MOCK-001',
-    id_pos: payload.id_pos || undefined,
-    id_pendeta: pendetaId,
-    tgl: payload.tgl,
-    kegiatan: payload.kegiatan,
-    jml_jiwa: payload.jml_jiwa ? Number(payload.jml_jiwa) : undefined,
-    catatan: payload.catatan || undefined,
+  await executeInTransaction(outcome.sessionContext, async (supabase) => {
+    const { data, error } = await supabase
+      .from('t_log_pastoral')
+      .insert({
+        id_log: crypto.randomUUID().slice(0, 30), // Sample generation
+        id_pos: posId,
+        id_pendeta: outcome.sessionContext.linkedPersonId,
+        kegiatan: formData.get('jenisKegiatan') as string, // Using DB schema 'kegiatan'
+        catatan: formData.get('deskripsi') as string, // Using DB schema 'catatan'
+        tgl: formData.get('tanggalKegiatan') as string, // Using DB schema 'tgl'
+        jml_jiwa: parseInt(formData.get('jumlahPeserta') as string) || 0, // Using DB schema 'jml_jiwa'
+        created_at: new Date().toISOString(),
+      })
+      .select('id_log')
+      .single();
+
+    if (error) throw error;
+    newLogId = data.id_log;
   });
 
-  const idLog = payload.id_log || `LOG-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-
-  let tglStr = typeof validated.tgl === 'string' ? validated.tgl : new Date().toISOString().split('T')[0];
-  if (validated.tgl instanceof Date) {
-    tglStr = validated.tgl.toISOString().split('T')[0];
-  }
-
-  const contractId: ContractId = 'OC-PASTORAL-001';
-  const result = await enforceContract(contractId, {
-    target_entity: {
-      entity_type: 'PastoralLog',
-      entity_id: idLog,
-      owning_context_id: validated.id_pos || payload.id_induk || null,
-    },
-    operation_payload: {},
-  });
-
-  if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
-    throw new Error('System configuration error (Authorization).');
-  }
-  if (result.decision.result === 'DENY') {
-    throw new Error(result.decision.error_detail || 'Access denied.');
-  }
-
-  await db.rpc('set_authorization_context', {
-    p_context_id: result.context_resolution.active_context?.context_id || '',
-    p_context_level: result.context_resolution.active_context?.context_level || '',
-    p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
-    p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
-    p_effective_role: result.role_binding.effective_system_role || '',
-  });
-
-  // 3. Insert ke DB
-  const { data, error } = await db
-    .from('t_log_pastoral')
-    .insert({
-      id_log: idLog,
-      id_pos: validated.id_pos || null,
-      id_pendeta: validated.id_pendeta,
-      tgl: tglStr,
-      kegiatan: validated.kegiatan,
-      jml_jiwa: validated.jml_jiwa ?? null,
-      catatan: validated.catatan || null,
-      foto_url: payload.foto_url || null,
-    })
-    .select('*')
-    .single();
-
-  if (error) {
-    console.error('createLogPastoral error:', error);
-    throw new Error(error.message || 'Gagal menyimpan log pastoral');
-  }
-
-  await db.from('t_log_aktivitas').insert({
-    id_log: `LOG-PAST-${Date.now()}`,
-    id_user: result.identity_resolution.base_identity?.user_account_id,
-    aksi: 'pastoral.create',
-    objek_type: 'PastoralLog',
-    objek_id: idLog,
-    aktor: result.role_binding.effective_system_role,
-    keterangan: `Membuat log pastoral kegiatan ${validated.kegiatan}`
-  });
-
-  // 4. Revalidate
-  revalidatePath('/laporan/pastoral');
-  revalidatePath('/dashboard/pastoral');
-  revalidatePath(`/pastoral/${encodeURIComponent(payload.id_pos || '')}`);
-
-  return data;
-}
-
-export async function uploadFotoLogPastoral(
-  idLog: string,
-  idPos: string,
-  file: File
-) {
-  const supabase = await createClient();
-  const db = getDbClient(supabase);
-
-  const uploadResult = await uploadFile({
-    bucket: 'pastoral',
-    folder: `${idPos}`,
-    file,
+  await logAuditEvent({
     contractId: 'OC-PASTORAL-001',
-    contractPayload: {
-      target_entity: { entity_type: 'PastoralLog', entity_id: idLog, owning_context_id: idPos },
-      operation_payload: { action: 'upload_foto' },
-    },
+    permissionId: 'pastoral.create',
+    userId: outcome.userId,
+    personId: outcome.sessionContext.linkedPersonId,
+    action: 'CREATE',
+    entityId: newLogId,
+    entityType: 'PastoralLog',
+    contextId: outcome.sessionContext.activeContextId,
+    contextLevel: outcome.sessionContext.activeContextLevel,
+    evaluatedDimensions: {} as any,
+    timestamp: new Date().toISOString(),
   });
 
-  if (!uploadResult.success) {
-    return { success: false, error: uploadResult.error };
-  }
+  return { success: true, id: newLogId };
+}
 
-  const { error: dbError } = await db
+/**
+ * Update Pastoral Log — Creator-Based Access.
+ *
+ * Contract: OC-PASTORAL-002 (pastoral.update).
+ * P6: Creator-Based Access.
+ * L4 Relationship: creator.
+ *
+ * @param formData - Form data containing log ID and updated fields.
+ */
+export async function updateLogPastoralAction(formData: FormData) {
+  const logId = formData.get('logId') as string;
+  const claimedContextId = formData.get('contextId') as string;
+
+  // Fetch current state for L4 (creator) and L3 (context) evaluation.
+  const supabase = await createClient();
+  const { data: existingLog, error: fetchError } = await supabase
     .from('t_log_pastoral')
-    .update({ foto_url: uploadResult.path! })
-    .eq('id_log', idLog);
+    .select('id_log, id_pendeta, id_pos')
+    .eq('id_log', logId)
+    .maybeSingle();
 
-  if (!dbError) {
-    revalidatePath(`/pastoral/${encodeURIComponent(idPos)}`);
+  if (fetchError || !existingLog) {
+    throw new Error(`Pastoral log '${logId}' not found.`);
   }
 
-  return { success: !dbError, error: dbError?.message };
+  const targetEntity: TargetEntityState = {
+    entityId: existingLog.id_log,
+    entityType: 'PastoralLog',
+    creatorPersonId: existingLog.id_pendeta,
+    ownerPersonId: existingLog.id_pendeta,
+    contextAffinityId: existingLog.id_pos,
+    contextAffinityLevel: 'POS',
+  };
+
+  // ECB-02: 'OC-PASTORAL-002' is STATIC.
+  const outcome = await enforceAction(
+    'OC-PASTORAL-002',
+    { targetEntity },
+    claimedContextId,
+  );
+
+  await executeInTransaction(outcome.sessionContext, async (supabase) => {
+    const { error } = await supabase
+      .from('t_log_pastoral')
+      .update({
+        kegiatan: formData.get('jenisKegiatan') as string,
+        catatan: formData.get('deskripsi') as string,
+        tgl: formData.get('tanggalKegiatan') as string,
+        jml_jiwa: parseInt(formData.get('jumlahPeserta') as string) || 0,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id_log', logId);
+
+    if (error) throw error;
+  });
+
+  await logAuditEvent({
+    contractId: 'OC-PASTORAL-002',
+    permissionId: 'pastoral.update',
+    userId: outcome.userId,
+    personId: outcome.sessionContext.linkedPersonId,
+    action: 'UPDATE',
+    entityId: logId,
+    entityType: 'PastoralLog',
+    contextId: outcome.sessionContext.activeContextId,
+    contextLevel: outcome.sessionContext.activeContextLevel,
+    evaluatedDimensions: {} as any,
+    timestamp: new Date().toISOString(),
+  });
+
+  return { success: true };
+}
+
+/**
+ * Delete Pastoral Log.
+ *
+ * Contract: OC-PASTORAL-003 (pastoral.delete).
+ * D-12: NOT granted to CONTRIBUTOR (Pelaksana Komisi).
+ * P1: Context-Owned Entity (Pos-level).
+ *
+ * @param formData - Form data containing log ID and contextId.
+ */
+export async function deleteLogPastoralAction(formData: FormData) {
+  const logId = formData.get('logId') as string;
+  const claimedContextId = formData.get('contextId') as string;
+
+  const supabase = await createClient();
+  const { data: existingLog, error: fetchError } = await supabase
+    .from('t_log_pastoral')
+    .select('id_log, id_pendeta, id_pos')
+    .eq('id_log', logId)
+    .maybeSingle();
+
+  if (fetchError || !existingLog) {
+    throw new Error(`Pastoral log '${logId}' not found.`);
+  }
+
+  const targetEntity: TargetEntityState = {
+    entityId: existingLog.id_log,
+    entityType: 'PastoralLog',
+    creatorPersonId: existingLog.id_pendeta,
+    ownerPersonId: existingLog.id_pendeta,
+    contextAffinityId: existingLog.id_pos,
+    contextAffinityLevel: 'POS',
+  };
+
+  // ECB-02: 'OC-PASTORAL-003' is STATIC.
+  const outcome = await enforceAction(
+    'OC-PASTORAL-003',
+    { targetEntity },
+    claimedContextId,
+  );
+
+  await executeInTransaction(outcome.sessionContext, async (supabase) => {
+    const { error } = await supabase
+      .from('t_log_pastoral')
+      .delete()
+      .eq('id_log', logId);
+
+    if (error) throw error;
+  });
+
+  await logAuditEvent({
+    contractId: 'OC-PASTORAL-003',
+    permissionId: 'pastoral.delete',
+    userId: outcome.userId,
+    personId: outcome.sessionContext.linkedPersonId,
+    action: 'DELETE',
+    entityId: logId,
+    entityType: 'PastoralLog',
+    contextId: outcome.sessionContext.activeContextId,
+    contextLevel: outcome.sessionContext.activeContextLevel,
+    evaluatedDimensions: {} as any,
+    timestamp: new Date().toISOString(),
+  });
+
+  return { success: true };
 }

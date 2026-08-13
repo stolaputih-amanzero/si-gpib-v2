@@ -3,8 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
-import { enforceContract } from '@/lib/authorization';
-import type { ContractId } from '@/lib/authorization/types';
+import { enforceAction } from '@/app/actions/helpers/enforce-action';
 
 function createAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -44,30 +43,22 @@ export async function updateOwnProfileAction(payload: {
       return { success: false, error: 'Unauthorized: Sesi pengguna tidak ditemukan' };
     }
 
-    const contractId: ContractId = 'OC-USER-005';
-    const result = await enforceContract(contractId, {
-      target_entity: {
-        entity_type: 'User',
-        entity_id: currentUserId,
-        owning_context_id: null,
-      },
-      operation_payload: {},
-    });
-
-    if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
-      return { success: false, error: 'System configuration error (Authorization).' }
-    }
-    if (result.decision.result === 'DENY') {
-      return { success: false, error: result.decision.error_detail || 'Access denied.' }
-    }
+    const outcome = await enforceAction('OC-USER-005', {
+      targetEntity: {
+        entityId: currentUserId,
+        entityType: 'UserAccount',
+        contextAffinityId: 'SINODE',
+        contextAffinityLevel: 'SINODE',
+      }
+    }, 'SINODE');
 
     const clientForRead = createAdminClient() || supabase;
     await clientForRead.rpc('set_authorization_context', {
-      p_context_id: result.context_resolution.active_context?.context_id || '',
-      p_context_level: result.context_resolution.active_context?.context_level || '',
-      p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
-      p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
-      p_effective_role: result.role_binding.effective_system_role || '',
+      p_context_id: outcome.sessionContext.activeContextId || '',
+      p_context_level: outcome.sessionContext.activeContextLevel || '',
+      p_user_id: outcome.userId || '',
+      p_person_id: outcome.sessionContext.linkedPersonId || '',
+      p_effective_role: outcome.sessionContext.effectiveSystemRole || '',
     });
 
     let finalAvatarUrl = payload.avatar_url || '';
@@ -283,11 +274,11 @@ export async function updateOwnProfileAction(payload: {
 
     await dbClient.from('t_log_aktivitas').insert({
       id_log: `LOG-USR-${Date.now()}`,
-      id_user: result.identity_resolution.base_identity?.user_account_id,
+      id_user: outcome.userId,
       aksi: 'user.update_profile',
       objek_type: 'User',
       objek_id: currentUserId,
-      aktor: result.role_binding.effective_system_role,
+      aktor: outcome.sessionContext.effectiveSystemRole,
       keterangan: `Memperbarui profil pengguna & foto avatar (${payload.nama_lengkap})`
     });
 
@@ -746,29 +737,21 @@ export async function revokeUserBiometricDeviceAction(credentialId: string) {
       return { success: false, error: 'Unauthorized: Sesi pengguna tidak ditemukan' };
     }
 
-    const contractId: ContractId = 'OC-USER-006';
-    const result = await enforceContract(contractId, {
-      target_entity: {
-        entity_type: 'User',
-        entity_id: currentUserId,
-        owning_context_id: null,
-      },
-      operation_payload: {},
-    });
-
-    if (result.status === 'CONTRACT_RESOLUTION_FAILURE') {
-      return { success: false, error: 'System configuration error (Authorization).' }
-    }
-    if (result.decision.result === 'DENY') {
-      return { success: false, error: result.decision.error_detail || 'Access denied.' }
-    }
+    const outcome = await enforceAction('OC-USER-006', {
+      targetEntity: {
+        entityId: currentUserId,
+        entityType: 'UserAccount',
+        contextAffinityId: 'SINODE',
+        contextAffinityLevel: 'SINODE',
+      }
+    }, 'SINODE');
 
     await dbClient.rpc('set_authorization_context', {
-      p_context_id: result.context_resolution.active_context?.context_id || '',
-      p_context_level: result.context_resolution.active_context?.context_level || '',
-      p_user_id: result.identity_resolution.base_identity?.user_account_id || '',
-      p_person_id: result.identity_resolution.base_identity?.person_linkage.person_id || '',
-      p_effective_role: result.role_binding.effective_system_role || '',
+      p_context_id: outcome.sessionContext.activeContextId || '',
+      p_context_level: outcome.sessionContext.activeContextLevel || '',
+      p_user_id: outcome.userId || '',
+      p_person_id: outcome.sessionContext.linkedPersonId || '',
+      p_effective_role: outcome.sessionContext.effectiveSystemRole || '',
     });
 
     const { error: err1 } = await dbClient
@@ -785,11 +768,11 @@ export async function revokeUserBiometricDeviceAction(credentialId: string) {
 
     await dbClient.from('t_log_aktivitas').insert({
       id_log: `LOG-BIO-${Date.now()}`,
-      id_user: result.identity_resolution.base_identity?.user_account_id,
+      id_user: outcome.userId,
       aksi: 'user.toggle_biometric',
       objek_type: 'User',
       objek_id: currentUserId,
-      aktor: result.role_binding.effective_system_role,
+      aktor: outcome.sessionContext.effectiveSystemRole,
       keterangan: `Mencabut perangkat biometrik ${credentialId}`
     });
 

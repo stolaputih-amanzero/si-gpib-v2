@@ -12,7 +12,7 @@ import { useUserMupelAuth } from '@/hooks/use-hierarki-selector';
 import { PastoralPhotoPicker } from '@/components/pastoral/PastoralPhotoPicker';
 import { useToast } from '@/components/ui/toast';
 import { formatPastoralKegiatanText } from '@/lib/formatters/pastoral-text';
-import { createLogPastoral } from '@/app/actions/log-pastoral';
+import { createLogPastoralAction } from '@/app/actions/log-pastoral';
 import { submitOrQueue } from '@/lib/offline/queue-manager';
 
 interface LogPastoralFormProps {
@@ -162,7 +162,7 @@ export default function LogPastoralForm({ id_pos, id_induk, onSuccess }: LogPast
       };
 
       const originContextId = finalPosId || id_induk || '';
-      const response = await submitOrQueue('OC-PASTORAL-001', payload, originContextId, createLogPastoral);
+      const response = await submitOrQueue('OC-PASTORAL-001', payload, originContextId, createLogPastoralAction);
 
       if (response.status === 'QUEUED') {
         toast.success('Disimpan Offline', 'Data disimpan offline. Akan disinkronkan otomatis saat koneksi pulih.');

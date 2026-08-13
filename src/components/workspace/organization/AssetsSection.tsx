@@ -1,0 +1,1 @@
+import { enforceReadAccess } from '@/lib/authorization/helpers/enforce-read'; export async function AssetsSection({ contextId }: { contextId: string }) { await enforceReadAccess('OC-ASSET-004', { targetEntity: { entityId: contextId, entityType: 'Context' } }); return <div className='p-4 border rounded-xl bg-card'><h3>Assets & Property</h3></div>; }

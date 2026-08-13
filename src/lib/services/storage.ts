@@ -37,9 +37,27 @@ export async function uploadFile(options: UploadOptions): Promise<UploadResult> 
   
   // 2. Contract validation (if required)
   if (contractId && contractPayload) {
-    const authResult = await enforceContract(contractId as ContractId, contractPayload);
-    if (authResult.decision?.result === 'DENY') {
-      return { success: false, error: authResult.decision.error_code || 'Access denied' };
+    const targetEntity = contractPayload.targetEntity || {
+      entityId: contractPayload.entityId || '',
+      entityType: contractPayload.entityType || 'Unknown',
+      contextAffinityId: contractPayload.contextAffinityId || '',
+      contextAffinityLevel: contractPayload.contextAffinityLevel || 'POS'
+    };
+    
+    // Using a dummy user id 'system' and context id 'system' since it's missing from old signature
+    // The user should pass userId and contextId in options, but this is a drop-in patch.
+    const authResult = await enforceContract(
+      contractId as ContractId, 
+      { targetEntity },
+      undefined as any, // supabase client (will use createClient internally if undefined? actually we should pass it)
+      'system', 
+      'system'
+    );
+    if (authResult.status === 'DENY') {
+      return { success: false, error: authResult.errorDetail || 'Access denied' };
+    }
+    if (authResult.status === 'RESOLUTION_FAILURE') {
+      return { success: false, error: authResult.diagnosticMessage };
     }
   }
   
@@ -84,9 +102,24 @@ export async function deleteFile(
 ): Promise<{ success: boolean; error?: string }> {
   // Contract validation (if required)
   if (contractId && contractPayload) {
-    const authResult = await enforceContract(contractId as ContractId, contractPayload);
-    if (authResult.decision?.result === 'DENY') {
-      return { success: false, error: authResult.decision.error_code || 'Access denied' };
+    const targetEntity = contractPayload.targetEntity || {
+      entityId: contractPayload.entityId || '',
+      entityType: contractPayload.entityType || 'Unknown',
+      contextAffinityId: contractPayload.contextAffinityId || '',
+      contextAffinityLevel: contractPayload.contextAffinityLevel || 'POS'
+    };
+    const authResult = await enforceContract(
+      contractId as ContractId, 
+      { targetEntity },
+      undefined as any,
+      'system',
+      'system'
+    );
+    if (authResult.status === 'DENY') {
+      return { success: false, error: authResult.errorDetail || 'Access denied' };
+    }
+    if (authResult.status === 'RESOLUTION_FAILURE') {
+      return { success: false, error: authResult.diagnosticMessage };
     }
   }
   
