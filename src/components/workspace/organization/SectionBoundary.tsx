@@ -18,14 +18,24 @@ export class SectionBoundary extends React.Component<SectionBoundaryProps, Secti
   }
 
   static getDerivedStateFromError(error: any): SectionBoundaryState {
-    if (error.name === 'AuthorizationError' && error.errorCode === 'NOT_AUTHORIZED') {
+    const isAuthError = 
+      (error.name === 'AuthorizationError' && error.errorCode === 'NOT_AUTHORIZED') ||
+      (error.message && error.message.includes('NOT_AUTHORIZED')) ||
+      (error.message && error.message.includes('Not authenticated'));
+
+    if (isAuthError) {
       return { hasError: true, isUnauthorized: true };
     }
     return { hasError: true, isUnauthorized: false };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    if (error.name !== 'AuthorizationError' || (error as any).errorCode !== 'NOT_AUTHORIZED') {
+    const isAuthError = 
+      (error.name === 'AuthorizationError' && (error as any).errorCode === 'NOT_AUTHORIZED') ||
+      (error.message && error.message.includes('NOT_AUTHORIZED')) ||
+      (error.message && error.message.includes('Not authenticated'));
+
+    if (!isAuthError) {
       console.error('Section Error:', error, errorInfo);
     }
   }

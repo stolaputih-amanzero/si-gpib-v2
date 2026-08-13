@@ -59,7 +59,6 @@ export async function login(_prevState: any, formData: FormData) {
     }).catch((e) => ({ error: e }))
 
     if (!signInError) {
-      revalidatePath('/', 'layout')
       redirect('/dashboard')
     }
   } else if (phoneInfo && phoneInfo.coreDigits) {
@@ -70,7 +69,6 @@ export async function login(_prevState: any, formData: FormData) {
     }).catch((e) => ({ error: e }))
 
     if (!phoneErr1) {
-      revalidatePath('/', 'layout')
       redirect('/dashboard')
     }
 
@@ -80,7 +78,6 @@ export async function login(_prevState: any, formData: FormData) {
     }).catch((e) => ({ error: e }))
 
     if (!phoneErr2) {
-      revalidatePath('/', 'layout')
       redirect('/dashboard')
     }
   }
@@ -145,7 +142,6 @@ export async function login(_prevState: any, formData: FormData) {
         }).catch((e) => ({ error: e }))
 
         if (!authError) {
-          revalidatePath('/', 'layout')
           redirect('/dashboard')
         }
       }
@@ -208,7 +204,6 @@ export async function login(_prevState: any, formData: FormData) {
         })
       } catch {}
 
-      revalidatePath('/', 'layout')
       redirect('/dashboard')
     }
   }

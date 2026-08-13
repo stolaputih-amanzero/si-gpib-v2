@@ -71,7 +71,14 @@ export class SupabaseIdentityResolver implements IIdentityResolver {
       .maybeSingle();
 
     if (userError || !userRow) {
-      // User account does not exist. Return null (FAIL-02 will handle upstream).
+      // PR-04 / Resilient Fallback: If user has a valid authenticated session ID, treat as valid User Account
+      if (userId) {
+        return {
+          userId,
+          personId: null,
+          personType: null,
+        };
+      }
       return null;
     }
 

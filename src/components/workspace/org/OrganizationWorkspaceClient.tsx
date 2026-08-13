@@ -44,7 +44,7 @@ export function OrganizationWorkspaceClient({
     id_pos: orgData.id,
     id_induk: orgData.parent_jemaat?.id || orgData.id,
     nama_pos: orgData.name,
-    kategori: orgData.subtype || (orgData.level === 'MUPEL' ? 'Musyawarah Pelayanan' : orgData.level === 'JEMAAT' ? 'Jemaat Induk' : 'Pos Pelkes'),
+    kategori: orgData.subtype || (orgData.level === 'MUPEL' ? 'Mupel' : orgData.level === 'JEMAAT' ? 'Jemaat' : 'Pos Pelkes'),
     alamat: orgData.profile.address,
     latitude: orgData.profile.lat,
     longitude: orgData.profile.lng,
@@ -55,14 +55,14 @@ export function OrganizationWorkspaceClient({
   let catColor = 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/50';
 
   if (orgData.level === 'MUPEL') {
-    catLabel = 'Musyawarah Pelayanan (Mupel)';
+    catLabel = 'Mupel';
     catColor = 'bg-indigo-100 text-indigo-800 border-indigo-300 dark:bg-indigo-900/60 dark:text-indigo-200 dark:border-indigo-800';
   } else if (orgData.level === 'JEMAAT' || orgData.subtype === 'JEMAAT_INDUK' || orgData.subtype === 'JEMAAT_INDUK_MANDIRI') {
-    catLabel = 'Jemaat Induk';
+    catLabel = 'Jemaat';
     catColor = 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/60 dark:text-purple-200 dark:border-purple-800';
   } else if (orgData.subtype === 'BAJEM') {
-    catLabel = 'Bakal Jemaat (Bajem)';
-    catColor = 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-900/50';
+    catLabel = 'Bajem';
+    catColor = 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/50';
   }
 
   // Mutation logic: We use the `activeContext.id` for any forms/mutations.

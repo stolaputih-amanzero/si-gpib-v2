@@ -14,6 +14,9 @@ const withSerwistConfig = withSerwist({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  experimental: {
+    cacheComponents: true, // as required by the runtime error
+  },
 
   serverExternalPackages: [
     '@sentry/node',

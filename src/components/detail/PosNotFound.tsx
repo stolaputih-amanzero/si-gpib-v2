@@ -28,7 +28,7 @@ export function PosNotFound({ id_pos }: PosNotFoundProps) {
 
       <div className="flex flex-col sm:flex-row gap-3 w-full">
         <Link
-          href="/dashboard/pos-pelkes"
+          href="/org"
           className="flex-1 inline-flex items-center justify-center gap-2 h-11 px-4 rounded-xl bg-brand-primary text-white font-bold text-sm shadow-xs hover:bg-brand-primary/90 active:scale-[0.98] transition-all min-h-[44px]"
         >
           <ArrowLeft className="w-4 h-4" />

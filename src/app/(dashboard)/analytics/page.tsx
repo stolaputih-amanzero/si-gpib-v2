@@ -82,7 +82,7 @@ export default function AnalyticsDashboardPage() {
                   colorIcon="text-amber-600"
                 />
                 <AnalyticsStatCard
-                  title="Total Jemaat Induk"
+                  title="Total Jemaat"
                   value={analyticsData?.stats.total_jemaat || 0}
                   trend={analyticsData?.stats.jemaat_growth_month || 0}
                   icon={Church}

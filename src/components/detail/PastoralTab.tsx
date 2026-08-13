@@ -79,7 +79,7 @@ export function PastoralTab({ id_pos, initialLogs }: PastoralTabProps) {
                 <span>{formattedDate}</span>
               </span>
             }
-            href={`/laporan/pastoral`}
+            href={`/dashboard/aktivitas`}
           />
         );
       })}

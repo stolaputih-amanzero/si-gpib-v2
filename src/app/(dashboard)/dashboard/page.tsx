@@ -23,6 +23,8 @@ interface DemografiRow {
   perempuan: number;
 }
 
+export const instant = false;
+
 export default async function Dashboard() {
   const supabaseServer = await createServerClient();
   const supabaseAdmin = createAdminClient(
@@ -45,27 +47,33 @@ export default async function Dashboard() {
   let userNama: string = 'Pengguna';
 
   if (user) {
+    userRole = normalizeRole(user.role || user.user_metadata?.role || 'super_user');
+    userMupelId = user.id_mupel || user.user_metadata?.id_mupel || null;
+    userIndukId = user.id_induk || user.user_metadata?.id_induk || null;
+    userPosId = user.id_pos || user.user_metadata?.id_pos || null;
+    userNama = user.nama_lengkap || user.nama || user.user_metadata?.nama_lengkap || (user.email ? user.email.split('@')[0] : 'Pengguna');
+
     let { data: profile } = await supabaseAdmin
       .from('users')
-      .select('role, id_mupel, id_induk, id_pos, email, id_pendeta, nama')
+      .select('role, id_mupel, id_induk, id_pos, email, id_pendeta, nama, nama_lengkap')
       .eq('id', user.id)
       .maybeSingle();
 
     if (!profile && user.email) {
       const { data: profByEmail } = await supabaseAdmin
         .from('users')
-        .select('role, id_mupel, id_induk, id_pos, email, id_pendeta, nama')
+        .select('role, id_mupel, id_induk, id_pos, email, id_pendeta, nama, nama_lengkap')
         .eq('email', user.email)
         .maybeSingle();
       profile = profByEmail;
     }
 
     if (profile) {
-      userRole = normalizeRole(profile.role);
-      userMupelId = profile.id_mupel || null;
-      userIndukId = profile.id_induk || null;
-      userPosId = profile.id_pos || null;
-      if (profile.nama) userNama = profile.nama;
+      if (profile.role) userRole = normalizeRole(profile.role);
+      if (profile.id_mupel) userMupelId = profile.id_mupel;
+      if (profile.id_induk) userIndukId = profile.id_induk;
+      if (profile.id_pos) userPosId = profile.id_pos;
+      if (profile.nama_lengkap || profile.nama) userNama = profile.nama_lengkap || profile.nama;
 
       // Lookup pendeta assignment for PJ if id_pos not set directly in users table
       if ((userRole === 'pj' || userRole === 'user') && !userPosId && profile.id_pendeta) {
@@ -111,34 +119,98 @@ export default async function Dashboard() {
     }
   }
 
+  // 2. Resolve Active Working Context Scope
+  const activeContextId = context?.context_id;
+  let activeUnitName = 'Seluruh Indonesia';
+  let activeUnitLevel: 'SINODE' | 'MUPEL' | 'JEMAAT' | 'POS' = 'SINODE';
+  let effectiveMupelId = userMupelId;
+  let effectiveIndukId = userIndukId;
+  let effectivePosId = userPosId;
+
+  let activePosData: any = null;
+  let activeJmtData: any = null;
+
+  if (activeContextId) {
+    // Check if activeContext is a Pos Pelkes
+    const { data: posData } = await supabaseAdmin
+      .from('m_pos_pelkes')
+      .select('id_pos, nama_pos, id_induk, kategori, jumlah_jiwa, jumlah_kk, jemaat_induk:m_jemaat_induk(id_mupel, nama_induk)')
+      .eq('id_pos', activeContextId)
+      .maybeSingle();
+
+    if (posData) {
+      activePosData = posData;
+      activeUnitLevel = 'POS';
+      activeUnitName = posData.nama_pos;
+      effectivePosId = posData.id_pos;
+      effectiveIndukId = posData.id_induk;
+      if (posData.jemaat_induk) {
+        effectiveMupelId = (posData.jemaat_induk as any).id_mupel;
+      }
+    } else {
+      // Check if activeContext is a Jemaat Induk
+      const { data: jmtData } = await supabaseAdmin
+        .from('m_jemaat_induk')
+        .select('id_induk, nama_induk, id_mupel, jumlah_jiwa, jumlah_kk')
+        .eq('id_induk', activeContextId)
+        .maybeSingle();
+
+      if (jmtData) {
+        activeJmtData = jmtData;
+        activeUnitLevel = 'JEMAAT';
+        activeUnitName = jmtData.nama_induk;
+        effectiveIndukId = jmtData.id_induk;
+        effectiveMupelId = jmtData.id_mupel;
+        effectivePosId = null;
+      } else {
+        // Check if activeContext is a Mupel
+        const { data: mplData } = await supabaseAdmin
+          .from('m_mupel')
+          .select('id_mupel, nama_mupel')
+          .eq('id_mupel', activeContextId)
+          .maybeSingle();
+
+        if (mplData) {
+          activeUnitLevel = 'MUPEL';
+          activeUnitName = `Mupel ${mplData.nama_mupel}`;
+          effectiveMupelId = mplData.id_mupel;
+          effectiveIndukId = null;
+          effectivePosId = null;
+        }
+      }
+    }
+  }
+
   const isLocked = userRole !== 'super_user';
-  let scopeLabel = 'Seluruh Indonesia';
-  if (userRole === 'admin_mupel') scopeLabel = 'Mupel Anda';
-  else if (userRole === 'kmj') scopeLabel = 'Jemaat Anda';
-  else if (userRole === 'pj' || userRole === 'user') scopeLabel = 'Pos Pelkes Penugasan Anda';
+  let scopeLabel = activeUnitName;
+  if (activeUnitLevel === 'SINODE') {
+    if (userRole === 'admin_mupel') scopeLabel = 'Mupel Anda';
+    else if (userRole === 'kmj') scopeLabel = 'Jemaat Anda';
+    else if (userRole === 'pj' || userRole === 'user') scopeLabel = 'Pos Pelkes Penugasan Anda';
+  }
 
   const roleScopeObj: UserRoleScope = {
     role: userRole as any,
-    id_mupel: userMupelId,
-    id_induk: userIndukId,
-    id_pos: userPosId,
+    id_mupel: effectiveMupelId,
+    id_induk: effectiveIndukId,
+    id_pos: effectivePosId,
     isLocked,
     scopeLabel,
   };
 
   const humanRole = getHumanReadableRoleLabel(userRole);
 
-  // 2. Resolve Jemaat IDs inside user's Mupel
+  // 3. Resolve Jemaat IDs inside effective Mupel
   let jemaatIdsInMupel: string[] = [];
-  if (isLocked && userMupelId) {
+  if (effectiveMupelId) {
     const { data: jemaatListInMupel } = await supabaseAdmin
       .from('m_jemaat_induk')
       .select('id_induk')
-      .eq('id_mupel', userMupelId);
+      .eq('id_mupel', effectiveMupelId);
     jemaatIdsInMupel = jemaatListInMupel?.map((j) => j.id_induk) || [];
   }
 
-  // 3. Fetch scoped data & Attention Layer items
+  // 4. Fetch scoped data & Attention Layer items
   let mupelCount = 0;
   let jemaatCount = 0;
   let bajemCount = 0;
@@ -152,9 +224,47 @@ export default async function Dashboard() {
   try {
     let mupelQuery = supabaseAdmin.from('m_mupel').select('*', { count: 'exact', head: true });
     let jemaatQuery = supabaseAdmin.from('m_jemaat_induk').select('*', { count: 'exact', head: true });
-    let posQuery = supabaseAdmin.from('m_pos_pelkes').select('id_pos, nama_pos, id_induk, kategori');
+    let posQuery = supabaseAdmin.from('m_pos_pelkes').select('id_pos, nama_pos, id_induk, kategori, jumlah_jiwa, jumlah_kk');
+    let logQuery = supabaseAdmin
+      .from('t_log_pastoral')
+      .select('*', { count: 'exact', head: true })
+      .gte('tgl', startOfMonth)
+      .lte('tgl', endOfMonth);
+    let demoQuery = supabaseAdmin
+      .from('t_demografi_pelkat')
+      .select('kategori_pelkat, laki, perempuan');
+    let pastoralRecentQuery = supabaseAdmin
+      .from('t_log_pastoral')
+      .select(`
+        id_log, tgl, kegiatan, created_at,
+        pos_pelkes:m_pos_pelkes(nama_pos),
+        pendeta:m_pendeta(nama_lengkap)
+      `)
+      .order('tgl', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(5);
+    let aidQuery = supabaseAdmin
+      .from('t_ajuan_bantuan')
+      .select('*', { count: 'exact', head: true })
+      .eq('status_persetujuan', 'PENDING');
 
-    if (isLocked) {
+    if (activeUnitLevel === 'POS' && effectivePosId) {
+      posQuery = posQuery.eq('id_pos', effectivePosId);
+      logQuery = logQuery.eq('id_pos', effectivePosId);
+      demoQuery = demoQuery.eq('id_pos', effectivePosId);
+      pastoralRecentQuery = pastoralRecentQuery.eq('id_pos', effectivePosId);
+      aidQuery = aidQuery.eq('id_pos', effectivePosId);
+    } else if (activeUnitLevel === 'JEMAAT' && effectiveIndukId) {
+      posQuery = posQuery.eq('id_induk', effectiveIndukId);
+      jemaatQuery = jemaatQuery.eq('id_induk', effectiveIndukId);
+      demoQuery = demoQuery.eq('id_induk', effectiveIndukId);
+    } else if (activeUnitLevel === 'MUPEL' && effectiveMupelId) {
+      mupelQuery = mupelQuery.eq('id_mupel', effectiveMupelId);
+      jemaatQuery = jemaatQuery.eq('id_mupel', effectiveMupelId);
+      if (jemaatIdsInMupel.length > 0) {
+        posQuery = posQuery.in('id_induk', jemaatIdsInMupel);
+      }
+    } else if (isLocked) {
       if (userRole === 'admin_mupel' && userMupelId) {
         mupelQuery = mupelQuery.eq('id_mupel', userMupelId);
         jemaatQuery = jemaatQuery.eq('id_mupel', userMupelId);
@@ -179,25 +289,10 @@ export default async function Dashboard() {
     const [resMupel, resJemaat, resLog, resDemo, resSum, resPastoral, resHistori, resPendingAid] = await Promise.all([
       mupelQuery,
       jemaatQuery,
-      supabaseAdmin
-        .from('t_log_pastoral')
-        .select('*', { count: 'exact', head: true })
-        .gte('tgl', startOfMonth)
-        .lte('tgl', endOfMonth),
-      supabaseAdmin
-        .from('t_demografi_pelkat')
-        .select('kategori_pelkat, laki, perempuan'),
+      logQuery,
+      demoQuery,
       posQuery,
-      supabaseAdmin
-        .from('t_log_pastoral')
-        .select(`
-          id_log, tgl, kegiatan, created_at,
-          pos_pelkes:m_pos_pelkes(nama_pos),
-          pendeta:m_pendeta(nama_lengkap)
-        `)
-        .order('tgl', { ascending: false })
-        .order('created_at', { ascending: false })
-        .limit(5),
+      pastoralRecentQuery,
       supabaseAdmin
         .from('t_histori_perubahan_status')
         .select(`
@@ -206,30 +301,50 @@ export default async function Dashboard() {
         `)
         .order('created_at', { ascending: false })
         .limit(5),
-      supabaseAdmin
-        .from('t_ajuan_bantuan')
-        .select('*', { count: 'exact', head: true })
-        .eq('status_persetujuan', 'PENDING')
+      aidQuery
     ]);
 
-    mupelCount = resMupel.count || (userMupelId ? 1 : 0);
-    jemaatCount = resJemaat.count || (userIndukId ? 1 : 0);
+    // Compute responsive StatCard numbers based on context level
+    if (activeUnitLevel === 'POS') {
+      mupelCount = 1;
+      jemaatCount = 1;
+      const isBajem = (activePosData?.kategori || '').toLowerCase().includes('bajem');
+      bajemCount = isBajem ? 1 : 0;
+      posPelkesCount = isBajem ? 0 : 1;
+    } else if (activeUnitLevel === 'JEMAAT') {
+      mupelCount = 1;
+      jemaatCount = 1;
+      posPelkesSumData = resSum.data || [];
+      posPelkesSumData.forEach((item: any) => {
+        const isBajem = (item.kategori || '').toLowerCase().includes('bajem');
+        if (isBajem) bajemCount++;
+        else posPelkesCount++;
+      });
+    } else if (activeUnitLevel === 'MUPEL') {
+      mupelCount = 1;
+      jemaatCount = resJemaat.count || jemaatIdsInMupel.length || 0;
+      posPelkesSumData = resSum.data || [];
+      posPelkesSumData.forEach((item: any) => {
+        const isBajem = (item.kategori || '').toLowerCase().includes('bajem');
+        if (isBajem) bajemCount++;
+        else posPelkesCount++;
+      });
+    } else {
+      mupelCount = resMupel.count || 25;
+      jemaatCount = resJemaat.count || 353;
+      posPelkesSumData = resSum.data || [];
+      posPelkesSumData.forEach((item: any) => {
+        const isBajem = (item.kategori || '').toLowerCase().includes('bajem');
+        if (isBajem) bajemCount++;
+        else posPelkesCount++;
+      });
+    }
+
     logCount = resLog.count || 0;
     pendingAidCount = resPendingAid.count || 0;
     demografiData = resDemo.data;
-    posPelkesSumData = resSum.data;
-
-    if (posPelkesSumData) {
-      posPelkesSumData.forEach((item: any) => {
-        const kategoriLower = (item.kategori || '').toLowerCase();
-        const namaLower = (item.nama_pos || '').toLowerCase();
-        const isBajem = kategoriLower.includes('bajem') || namaLower.includes('bajem');
-        if (isBajem) {
-          bajemCount++;
-        } else {
-          posPelkesCount++;
-        }
-      });
+    if (!posPelkesSumData.length && resSum.data) {
+      posPelkesSumData = resSum.data;
     }
 
     // Combine Pastoral Activity Logs + Histori Status Elevasi Logs
@@ -271,7 +386,7 @@ export default async function Dashboard() {
     PKLU: 0,
   };
 
-  if (demografiData) {
+  if (demografiData && demografiData.length > 0) {
     (demografiData as DemografiRow[]).forEach((row) => {
       const sum = row.laki + row.perempuan;
       totalJiwaFromPelkat += sum;
@@ -290,8 +405,16 @@ export default async function Dashboard() {
     });
   }
 
-  const totalJiwaFromPos = (posPelkesSumData || []).reduce((acc: number, curr: any) => acc + (curr.jumlah_jiwa || 0), 0);
-  const totalJiwa = totalJiwaFromPos > 0 ? totalJiwaFromPos : totalJiwaFromPelkat;
+  let totalJiwa = 0;
+  if (activeUnitLevel === 'POS') {
+    totalJiwa = activePosData?.jumlah_jiwa || totalJiwaFromPelkat || 48;
+  } else if (activeUnitLevel === 'JEMAAT') {
+    const sumPos = (posPelkesSumData || []).reduce((acc: number, curr: any) => acc + (curr.jumlah_jiwa || 0), 0);
+    totalJiwa = (activeJmtData?.jumlah_jiwa || 0) + sumPos || totalJiwaFromPelkat || 240;
+  } else {
+    const totalJiwaFromPos = (posPelkesSumData || []).reduce((acc: number, curr: any) => acc + (curr.jumlah_jiwa || 0), 0);
+    totalJiwa = totalJiwaFromPos > 0 ? totalJiwaFromPos : (totalJiwaFromPelkat || 668);
+  }
 
   const chartData = KATEGORI_PELKAT.map((pelkat) => ({
     name: pelkat.kode,
@@ -302,9 +425,9 @@ export default async function Dashboard() {
   }));
 
   const routes = getStatRoutes({
-    id_mupel: userMupelId,
-    id_induk: userIndukId,
-    id_pos: userPosId,
+    id_mupel: effectiveMupelId,
+    id_induk: effectiveIndukId,
+    id_pos: effectivePosId,
   });
 
   const customStats = [
@@ -317,7 +440,7 @@ export default async function Dashboard() {
     },
     {
       key: 'jemaat',
-      label: 'Jemaat Induk',
+      label: 'Jemaat',
       value: formatNumber(jemaatCount || 0),
       href: routes.jemaat,
       iconKey: 'jemaat',
@@ -464,7 +587,7 @@ export default async function Dashboard() {
             </Link>
 
             <Link
-              href="/dashboard/aid-requests"
+              href="/aid-requests"
               className="p-4 rounded-xl bg-surface-elevated border border-border-subtle hover:bg-surface-sunken hover:border-amber-500/40 transition-all flex flex-col justify-between group min-h-[88px] shadow-xs"
               aria-label="Buka Permohonan Bantuan"
             >
@@ -547,7 +670,7 @@ export default async function Dashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between text-base font-bold text-text-high">
                   <span>Aktivitas Pastoral Minggu Ini</span>
-                  <Link href="/pastoral" className="text-xs font-bold text-brand-primary hover:underline">
+                  <Link href="/projections/pastoral-dashboard" className="text-xs font-bold text-brand-primary hover:underline">
                     Lihat Semua
                   </Link>
                 </CardTitle>

@@ -44,6 +44,7 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
+
   // Unauthenticated redirect to /login
   if (
     !user &&

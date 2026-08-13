@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter, Fraunces } from 'next/font/google';
 import './globals.css';
 import QueryProvider from '@/components/providers/QueryProvider';
@@ -7,9 +7,11 @@ import { NetworkBanner } from '@/components/mobile/NetworkBanner';
 import { MobileSplashScreen } from '@/components/mobile/MobileSplashScreen';
 import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
-import { ThemeScript } from '@/components/theme/ThemeScript';
+import { SuppressConsoleWarning } from '@/components/utils/SuppressConsoleWarning';
 import { BottomNavigation } from '@/components/layout/BottomNavigation';
+import { DesktopSidebar } from '@/components/layout/DesktopSidebar';
 import { ContextChip, ContextSwitcherSheet } from '@/components/layout/ContextSwitcher';
+import { ActiveContextProvider } from '@/stores/active-context';
 import { getAssignedPosListAction } from '@/app/actions/context';
 import { getServerContext } from '@/lib/utils/context';
 
@@ -40,6 +42,14 @@ export const metadata: Metadata = {
     shortcut: '/logo-si-gpib.png',
     apple: '/logo-si-gpib.png',
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'SI GPIB',
+  },
+  formatDetection: {
+    telephone: false,
+  },
   openGraph: {
     title: 'SI GPIB v2.2 - Sistem Informasi GPIB',
     description: 'Platform Digital Terpadu GPIB di Seluruh Wilayah Pelayanan GPIB.',
@@ -64,6 +74,17 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: '#0B1220',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+};
+
+export const instant = false;
+
 export default async function RootLayout({
   children,
 }: {
@@ -77,36 +98,47 @@ export default async function RootLayout({
     <html lang="id" suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#0B1220" />
-        <ThemeScript />
       </head>
       <body className={`${inter.variable} ${fraunces.variable} font-sans bg-surface-base text-ink-primary`} suppressHydrationWarning>
+        <SuppressConsoleWarning />
         <ThemeProvider>
           <QueryProvider>
             <ToastProvider>
               <ServiceWorkerRegister />
               <MobileSplashScreen />
               <NetworkBanner />
-              <div className="flex flex-col min-h-[100dvh]">
-                {contextData.status === 'VALID' && (
-                  <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-                    <div className="container flex h-14 items-center justify-between px-4">
-                      <div className="font-display font-bold text-lg tracking-tight">SI GPIB</div>
-                      <ContextChip activeContextId={activeContextId} validContexts={validContexts} />
-                    </div>
-                  </header>
-                )}
-                
-                <main className="flex-1 pb-16">
-                  {children}
-                </main>
-                
-                {contextData.status === 'VALID' && (
-                  <>
-                    <BottomNavigation />
-                    <ContextSwitcherSheet activeContextId={activeContextId} validContexts={validContexts} />
-                  </>
-                )}
-              </div>
+              <ActiveContextProvider initialContextId={activeContextId}>
+                <div className="flex h-[100dvh] w-full overflow-hidden bg-background">
+                  {contextData.status === 'VALID' && (
+                    <DesktopSidebar />
+                  )}
+                  
+                  <div className="flex-1 flex flex-col min-w-0 overflow-y-auto relative">
+                    {contextData.status === 'VALID' && (
+                      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+                        <div className="flex h-16 items-center justify-between px-4 md:px-6">
+                          <div className="font-display font-bold text-lg tracking-tight md:hidden">SI GPIB</div>
+                          <div className="hidden md:block text-sm font-medium text-muted-foreground">
+                            {/* Desktop Top Header Space */}
+                          </div>
+                          <ContextChip activeContextId={activeContextId} validContexts={validContexts} />
+                        </div>
+                      </header>
+                    )}
+                    
+                    <main className="flex-1 pb-28 md:pb-6 relative z-0">
+                      {children}
+                    </main>
+                    
+                    {contextData.status === 'VALID' && (
+                      <>
+                        <BottomNavigation />
+                        <ContextSwitcherSheet activeContextId={activeContextId} validContexts={validContexts} />
+                      </>
+                    )}
+                  </div>
+                </div>
+              </ActiveContextProvider>
             </ToastProvider>
           </QueryProvider>
         </ThemeProvider>

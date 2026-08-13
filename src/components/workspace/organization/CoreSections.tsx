@@ -21,19 +21,21 @@ export async function OverviewSection({ contextId }: { contextId: string }) {
   );
 }
 
+import Link from 'next/link';
+
 export async function IdentitySection({ contextId }: { contextId: string }) {
   // Selalu ada
   await enforceReadAccess('OC-ORG-004', { targetEntity: { entityId: contextId, entityType: 'Context' } });
   
   return (
-    <div className="flex items-center gap-4 p-4 rounded-xl border bg-card">
-      <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-xl">
+    <Link href={`/org/${encodeURIComponent(contextId)}`} className="flex items-center gap-4 p-4 rounded-xl border bg-card hover:bg-accent/50 hover:border-primary/30 transition-all cursor-pointer group">
+      <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-xl group-hover:bg-primary/20 transition-colors">
         {contextId.substring(0, 3)}
       </div>
       <div className="space-y-1">
-        <h3 className="font-semibold">{contextId}</h3>
+        <h3 className="font-semibold group-hover:text-primary transition-colors">{contextId}</h3>
         <p className="text-sm text-muted-foreground">Profil Organisasi</p>
       </div>
-    </div>
+    </Link>
   );
 }

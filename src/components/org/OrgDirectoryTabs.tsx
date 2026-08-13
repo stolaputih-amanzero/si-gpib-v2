@@ -13,8 +13,9 @@ export function OrgDirectoryTabs({ activeTab, onTabChange, totalCount }: OrgDire
   const tabs: { id: OrgLevelFilter; label: string }[] = [
     { id: 'all', label: 'Semua Level' },
     { id: 'mupel', label: 'Mupel' },
-    { id: 'jemaat', label: 'Jemaat Induk' },
-    { id: 'pos', label: 'Pos Pelkes & Bajem' },
+    { id: 'jemaat', label: 'Jemaat' },
+    { id: 'bajem', label: 'Bajem' },
+    { id: 'pos', label: 'Pos Pelkes' },
   ];
 
   return (

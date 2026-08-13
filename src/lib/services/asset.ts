@@ -73,28 +73,61 @@ export async function fetchUnifiedAssetData(id_or_context?: string): Promise<any
   }
 
   // Fallback / Scope Asset Intelligence aggregation for org directory level
+  let tanahQuery = supabase.from('t_aset_tanah').select('*');
+  let bangunanQuery = supabase.from('t_aset_bangunan').select('*');
+  let bergerakQuery = supabase.from('t_aset_bergerak').select('*');
+
+  let orgName = 'Sinode GPIB';
+  let orgLevel = 'SINODE';
+
+  if (id_or_context && !id_or_context.startsWith('SINODE')) {
+    // Check Pos Pelkes
+    const { data: pos } = await supabase.from('m_pos_pelkes').select('id_pos, nama_pos').eq('id_pos', id_or_context).maybeSingle();
+    if (pos) {
+      orgName = pos.nama_pos;
+      orgLevel = 'POS';
+      tanahQuery = tanahQuery.eq('id_pos', pos.id_pos);
+      bangunanQuery = bangunanQuery.eq('id_pos', pos.id_pos);
+      bergerakQuery = bergerakQuery.eq('id_pos', pos.id_pos);
+    } else {
+      // Check Jemaat
+      const { data: jmt } = await supabase.from('m_jemaat_induk').select('id_induk, nama_induk').eq('id_induk', id_or_context).maybeSingle();
+      if (jmt) {
+        orgName = jmt.nama_induk;
+        orgLevel = 'JEMAAT';
+      } else {
+        // Check Mupel
+        const { data: mpl } = await supabase.from('m_mupel').select('id_mupel, nama_mupel').eq('id_mupel', id_or_context).maybeSingle();
+        if (mpl) {
+          orgName = `Mupel ${mpl.nama_mupel}`;
+          orgLevel = 'MUPEL';
+        }
+      }
+    }
+  }
+
   const [tanahRes, bangunanRes, bergerakRes] = await Promise.all([
-    supabase.from('t_aset_tanah').select('*').limit(100),
-    supabase.from('t_aset_bangunan').select('*').limit(100),
-    supabase.from('t_aset_bergerak').select('*').limit(100),
+    tanahQuery.limit(100),
+    bangunanQuery.limit(100),
+    bergerakQuery.limit(100),
   ]);
 
   const dbTanah = tanahRes.data || [];
   const dbBangunan = bangunanRes.data || [];
   const dbBergerak = bergerakRes.data || [];
 
-  const tanah = dbTanah.length > 0 ? dbTanah : DEFAULT_TANAH;
-  const bangunan = dbBangunan.length > 0 ? dbBangunan : DEFAULT_BANGUNAN;
-  const bergerak = dbBergerak.length > 0 ? dbBergerak : DEFAULT_BERGERAK;
+  const tanah = dbTanah.length > 0 ? dbTanah : (orgLevel === 'SINODE' ? DEFAULT_TANAH : []);
+  const bangunan = dbBangunan.length > 0 ? dbBangunan : (orgLevel === 'SINODE' ? DEFAULT_BANGUNAN : []);
+  const bergerak = dbBergerak.length > 0 ? dbBergerak : (orgLevel === 'SINODE' ? DEFAULT_BERGERAK : []);
 
   return {
-    orgName: 'Sinode GPIB (Superuser View)',
-    orgLevel: 'SINODE',
+    orgName: `${orgName} (Konteks Aktif)`,
+    orgLevel,
     summary: {
       totalTanah: tanah.length,
       totalBangunan: bangunan.length,
       totalBergerak: bergerak.length,
-      totalLampiran: 3
+      totalLampiran: tanah.length + bangunan.length
     },
     children: [
       { id: 'POS-001', name: 'Pos Pelkes Lahai Roi', stats: { tanah: 1, bangunan: 1, bergerak: 0 } },

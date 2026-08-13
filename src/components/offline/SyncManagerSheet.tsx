@@ -9,7 +9,9 @@ import { useSyncManager } from '@/hooks/use-sync-manager';
 
 const CONTRACT_LABEL: Record<string, string> = {
   'OC-PASTORAL-001': 'Log Pastoral',
+  'OC-ASSET-001': 'Aset',
   'OC-ASET-001': 'Aset',
+  'OC-AID-001': 'Bantuan',
   'OC-BANTUAN-001': 'Bantuan',
 };
 

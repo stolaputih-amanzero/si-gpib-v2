@@ -19,7 +19,7 @@ export function RecentActivity({ logs }: { logs: LogData[] }) {
           <Activity className="w-5 h-5 text-brand-primary" />
           Aktivitas Terbaru
         </CardTitle>
-        <Link href="/dashboard/pastoral" className="text-xs text-brand-primary hover:underline flex items-center font-medium">
+        <Link href="/dashboard/aktivitas" className="text-xs text-brand-primary hover:underline flex items-center font-medium">
           Lihat Semua <ArrowRight className="w-3 h-3 ml-1" />
         </Link>
       </CardHeader>

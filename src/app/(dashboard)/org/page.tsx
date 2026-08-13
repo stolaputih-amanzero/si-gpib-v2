@@ -1,7 +1,6 @@
 'use client';
 
 import { OrgDirectoryHeader } from '@/components/org/OrgDirectoryHeader';
-import { OrgDirectoryTabs } from '@/components/org/OrgDirectoryTabs';
 import { OrgCard } from '@/components/org/OrgCard';
 import { useOrgDirectory } from '@/hooks/use-org-directory';
 import { Building2, AlertTriangle, Search } from 'lucide-react';
@@ -21,20 +20,16 @@ export default function OrgDirectoryPage() {
 
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto min-h-screen">
-      {/* Header & Stats Widget */}
+      {/* Header & Interactive StatCard Filter Widget */}
       <OrgDirectoryHeader
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         stats={stats}
         isLoading={isLoading}
         onRefresh={refetch}
-      />
-
-      {/* Hierarchy Level Tabs */}
-      <OrgDirectoryTabs
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        totalCount={items.length}
+        totalFilteredCount={items.length}
       />
 
       {/* Error State */}

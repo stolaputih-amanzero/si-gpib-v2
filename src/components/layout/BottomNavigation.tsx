@@ -5,66 +5,113 @@ import { usePathname } from 'next/navigation';
 import { Home, Building, Users, Plus, UserCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useContextUIStore } from '@/stores/useContextUIStore';
+import { QuickActionSheet } from '@/components/mobile/QuickActionSheet';
 
 export function BottomNavigation() {
   const pathname = usePathname();
+  const { isQuickActionOpen, setQuickActionOpen } = useContextUIStore();
 
   const navItems = [
     { name: 'Home', href: '/', icon: Home },
-    { name: 'Organisasi', href: '/organisasi', icon: Building },
-    { name: 'SDM', href: '/sdm', icon: Users },
+    { name: 'Organisasi', href: '/org', icon: Building },
+    { name: 'SDM', href: '/people', icon: Users },
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-between px-4 pb-safe bg-background border-t h-16 safe-area-bottom">
-      {/* Left Items */}
-      <div className="flex flex-1 items-center justify-around">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href));
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
+    <>
+      <div className="md:hidden fixed bottom-4 sm:bottom-6 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none pb-safe">
+        <nav className="pointer-events-auto flex items-center bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 border border-border/50 shadow-2xl shadow-black/10 dark:shadow-black/40 rounded-3xl px-2 h-16 w-full max-w-md relative before:absolute before:inset-0 before:rounded-3xl before:bg-gradient-to-b before:from-white/10 before:to-transparent before:pointer-events-none">
+          
+          {/* Left Items */}
+          <div className="flex flex-1 items-center justify-around h-full relative z-10">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href));
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="group relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-all active:scale-95"
+                >
+                  {isActive && (
+                    <span className="absolute inset-0 m-auto w-12 h-12 bg-primary/10 rounded-2xl -z-10 animate-in zoom-in duration-300" />
+                  )}
+                  <item.icon 
+                    className={cn(
+                      "w-5 h-5 transition-all duration-300",
+                      isActive 
+                        ? "text-primary scale-110 drop-shadow-sm" 
+                        : "text-muted-foreground group-hover:text-foreground group-hover:-translate-y-0.5"
+                    )} 
+                  />
+                  <span 
+                    className={cn(
+                      "text-[10px] font-semibold transition-all duration-300",
+                      isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                    )}
+                  >
+                    {item.name}
+                  </span>
+                  {isActive && (
+                    <span className="absolute -bottom-1 w-1 h-1 bg-primary rounded-full animate-pulse" />
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Center FAB (Quick Actions) */}
+          <div className="relative z-20 flex flex-col items-center justify-center shrink-0 px-2 -mt-8 group">
+            <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl scale-150 group-hover:scale-175 transition-transform opacity-0 group-hover:opacity-100 duration-500" />
+            <Button 
+              size="icon" 
+              className="relative w-14 h-14 rounded-full shadow-xl shadow-primary/30 hover:shadow-primary/50 bg-gradient-to-tr from-primary to-primary/80 hover:scale-105 active:scale-95 transition-all duration-300 overflow-hidden"
+              onClick={() => setQuickActionOpen(true)}
+            >
+              <Plus className="w-6 h-6 text-primary-foreground group-hover:rotate-90 transition-transform duration-500" />
+              <span className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+              <span className="sr-only">Quick Actions</span>
+            </Button>
+          </div>
+
+        {/* Right Items */}
+        <div className="flex flex-1 items-center justify-around h-full relative z-10">
+          <Link
+            href="/settings"
+            className="group relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-all active:scale-95"
+          >
+            {pathname?.startsWith('/settings') && (
+              <span className="absolute inset-0 m-auto w-12 h-12 bg-primary/10 rounded-2xl -z-10 animate-in zoom-in duration-300" />
+            )}
+            <UserCircle 
               className={cn(
-                'flex flex-col items-center justify-center w-full h-full space-y-1',
-                isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                "w-5 h-5 transition-all duration-300",
+                pathname?.startsWith('/settings') 
+                  ? "text-primary scale-110 drop-shadow-sm" 
+                  : "text-muted-foreground group-hover:text-foreground group-hover:-translate-y-0.5"
+              )} 
+            />
+            <span 
+              className={cn(
+                "text-[10px] font-semibold transition-all duration-300",
+                pathname?.startsWith('/settings') ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
               )}
             >
-              <item.icon className="w-5 h-5" />
-              <span className="text-[10px] font-medium">{item.name}</span>
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* Center FAB (Quick Actions) */}
-      <div className="flex flex-col items-center justify-center shrink-0 px-2 -mt-6">
-        <Button 
-          size="icon" 
-          className="w-14 h-14 rounded-full shadow-lg hover:shadow-xl transition-shadow"
-          onClick={() => {
-            // TODO: Open Quick Actions Sheet/Menu
-            console.log('Open Quick Actions');
-          }}
-        >
-          <Plus className="w-7 h-7" />
-          <span className="sr-only">Quick Actions</span>
-        </Button>
-      </div>
-
-      {/* Right Items */}
-      <div className="flex flex-1 items-center justify-around">
-        <Link
-          href="/akun"
-          className={cn(
-            'flex flex-col items-center justify-center w-full h-full space-y-1',
-            pathname?.startsWith('/akun') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-          )}
-        >
-          <UserCircle className="w-5 h-5" />
-          <span className="text-[10px] font-medium">Akun</span>
-        </Link>
-      </div>
+              Akun
+            </span>
+            {pathname?.startsWith('/settings') && (
+              <span className="absolute -bottom-1 w-1 h-1 bg-primary rounded-full animate-pulse" />
+            )}
+          </Link>
+        </div>
+        
+      </nav>
     </div>
+
+    <QuickActionSheet 
+      isOpen={isQuickActionOpen} 
+      onClose={() => setQuickActionOpen(false)} 
+    />
+  </>
   );
 }

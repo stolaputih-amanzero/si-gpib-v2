@@ -131,7 +131,7 @@ export function StatCards({
     },
     {
       key: 'jemaat',
-      label: 'Jemaat Induk',
+      label: 'Jemaat',
       value: formatNumber(jemaatCount || 0),
       href: ROUTE_MAP.jemaat,
       iconKey: 'jemaat',

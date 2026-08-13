@@ -51,7 +51,7 @@ export function OrgCard({ item, isLast = false }: OrgCardProps) {
       {item.parentName && (
         <span className="inline-flex items-center gap-1">
           <Building2 size={12} className="text-text-muted/70" />
-          <span>Induk: <strong className="text-text-high">{item.parentName}</strong></span>
+          <span>Jemaat: <strong className="text-text-high">{item.parentName}</strong></span>
         </span>
       )}
       {item.leaderName && (

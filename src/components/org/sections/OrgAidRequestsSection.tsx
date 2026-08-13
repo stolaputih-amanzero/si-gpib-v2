@@ -30,7 +30,7 @@ export const OrgAidRequestsSection: React.FC<OrgAidRequestsSectionProps> = ({ ai
           Pengajuan Bantuan Context
         </h2>
         <Link
-          href="/dashboard/aid-requests"
+          href="/aid-requests"
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-surface-sunken hover:bg-surface-sunken/80 text-brand-primary border border-border-subtle transition-colors min-h-[44px]"
           aria-label="Buka Antrean Persetujuan Bantuan"
         >

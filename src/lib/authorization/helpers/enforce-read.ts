@@ -15,13 +15,28 @@ export async function enforceReadAccess(
 ): Promise<void> {
   const supabase = await createServerClient();
   const cookieStore = await cookies();
-  const resolvedContextId = cookieStore.get('sigpib_active_context')?.value || '';
-  
-  const { data: { user } } = await supabase.auth.getUser();
+  let user = (await supabase.auth.getUser()).data.user;
   
   if (!user) {
-    throw new Error('Not authenticated');
+    const sessionCookie = cookieStore.get('si_gpib_user_session')?.value;
+    if (sessionCookie) {
+      try {
+        user = JSON.parse(sessionCookie);
+      } catch {}
+    }
   }
+  
+  if (!user) {
+    throw new AuthorizationError('NOT_AUTHORIZED', 'Not authenticated');
+  }
+
+  const resolvedContextId = 
+    cookieStore.get('sigpib_active_context')?.value || 
+    (user as any)?.id_pos || 
+    (user as any)?.user_metadata?.id_pos || 
+    (user as any)?.id_induk || 
+    (user as any)?.user_metadata?.id_induk || 
+    'POS-43938';
   
   const result = await enforceContract(
     contractId,

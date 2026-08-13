@@ -7,7 +7,7 @@ export function isBajemPos(pos: { kategori?: string | null; nama_pos?: string | 
   if (!pos) return false;
   const kat = (pos.kategori || '').trim().toUpperCase();
   const nama = (pos.nama_pos || '').trim().toLowerCase();
-  return kat === 'BAJEM' || kat === 'BAKAL JEMAAT' || nama.startsWith('bajem') || nama.includes('bakal jemaat');
+  return kat === 'BAJEM' || kat === 'BAKAL JEMAAT' || kat.includes('BAJEM') || kat.includes('BAKAL') || nama.startsWith('bajem') || nama.includes('bajem') || nama.includes('bakal jemaat');
 }
 
 export interface MupelItem {
@@ -97,7 +97,7 @@ export function useMupelList(search?: string) {
       const [mupelRes, jemaatRes, posRes] = await Promise.all([
         supabase.from('m_mupel').select('*').order('nama_mupel', { ascending: true }),
         supabase.from('m_jemaat_induk').select('id_mupel, id_induk, nama_induk'),
-        supabase.from('m_pos_pelkes').select('id_pos, id_induk, nama_pos'),
+        supabase.from('m_pos_pelkes').select('id_pos, id_induk, nama_pos, kategori'),
       ]);
 
       if (mupelRes.error) throw mupelRes.error;
@@ -227,27 +227,31 @@ export function useJemaatByMupel(id_mupel?: string, search?: string) {
     queryFn: async () => {
       let query = supabase
         .from('m_jemaat_induk')
-        .select('*, kmj:m_pendeta!id_kmj(id_pendeta, nama_lengkap, no_wa), mupel:m_mupel(nama_mupel)')
+        .select('*')
         .order('nama_induk', { ascending: true });
 
       if (id_mupel && id_mupel !== 'all') {
         query = query.eq('id_mupel', id_mupel);
       }
 
-      const { data: jemaatData, error } = await query;
-      if (error) throw error;
-
-      const [pendetaRes, posRes, pjRes] = await Promise.all([
+      const [jemaatRes, mupelRes, pendetaRes, posRes, pjRes] = await Promise.all([
+        query,
+        supabase.from('m_mupel').select('id_mupel, nama_mupel'),
         supabase.from('m_pendeta').select('id_pendeta, id_induk, nama_lengkap, no_wa, is_kmj, is_pj, jabatan'),
-        supabase.from('m_pos_pelkes').select('id_pos, id_induk, nama_pos'),
+        supabase.from('m_pos_pelkes').select('id_pos, id_induk, nama_pos, kategori'),
         supabase.from('t_pj_jemaat').select('id_induk, id_pendeta').is('tanggal_selesai', null)
       ]);
 
+      const jemaatData = jemaatRes.data || [];
+      const mupelList = mupelRes.data || [];
       const allPendeta = pendetaRes.data || [];
       const allPos = posRes.data || [];
       const allPjAssignments = pjRes.data || [];
 
-      const result: JemaatIndukItem[] = (jemaatData || []).map((j: any) => {
+      const mMap = new Map(mupelList.map((m: any) => [m.id_mupel, m.nama_mupel]));
+
+      const result: JemaatIndukItem[] = jemaatData.map((j: any) => {
+        const mupelName = mMap.get(j.id_mupel) || null;
         // 1. Synchronized KMJ Resolution (FK id_kmj -> is_kmj flag -> Jabatan -> First assigned pendeta)
         let resolvedKmj = j.kmj
           ? { id_pendeta: j.kmj.id_pendeta, nama_lengkap: cleanQuotes(j.kmj.nama_lengkap), no_wa: j.kmj.no_wa }
@@ -282,6 +286,7 @@ export function useJemaatByMupel(id_mupel?: string, search?: string) {
           ...j,
           nama_induk: cleanQuotes(j.nama_induk),
           keterangan: cleanQuotes(j.keterangan),
+          mupel: mupelName ? { nama_mupel: mupelName } : null,
           kmj: resolvedKmj,
           pos_count: pCount,
           bajem_count: bCount,
@@ -390,7 +395,7 @@ export function usePosByJemaat(id_induk?: string, search?: string) {
     queryFn: async () => {
       let query = supabase
         .from('m_pos_pelkes')
-        .select('id_pos, id_induk, nama_pos, alamat, latitude, longitude, tgl_berdiri, keterangan')
+        .select('id_pos, id_induk, nama_pos, kategori, alamat, latitude, longitude, tgl_berdiri, keterangan')
         .order('nama_pos', { ascending: true });
 
       if (id_induk && id_induk !== 'all') {

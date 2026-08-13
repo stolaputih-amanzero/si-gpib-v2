@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { User, Search, ChevronRight } from 'lucide-react';
 
+export const instant = false;
+
 export const metadata = {
   title: 'Direktori SDM | SI GPIB',
 };
@@ -25,6 +27,7 @@ export default async function PeopleDirectoryPage({
   const selectedType = resolvedParams.type || 'all';
 
   // 1. Build Query for Downward Reach
+  const activeContextId = context.context_id;
   let query = supabase
     .from('m_pendeta')
     .select(`
@@ -33,8 +36,28 @@ export default async function PeopleDirectoryPage({
       nama_lengkap,
       status,
       foto_url,
+      id_induk,
       m_jemaat_induk!m_pendeta_id_induk_fkey(id_mupel, nama_induk)
     `);
+
+  // Context-based filtering
+  if (activeContextId && !activeContextId.startsWith('SINODE')) {
+    if (activeContextId.startsWith('M -') || activeContextId.startsWith('MPL-') || activeContextId.startsWith('M-')) {
+      const { data: jmts } = await supabase.from('m_jemaat_induk').select('id_induk, id_mupel');
+      const normActive = activeContextId.replace(/[\s\-_]+/g, '').toUpperCase();
+      const jmtIds = jmts?.filter(j => (j.id_mupel || '').replace(/[\s\-_]+/g, '').toUpperCase() === normActive).map(j => j.id_induk) || [];
+      if (jmtIds.length > 0) {
+        query = query.in('id_induk', jmtIds);
+      }
+    } else if (activeContextId.startsWith('ORG-') || activeContextId.startsWith('JMT-')) {
+      query = query.eq('id_induk', activeContextId);
+    } else if (activeContextId.startsWith('POS-')) {
+      const { data: posObj } = await supabase.from('m_pos_pelkes').select('id_induk').eq('id_pos', activeContextId).maybeSingle();
+      if (posObj?.id_induk) {
+        query = query.eq('id_induk', posObj.id_induk);
+      }
+    }
+  }
 
   if (searchQuery) {
     query = query.ilike('nama_lengkap', `%${searchQuery}%`);

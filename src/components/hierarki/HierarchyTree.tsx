@@ -36,12 +36,12 @@ export function HierarchyTree({ mupelList, searchQuery }: HierarchyTreeProps) {
               subtitle={mupel.keterangan || mupel.id_mupel}
               meta={
                 <span className="flex items-center gap-2 flex-wrap text-xs font-bold">
-                  <span className="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-400" title="Jemaat Induk">
+                  <span className="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-400" title="Jemaat">
                     <Church size={13} />
                     <span>{mupel.jemaat_count ?? 0}</span>
                   </span>
                   <span className="text-text-muted/40">•</span>
-                  <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400" title="Bakal Jemaat (Bajem)">
+                  <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400" title="Bajem">
                     <Church size={13} />
                     <span>{mupel.bajem_count ?? 0}</span>
                   </span>

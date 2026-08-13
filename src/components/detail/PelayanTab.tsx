@@ -117,7 +117,7 @@ export function PelayanTab({ id_pos, pj, pelayan: initialPelayan, relawan: initi
                     {p.status || 'Aktif'}
                   </span>
                 }
-                href="/sdm/pelayan"
+                href="/people"
               />
             ))}
           </div>
@@ -147,7 +147,7 @@ export function PelayanTab({ id_pos, pj, pelayan: initialPelayan, relawan: initi
                     Relawan
                   </span>
                 }
-                href="/sdm/relawan"
+                href="/people"
               />
             ))}
           </div>

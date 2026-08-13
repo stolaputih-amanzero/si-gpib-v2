@@ -18,18 +18,20 @@ export function getStatRoutes(scope?: StatRouteScopeParams) {
     ? `/org/${encodeURIComponent(mupelId)}`
     : '/org?tab=mupel';
 
-  // 2. Jemaat Induk: Go directly to Jemaat tab in /org
+  // 2. Jemaat Induk: Go directly to Jemaat tab in /org (or scoped to Mupel)
   const jemaatHref = indukId
     ? `/org/${encodeURIComponent(indukId)}`
-    : '/org?tab=jemaat';
+    : (mupelId ? `/org?tab=jemaat&mupel=${encodeURIComponent(mupelId)}` : '/org?tab=jemaat');
 
   // 3. Bajem: Filter strictly by Bajem in /org
-  const bajemHref = '/org?tab=pos';
+  const bajemHref = mupelId
+    ? `/org?tab=bajem&mupel=${encodeURIComponent(mupelId)}`
+    : (indukId ? `/org?tab=bajem&jemaat=${encodeURIComponent(indukId)}` : '/org?tab=bajem');
 
-  // 4. Pos Pelkes: Go directly to Pos detail in /org
+  // 4. Pos Pelkes: Go directly to Pos detail or scoped tab in /org
   const posHref = posId
     ? `/org/${encodeURIComponent(posId)}`
-    : '/org?tab=pos';
+    : (mupelId ? `/org?tab=pos&mupel=${encodeURIComponent(mupelId)}` : (indukId ? `/org?tab=pos&jemaat=${encodeURIComponent(indukId)}` : '/org?tab=pos'));
 
   // 5. Total Jiwa: Analytics dashboard
   const jiwaHref = '/analytics';
