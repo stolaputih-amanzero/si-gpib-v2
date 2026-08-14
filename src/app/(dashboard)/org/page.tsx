@@ -19,18 +19,19 @@ export default function OrgDirectoryPage() {
   } = useOrgDirectory();
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto min-h-screen">
-      {/* Header & Interactive StatCard Filter Widget */}
-      <OrgDirectoryHeader
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        stats={stats}
-        isLoading={isLoading}
-        onRefresh={refetch}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        totalFilteredCount={items.length}
-      />
+    <div className="w-full min-h-screen bg-surface-base pb-28 pt-1 sm:pt-3">
+      <main className="max-w-6xl mx-auto px-3.5 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
+        {/* Header & Interactive StatCard Filter Widget */}
+        <OrgDirectoryHeader
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          stats={stats}
+          isLoading={isLoading}
+          onRefresh={refetch}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          totalFilteredCount={items.length}
+        />
 
       {/* Error State */}
       {isError && (
@@ -109,14 +110,15 @@ export default function OrgDirectoryPage() {
         </div>
       )}
 
-      {/* Directory Semantic Row List */}
-      {!isLoading && !isError && items.length > 0 && (
-        <div className="bg-surface-1 border border-border-subtle rounded-card overflow-hidden divide-y divide-border-subtle shadow-2xs">
-          {items.map((item, idx) => (
-            <OrgCard key={`${item.type}-${item.id}`} item={item} isLast={idx === items.length - 1} />
-          ))}
-        </div>
-      )}
+        {/* Directory Semantic Row List */}
+        {!isLoading && !isError && items.length > 0 && (
+          <div className="bg-surface-1 border border-stone-200/80 dark:border-stone-800 rounded-2xl overflow-hidden divide-y divide-stone-200/70 dark:divide-stone-800/80 shadow-xs">
+            {items.map((item, idx) => (
+              <OrgCard key={`${item.type}-${item.id}`} item={item} isLast={idx === items.length - 1} />
+            ))}
+          </div>
+        )}
+      </main>
     </div>
   );
 }

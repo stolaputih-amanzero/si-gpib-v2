@@ -7,14 +7,10 @@ import {
   CalendarCheck,
   Sprout,
   Layers,
-  ChevronRight,
-  TrendingUp,
-  TrendingDown
 } from 'lucide-react';
 import { haptic } from '@/lib/haptic/vibrate';
 import { cn, formatNumber } from '@/lib/utils';
 import { useReveal } from '@/hooks/useReveal';
-
 import { getStatRoutes } from '@/lib/utils/stat-routes';
 
 export interface StatCardData {
@@ -31,7 +27,6 @@ export interface StatCardData {
 }
 
 export interface StatCardsProps {
-  // Named props (Legacy & Direct compatibility)
   mupelCount?: number;
   jemaatCount?: number;
   bajemCount?: number;
@@ -45,12 +40,10 @@ export interface StatCardsProps {
     iconBg?: string;
     href?: string;
   };
-  // Custom array props
   stats?: StatCardData[];
   className?: string;
 }
 
-// Mapping ikon berdasarkan tipe/key
 const ICON_MAP: Record<string, any> = {
   mupel: Layers,
   jemaat: Church,
@@ -60,10 +53,8 @@ const ICON_MAP: Record<string, any> = {
   giat: CalendarCheck,
 };
 
-// Mapping rute navigasi terpusat berdasarkan tipe kartu
 const ROUTE_MAP: Record<string, string> = getStatRoutes();
 
-// Label aria untuk aksesibilitas
 const ARIA_LABEL_MAP: Record<string, string> = {
   mupel: 'Lihat struktur 25 Mupel Sinode GPIB',
   jemaat: 'Lihat rincian 350 Jemaat Induk Mandiri',
@@ -86,7 +77,6 @@ export function StatCards({
 }: StatCardsProps) {
   const revealRef = useReveal<HTMLDivElement>();
 
-  // Construct items using hybrid props pattern (backward compatible)
   const items = customStats || [
     {
       key: 'mupel',
@@ -125,7 +115,7 @@ export function StatCards({
     },
     {
       key: 'giat',
-      label: sixthStat?.title || 'Giat Bulan Ini',
+      label: sixthStat?.title || 'Giat Pastoral',
       value: typeof sixthStat?.value === 'number' ? formatNumber(sixthStat.value) : (sixthStat?.value || formatNumber(logCount)),
       href: sixthStat?.href || ROUTE_MAP.giat,
       iconKey: 'giat',
@@ -136,124 +126,48 @@ export function StatCards({
     <div
       ref={revealRef}
       className={cn(
-        'reveal-stagger grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4',
+        'w-full py-2 border-y border-stone-200/80 dark:border-stone-800/80',
         className
       )}
     >
-      {items.map((stat: any, idx: number) => {
-        const key = stat.iconKey || stat.icon || stat.key || 'mupel';
-        const IconComponent = typeof stat.icon === 'function' ? stat.icon : (ICON_MAP[key] || Layers);
-        const targetHref = stat.href || ROUTE_MAP[key] || '/hierarki';
-        const ariaLabel = ARIA_LABEL_MAP[key] || `Lihat rincian ${stat.label || stat.title}`;
+      <div className="grid grid-cols-3 sm:grid-cols-6 divide-x divide-stone-200/60 dark:divide-stone-800/60">
+        {items.map((stat: any, idx: number) => {
+          const key = stat.iconKey || stat.icon || stat.key || 'mupel';
+          const IconComponent = typeof stat.icon === 'function' ? stat.icon : (ICON_MAP[key] || Layers);
+          const targetHref = stat.href || ROUTE_MAP[key] || '/hierarki';
+          const ariaLabel = ARIA_LABEL_MAP[key] || `Lihat rincian ${stat.label || stat.title}`;
 
-        const handleClick = () => {
-          haptic('light');
-        };
+          const handleClick = () => {
+            haptic('light');
+          };
 
-        return (
-          <Link
-            key={idx}
-            href={targetHref}
-            onClick={handleClick}
-            className={cn(
-              'group relative',
-              'bg-surface-1',
-              'rounded-2xl sm:rounded-3xl p-4 sm:p-5',
-              'border border-stone-200/80 dark:border-stone-800',
-              'hover:border-amber-500/35 dark:hover:border-amber-500/40',
-              'hover:shadow-md hover:shadow-amber-600/5 dark:hover:shadow-black/30',
-              'active:scale-[0.98]',
-              'focus:outline-none focus:ring-2 focus:ring-offset-2',
-              'focus:ring-amber-500/50',
-              'transition-all duration-200',
-              'cursor-pointer flex flex-col justify-between',
-              'min-h-[110px] sm:min-h-[130px]',
-              'overflow-hidden'
-            )}
-            aria-label={ariaLabel}
-          >
-            {/* Header: Micro-Label & Icon */}
-            <div className="relative z-10 flex items-center justify-between mb-2 sm:mb-3">
-              <p
-                className={cn(
-                  'micro-label text-ink-tertiary',
-                  'group-hover:text-amber-800 dark:group-hover:text-amber-300',
-                  'transition-colors duration-200',
-                  'truncate'
-                )}
-              >
-                {stat.label || stat.title}
-              </p>
-              <div className="flex items-center gap-1">
-                <span
-                  className={cn(
-                    'grid h-8 w-8 sm:h-9 sm:w-9 shrink-0 place-items-center rounded-xl transition-all duration-200',
-                    'bg-amber-500/10 text-amber-700 dark:text-amber-400 group-hover:bg-amber-500 group-hover:text-white'
-                  )}
-                >
-                  <IconComponent className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
+          return (
+            <Link
+              key={idx}
+              href={targetHref}
+              onClick={handleClick}
+              className="group flex flex-col justify-between p-2.5 sm:p-3.5 hover:bg-amber-500/5 dark:hover:bg-amber-500/10 transition-all rounded-xl focus:outline-none"
+              aria-label={ariaLabel}
+            >
+              {/* Header Label */}
+              <div className="flex items-center justify-between gap-1 mb-1">
+                <span className="micro-label text-ink-tertiary group-hover:text-amber-800 dark:group-hover:text-amber-300 transition-colors truncate">
+                  {stat.label || stat.title}
                 </span>
-                <ChevronRight
-                  className={cn(
-                    'w-3.5 h-3.5 transition-all duration-200',
-                    'text-ink-tertiary/40 dark:text-stone-600',
-                    'group-hover:text-amber-600 dark:group-hover:text-amber-400',
-                    'group-hover:translate-x-0.5',
-                    'opacity-0 group-hover:opacity-100 hidden sm:block'
-                  )}
-                  aria-hidden="true"
-                />
+                <span className="size-1.5 rounded-full bg-amber-500/40 group-hover:bg-amber-500 shrink-0 transition-colors" />
               </div>
-            </div>
 
-            {/* Content: Value with Fraunces / Font Display */}
-            <div className="relative z-10">
-              <div className="flex items-baseline gap-1.5 sm:gap-2">
-                <p
-                  className={cn(
-                    'font-editorial tnum text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight',
-                    'text-ink-primary group-hover:text-amber-800 dark:group-hover:text-amber-300',
-                    'transition-colors duration-200'
-                  )}
-                >
+              {/* Metric Value */}
+              <div className="flex items-baseline justify-between gap-1 mt-0.5">
+                <span className="font-editorial tnum text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-ink-primary group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
                   {stat.value}
-                </p>
-                {stat.trend && (
-                  <span
-                    className={cn(
-                      'flex items-center gap-0.5 text-xs font-semibold',
-                      'transition-colors duration-200',
-                      stat.trend.direction === 'up'
-                        ? 'text-emerald-600 dark:text-emerald-400'
-                        : 'text-rose-600 dark:text-rose-400'
-                    )}
-                  >
-                    {stat.trend.direction === 'up' ? (
-                      <TrendingUp className="w-3 h-3" />
-                    ) : (
-                      <TrendingDown className="w-3 h-3" />
-                    )}
-                    {Math.abs(stat.trend.value)}%
-                  </span>
-                )}
+                </span>
+                <IconComponent className="size-3.5 sm:size-4 text-ink-tertiary/60 group-hover:text-amber-600 shrink-0 transition-colors" />
               </div>
-
-              {/* Subtitle (optional) */}
-              {stat.subtitle && (
-                <p
-                  className={cn(
-                    'text-[11px] mt-0.5',
-                    'text-ink-secondary',
-                    'line-clamp-1'
-                  )}
-                >
-                  {stat.subtitle}
-                </p>
-              )}
-            </div>
-          </Link>
-        );
-      })}
+            </Link>
+          );
+        })}
+      </div>
     </div>
   );
 }

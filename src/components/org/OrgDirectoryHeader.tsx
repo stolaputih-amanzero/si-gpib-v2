@@ -3,6 +3,7 @@
 import { Search, Building2, Church, MapPin, RefreshCw, Layers } from 'lucide-react';
 import { HierarchyStatsData } from '@/hooks/use-hierarki';
 import { OrgLevelFilter } from '@/hooks/use-org-directory';
+import { StatusPill } from '@/components/ui/StatusPill';
 import { cn } from '@/lib/utils';
 
 interface OrgDirectoryHeaderProps {
@@ -34,7 +35,6 @@ export function OrgDirectoryHeader({
       icon: Layers,
       iconColor: 'text-slate-600 dark:text-slate-300',
       iconBg: 'bg-slate-500/10',
-      activeRing: 'ring-2 ring-slate-700 dark:ring-slate-300 border-slate-700 dark:border-slate-300 bg-slate-50 dark:bg-slate-900/60 shadow-md',
     },
     {
       id: 'mupel' as OrgLevelFilter,
@@ -43,16 +43,14 @@ export function OrgDirectoryHeader({
       icon: Church,
       iconColor: 'text-purple-600 dark:text-purple-400',
       iconBg: 'bg-purple-500/10',
-      activeRing: 'ring-2 ring-purple-600 dark:ring-purple-400 border-purple-500 bg-purple-500/10 shadow-md',
     },
     {
       id: 'jemaat' as OrgLevelFilter,
       label: 'Jemaat',
       value: stats?.total_jemaat ?? 0,
       icon: Building2,
-      iconColor: 'text-brand-primary',
-      iconBg: 'bg-brand-primary/10',
-      activeRing: 'ring-2 ring-brand-primary border-brand-primary bg-brand-primary/10 shadow-md',
+      iconColor: 'text-blue-600 dark:text-blue-400',
+      iconBg: 'bg-blue-500/10',
     },
     {
       id: 'bajem' as OrgLevelFilter,
@@ -61,7 +59,6 @@ export function OrgDirectoryHeader({
       icon: Building2,
       iconColor: 'text-amber-600 dark:text-amber-400',
       iconBg: 'bg-amber-500/10',
-      activeRing: 'ring-2 ring-amber-500 border-amber-500 bg-amber-500/10 shadow-md',
     },
     {
       id: 'pos' as OrgLevelFilter,
@@ -70,44 +67,49 @@ export function OrgDirectoryHeader({
       icon: MapPin,
       iconColor: 'text-emerald-600 dark:text-emerald-400',
       iconBg: 'bg-emerald-500/10',
-      activeRing: 'ring-2 ring-emerald-500 border-emerald-500 bg-emerald-500/10 shadow-md',
     },
   ];
 
   return (
-    <div className="space-y-4">
-      {/* Header Title & Refetch Button */}
-      <div className="flex items-center justify-between gap-3">
-        <div>
+    <div className="space-y-4 sm:space-y-5">
+      {/* Open Canvas Hero Title & Status */}
+      <div className="pt-2 sm:pt-4 space-y-3">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-serif font-black text-brand-primary tracking-tight">
-              Direktori Organisasi GPIB
-            </h1>
-            <span className="px-2 py-0.5 text-[10px] font-black uppercase rounded-full bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
+            <StatusPill variant="gold" dot={true}>
+              Sinode GPIB
+            </StatusPill>
+            <StatusPill variant="blue" dot={false}>
               F15 Workspace
-            </span>
+            </StatusPill>
           </div>
-          <p className="text-xs text-text-muted mt-0.5">
-            Pusat pencarian & hierarki struktural Sinode, Mupel, Jemaat, Bajem, dan Pos Pelkes
-          </p>
+
+          {onRefresh && (
+            <button
+              type="button"
+              onClick={onRefresh}
+              disabled={isLoading}
+              className="p-2 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-surface-1 hover:bg-stone-100 dark:hover:bg-stone-800 text-ink-secondary hover:text-ink-primary active:scale-95 transition-all min-h-[38px] min-w-[38px] flex items-center justify-center shrink-0 disabled:opacity-50 cursor-pointer"
+              title="Perbarui Data Direktori"
+              aria-label="Perbarui Data Direktori"
+            >
+              <RefreshCw size={15} className={cn('text-amber-600 dark:text-amber-400', isLoading ? 'animate-spin' : '')} />
+            </button>
+          )}
         </div>
 
-        {onRefresh && (
-          <button
-            type="button"
-            onClick={onRefresh}
-            disabled={isLoading}
-            className="p-2 rounded-xl border border-border-subtle bg-surface-elevated hover:bg-surface-sunken text-text-muted hover:text-text-high active:scale-95 transition-all min-h-[40px] min-w-[40px] flex items-center justify-center shrink-0 disabled:opacity-50"
-            title="Perbarui Data Direktori"
-            aria-label="Perbarui Data Direktori"
-          >
-            <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
-          </button>
-        )}
+        <div className="space-y-1 pt-1">
+          <h1 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-bold text-ink-primary tracking-tight leading-[1.15]">
+            Direktori <span className="font-editorial-italic font-normal text-amber-700 dark:text-amber-400">Organisasi.</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-ink-secondary max-w-2xl leading-relaxed">
+            Pusat pencarian &amp; hierarki struktural Sinode, 25 Mupel, Jemaat Induk, Bakal Jemaat, dan Pos Pelkes.
+          </p>
+        </div>
       </div>
 
-      {/* Interactive StatCards that double as Filter Tabs */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+      {/* Streamlined Filter Metric Strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
         {filterCards.map((card) => {
           const isActive = activeTab === card.id;
           const Icon = card.icon;
@@ -118,32 +120,32 @@ export function OrgDirectoryHeader({
               type="button"
               onClick={() => onTabChange(isActive && card.id !== 'all' ? 'all' : card.id)}
               className={cn(
-                'group relative p-3 rounded-2xl border text-left transition-all duration-200 cursor-pointer flex items-center gap-3 select-none active:scale-[0.98]',
+                'group relative p-3 rounded-2xl border text-left transition-all duration-200 cursor-pointer flex items-center gap-2.5 select-none active:scale-[0.98]',
                 isActive
-                  ? card.activeRing
-                  : 'bg-surface-elevated border-border-subtle hover:border-brand-primary/40 hover:bg-surface-sunken shadow-xs'
+                  ? 'bg-amber-500/10 border-amber-500/50 shadow-xs'
+                  : 'bg-surface-1 border-stone-200/70 dark:border-stone-800 hover:border-amber-500/35 hover:bg-stone-50 dark:hover:bg-stone-800/60'
               )}
             >
               <div
                 className={cn(
-                  'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105',
+                  'size-8.5 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105',
                   card.iconBg,
                   card.iconColor
                 )}
               >
-                <Icon size={20} />
+                <Icon size={16} />
               </div>
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-1">
-                  <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider truncate">
+                  <span className="micro-label text-ink-tertiary truncate">
                     {card.label}
-                  </p>
+                  </span>
                   {isActive && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-brand-primary shrink-0" />
+                    <span className="size-1.5 rounded-full bg-amber-600 dark:text-amber-400 shrink-0" />
                   )}
                 </div>
-                <p className="text-base font-black text-text-high leading-tight mt-0.5">
+                <p className="font-editorial tnum text-base sm:text-lg font-bold text-ink-primary leading-tight mt-0.5">
                   {isLoading ? '...' : card.value.toLocaleString('id-ID')}
                 </p>
               </div>
@@ -154,30 +156,29 @@ export function OrgDirectoryHeader({
 
       {/* Search Input Bar with live filter counter */}
       <div className="relative flex items-center">
-        <Search className="absolute left-3.5 w-4 h-4 text-text-muted pointer-events-none" />
+        <Search className="absolute left-3.5 size-4 text-ink-tertiary pointer-events-none" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Cari nama organisasi, Mupel, KMJ, PJ, atau ID..."
-          className="w-full pl-10 pr-28 py-3 text-sm rounded-2xl bg-surface-elevated border border-border-subtle text-text-high placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-primary/30 shadow-xs transition-all"
+          placeholder="Cari nama unit, Mupel, KMJ, PJ, atau kode ID..."
+          className="w-full pl-10 pr-28 py-2.5 sm:py-3 text-xs sm:text-sm rounded-2xl bg-surface-1 border border-stone-200/80 dark:border-stone-800 text-ink-primary placeholder:text-ink-tertiary focus:outline-none focus:ring-2 focus:ring-amber-500/30 shadow-xs transition-all"
         />
         <div className="absolute right-3 flex items-center gap-2">
           {searchQuery && (
             <button
               type="button"
               onClick={() => onSearchChange('')}
-              className="text-xs text-text-muted hover:text-text-high px-2 py-1 rounded-lg bg-surface-sunken"
+              className="text-xs text-amber-700 dark:text-amber-400 hover:underline px-2 py-0.5 rounded-lg bg-amber-500/10 cursor-pointer"
             >
-              Clear
+              Reset
             </button>
           )}
-          <span className="text-[11px] font-bold text-text-muted hidden sm:inline px-2 py-0.5 rounded-md bg-surface-sunken border border-border-subtle">
-            {totalFilteredCount} Tampil
+          <span className="text-[11px] font-bold text-ink-tertiary hidden sm:inline px-2 py-0.5 rounded-md bg-stone-100 dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700">
+            {totalFilteredCount} Unit
           </span>
         </div>
       </div>
     </div>
   );
 }
-
