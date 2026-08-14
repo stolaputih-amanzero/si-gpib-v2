@@ -42,38 +42,38 @@ export function AnalyticsFilter({
         variant="outline"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative bg-white"
+        className="relative bg-surface-1 border-border-subtle text-text-high hover:bg-surface-sunken"
       >
         <Filter className="w-4 h-4 mr-2" />
         Filter Analytics
         {activeCount > 0 && (
-          <span className="ml-2 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+          <span className="ml-2 bg-brand-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
             {activeCount}
           </span>
         )}
       </Button>
 
       {isOpen && (
-        <div className="absolute right-0 top-12 z-50 w-72 bg-white rounded-2xl border border-gray-200 shadow-xl p-4 space-y-4">
-          <div className="flex items-center justify-between border-b pb-2">
-            <h4 className="font-semibold text-sm">Filter Wilayah & Jemaat</h4>
-            <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-gray-600">
+        <div className="absolute right-0 top-12 z-50 w-72 bg-surface-elevated rounded-2xl border border-border-subtle shadow-xl p-4 space-y-4">
+          <div className="flex items-center justify-between border-b border-border-subtle pb-2">
+            <h4 className="font-semibold text-sm text-text-high">Filter Wilayah & Jemaat</h4>
+            <button onClick={() => setIsOpen(false)} className="text-text-muted hover:text-text-high">
               <X className="w-4 h-4" />
             </button>
           </div>
 
           <div>
-            <label className="text-xs font-medium text-gray-600 block mb-1">Mupel</label>
+            <label className="text-xs font-medium text-text-muted block mb-1">Mupel</label>
             <Select
               value={localFilter.idMupel || 'all'}
               onValueChange={(val) =>
                 setLocalFilter({ ...localFilter, idMupel: !val || val === 'all' ? undefined : val })
               }
             >
-              <SelectTrigger className="h-10">
+              <SelectTrigger className="h-10 bg-surface-1 border-border-subtle text-text-high">
                 <SelectValue placeholder="Semua Mupel" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-surface-elevated border-border-subtle">
                 <SelectItem value="all">Semua Mupel</SelectItem>
                 {mupelList.map((m) => (
                   <SelectItem key={m.id_mupel} value={m.id_mupel}>
@@ -85,17 +85,17 @@ export function AnalyticsFilter({
           </div>
 
           <div>
-            <label className="text-xs font-medium text-gray-600 block mb-1">Jemaat Induk</label>
+            <label className="text-xs font-medium text-text-muted block mb-1">Jemaat Induk</label>
             <Select
               value={localFilter.idInduk || 'all'}
               onValueChange={(val) =>
                 setLocalFilter({ ...localFilter, idInduk: !val || val === 'all' ? undefined : val })
               }
             >
-              <SelectTrigger className="h-10">
+              <SelectTrigger className="h-10 bg-surface-1 border-border-subtle text-text-high">
                 <SelectValue placeholder="Semua Jemaat" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-surface-elevated border-border-subtle">
                 <SelectItem value="all">Semua Jemaat</SelectItem>
                 {jemaatList.map((j) => (
                   <SelectItem key={j.id_induk} value={j.id_induk}>
@@ -107,10 +107,10 @@ export function AnalyticsFilter({
           </div>
 
           <div className="flex gap-2 pt-2">
-            <Button variant="outline" size="sm" onClick={handleReset} className="flex-1">
+            <Button variant="outline" size="sm" onClick={handleReset} className="flex-1 bg-surface-1 border-border-subtle text-text-high hover:bg-surface-sunken">
               Reset
             </Button>
-            <Button size="sm" onClick={handleApply} className="flex-1">
+            <Button size="sm" onClick={handleApply} className="flex-1 bg-brand-primary text-white">
               Terapkan
             </Button>
           </div>

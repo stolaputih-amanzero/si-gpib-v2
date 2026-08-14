@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { getServerContext } from '@/lib/utils/context';
 import { getHumanReadableRoleLabel } from '@/lib/utils/role-presentation';
 import { 
-  Users, ChevronRight, AlertCircle, FileText, CheckCircle2, HeartHandshake, ArrowUpRight
+  Users, ChevronRight, AlertCircle, FileText, CheckCircle2, HeartHandshake, ArrowUpRight, BarChart3, Map, Building
 } from 'lucide-react';
 
 interface DemografiRow {
@@ -567,7 +567,39 @@ export default async function Dashboard() {
             Aksi Informasi Ringkas
           </h2>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <Link
+              href="/analytics"
+              className="p-4 rounded-xl bg-surface-elevated border border-border-subtle hover:bg-surface-sunken hover:border-indigo-500/40 transition-all flex flex-col justify-between group min-h-[88px] shadow-xs"
+              aria-label="Buka Dashboard Analitik"
+            >
+              <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 w-fit group-hover:scale-105 transition-transform border border-indigo-500/20">
+                <BarChart3 className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-text-high block truncate group-hover:text-indigo-400 transition-colors">
+                  Analitik
+                </span>
+                <span className="text-[11px] text-text-muted block truncate">KPI &amp; Tren data</span>
+              </div>
+            </Link>
+
+            <Link
+              href="/maps"
+              className="p-4 rounded-xl bg-surface-elevated border border-border-subtle hover:bg-surface-sunken hover:border-teal-500/40 transition-all flex flex-col justify-between group min-h-[88px] shadow-xs"
+              aria-label="Buka Peta Sebaran"
+            >
+              <div className="p-2 rounded-lg bg-teal-500/10 text-teal-400 w-fit group-hover:scale-105 transition-transform border border-teal-500/20">
+                <Map className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-text-high block truncate group-hover:text-teal-400 transition-colors">
+                  Peta Sebaran
+                </span>
+                <span className="text-[11px] text-text-muted block truncate">Peta teritori</span>
+              </div>
+            </Link>
+
             <Link
               href="/dashboard/aktivitas"
               className="p-4 rounded-xl bg-surface-elevated border border-border-subtle hover:bg-surface-sunken hover:border-blue-500/40 transition-all flex flex-col justify-between group min-h-[88px] shadow-xs"
@@ -622,7 +654,7 @@ export default async function Dashboard() {
               aria-label="Buka Direktori Organisasi"
             >
               <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400 w-fit group-hover:scale-105 transition-transform border border-purple-500/20">
-                <Users className="w-4 h-4" />
+                <Building className="w-4 h-4" />
               </div>
               <div>
                 <span className="text-xs font-bold text-text-high block truncate group-hover:text-purple-400 transition-colors">

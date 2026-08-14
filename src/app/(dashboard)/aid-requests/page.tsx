@@ -82,15 +82,15 @@ export default function AidReviewQueueProjection() {
   const hasActiveFilters = statusFilter || urgensiFilter || search;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-surface-base pb-24">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-20 px-4 py-3">
+      <header className="bg-surface-elevated border-b border-border-subtle sticky top-0 z-20 px-4 py-3">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h1 className="text-lg font-semibold text-gray-900">
+            <h1 className="text-lg font-semibold text-text-high">
               Aid Review Queue
             </h1>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-text-muted">
               {data?.pagination.total ?? 0} pengajuan
               {isFetching && !isLoading && (
                 <Loader2 className="w-3 h-3 inline-block ml-1 animate-spin" />
@@ -100,7 +100,7 @@ export default function AidReviewQueueProjection() {
           <Button
             variant="ghost"
             size="icon"
-            className="h-11 w-11"
+            className="h-11 w-11 text-text-muted hover:text-text-high"
             onClick={() => setShowFilters(!showFilters)}
             aria-label="Toggle filter"
           >
@@ -110,29 +110,29 @@ export default function AidReviewQueueProjection() {
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
           <Input
             type="search"
             placeholder="Cari jenis bantuan atau deskripsi..."
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
-            className="pl-10 min-h-[44px] text-base"
+            className="pl-10 min-h-[44px] text-base bg-surface-1 border-border-subtle text-text-high"
           />
         </div>
 
         {/* Filter Panel (Collapsible) */}
         {showFilters && (
-          <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-2 gap-2">
+          <div className="mt-3 pt-3 border-t border-border-subtle grid grid-cols-2 gap-2">
             <Select
               value={statusFilter ?? 'all'}
               onValueChange={(v) =>
                 updateFilter('status', (v as string) === 'all' ? undefined : (v as string))
               }
             >
-              <SelectTrigger className="min-h-[40px] text-sm">
+              <SelectTrigger className="min-h-[40px] text-sm bg-surface-1 border-border-subtle text-text-high">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-surface-elevated border-border-subtle">
                 <SelectItem value="all">Semua Status</SelectItem>
                 {STATUS_BANTUAN.map((s) => (
                   <SelectItem key={s} value={s}>
@@ -148,10 +148,10 @@ export default function AidReviewQueueProjection() {
                 updateFilter('urgensi', (v as string) === 'all' ? undefined : (v as string))
               }
             >
-              <SelectTrigger className="min-h-[40px] text-sm">
+              <SelectTrigger className="min-h-[40px] text-sm bg-surface-1 border-border-subtle text-text-high">
                 <SelectValue placeholder="Urgensi" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-surface-elevated border-border-subtle">
                 <SelectItem value="all">Semua Urgensi</SelectItem>
                 {URGENSI_LEVEL.map((u) => (
                   <SelectItem key={u} value={u}>
@@ -165,7 +165,7 @@ export default function AidReviewQueueProjection() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="col-span-2 text-xs text-gray-500"
+                className="col-span-2 text-xs text-text-muted hover:text-text-high"
                 onClick={() => router.push('/bantuan')}
               >
                 Reset semua filter

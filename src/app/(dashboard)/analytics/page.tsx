@@ -26,13 +26,13 @@ export default function AnalyticsDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50 pb-24">
+    <div className="min-h-screen bg-surface-base pb-24">
       {/* Sticky Header */}
-      <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-gray-200 z-20 px-4 py-3 shadow-sm">
+      <div className="sticky top-0 bg-surface-elevated/90 backdrop-blur-md border-b border-border-subtle z-20 px-4 py-3 shadow-xs">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div>
-            <h1 className="text-xl font-extrabold text-gray-900">Dashboard Analitik</h1>
-            <p className="text-xs text-gray-500">Ringkasan KPI & Sebaran Pos Pelkes GPIB</p>
+            <h1 className="text-xl font-extrabold text-text-high">Dashboard Analitik</h1>
+            <p className="text-xs text-text-muted">Ringkasan KPI & Sebaran Pos Pelkes GPIB</p>
           </div>
           <div className="flex items-center gap-2">
             <AnalyticsFilter
@@ -46,7 +46,7 @@ export default function AnalyticsDashboardPage() {
               size="sm"
               onClick={handleExport}
               disabled={isLoading || !analyticsData}
-              className="hidden sm:flex bg-white"
+              className="hidden sm:flex bg-surface-1 border-border-subtle text-text-high hover:bg-surface-sunken"
             >
               <Download className="w-4 h-4 mr-2" />
               Export Excel
@@ -70,32 +70,32 @@ export default function AnalyticsDashboardPage() {
                   value={analyticsData?.stats.total_pos || 0}
                   trend={analyticsData?.stats.pos_growth_month || 0}
                   icon={MapPin}
-                  colorBg="bg-blue-50"
-                  colorIcon="text-blue-600"
+                  colorBg="bg-blue-500/10 dark:bg-blue-500/20"
+                  colorIcon="text-blue-500 dark:text-blue-400"
                 />
                 <AnalyticsStatCard
                   title="Total Pendeta"
                   value={analyticsData?.stats.total_pendeta || 0}
                   trend={analyticsData?.stats.pendeta_growth_month || 0}
                   icon={Users}
-                  colorBg="bg-amber-50"
-                  colorIcon="text-amber-600"
+                  colorBg="bg-amber-500/10 dark:bg-amber-500/20"
+                  colorIcon="text-amber-500 dark:text-amber-400"
                 />
                 <AnalyticsStatCard
                   title="Total Jemaat"
                   value={analyticsData?.stats.total_jemaat || 0}
                   trend={analyticsData?.stats.jemaat_growth_month || 0}
                   icon={Church}
-                  colorBg="bg-purple-50"
-                  colorIcon="text-purple-600"
+                  colorBg="bg-purple-500/10 dark:bg-purple-500/20"
+                  colorIcon="text-purple-500 dark:text-purple-400"
                 />
                 <AnalyticsStatCard
                   title="Log Pastoral (Bln Ini)"
                   value={analyticsData?.stats.total_log_pastoral_month || 0}
                   trend={analyticsData?.stats.log_growth_month || 0}
                   icon={Activity}
-                  colorBg="bg-emerald-50"
-                  colorIcon="text-emerald-600"
+                  colorBg="bg-emerald-500/10 dark:bg-emerald-500/20"
+                  colorIcon="text-emerald-500 dark:text-emerald-400"
                 />
               </>
             )}
@@ -130,7 +130,7 @@ export default function AnalyticsDashboardPage() {
             <Button
               onClick={handleExport}
               disabled={isLoading || !analyticsData}
-              className="w-full h-12 text-base font-semibold shadow-md"
+              className="w-full h-12 text-base font-semibold shadow-md bg-brand-primary text-white"
             >
               <Download className="w-5 h-5 mr-2" /> Export Laporan Excel
             </Button>

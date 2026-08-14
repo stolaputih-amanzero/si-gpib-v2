@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Building, Users, Plus, UserCircle } from 'lucide-react';
+import { Home, Building, Users, Plus, UserCircle, BarChart3, Map, Calendar, HandHeart, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useContextUIStore } from '@/stores/useContextUIStore';
@@ -15,6 +15,11 @@ export function DesktopSidebar() {
     { name: 'Home', href: '/', icon: Home },
     { name: 'Organisasi', href: '/org', icon: Building },
     { name: 'SDM', href: '/people', icon: Users },
+    { name: 'Analitik', href: '/analytics', icon: BarChart3 },
+    { name: 'Peta & Teritori', href: '/maps', icon: Map },
+    { name: 'Jadwal', href: '/jadwal', icon: Calendar },
+    { name: 'Bantuan', href: '/aid-requests', icon: HandHeart },
+    { name: 'Brankas (Vault)', href: '/vault', icon: ShieldCheck },
   ];
 
   return (

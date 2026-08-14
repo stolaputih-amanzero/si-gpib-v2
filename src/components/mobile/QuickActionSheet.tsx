@@ -1,6 +1,6 @@
 'use client';
 
-import { Camera, MapPin, FileText, Users, HandHeart, X } from 'lucide-react';
+import { Camera, MapPin, FileText, Users, HandHeart, X, BarChart3, Map } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { haptic } from '@/lib/haptic/vibrate';
@@ -20,6 +20,22 @@ export interface QuickAction {
 }
 
 const QUICK_ACTIONS: QuickAction[] = [
+  {
+    id: 'analitik',
+    label: 'Analitik & KPI',
+    icon: BarChart3,
+    href: '/analytics',
+    color: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300',
+    description: 'Statistik & pertumbuhan',
+  },
+  {
+    id: 'peta',
+    label: 'Peta Sebaran',
+    icon: Map,
+    href: '/maps',
+    color: 'bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300',
+    description: 'Sebaran wilayah & teritori',
+  },
   {
     id: 'aset',
     label: 'Foto Aset',

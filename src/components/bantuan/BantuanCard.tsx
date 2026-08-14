@@ -28,15 +28,15 @@ export function BantuanCard({ bantuan, className }: BantuanCardProps) {
   const UrgensiIcon = urgensi.icon;
 
   return (
-    <Card className={cn('overflow-hidden border-l-4 shadow-sm', 
+    <Card className={cn('overflow-hidden border-l-4 shadow-sm bg-surface-elevated border-border-subtle', 
       bantuan.status === 'Approved' ? 'border-l-green-500' :
       bantuan.status === 'Rejected' ? 'border-l-red-500' :
-      bantuan.status === 'Draft' ? 'border-l-gray-300' : 'border-l-blue-500',
+      bantuan.status === 'Draft' ? 'border-l-gray-400' : 'border-l-blue-500',
       className
     )}>
       <CardHeader className="p-4 pb-2">
         <div className="flex items-start justify-between gap-2">
-          <CardTitle className="text-base font-semibold text-gray-900 line-clamp-1 flex-1">
+          <CardTitle className="text-base font-semibold text-text-high line-clamp-1 flex-1">
             {bantuan.jenis_bantuan}
           </CardTitle>
           <BantuanStatusBadge status={bantuan.status} />
@@ -44,11 +44,11 @@ export function BantuanCard({ bantuan, className }: BantuanCardProps) {
       </CardHeader>
       
       <CardContent className="p-4 pt-0 space-y-2">
-        <p className="text-sm text-gray-600 line-clamp-2">
+        <p className="text-sm text-text-muted line-clamp-2">
           {bantuan.deskripsi}
         </p>
         
-        <div className="flex items-center gap-4 text-xs text-gray-500 pt-1">
+        <div className="flex items-center gap-4 text-xs text-text-muted pt-1">
           <div className="flex items-center gap-1">
             <MapPin className="w-3.5 h-3.5" />
             <span>{bantuan.nama_pos || bantuan.id_pos}</span>
@@ -59,14 +59,14 @@ export function BantuanCard({ bantuan, className }: BantuanCardProps) {
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-2">
+        <div className="flex items-center justify-between pt-2 border-t border-border-subtle mt-2">
           <div className="flex items-center gap-1.5">
             {UrgensiIcon && <UrgensiIcon className={cn('w-3.5 h-3.5', urgensi.color)} />}
             <span className={cn('text-xs font-medium', urgensi.color)}>
               Urgensi {bantuan.urgensi}
             </span>
           </div>
-          <div className="text-sm font-semibold text-gray-900">
+          <div className="text-sm font-semibold text-text-high">
             Rp {bantuan.estimasi_biaya.toLocaleString('id-ID')}
           </div>
         </div>
@@ -76,7 +76,7 @@ export function BantuanCard({ bantuan, className }: BantuanCardProps) {
         <Link href={`/bantuan/${bantuan.id_ajuan}`} className="w-full">
           <Button 
             variant="ghost" 
-            className="w-full justify-between rounded-none border-t border-gray-100 h-11 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            className="w-full justify-between rounded-none border-t border-border-subtle h-11 text-sm font-medium text-brand-primary hover:bg-surface-sunken"
           >
             Lihat Detail & Tracking
             <ChevronRight className="w-4 h-4" />
