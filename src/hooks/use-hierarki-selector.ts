@@ -285,11 +285,22 @@ export function useUserMupelAuth() {
         const { data: pData } = await supabase
           .from('m_pendeta')
           .select('id_pendeta, id_induk')
-          .eq('email', user.email)
+          .ilike('email', user.email)
           .maybeSingle();
         if (pData) {
           id_pendeta = pData.id_pendeta;
           if (!id_induk) id_induk = pData.id_induk;
+        }
+      }
+
+      if (id_pendeta && !id_induk) {
+        const { data: pData } = await supabase
+          .from('m_pendeta')
+          .select('id_induk')
+          .eq('id_pendeta', id_pendeta)
+          .maybeSingle();
+        if (pData?.id_induk) {
+          id_induk = pData.id_induk;
         }
       }
 
@@ -306,14 +317,39 @@ export function useUserMupelAuth() {
         } catch {}
       }
 
-      if (id_pendeta && !id_induk) {
-        const { data: pData } = await supabase
-          .from('m_pendeta')
-          .select('id_induk')
-          .eq('id_pendeta', id_pendeta)
+      if (id_induk && !id_pos && (role === 'pj' || role === 'user')) {
+        const { data: posList } = await supabase
+          .from('m_pos_pelkes')
+          .select('id_pos')
+          .eq('id_induk', id_induk)
+          .limit(1);
+        if (posList && posList.length > 0) {
+          id_pos = posList[0].id_pos;
+        }
+      }
+
+      if (id_pos && (!id_induk || !id_mupel)) {
+        const { data: posObj } = await supabase
+          .from('m_pos_pelkes')
+          .select('id_induk, jemaat_induk:m_jemaat_induk(id_induk, id_mupel)')
+          .eq('id_pos', id_pos)
           .maybeSingle();
-        if (pData?.id_induk) {
-          id_induk = pData.id_induk;
+        if (posObj) {
+          if (!id_induk) id_induk = posObj.id_induk;
+          if (!id_mupel && (posObj.jemaat_induk as any)?.id_mupel) {
+            id_mupel = (posObj.jemaat_induk as any).id_mupel;
+          }
+        }
+      }
+
+      if (id_induk && !id_mupel) {
+        const { data: jmt } = await supabase
+          .from('m_jemaat_induk')
+          .select('id_mupel')
+          .eq('id_induk', id_induk)
+          .maybeSingle();
+        if (jmt?.id_mupel) {
+          id_mupel = jmt.id_mupel;
         }
       }
 

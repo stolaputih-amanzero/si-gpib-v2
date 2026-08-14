@@ -1,6 +1,6 @@
 'use client';
 
-import { Lock, Globe, Building2, Church, MapPin } from 'lucide-react';
+import { Globe, Building2, Church, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface UserRoleScope {
@@ -28,7 +28,7 @@ const SCOPE_ICONS: Record<string, typeof Globe> = {
 export function ScopeIndicator({ scope, className }: ScopeIndicatorProps) {
   if (!scope) return null;
 
-  const Icon = scope.isLocked ? Lock : SCOPE_ICONS[scope.role] || Globe;
+  const Icon = SCOPE_ICONS[scope.role] || Globe;
 
   return (
     <div
@@ -46,9 +46,6 @@ export function ScopeIndicator({ scope, className }: ScopeIndicatorProps) {
     >
       <Icon className="w-3.5 h-3.5" />
       <span>{scope.scopeLabel}</span>
-      {scope.isLocked && (
-        <span className="text-[10px] opacity-70">(terkunci otomatis)</span>
-      )}
     </div>
   );
 }

@@ -51,16 +51,35 @@ export async function resolveWorkspaceTarget(
         if (!id_pos) id_pos = dbUser.id_pos || null;
         if (dbUser.role) role = dbUser.role;
 
-        // If PJ and id_pos missing, check t_penugasan_pendeta
-        if (!id_pos && dbUser.id_pendeta) {
-          const { data: tugas } = await supabaseAdmin
-            .from('t_penugasan_pendeta')
-            .select('id_pos')
-            .eq('id_pendeta', dbUser.id_pendeta)
-            .eq('status_tugas', 'Aktif')
-            .maybeSingle();
-          if (tugas?.id_pos) {
-            id_pos = tugas.id_pos;
+        // If PJ and id_pos missing, check t_penugasan_pendeta or m_pendeta/m_pos_pelkes
+        if (dbUser.id_pendeta) {
+          if (!id_induk) {
+            const { data: pdt } = await supabaseAdmin
+              .from('m_pendeta')
+              .select('id_induk')
+              .eq('id_pendeta', dbUser.id_pendeta)
+              .maybeSingle();
+            if (pdt?.id_induk) id_induk = pdt.id_induk;
+          }
+
+          if (!id_pos) {
+            const { data: tugas } = await supabaseAdmin
+              .from('t_penugasan_pendeta')
+              .select('id_pos')
+              .eq('id_pendeta', dbUser.id_pendeta)
+              .maybeSingle();
+            if (tugas?.id_pos) {
+              id_pos = tugas.id_pos;
+            } else if (id_induk) {
+              const { data: posList } = await supabaseAdmin
+                .from('m_pos_pelkes')
+                .select('id_pos')
+                .eq('id_induk', id_induk)
+                .limit(1);
+              if (posList && posList.length > 0) {
+                id_pos = posList[0].id_pos;
+              }
+            }
           }
         }
 

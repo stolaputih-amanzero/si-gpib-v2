@@ -73,24 +73,51 @@ export default async function Dashboard() {
       if (profile.id_pos) userPosId = profile.id_pos;
       if (profile.nama_lengkap || profile.nama) userNama = profile.nama_lengkap || profile.nama;
 
-      // Lookup pendeta assignment for PJ if id_pos not set directly in users table
-      if ((userRole === 'pj' || userRole === 'user') && !userPosId && profile.id_pendeta) {
-        const { data: penugasan } = await supabaseAdmin
-          .from('t_penugasan_pendeta')
-          .select('id_pos')
-          .eq('id_pendeta', profile.id_pendeta)
-          .eq('status_tugas', 'Aktif')
-          .maybeSingle();
-        if (penugasan?.id_pos) {
-          userPosId = penugasan.id_pos;
+      // 1. Resolve pendeta record if profile.id_pendeta or email is present
+      const pendetaId = profile.id_pendeta || (user.id_pendeta ? user.id_pendeta : null);
+      if (pendetaId || user.email) {
+        let pdtQuery = supabaseAdmin.from('m_pendeta').select('id_pendeta, id_induk, nama_lengkap');
+        if (pendetaId) {
+          pdtQuery = pdtQuery.eq('id_pendeta', pendetaId);
+        } else if (user.email) {
+          pdtQuery = pdtQuery.ilike('email', user.email);
+        }
+        const { data: pdt } = await pdtQuery.maybeSingle();
+        if (pdt) {
+          if (!userIndukId && pdt.id_induk) userIndukId = pdt.id_induk;
+          if (!userNama || userNama === 'Pengguna') userNama = pdt.nama_lengkap || userNama;
+
+          // 2. Lookup assignment in t_penugasan_pendeta
+          if (!userPosId) {
+            const { data: penugasan } = await supabaseAdmin
+              .from('t_penugasan_pendeta')
+              .select('id_pos')
+              .eq('id_pendeta', pdt.id_pendeta)
+              .maybeSingle();
+            if (penugasan?.id_pos) {
+              userPosId = penugasan.id_pos;
+            }
+          }
         }
       }
 
-      // Lookup parent id_induk / id_mupel if userPosId is set
+      // 3. If userIndukId is known but userPosId is missing, check if there is a Pos Pelkes under this Jemaat
+      if (userIndukId && !userPosId && (userRole === 'pj' || userRole === 'user')) {
+        const { data: posList } = await supabaseAdmin
+          .from('m_pos_pelkes')
+          .select('id_pos')
+          .eq('id_induk', userIndukId)
+          .limit(1);
+        if (posList && posList.length > 0) {
+          userPosId = posList[0].id_pos;
+        }
+      }
+
+      // 4. Lookup parent id_induk / id_mupel if userPosId is set
       if (userPosId && (!userIndukId || !userMupelId)) {
         const { data: posObj } = await supabaseAdmin
           .from('m_pos_pelkes')
-          .select('id_induk, jemaat_induk:m_jemaat_induk(id_mupel)')
+          .select('id_induk, jemaat_induk:m_jemaat_induk(id_induk, id_mupel, nama_induk, mupel:m_mupel(id_mupel, nama_mupel))')
           .eq('id_pos', userPosId)
           .maybeSingle();
 
@@ -102,12 +129,12 @@ export default async function Dashboard() {
         }
       }
 
-      // Lookup parent id_mupel if userIndukId is set
+      // 5. Lookup parent id_mupel if userIndukId is set
       if (userIndukId && !userMupelId) {
         const { data: jemaatObj } = await supabaseAdmin
           .from('m_jemaat_induk')
-          .select('id_mupel')
-          .eq('id_mupel', userIndukId)
+          .select('id_induk, id_mupel')
+          .eq('id_induk', userIndukId)
           .maybeSingle();
 
         if (jemaatObj?.id_mupel) {
@@ -118,73 +145,83 @@ export default async function Dashboard() {
   }
 
   // 2. Resolve Active Working Context Scope
-  const activeContextId = context?.context_id;
+  const isSuperUser = userRole === 'super_user';
+  let effectiveMupelId = isSuperUser ? null : userMupelId;
+  let effectiveIndukId = isSuperUser ? null : userIndukId;
+  let effectivePosId = isSuperUser ? null : userPosId;
+
   let activeUnitName = 'Seluruh Indonesia';
   let activeUnitLevel: 'SINODE' | 'MUPEL' | 'JEMAAT' | 'POS' = 'SINODE';
-  let effectiveMupelId = userMupelId;
-  let effectiveIndukId = userIndukId;
-  let effectivePosId = userPosId;
 
   let activePosData: any = null;
   let activeJmtData: any = null;
 
-  if (activeContextId) {
-    // Check if activeContext is a Pos Pelkes
+  if (effectivePosId) {
     const { data: posData } = await supabaseAdmin
       .from('m_pos_pelkes')
-      .select('id_pos, nama_pos, id_induk, kategori, jumlah_jiwa, jumlah_kk, jemaat_induk:m_jemaat_induk(id_mupel, nama_induk)')
-      .eq('id_pos', activeContextId)
+      .select('id_pos, nama_pos, id_induk, kategori, jumlah_jiwa, jumlah_kk, jemaat_induk:m_jemaat_induk(id_induk, id_mupel, nama_induk, mupel:m_mupel(id_mupel, nama_mupel))')
+      .eq('id_pos', effectivePosId)
       .maybeSingle();
 
     if (posData) {
       activePosData = posData;
       activeUnitLevel = 'POS';
       activeUnitName = posData.nama_pos;
-      effectivePosId = posData.id_pos;
-      effectiveIndukId = posData.id_induk;
       if (posData.jemaat_induk) {
-        effectiveMupelId = (posData.jemaat_induk as any).id_mupel;
+        const jmt = posData.jemaat_induk as any;
+        if (!effectiveIndukId) effectiveIndukId = jmt.id_induk;
+        if (!effectiveMupelId && jmt.id_mupel) effectiveMupelId = jmt.id_mupel;
       }
-    } else {
-      // Check if activeContext is a Jemaat Induk
-      const { data: jmtData } = await supabaseAdmin
-        .from('m_jemaat_induk')
-        .select('id_induk, nama_induk, id_mupel, jumlah_jiwa, jumlah_kk')
-        .eq('id_induk', activeContextId)
-        .maybeSingle();
+    }
+  } else if (effectiveIndukId) {
+    const { data: jmtData } = await supabaseAdmin
+      .from('m_jemaat_induk')
+      .select('id_induk, nama_induk, id_mupel, jumlah_jiwa, jumlah_kk, mupel:m_mupel(id_mupel, nama_mupel)')
+      .eq('id_induk', effectiveIndukId)
+      .maybeSingle();
 
-      if (jmtData) {
-        activeJmtData = jmtData;
-        activeUnitLevel = 'JEMAAT';
-        activeUnitName = jmtData.nama_induk;
-        effectiveIndukId = jmtData.id_induk;
-        effectiveMupelId = jmtData.id_mupel;
-        effectivePosId = null;
-      } else {
-        // Check if activeContext is a Mupel
-        const { data: mplData } = await supabaseAdmin
-          .from('m_mupel')
-          .select('id_mupel, nama_mupel')
-          .eq('id_mupel', activeContextId)
-          .maybeSingle();
+    if (jmtData) {
+      activeJmtData = jmtData;
+      activeUnitLevel = 'JEMAAT';
+      activeUnitName = jmtData.nama_induk;
+      if (!effectiveMupelId && jmtData.id_mupel) effectiveMupelId = jmtData.id_mupel;
+    }
+  } else if (effectiveMupelId) {
+    const { data: mplData } = await supabaseAdmin
+      .from('m_mupel')
+      .select('id_mupel, nama_mupel')
+      .eq('id_mupel', effectiveMupelId)
+      .maybeSingle();
 
-        if (mplData) {
-          activeUnitLevel = 'MUPEL';
-          activeUnitName = `Mupel ${mplData.nama_mupel}`;
-          effectiveMupelId = mplData.id_mupel;
-          effectiveIndukId = null;
-          effectivePosId = null;
-        }
-      }
+    if (mplData) {
+      activeUnitLevel = 'MUPEL';
+      activeUnitName = `Mupel ${mplData.nama_mupel}`;
     }
   }
 
-  const isLocked = userRole !== 'super_user';
+  const isLocked = !isSuperUser;
   let scopeLabel = activeUnitName;
-  if (activeUnitLevel === 'SINODE') {
-    if (userRole === 'admin_mupel') scopeLabel = 'Mupel Anda';
-    else if (userRole === 'kmj') scopeLabel = 'Jemaat Anda';
-    else if (userRole === 'pj' || userRole === 'user') scopeLabel = 'Pos Pelkes Penugasan Anda';
+  if (activeUnitLevel === 'POS' && activePosData) {
+    const jmtName = (activePosData.jemaat_induk as any)?.nama_induk;
+    const mplName = (activePosData.jemaat_induk as any)?.mupel?.nama_mupel;
+    if (jmtName && mplName) {
+      scopeLabel = `${activePosData.nama_pos} • ${jmtName} • Mupel ${mplName}`;
+    } else if (jmtName) {
+      scopeLabel = `${activePosData.nama_pos} • ${jmtName}`;
+    } else {
+      scopeLabel = `Pos Pelkes ${activePosData.nama_pos}`;
+    }
+  } else if (activeUnitLevel === 'JEMAAT' && activeJmtData) {
+    const mplName = (activeJmtData.mupel as any)?.nama_mupel;
+    if (mplName) {
+      scopeLabel = `${activeJmtData.nama_induk} • Mupel ${mplName}`;
+    } else {
+      scopeLabel = activeJmtData.nama_induk;
+    }
+  } else if (activeUnitLevel === 'MUPEL') {
+    scopeLabel = activeUnitName;
+  } else {
+    scopeLabel = 'Seluruh Indonesia';
   }
 
   const roleScopeObj: UserRoleScope = {
@@ -302,14 +339,18 @@ export default async function Dashboard() {
       aidQuery
     ]);
 
-    // Compute responsive StatCard numbers based on context level
-    if (activeUnitLevel === 'POS') {
+    // Compute responsive StatCard numbers based on context level & user role scope
+    const effectiveScopeLevel = activeUnitLevel !== 'SINODE'
+      ? activeUnitLevel
+      : (userRole === 'pj' || userRole === 'user' ? 'POS' : (userRole === 'kmj' ? 'JEMAAT' : (userRole === 'admin_mupel' ? 'MUPEL' : 'SINODE')));
+
+    if (effectiveScopeLevel === 'POS') {
       mupelCount = 1;
       jemaatCount = 1;
-      const isBajem = (activePosData?.kategori || '').toLowerCase().includes('bajem');
+      const isBajem = (activePosData?.kategori || '').toLowerCase().includes('bajem') || (resSum.data?.[0]?.kategori || '').toLowerCase().includes('bajem');
       bajemCount = isBajem ? 1 : 0;
       posPelkesCount = isBajem ? 0 : 1;
-    } else if (activeUnitLevel === 'JEMAAT') {
+    } else if (effectiveScopeLevel === 'JEMAAT') {
       mupelCount = 1;
       jemaatCount = 1;
       posPelkesSumData = resSum.data || [];
@@ -318,7 +359,7 @@ export default async function Dashboard() {
         if (isBajem) bajemCount++;
         else posPelkesCount++;
       });
-    } else if (activeUnitLevel === 'MUPEL') {
+    } else if (effectiveScopeLevel === 'MUPEL') {
       mupelCount = 1;
       jemaatCount = resJemaat.count || jemaatIdsInMupel.length || 0;
       posPelkesSumData = resSum.data || [];
@@ -328,6 +369,7 @@ export default async function Dashboard() {
         else posPelkesCount++;
       });
     } else {
+      // Super user / SINODE scope: Show ALL entities in the entire GPIB synod
       mupelCount = resMupel.count || 25;
       jemaatCount = resJemaat.count || 353;
       posPelkesSumData = resSum.data || [];
@@ -403,10 +445,14 @@ export default async function Dashboard() {
     });
   }
 
+  const effectiveScopeLevelForJiwa = activeUnitLevel !== 'SINODE'
+    ? activeUnitLevel
+    : (userRole === 'pj' || userRole === 'user' ? 'POS' : (userRole === 'kmj' ? 'JEMAAT' : (userRole === 'admin_mupel' ? 'MUPEL' : 'SINODE')));
+
   let totalJiwa = 0;
-  if (activeUnitLevel === 'POS') {
-    totalJiwa = activePosData?.jumlah_jiwa || totalJiwaFromPelkat || 48;
-  } else if (activeUnitLevel === 'JEMAAT') {
+  if (effectiveScopeLevelForJiwa === 'POS') {
+    totalJiwa = activePosData?.jumlah_jiwa || (posPelkesSumData?.[0]?.jumlah_jiwa) || totalJiwaFromPelkat || 48;
+  } else if (effectiveScopeLevelForJiwa === 'JEMAAT') {
     const sumPos = (posPelkesSumData || []).reduce((acc: number, curr: any) => acc + (curr.jumlah_jiwa || 0), 0);
     totalJiwa = (activeJmtData?.jumlah_jiwa || 0) + sumPos || totalJiwaFromPelkat || 240;
   } else {
@@ -498,7 +544,10 @@ export default async function Dashboard() {
               {scopeLabel}
             </span>
             <h1 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-bold text-ink-primary tracking-tight leading-[1.15]">
-              Selamat Datang, <span className="font-editorial-italic font-normal text-amber-700 dark:text-amber-400">{userNama}</span>
+              <span>Selamat Datang,</span>
+              <span className="block font-editorial-italic font-normal text-amber-700 dark:text-amber-400 mt-0.5 sm:mt-1">
+                {userNama}
+              </span>
             </h1>
             <p className="text-xs sm:text-sm text-ink-secondary max-w-2xl leading-relaxed">
               Platform Tata Kelola Terpadu &amp; Transparansi Pelayanan Gereja Protestan di Indonesia bagian Barat.

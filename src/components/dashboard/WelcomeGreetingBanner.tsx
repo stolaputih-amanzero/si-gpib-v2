@@ -116,7 +116,10 @@ export const WelcomeGreetingBanner: React.FC<WelcomeGreetingBannerProps> = ({ cl
 
         <div>
           <h2 className="text-lg sm:text-2xl font-serif font-black text-text-high tracking-tight leading-tight">
-            Selamat Datang, {formattedName}! 👋
+            <span>Selamat Datang,</span>
+            <span className="block text-amber-700 dark:text-amber-400 font-serif-italic font-normal mt-0.5">
+              {formattedName}! 👋
+            </span>
           </h2>
           <p className="text-[11px] sm:text-xs text-text-muted mt-0.5">
             Unit Penugasan Aktif: <strong className="text-text-high font-bold">{unitName}</strong>

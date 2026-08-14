@@ -3,9 +3,9 @@ import { createClient } from '@/lib/supabase/client';
 import { cleanQuotes } from '@/lib/utils';
 import { useUserRoleScope } from './use-analitik';
 
-export function isBajemPos(pos: { kategori?: string | null; nama_pos?: string | null }): boolean {
+export function isBajemPos(pos: { kategori?: string | null; nama_pos?: string | null; tipe?: string | null }): boolean {
   if (!pos) return false;
-  const kat = (pos.kategori || '').trim().toUpperCase();
+  const kat = (pos.kategori || (pos as any).tipe || '').trim().toUpperCase();
   const nama = (pos.nama_pos || '').trim().toLowerCase();
   return kat === 'BAJEM' || kat === 'BAKAL JEMAAT' || kat.includes('BAJEM') || kat.includes('BAKAL') || nama.startsWith('bajem') || nama.includes('bajem') || nama.includes('bakal jemaat');
 }
@@ -638,7 +638,7 @@ export function useHierarchyStats() {
       const [{ count: mCount }, { count: jCount }, { data: posData }, { data: demoData }, { data: jemaatData }] = await Promise.all([
         supabase.from('m_mupel').select('*', { count: 'exact', head: true }),
         supabase.from('m_jemaat_induk').select('*', { count: 'exact', head: true }),
-        supabase.from('m_pos_pelkes').select('nama_pos'),
+        supabase.from('m_pos_pelkes').select('id_pos, nama_pos, kategori'),
         supabase.from('t_demografi_pelkat').select('jml_kk, laki, perempuan'),
         supabase.from('m_jemaat_induk').select('jumlah_kk, jumlah_jiwa'),
       ]);

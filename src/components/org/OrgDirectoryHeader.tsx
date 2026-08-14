@@ -1,6 +1,6 @@
 'use client';
 
-import { Search, Building2, Church, MapPin, RefreshCw, Layers } from 'lucide-react';
+import { Search, Building2, Church, MapPin, RefreshCw } from 'lucide-react';
 import { HierarchyStatsData } from '@/hooks/use-hierarki';
 import { OrgLevelFilter } from '@/hooks/use-org-directory';
 import { StatusPill } from '@/components/ui/StatusPill';
@@ -28,14 +28,6 @@ export function OrgDirectoryHeader({
   totalFilteredCount,
 }: OrgDirectoryHeaderProps) {
   const filterCards = [
-    {
-      id: 'all' as OrgLevelFilter,
-      label: 'Semua Level',
-      value: (stats?.total_mupel ?? 0) + (stats?.total_jemaat ?? 0) + (stats?.total_bajem ?? 0) + (stats?.total_pos ?? 0),
-      icon: Layers,
-      iconColor: 'text-slate-600 dark:text-slate-300',
-      iconBg: 'bg-slate-500/10',
-    },
     {
       id: 'mupel' as OrgLevelFilter,
       label: 'Mupel',
@@ -109,7 +101,7 @@ export function OrgDirectoryHeader({
       </div>
 
       {/* Streamlined Filter Metric Strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
         {filterCards.map((card) => {
           const isActive = activeTab === card.id;
           const Icon = card.icon;
@@ -118,7 +110,7 @@ export function OrgDirectoryHeader({
             <button
               key={card.id}
               type="button"
-              onClick={() => onTabChange(isActive && card.id !== 'all' ? 'all' : card.id)}
+              onClick={() => onTabChange(isActive ? 'all' : card.id)}
               className={cn(
                 'group relative p-3 rounded-2xl border text-left transition-all duration-200 cursor-pointer flex items-center gap-2.5 select-none active:scale-[0.98]',
                 isActive

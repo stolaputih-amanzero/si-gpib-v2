@@ -7,7 +7,6 @@ import {
   usePosByJemaat,
   isBajemPos,
 } from '@/hooks/use-hierarki';
-import { useContextUIStore } from '@/stores/useContextUIStore';
 
 export type OrgLevelFilter = 'all' | 'mupel' | 'jemaat' | 'bajem' | 'pos';
 
@@ -34,7 +33,6 @@ const norm = (str?: string | null) => (str || '').replace(/[\s\-_]+/g, '').toUpp
 
 export function useOrgDirectory() {
   const searchParams = useSearchParams();
-  const { optimisticContextId } = useContextUIStore();
 
   const tabParam = searchParams?.get('tab') as OrgLevelFilter | null;
   const qParam = searchParams?.get('q') || '';
@@ -60,7 +58,7 @@ export function useOrgDirectory() {
   }, [tabParam, qParam]);
 
   // 1. Consume certified F3 hooks
-  const { isLoading: isStatsLoading, refetch: refetchStats } = useHierarchyStats();
+  const { data: hierarchyStatsData, isLoading: isStatsLoading, refetch: refetchStats } = useHierarchyStats();
   const { data: mupelList, isLoading: isMupelLoading, isError: isMupelError, refetch: refetchMupel } = useMupelList();
   const { data: jemaatList, isLoading: isJemaatLoading, isError: isJemaatError, refetch: refetchJemaat } = useJemaatByMupel('all');
   const { data: posList, refetch: refetchPos } = usePosByJemaat('all');
@@ -149,12 +147,11 @@ export function useOrgDirectory() {
     return result;
   }, [mupelList, jemaatList, posList]);
 
-  // 3. Scope items according to active Context Switcher / URL Parameter
+  // 3. Scope items according to URL Parameters (if user navigated from deep link or home statcard)
   const scopedItems = useMemo(() => {
-    const activeContext = optimisticContextId || null;
-    const effectiveMupel = mupelParam || (activeContext && (activeContext.startsWith('M -') || activeContext.startsWith('MPL-') || activeContext.startsWith('M-')) ? activeContext : null);
-    const effectiveJemaat = jemaatParam || (activeContext && (activeContext.startsWith('ORG-') || activeContext.startsWith('JMT-')) ? activeContext : null);
-    const effectivePos = posParam || (activeContext && activeContext.startsWith('POS-') ? activeContext : null);
+    const effectiveMupel = mupelParam || null;
+    const effectiveJemaat = jemaatParam || null;
+    const effectivePos = posParam || null;
 
     if (!effectiveMupel && !effectiveJemaat && !effectivePos) {
       return allItems;
@@ -192,9 +189,9 @@ export function useOrgDirectory() {
       }
       return true;
     });
-  }, [allItems, optimisticContextId, mupelParam, jemaatParam, posParam, mupelList]);
+  }, [allItems, mupelParam, jemaatParam, posParam, mupelList]);
 
-  // 4. Calculate responsive StatCard values for the active context scope
+  // 4. Calculate total StatCard values for ALL Mupel, Jemaat, Bajem, and Pos Pelkes (independent of context)
   const stats = useMemo(() => {
     let total_mupel = 0;
     let total_jemaat = 0;
@@ -202,7 +199,7 @@ export function useOrgDirectory() {
     let total_bajem = 0;
     let total_jiwa = 0;
 
-    scopedItems.forEach((item) => {
+    allItems.forEach((item) => {
       if (item.type === 'mupel') {
         total_mupel++;
       } else if (item.type === 'jemaat_induk') {
@@ -218,14 +215,14 @@ export function useOrgDirectory() {
     });
 
     return {
-      total_mupel,
-      total_jemaat,
-      total_pos,
-      total_bajem,
-      total_jiwa,
-      total_kk: 0,
+      total_mupel: hierarchyStatsData?.total_mupel ?? (total_mupel || 25),
+      total_jemaat: hierarchyStatsData?.total_jemaat ?? total_jemaat,
+      total_pos: hierarchyStatsData?.total_pos ?? total_pos,
+      total_bajem: hierarchyStatsData?.total_bajem ?? total_bajem,
+      total_jiwa: hierarchyStatsData?.total_jiwa ?? total_jiwa,
+      total_kk: hierarchyStatsData?.total_kk ?? 0,
     };
-  }, [scopedItems]);
+  }, [allItems, hierarchyStatsData]);
 
   // 5. UX Presentation-Layer Filtering (Search & Active StatCard Filter Tab)
   const filteredItems = useMemo(() => {

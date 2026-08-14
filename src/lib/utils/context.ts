@@ -23,15 +23,18 @@ export async function getServerContext() {
     return { status: 'UNAUTHORIZED', context_id: null, user: null };
   }
 
+  const role = (user.role || user.user_metadata?.role || '').toLowerCase();
+  const isSuperUser = role === 'super_user' || role === 'admin' || role === 'superadmin' || user.email === 'stolaputih@gmail.com';
+
   const resolvedContextId = 
-    contextIdCookie || 
+    (!isSuperUser ? contextIdCookie : null) || 
     user.id_pos || 
     user.user_metadata?.id_pos || 
     user.id_induk || 
     user.user_metadata?.id_induk || 
     user.id_mupel || 
     user.user_metadata?.id_mupel || 
-    'POS-43938';
+    null;
 
   return { status: 'VALID', context_id: resolvedContextId, user };
 }
