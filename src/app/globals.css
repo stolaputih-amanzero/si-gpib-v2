@@ -314,14 +314,101 @@
     font-family: var(--font-sans);
     font-feature-settings: 'cv11','ss01','cv02','cv03';
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     overscroll-behavior-y: contain;
     margin: 0;
     padding: 0;
+    line-height: 1.5;
   }
   .font-display { font-family: var(--font-display); font-optical-sizing: auto; font-variation-settings: 'SOFT' 30, 'WONK' 0; }
   .tnum { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum','cv11'; }
   :focus-visible { outline: none; box-shadow: 0 0 0 2px var(--surface-base), 0 0 0 4px var(--brand-400); border-radius: var(--radius-sm); }
+
+  /* ============================================================
+     STANDARDIZED TYPOGRAPHY BASE RULES (NO HARDCODED SIZES)
+     ============================================================ */
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+  }
+
+  h2 {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+  }
+
+  h3 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.015em;
+    line-height: 1.35;
+  }
+
+  h4, h5, h6 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+    line-height: 1.4;
+  }
+
+  p {
+    font-family: var(--font-sans);
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  small, caption {
+    font-family: var(--font-sans);
+    color: var(--text-tertiary);
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+
+  label {
+    font-family: var(--font-sans);
+    color: var(--text-secondary);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  input, textarea, select {
+    font-family: var(--font-sans);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  button {
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv11','ss01';
+  }
+
+  code, kbd, samp, pre {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-feature-settings: 'tnum';
+  }
+
+  /* Popups, Modals, Dialogs & Sheets Typography Standardization */
+  dialog, [role="dialog"], [role="menu"], [role="listbox"], [role="tooltip"], [data-slot="dialog-content"], [data-slot="sheet-content"] {
+    font-family: var(--font-sans);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
 }
 
 /* ============================================================
@@ -472,6 +559,81 @@ html.theme-transitioning *::after {
     background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 50%, #D97706 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+  }
+
+  /* ============================================================
+     STANDARDIZED CANONICAL TYPOGRAPHY TOKENS (SI GPIB v2.2)
+     ============================================================ */
+  .type-hero {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.875rem, 4vw, 3rem);
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    color: var(--text-primary);
+  }
+
+  .type-title-1 {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-size: clamp(1.375rem, 2.5vw, 1.875rem);
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+
+  .type-title-2 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: clamp(1.125rem, 2vw, 1.375rem);
+    line-height: 1.35;
+    letter-spacing: -0.015em;
+    color: var(--text-primary);
+  }
+
+  .type-title-3 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+  }
+
+  .type-body {
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: var(--text-primary);
+  }
+
+  .type-body-sm {
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+
+  .type-caption {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--text-tertiary);
+  }
+
+  .type-label {
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+
+  .type-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-feature-settings: 'tnum';
+    letter-spacing: -0.01em;
   }
 }
 

@@ -77,10 +77,10 @@ export function useOrgDirectory() {
   const allItems: OrgDirectoryItem[] = useMemo(() => {
     const result: OrgDirectoryItem[] = [];
 
-    // Lookup map from Jemaat Induk to Mupel
-    const jmtToMupelMap = new Map<string, { id_mupel?: string; nama_mupel?: string }>();
+    // Lookup map from Jemaat Induk to Mupel & Nama Induk
+    const jmtToMupelMap = new Map<string, { id_mupel?: string; nama_mupel?: string; nama_induk?: string }>();
     (jemaatList || []).forEach(j => {
-      jmtToMupelMap.set(j.id_induk, { id_mupel: j.id_mupel, nama_mupel: j.mupel?.nama_mupel });
+      jmtToMupelMap.set(j.id_induk, { id_mupel: j.id_mupel, nama_mupel: j.mupel?.nama_mupel, nama_induk: j.nama_induk });
     });
 
     // Add Mupels
@@ -90,8 +90,6 @@ export function useOrgDirectory() {
         name: m.nama_mupel,
         type: 'mupel',
         typeLabel: 'Mupel',
-        leaderName: m.keterangan || null,
-        leaderRole: 'Ketua Mupel',
         posCount: m.pos_count || 0,
         bajemCount: m.bajem_count || 0,
         detailUrl: `/org/${m.id_mupel}`,
@@ -109,8 +107,6 @@ export function useOrgDirectory() {
         mupelId: j.id_mupel,
         parentId: j.id_mupel,
         address: j.alamat,
-        leaderName: j.kmj?.nama_lengkap || null,
-        leaderRole: j.kmj ? 'KMJ' : null,
         posCount: j.pos_count || 0,
         bajemCount: j.bajem_count || 0,
         kkCount: j.jumlah_kk || 0,
@@ -125,19 +121,18 @@ export function useOrgDirectory() {
       const jInfo = jmtToMupelMap.get(p.id_induk);
       const resolvedMupelId = p.jemaat_induk?.id_mupel || jInfo?.id_mupel;
       const resolvedMupelName = p.jemaat_induk?.mupel?.nama_mupel || jInfo?.nama_mupel;
+      const resolvedParentName = p.jemaat_induk?.nama_induk || jInfo?.nama_induk;
 
       result.push({
         id: p.id_pos,
         name: p.nama_pos,
         type: isBajem ? 'bajem' : 'pos_pelkes',
         typeLabel: isBajem ? 'Bajem' : 'Pos Pelkes',
-        parentName: p.jemaat_induk?.nama_induk,
+        parentName: resolvedParentName,
         mupelName: resolvedMupelName,
         mupelId: resolvedMupelId,
         parentId: p.id_induk,
         address: p.alamat,
-        leaderName: p.pj?.nama_lengkap || null,
-        leaderRole: p.pj ? 'PJ' : null,
         kkCount: p.jumlah_kk || 0,
         jiwaCount: p.jumlah_jiwa || 0,
         detailUrl: `/org/${p.id_pos}`,
@@ -252,6 +247,7 @@ export function useOrgDirectory() {
   return {
     items: filteredItems,
     allItemsCount: scopedItems.length,
+    mupelList: mupelList || [],
     stats,
     activeTab,
     setActiveTab,

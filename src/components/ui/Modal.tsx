@@ -85,12 +85,12 @@ export function Modal({
           <div className="flex items-start justify-between px-5 pt-3 sm:pt-5 pb-3 border-b border-border-subtle shrink-0">
             <div className="pr-4">
               {title && (
-                <h2 id="modal-title" className="font-serif font-bold text-lg text-text-high">
+                <h2 id="modal-title" className="font-bold text-base sm:text-lg text-ink-primary tracking-tight leading-snug">
                   {title}
                 </h2>
               )}
               {description && (
-                <p id="modal-description" className="text-xs text-text-muted mt-0.5">
+                <p id="modal-description" className="text-xs sm:text-sm text-ink-secondary mt-0.5 leading-relaxed">
                   {description}
                 </p>
               )}

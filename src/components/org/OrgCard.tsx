@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Church, Building2, MapPin, ChevronRight, User, Users, Map } from 'lucide-react';
+import { Church, Building2, MapPin, ChevronRight, Users, Map } from 'lucide-react';
 import { OrgDirectoryItem } from '@/hooks/use-org-directory';
 import { cn } from '@/lib/utils';
 import { SemanticRow } from '@/components/ui/SemanticRow';
@@ -42,22 +42,16 @@ export function OrgCard({ item, isLast = false }: OrgCardProps) {
 
   const subtitleContent = (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-text-muted mt-0.5">
-      {item.mupelName && (
-        <span className="inline-flex items-center gap-1">
-          <Map size={12} className="text-text-muted/70" />
-          <span>Mupel: <strong className="text-text-high">{item.mupelName}</strong></span>
-        </span>
-      )}
       {item.parentName && (
         <span className="inline-flex items-center gap-1">
-          <Building2 size={12} className="text-text-muted/70" />
-          <span>Jemaat: <strong className="text-text-high">{item.parentName}</strong></span>
+          <Building2 size={12} className="text-text-muted/70 shrink-0" />
+          <span>Jemaat Induk: <strong className="text-text-high">{item.parentName}</strong></span>
         </span>
       )}
-      {item.leaderName && (
+      {item.mupelName && (
         <span className="inline-flex items-center gap-1">
-          <User size={12} className="text-text-muted/70" />
-          <span>{item.leaderRole || 'Pimpinan'}: <strong className="text-text-high">{item.leaderName}</strong></span>
+          <Map size={12} className="text-text-muted/70 shrink-0" />
+          <span>Mupel: <strong className="text-text-high">{item.mupelName}</strong></span>
         </span>
       )}
     </div>
