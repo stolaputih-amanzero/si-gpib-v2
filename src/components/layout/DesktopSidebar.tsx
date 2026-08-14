@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Building, Users, Plus, UserCircle, BarChart3, Map, Calendar, HandHeart, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import { useContextUIStore } from '@/stores/useContextUIStore';
 
 export function DesktopSidebar() {
@@ -57,15 +56,16 @@ export function DesktopSidebar() {
           );
         })}
 
-        <div className="mt-4 mb-2 border-t pt-4">
-          <Button 
-            className="w-full justify-center lg:justify-start lg:px-3 rounded-xl bg-gradient-to-tr from-primary to-primary/80 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md overflow-hidden relative group h-12"
+        <div className="mt-4 mb-2 border-t border-border-subtle pt-4">
+          <button 
+            type="button"
+            className="w-full justify-center lg:justify-start lg:px-4 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-600 text-white font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md shadow-amber-600/20 flex items-center h-12 cursor-pointer border border-amber-400/20 group"
             onClick={() => setQuickActionOpen(true)}
+            aria-label="Aksi Cepat Pelayanan"
           >
-            <span className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-            <Plus className="w-5 h-5 lg:mr-2 shrink-0 group-hover:rotate-90 transition-transform duration-500" />
-            <span className="hidden lg:block text-sm font-semibold text-primary-foreground">Aksi Cepat</span>
-          </Button>
+            <Plus className="size-5 lg:mr-2.5 shrink-0 text-white group-hover:rotate-90 transition-transform duration-300" />
+            <span className="hidden lg:block text-sm font-bold text-white tracking-tight">Aksi Cepat</span>
+          </button>
         </div>
       </div>
 

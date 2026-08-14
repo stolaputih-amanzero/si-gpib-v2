@@ -65,16 +65,19 @@ export function MupelClusterMapInner({
         {markers.map((m) => (
           <Marker key={m.id_induk} position={[m.lat, m.lng]} icon={churchIcon}>
             <Popup>
-              <div className="p-1 max-w-[200px] space-y-1">
-                <div className="flex items-center gap-1 text-xs font-bold text-brand-primary">
-                  <Church size={14} />
-                  <span>{m.nama_induk}</span>
+              <div className="p-2.5 min-w-[220px] max-w-[280px] space-y-2 text-slate-900 dark:text-slate-100">
+                <div className="border-b border-stone-200/70 dark:border-stone-800 pb-1.5">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-700 dark:text-indigo-400">
+                    <Church size={14} />
+                    <span>{m.nama_induk}</span>
+                  </div>
                 </div>
-                {m.alamat && <p className="text-[10px] text-text-muted line-clamp-2">{m.alamat}</p>}
-                <div className="flex items-center gap-1 pt-1">
+                {m.alamat && <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">{m.alamat}</p>}
+                <div className="flex items-center gap-2 pt-1">
                   <Link
-                    href={`/jemaat/${encodeURIComponent(m.id_induk)}`}
-                    className="flex-1 bg-brand-primary text-white text-center text-[10px] py-1 rounded-md font-bold hover:bg-brand-primary-dark transition-colors"
+                    href={`/org/${encodeURIComponent(m.id_induk)}`}
+                    className="flex-1 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white text-center text-xs font-bold py-2 px-3 rounded-xl transition-all shadow-sm active:scale-[0.98]"
+                    style={{ color: '#ffffff' }}
                   >
                     Detail Jemaat
                   </Link>
@@ -82,10 +85,10 @@ export function MupelClusterMapInner({
                     href={`https://www.google.com/maps/dir/?api=1&destination=${m.lat},${m.lng}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-1 bg-surface-sunken hover:bg-surface-elevated text-brand-primary rounded-md border border-border-subtle"
-                    title="Google Maps"
+                    className="p-2 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 rounded-xl border border-stone-300 dark:border-stone-700 transition-colors flex items-center justify-center"
+                    title="Buka Navigasi Google Maps"
                   >
-                    <Navigation size={12} />
+                    <Navigation size={14} className="text-amber-600 dark:text-amber-400" />
                   </a>
                 </div>
               </div>

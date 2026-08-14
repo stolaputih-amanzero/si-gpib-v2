@@ -105,28 +105,28 @@ export function ContextChip({ activeContextId, validContexts }: ContextSwitcherP
     <button
       type="button"
       onClick={() => setSwitcherOpen(true)}
-      className="group relative flex items-center gap-2.5 h-10 px-3.5 rounded-2xl bg-surface-elevated hover:bg-surface-sunken border border-border-subtle hover:border-brand-primary/40 shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer active:scale-98 max-w-[280px] sm:max-w-xs text-left"
+      className="group relative flex items-center gap-2.5 h-10 px-3.5 rounded-full bg-surface-1 hover:bg-surface-sunken border border-stone-200/80 dark:border-stone-800 hover:border-amber-500/40 shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer active:scale-98 max-w-[280px] sm:max-w-xs text-left"
       title={`Konteks Kerja Aktif: ${displayName}`}
       aria-label="Buka Pengalih Konteks Kerja"
     >
-      <div className={`w-6 h-6 rounded-xl flex items-center justify-center shrink-0 border ${config.iconBg} group-hover:scale-105 transition-transform`}>
+      <div className="size-6 rounded-full flex items-center justify-center shrink-0 bg-amber-500/10 text-amber-700 dark:text-amber-400 group-hover:scale-105 transition-transform">
         {isSwitching ? (
-          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          <Loader2 className="size-3.5 animate-spin" />
         ) : (
-          <MapPin className="w-3.5 h-3.5" />
+          <MapPin className="size-3.5" />
         )}
       </div>
 
       <div className="flex flex-col min-w-0 flex-1">
-        <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider leading-none truncate">
+        <span className="micro-label text-ink-tertiary leading-none truncate">
           {config.label}
         </span>
-        <span className="text-xs font-bold text-text-high truncate group-hover:text-brand-primary transition-colors mt-0.5">
+        <span className="text-xs font-bold text-ink-primary truncate group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors mt-0.5">
           {displayName}
         </span>
       </div>
 
-      <ChevronDown className={`w-4 h-4 text-text-muted shrink-0 transition-transform duration-200 ${isSwitcherOpen ? 'rotate-180 text-brand-primary' : 'group-hover:translate-y-0.5'}`} />
+      <ChevronDown className={`size-4 text-ink-tertiary shrink-0 transition-transform duration-200 ${isSwitcherOpen ? 'rotate-180 text-amber-600' : 'group-hover:translate-y-0.5'}`} />
     </button>
   );
 }
@@ -213,22 +213,22 @@ export function ContextSwitcherSheet({ activeContextId, validContexts }: Context
   return (
     <Dialog open={isSwitcherOpen} onOpenChange={setSwitcherOpen}>
       <DialogContent 
-        className="max-w-lg md:max-w-xl w-[94vw] max-h-[85vh] p-0 overflow-hidden bg-surface-elevated border border-border-subtle rounded-3xl shadow-2xl flex flex-col"
+        className="max-w-lg md:max-w-xl w-[94vw] max-h-[85vh] p-0 overflow-hidden bg-surface-1 border border-stone-200/80 dark:border-stone-800 rounded-3xl shadow-2xl flex flex-col"
         showCloseButton={true}
       >
         <DialogTitle className="sr-only">Pilih Konteks Kerja Aktif</DialogTitle>
 
         {/* Modal Header */}
-        <div className="p-5 md:p-6 border-b border-border-subtle/80 bg-surface-sunken/40 space-y-4">
+        <div className="p-5 md:p-6 border-b border-stone-200/70 dark:border-stone-800/80 bg-stone-50/50 dark:bg-stone-900/40 space-y-4">
           <div className="flex items-center gap-3 pr-6">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-primary to-brand-primary/70 text-white flex items-center justify-center shadow-md shadow-brand-primary/20 shrink-0">
-              <Sparkles className="w-5 h-5" />
+            <div className="size-11 rounded-2xl bg-gradient-to-tr from-amber-600 to-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-600/20 shrink-0">
+              <Sparkles className="size-5" />
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-black text-text-high tracking-tight">
+              <h2 className="font-editorial text-lg sm:text-xl font-bold text-ink-primary tracking-tight">
                 Pilih Konteks Kerja Aktif
               </h2>
-              <p className="text-xs text-text-muted mt-0.5">
+              <p className="text-xs text-ink-secondary mt-0.5">
                 Sesuaikan ruang lingkup data, metrik, dan otoritas operasional.
               </p>
             </div>
@@ -236,23 +236,23 @@ export function ContextSwitcherSheet({ activeContextId, validContexts }: Context
 
           {/* Search Bar */}
           <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-ink-tertiary" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Ketik nama pos pelkes, jemaat induk, atau ID..."
-              className="w-full pl-10 pr-9 py-2.5 bg-surface-elevated border border-border-subtle rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-text-high placeholder:text-text-muted shadow-xs transition-all"
+              className="w-full pl-10 pr-9 py-2.5 bg-surface-1 border border-stone-200/80 dark:border-stone-800 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 text-ink-primary placeholder:text-ink-tertiary shadow-xs transition-all"
               autoFocus
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-high p-1 rounded-full hover:bg-surface-sunken transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-tertiary hover:text-ink-primary p-1 rounded-full hover:bg-surface-sunken transition-colors"
                 title="Hapus pencarian"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="size-3.5" />
               </button>
             )}
           </div>
@@ -266,14 +266,14 @@ export function ContextSwitcherSheet({ activeContextId, validContexts }: Context
                   key={tab.key}
                   type="button"
                   onClick={() => setFilterType(tab.key as any)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 border cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 flex items-center gap-1.5 border cursor-pointer ${
                     isActive
-                      ? 'bg-brand-primary text-white border-brand-primary shadow-xs'
-                      : 'bg-surface-elevated text-text-muted border-border-subtle hover:bg-surface-sunken hover:text-text-high'
+                      ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                      : 'bg-surface-1 text-ink-secondary border-stone-200 dark:border-stone-800 hover:bg-surface-sunken hover:text-ink-primary'
                   }`}
                 >
                   <span>{tab.label}</span>
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-surface-sunken text-text-muted'}`}>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-surface-sunken text-ink-tertiary'}`}>
                     {tab.count}
                   </span>
                 </button>
@@ -298,37 +298,37 @@ export function ContextSwitcherSheet({ activeContextId, validContexts }: Context
                 disabled={isPending || isSwitching}
                 className={`w-full text-left p-3.5 rounded-2xl border transition-all duration-150 flex items-center justify-between group cursor-pointer active:scale-[0.99] ${
                   isActive
-                    ? 'bg-brand-primary/10 border-brand-primary/50 shadow-xs ring-1 ring-brand-primary/20'
-                    : 'bg-surface-elevated border-border-subtle hover:border-brand-primary/40 hover:bg-surface-sunken'
+                    ? 'bg-amber-50/70 dark:bg-amber-950/30 border-amber-500/50 shadow-xs ring-1 ring-amber-500/30'
+                    : 'bg-surface-1 border-stone-200/70 dark:border-stone-800 hover:border-amber-500/35 hover:bg-surface-sunken'
                 }`}
               >
                 <div className="flex items-center gap-3.5 min-w-0 pr-2">
-                  <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border ${config.iconBg} group-hover:scale-105 transition-transform`}>
-                    <IconComp className="w-5 h-5" />
+                  <div className={`size-11 rounded-2xl flex items-center justify-center shrink-0 border ${config.iconBg} group-hover:scale-105 transition-transform`}>
+                    <IconComp className="size-5" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-bold text-text-high group-hover:text-brand-primary transition-colors truncate">
+                      <span className="text-xs sm:text-sm font-bold text-ink-primary group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors truncate">
                         {ctx.nama_pos}
                       </span>
-                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border uppercase tracking-wider ${config.badgeClass}`}>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border uppercase tracking-wider ${config.badgeClass}`}>
                         {config.label}
                       </span>
                     </div>
-                    <span className="text-xs font-mono text-text-muted block mt-0.5">
+                    <span className="text-xs font-mono text-ink-tertiary block mt-0.5">
                       ID: {ctx.id_pos}
                     </span>
                   </div>
                 </div>
 
                 {isActive ? (
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-brand-primary shrink-0 bg-brand-primary/15 px-3 py-1 rounded-full border border-brand-primary/30">
-                    <Check className="w-4 h-4" />
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400 shrink-0 bg-amber-500/15 px-3 py-1 rounded-full border border-amber-500/30">
+                    <Check className="size-4" />
                     <span>Aktif</span>
                   </div>
                 ) : (
-                  <div className="w-7 h-7 rounded-xl border border-border-subtle group-hover:border-brand-primary/40 flex items-center justify-center shrink-0 text-text-muted group-hover:text-brand-primary group-hover:translate-x-0.5 transition-all">
-                    <ChevronDown className="w-3.5 h-3.5 -rotate-90" />
+                  <div className="size-7 rounded-xl border border-stone-200 dark:border-stone-800 group-hover:border-amber-500/40 flex items-center justify-center shrink-0 text-ink-tertiary group-hover:text-amber-700 dark:group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all">
+                    <ChevronDown className="size-3.5 -rotate-90" />
                   </div>
                 )}
               </button>
@@ -337,11 +337,11 @@ export function ContextSwitcherSheet({ activeContextId, validContexts }: Context
 
           {filteredContexts.length === 0 && (
             <div className="py-14 text-center space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-surface-sunken flex items-center justify-center mx-auto text-text-muted">
-                <SlidersHorizontal className="w-6 h-6 opacity-60" />
+              <div className="size-12 rounded-2xl bg-surface-sunken flex items-center justify-center mx-auto text-ink-tertiary">
+                <SlidersHorizontal className="size-6 opacity-60" />
               </div>
-              <p className="text-sm font-bold text-text-high">Tidak ada unit ditemukan</p>
-              <p className="text-xs text-text-muted max-w-xs mx-auto">
+              <p className="font-editorial text-sm font-bold text-ink-primary">Tidak ada unit ditemukan</p>
+              <p className="text-xs text-ink-secondary max-w-xs mx-auto">
                 {searchQuery
                   ? `Tidak ada hasil untuk kata kunci "${searchQuery}".`
                   : 'Belum ada data untuk kategori ini.'}
@@ -351,7 +351,7 @@ export function ContextSwitcherSheet({ activeContextId, validContexts }: Context
         </div>
 
         {/* Modal Footer */}
-        <div className="p-3 px-5 border-t border-border-subtle/70 bg-surface-sunken/30 flex items-center justify-between text-[11px] text-text-muted">
+        <div className="p-3 px-5 border-t border-stone-200/70 dark:border-stone-800/80 bg-stone-50/50 dark:bg-stone-900/30 flex items-center justify-between text-[11px] text-ink-tertiary">
           <span>Total {filteredContexts.length} unit pelayanan tersedia</span>
           <span className="font-mono">Esc untuk tutup</span>
         </div>

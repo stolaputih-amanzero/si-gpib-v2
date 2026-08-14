@@ -9,7 +9,7 @@ import { ScopeIndicator, UserRoleScope } from '@/components/analitik/ScopeIndica
 import { getStatRoutes } from '@/lib/utils/stat-routes';
 import { formatNumber } from '@/lib/utils';
 import { PastoralStats } from '@/components/pastoral/PastoralStats';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { StatusPill } from '@/components/ui';
 import Link from 'next/link';
 import { getServerContext } from '@/lib/utils/context';
 import { getHumanReadableRoleLabel } from '@/lib/utils/role-presentation';
@@ -474,193 +474,198 @@ export default async function Dashboard() {
   ];
 
   return (
-    <div className="w-full min-h-full bg-surface-base pb-20">
-      <main className="max-w-6xl mx-auto space-y-6">
+    <div className="w-full min-h-full bg-surface-base pb-28 pt-2 sm:pt-4">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
-        {/* LAYER 1: CONTEXT LAYER (Konteks Kerja User) */}
-        <section className="bg-surface-elevated border border-border-subtle rounded-2xl p-4 sm:p-5 shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-brand-primary">
-                  ⛪ Sinode GPIB
-                </span>
-                <span className="text-text-tertiary">•</span>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
+        {/* LAYER 1: CONTEXT LAYER (Hero & Konteks Kerja User) */}
+        <section className="relative rounded-3xl bg-surface-1 border border-amber-900/10 dark:border-stone-800 p-6 sm:p-8 shadow-xs overflow-hidden">
+          {/* Subtle Ambient Light Decoration */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-radial from-amber-500/10 via-transparent to-transparent pointer-events-none -mr-20 -mt-20 blur-2xl" />
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <StatusPill variant="gold" dot={true}>
+                  Sinode GPIB
+                </StatusPill>
+                <StatusPill variant="blue" dot={false}>
                   {humanRole}
-                </span>
-                <span className="text-text-tertiary">•</span>
-                <span className="text-xs font-semibold text-text-muted">
+                </StatusPill>
+                <span className="text-ink-tertiary text-xs">•</span>
+                <span className="text-xs font-semibold text-ink-secondary">
                   {scopeLabel}
                 </span>
               </div>
-              <h1 className="text-xl md:text-2xl font-bold text-text-high tracking-tight">
-                Selamat Datang, {userNama}
+              
+              <h1 className="font-editorial text-2xl sm:text-3xl md:text-4xl font-bold text-ink-primary tracking-tight">
+                Selamat Datang, <span className="font-editorial-italic font-normal text-amber-700 dark:text-amber-400">{userNama}</span>
               </h1>
+              <p className="text-xs sm:text-sm text-ink-secondary max-w-xl leading-relaxed">
+                Platform Tata Kelola Terpadu &amp; Transparansi Pelayanan Gereja Protestan di Indonesia bagian Barat.
+              </p>
             </div>
-            <div className="shrink-0">
+
+            <div className="shrink-0 pt-2 md:pt-0">
               <ScopeIndicator scope={roleScopeObj} />
             </div>
           </div>
         </section>
 
         {/* LAYER 2: ATTENTION LAYER (Perhatian Utama Operasional & Proyeksi Antrean) */}
-        <section className="space-y-3">
+        <section className="space-y-3.5">
           <div className="flex items-center justify-between px-1">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
-              <AlertCircle className="w-4 h-4 text-amber-500" />
-              <span>Perlu Perhatian &amp; Proyeksi Operasional</span>
-            </h2>
+            <span className="micro-label text-ink-tertiary flex items-center gap-1.5">
+              <AlertCircle className="size-3.5 text-amber-600 dark:text-amber-400" />
+              <span>Perhatian Utama &amp; Proyeksi Operasional</span>
+            </span>
           </div>
 
-          <div className="space-y-2.5">
+          <div>
             {pendingAidCount > 0 ? (
-              <Card className="border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 transition-colors">
-                <CardContent className="p-3.5 sm:p-4">
-                  <Link href="/projections/aid-queue" className="flex items-center justify-between group min-h-[44px]" aria-label="Review antrean permohonan bantuan">
-                    <div className="flex items-center gap-3 min-w-0 pr-2">
-                      <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 shrink-0">
-                        <HeartHandshake className="w-5 h-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-text-high truncate group-hover:text-amber-400 transition-colors">
-                            {pendingAidCount} Permohonan Bantuan Menunggu Review
-                          </span>
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950 shrink-0 uppercase tracking-wider">
-                            Proyeksi Review
-                          </span>
-                        </div>
-                        <p className="text-xs text-text-muted mt-0.5 line-clamp-1">
-                          Ajuan bantuan pos pelkes memerlukan verifikasi &amp; persetujuan KMJ / Sinode
-                        </p>
-                      </div>
+              <div className="rounded-3xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-surface-1 dark:from-amber-950/25 dark:via-stone-900 dark:to-surface-1 p-5 sm:p-6 shadow-sm hover:shadow-md transition-all">
+                <Link href="/projections/aid-queue" className="flex items-center justify-between group min-h-[44px]" aria-label="Review antrean permohonan bantuan">
+                  <div className="flex items-center gap-4 min-w-0 pr-2">
+                    <div className="p-3 rounded-2xl bg-amber-500/20 text-amber-700 dark:text-amber-400 shrink-0">
+                      <HeartHandshake className="size-6" />
                     </div>
-                    <ChevronRight className="w-5 h-5 text-amber-500 group-hover:translate-x-1 transition-all shrink-0" />
-                  </Link>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="border-border-subtle bg-surface-elevated">
-                <CardContent className="p-3.5 sm:p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 shrink-0">
-                      <CheckCircle2 className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <span className="text-sm font-bold text-text-high block">Semua Operasional Lancar</span>
-                      <span className="text-xs text-text-muted block">Tidak ada antrean persetujuan bantuan atau tugas mendesak yang tertunda.</span>
+                    <div className="min-w-0 space-y-1">
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <span className="font-editorial text-base sm:text-lg font-bold text-ink-primary group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
+                          {pendingAidCount} Permohonan Bantuan Menunggu Review
+                        </span>
+                        <StatusPill variant="gold" pulse>
+                          Perlu Tindakan Segera
+                        </StatusPill>
+                      </div>
+                      <p className="text-xs sm:text-sm text-ink-secondary line-clamp-1">
+                        Ajuan bantuan pos pelkes memerlukan verifikasi &amp; persetujuan KMJ / Sinode
+                      </p>
                     </div>
                   </div>
-                  <Link href="/projections/aid-queue" className="text-xs font-bold text-brand-primary hover:underline min-h-[44px] flex items-center" aria-label="Review antrean permohonan bantuan">
-                    Buka Antrean Bantuan
-                  </Link>
-                </CardContent>
-              </Card>
+                  <ChevronRight className="size-5 text-amber-600 dark:text-amber-400 group-hover:translate-x-1 transition-all shrink-0" />
+                </Link>
+              </div>
+            ) : (
+              <div className="rounded-3xl border border-stone-200/80 dark:border-stone-800 bg-surface-1 p-5 sm:p-6 shadow-xs flex items-center justify-between">
+                <div className="flex items-center gap-3.5">
+                  <div className="p-2.5 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+                    <CheckCircle2 className="size-5" />
+                  </div>
+                  <div>
+                    <span className="font-editorial text-sm sm:text-base font-bold text-ink-primary block">Semua Operasional Terkendali</span>
+                    <span className="text-xs text-ink-secondary block">Tidak ada antrean persetujuan bantuan atau tugas mendesak yang tertunda.</span>
+                  </div>
+                </div>
+                <Link href="/projections/aid-queue" className="micro-label text-amber-700 dark:text-amber-400 hover:underline min-h-[44px] flex items-center shrink-0" aria-label="Review antrean permohonan bantuan">
+                  Buka Antrean Bantuan →
+                </Link>
+              </div>
             )}
           </div>
         </section>
 
         {/* LAYER 3: ACTION LAYER (Entri Aksi Informasi Shortcuts) */}
-        <section className="space-y-3">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-text-muted px-1">
-            Aksi Informasi Ringkas
-          </h2>
+        <section className="space-y-3.5">
+          <div className="flex items-center justify-between px-1">
+            <span className="micro-label text-ink-tertiary">
+              Aksi Informasi Ringkas
+            </span>
+          </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
             <Link
               href="/analytics"
-              className="p-4 rounded-xl bg-surface-elevated border border-border-subtle hover:bg-surface-sunken hover:border-indigo-500/40 transition-all flex flex-col justify-between group min-h-[88px] shadow-xs"
+              className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-surface-1 border border-stone-200/80 dark:border-stone-800 hover:border-amber-500/35 hover:shadow-md transition-all flex flex-col justify-between group min-h-[110px]"
               aria-label="Buka Dashboard Analitik"
             >
-              <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 w-fit group-hover:scale-105 transition-transform border border-indigo-500/20">
-                <BarChart3 className="w-4 h-4" />
+              <div className="p-2.5 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 w-fit group-hover:scale-105 transition-transform">
+                <BarChart3 className="size-4.5" />
               </div>
-              <div>
-                <span className="text-xs font-bold text-text-high block truncate group-hover:text-indigo-400 transition-colors">
+              <div className="mt-3">
+                <span className="text-xs sm:text-sm font-bold text-ink-primary block truncate group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
                   Analitik
                 </span>
-                <span className="text-[11px] text-text-muted block truncate">KPI &amp; Tren data</span>
+                <span className="text-[11px] text-ink-secondary block truncate">KPI &amp; Tren data</span>
               </div>
             </Link>
 
             <Link
               href="/maps"
-              className="p-4 rounded-xl bg-surface-elevated border border-border-subtle hover:bg-surface-sunken hover:border-teal-500/40 transition-all flex flex-col justify-between group min-h-[88px] shadow-xs"
+              className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-surface-1 border border-stone-200/80 dark:border-stone-800 hover:border-amber-500/35 hover:shadow-md transition-all flex flex-col justify-between group min-h-[110px]"
               aria-label="Buka Peta Sebaran"
             >
-              <div className="p-2 rounded-lg bg-teal-500/10 text-teal-400 w-fit group-hover:scale-105 transition-transform border border-teal-500/20">
-                <Map className="w-4 h-4" />
+              <div className="p-2.5 rounded-2xl bg-teal-500/10 text-teal-600 dark:text-teal-400 w-fit group-hover:scale-105 transition-transform">
+                <Map className="size-4.5" />
               </div>
-              <div>
-                <span className="text-xs font-bold text-text-high block truncate group-hover:text-teal-400 transition-colors">
+              <div className="mt-3">
+                <span className="text-xs sm:text-sm font-bold text-ink-primary block truncate group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
                   Peta Sebaran
                 </span>
-                <span className="text-[11px] text-text-muted block truncate">Peta teritori</span>
+                <span className="text-[11px] text-ink-secondary block truncate">Peta teritori</span>
               </div>
             </Link>
 
             <Link
               href="/dashboard/aktivitas"
-              className="p-4 rounded-xl bg-surface-elevated border border-border-subtle hover:bg-surface-sunken hover:border-blue-500/40 transition-all flex flex-col justify-between group min-h-[88px] shadow-xs"
+              className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-surface-1 border border-stone-200/80 dark:border-stone-800 hover:border-amber-500/35 hover:shadow-md transition-all flex flex-col justify-between group min-h-[110px]"
               aria-label="Buka Log Pastoral"
             >
-              <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400 w-fit group-hover:scale-105 transition-transform border border-blue-500/20">
-                <FileText className="w-4 h-4" />
+              <div className="p-2.5 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 w-fit group-hover:scale-105 transition-transform">
+                <FileText className="size-4.5" />
               </div>
-              <div>
-                <span className="text-xs font-bold text-text-high block truncate group-hover:text-blue-400 transition-colors">
+              <div className="mt-3">
+                <span className="text-xs sm:text-sm font-bold text-ink-primary block truncate group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
                   Log Pastoral
                 </span>
-                <span className="text-[11px] text-text-muted block truncate">Catatan kegiatan</span>
+                <span className="text-[11px] text-ink-secondary block truncate">Catatan kegiatan</span>
               </div>
             </Link>
 
             <Link
               href="/aid-requests"
-              className="p-4 rounded-xl bg-surface-elevated border border-border-subtle hover:bg-surface-sunken hover:border-amber-500/40 transition-all flex flex-col justify-between group min-h-[88px] shadow-xs"
+              className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-surface-1 border border-stone-200/80 dark:border-stone-800 hover:border-amber-500/35 hover:shadow-md transition-all flex flex-col justify-between group min-h-[110px]"
               aria-label="Buka Permohonan Bantuan"
             >
-              <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 w-fit group-hover:scale-105 transition-transform border border-amber-500/20">
-                <HeartHandshake className="w-4 h-4" />
+              <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-700 dark:text-amber-400 w-fit group-hover:scale-105 transition-transform">
+                <HeartHandshake className="size-4.5" />
               </div>
-              <div>
-                <span className="text-xs font-bold text-text-high block truncate group-hover:text-amber-400 transition-colors">
+              <div className="mt-3">
+                <span className="text-xs sm:text-sm font-bold text-ink-primary block truncate group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
                   Ajukan Bantuan
                 </span>
-                <span className="text-[11px] text-text-muted block truncate">Permohonan pos</span>
+                <span className="text-[11px] text-ink-secondary block truncate">Permohonan pos</span>
               </div>
             </Link>
 
             <Link
               href="/people"
-              className="p-4 rounded-xl bg-surface-elevated border border-border-subtle hover:bg-surface-sunken hover:border-emerald-500/40 transition-all flex flex-col justify-between group min-h-[88px] shadow-xs"
+              className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-surface-1 border border-stone-200/80 dark:border-stone-800 hover:border-amber-500/35 hover:shadow-md transition-all flex flex-col justify-between group min-h-[110px]"
               aria-label="Buka Direktori SDM"
             >
-              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 w-fit group-hover:scale-105 transition-transform border border-emerald-500/20">
-                <Users className="w-4 h-4" />
+              <div className="p-2.5 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 w-fit group-hover:scale-105 transition-transform">
+                <Users className="size-4.5" />
               </div>
-              <div>
-                <span className="text-xs font-bold text-text-high block truncate group-hover:text-emerald-400 transition-colors">
+              <div className="mt-3">
+                <span className="text-xs sm:text-sm font-bold text-ink-primary block truncate group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
                   Direktori SDM
                 </span>
-                <span className="text-[11px] text-text-muted block truncate">Pendeta &amp; Pelayan</span>
+                <span className="text-[11px] text-ink-secondary block truncate">Pendeta &amp; Pelayan</span>
               </div>
             </Link>
 
             <Link
               href="/org"
-              className="p-4 rounded-xl bg-surface-elevated border border-border-subtle hover:bg-surface-sunken hover:border-purple-500/40 transition-all flex flex-col justify-between group min-h-[88px] shadow-xs"
+              className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-surface-1 border border-stone-200/80 dark:border-stone-800 hover:border-amber-500/35 hover:shadow-md transition-all flex flex-col justify-between group min-h-[110px]"
               aria-label="Buka Direktori Organisasi"
             >
-              <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400 w-fit group-hover:scale-105 transition-transform border border-purple-500/20">
-                <Building className="w-4 h-4" />
+              <div className="p-2.5 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 w-fit group-hover:scale-105 transition-transform">
+                <Building className="size-4.5" />
               </div>
-              <div>
-                <span className="text-xs font-bold text-text-high block truncate group-hover:text-purple-400 transition-colors">
+              <div className="mt-3">
+                <span className="text-xs sm:text-sm font-bold text-ink-primary block truncate group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
                   Direktori Org
                 </span>
-                <span className="text-[11px] text-text-muted block truncate">Pos &amp; Jemaat Induk</span>
+                <span className="text-[11px] text-ink-secondary block truncate">Pos &amp; Jemaat Induk</span>
               </div>
             </Link>
           </div>
@@ -669,24 +674,24 @@ export default async function Dashboard() {
         {/* LAYER 4: INSIGHT LAYER (Statistik & Demografi Ringkas) */}
         <section className="space-y-4 pt-2">
           <div className="flex items-center justify-between px-1">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-text-muted">
+            <span className="micro-label text-ink-tertiary">
               Ringkasan Statistik &amp; Demografi
-            </h2>
+            </span>
             <Link
               href="/projections/reports"
-              className="text-xs font-bold text-brand-primary hover:underline flex items-center gap-1 min-h-[44px]"
+              className="micro-label text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-1 min-h-[44px]"
               aria-label="Buka Laporan & Analitik Full"
             >
               <span>Buka Laporan Full</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
+              <ArrowUpRight className="size-3.5" />
             </Link>
           </div>
 
-          <div className="ambient-glow">
+          <div>
             <StatCards stats={customStats} />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-7">
             <div className="lg:col-span-2">
               <DemografiChart data={chartData} />
             </div>
@@ -696,19 +701,15 @@ export default async function Dashboard() {
           </div>
 
           {userRole === 'kmj' && userIndukId && (
-            <Card className="mt-6 border-border-subtle bg-surface-elevated">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between text-base font-bold text-text-high">
-                  <span>Aktivitas Pastoral Minggu Ini</span>
-                  <Link href="/projections/pastoral-dashboard" className="text-xs font-bold text-brand-primary hover:underline">
-                    Lihat Semua
-                  </Link>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <PastoralStats idJemaat={userIndukId} />
-              </CardContent>
-            </Card>
+            <div className="mt-6 rounded-3xl border border-stone-200/80 dark:border-stone-800 bg-surface-1 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-editorial text-lg font-bold text-ink-primary">Aktivitas Pastoral Minggu Ini</h3>
+                <Link href="/projections/pastoral-dashboard" className="micro-label text-amber-700 dark:text-amber-400 hover:underline">
+                  Lihat Semua →
+                </Link>
+              </div>
+              <PastoralStats idJemaat={userIndukId} />
+            </div>
           )}
         </section>
       </main>

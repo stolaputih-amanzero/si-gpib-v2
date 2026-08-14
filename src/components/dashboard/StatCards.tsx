@@ -60,40 +60,6 @@ const ICON_MAP: Record<string, any> = {
   giat: CalendarCheck,
 };
 
-// Mapping warna berdasarkan tipe/key
-const COLOR_MAP: Record<string, { bg: string; text: string; gradient: string }> = {
-  mupel: {
-    bg: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
-    text: 'text-purple-600 dark:text-purple-400',
-    gradient: 'from-purple-600 to-indigo-600',
-  },
-  jemaat: {
-    bg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
-    text: 'text-indigo-600 dark:text-indigo-400',
-    gradient: 'from-indigo-600 to-blue-600',
-  },
-  bajem: {
-    bg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-    text: 'text-emerald-600 dark:text-emerald-400',
-    gradient: 'from-emerald-600 to-teal-600',
-  },
-  pos: {
-    bg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
-    text: 'text-blue-600 dark:text-blue-400',
-    gradient: 'from-blue-600 to-cyan-600',
-  },
-  jiwa: {
-    bg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
-    text: 'text-amber-600 dark:text-amber-400',
-    gradient: 'from-amber-500 to-orange-600',
-  },
-  giat: {
-    bg: 'bg-teal-500/10 text-teal-600 dark:text-teal-400',
-    text: 'text-teal-600 dark:text-teal-400',
-    gradient: 'from-teal-600 to-emerald-600',
-  },
-};
-
 // Mapping rute navigasi terpusat berdasarkan tipe kartu
 const ROUTE_MAP: Record<string, string> = getStatRoutes();
 
@@ -170,14 +136,13 @@ export function StatCards({
     <div
       ref={revealRef}
       className={cn(
-        'reveal-stagger grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5',
+        'reveal-stagger grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4',
         className
       )}
     >
       {items.map((stat: any, idx: number) => {
         const key = stat.iconKey || stat.icon || stat.key || 'mupel';
         const IconComponent = typeof stat.icon === 'function' ? stat.icon : (ICON_MAP[key] || Layers);
-        const colors = COLOR_MAP[key] || COLOR_MAP.mupel;
         const targetHref = stat.href || ROUTE_MAP[key] || '/hierarki';
         const ariaLabel = ARIA_LABEL_MAP[key] || `Lihat rincian ${stat.label || stat.title}`;
 
@@ -192,61 +157,47 @@ export function StatCards({
             onClick={handleClick}
             className={cn(
               'group relative',
-              'bg-surface-1 dark:bg-gray-800',
-              'rounded-2xl p-3 sm:p-4',
-              'border border-border-subtle dark:border-gray-700',
-              'hover:border-brand-primary/40',
-              'hover:shadow-md hover:shadow-black/5 dark:hover:shadow-black/20',
+              'bg-surface-1',
+              'rounded-2xl sm:rounded-3xl p-4 sm:p-5',
+              'border border-stone-200/80 dark:border-stone-800',
+              'hover:border-amber-500/35 dark:hover:border-amber-500/40',
+              'hover:shadow-md hover:shadow-amber-600/5 dark:hover:shadow-black/30',
               'active:scale-[0.98]',
               'focus:outline-none focus:ring-2 focus:ring-offset-2',
-              'focus:ring-brand-primary dark:focus:ring-blue-400',
+              'focus:ring-amber-500/50',
               'transition-all duration-200',
               'cursor-pointer flex flex-col justify-between',
-              'min-h-[100px] sm:min-h-[120px]',
+              'min-h-[110px] sm:min-h-[130px]',
               'overflow-hidden'
             )}
             aria-label={ariaLabel}
           >
-            {/* Decorative gradient background on hover */}
-            <div
-              className={cn(
-                'absolute inset-0 opacity-0 group-hover:opacity-100',
-                'bg-gradient-to-br',
-                colors.gradient,
-                'transition-opacity duration-300',
-                'pointer-events-none'
-              )}
-              aria-hidden="true"
-            />
-
-            {/* Header: Label & Icon */}
-            <div className="relative z-10 flex items-center justify-between mb-1.5 sm:mb-2">
+            {/* Header: Micro-Label & Icon */}
+            <div className="relative z-10 flex items-center justify-between mb-2 sm:mb-3">
               <p
                 className={cn(
-                  'text-[10px] sm:text-xs font-bold uppercase tracking-tight sm:tracking-wide',
-                  'text-ink-tertiary dark:text-gray-400',
-                  'group-hover:text-white/90',
+                  'micro-label text-ink-tertiary',
+                  'group-hover:text-amber-800 dark:group-hover:text-amber-300',
                   'transition-colors duration-200',
                   'truncate'
                 )}
               >
                 {stat.label || stat.title}
               </p>
-              <div className="flex items-center gap-0.5 sm:gap-1">
+              <div className="flex items-center gap-1">
                 <span
                   className={cn(
-                    'grid h-7 w-7 sm:h-9 sm:w-9 shrink-0 place-items-center rounded-xl transition-all duration-200',
-                    colors.bg,
-                    'group-hover:bg-white/20 group-hover:text-white group-hover:backdrop-blur-sm'
+                    'grid h-8 w-8 sm:h-9 sm:w-9 shrink-0 place-items-center rounded-xl transition-all duration-200',
+                    'bg-amber-500/10 text-amber-700 dark:text-amber-400 group-hover:bg-amber-500 group-hover:text-white'
                   )}
                 >
-                  <IconComponent className="h-3.5 w-3.5 sm:h-4.5 sm:w-4.5" />
+                  <IconComponent className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
                 </span>
                 <ChevronRight
                   className={cn(
                     'w-3.5 h-3.5 transition-all duration-200',
-                    'text-ink-tertiary/40 dark:text-gray-600',
-                    'group-hover:text-white',
+                    'text-ink-tertiary/40 dark:text-stone-600',
+                    'group-hover:text-amber-600 dark:group-hover:text-amber-400',
                     'group-hover:translate-x-0.5',
                     'opacity-0 group-hover:opacity-100 hidden sm:block'
                   )}
@@ -260,9 +211,8 @@ export function StatCards({
               <div className="flex items-baseline gap-1.5 sm:gap-2">
                 <p
                   className={cn(
-                    'font-display tnum text-xl sm:text-3xl lg:text-4xl font-black tracking-tighter2',
-                    'text-ink-primary dark:text-white',
-                    'group-hover:text-white',
+                    'font-editorial tnum text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight',
+                    'text-ink-primary group-hover:text-amber-800 dark:group-hover:text-amber-300',
                     'transition-colors duration-200'
                   )}
                 >
@@ -274,8 +224,8 @@ export function StatCards({
                       'flex items-center gap-0.5 text-xs font-semibold',
                       'transition-colors duration-200',
                       stat.trend.direction === 'up'
-                        ? 'text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-100'
-                        : 'text-red-600 dark:text-red-400 group-hover:text-red-100'
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-rose-600 dark:text-rose-400'
                     )}
                   >
                     {stat.trend.direction === 'up' ? (
@@ -293,9 +243,7 @@ export function StatCards({
                 <p
                   className={cn(
                     'text-[11px] mt-0.5',
-                    'text-ink-tertiary dark:text-gray-400',
-                    'group-hover:text-white/80',
-                    'transition-colors duration-200',
+                    'text-ink-secondary',
                     'line-clamp-1'
                   )}
                 >
@@ -303,19 +251,6 @@ export function StatCards({
                 </p>
               )}
             </div>
-
-            {/* Bottom accent bar - animation on hover */}
-            <div
-              className={cn(
-                'absolute bottom-0 left-0 right-0 h-0.5',
-                'bg-gradient-to-r',
-                colors.gradient,
-                'transform scale-x-0 group-hover:scale-x-100',
-                'origin-left',
-                'transition-transform duration-300'
-              )}
-              aria-hidden="true"
-            />
           </Link>
         );
       })}

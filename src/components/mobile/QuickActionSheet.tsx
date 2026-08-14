@@ -101,36 +101,35 @@ export function QuickActionSheet({ isOpen, onClose }: QuickActionSheetProps) {
 
       {/* Sheet Container with Solid Theme Surface */}
       <div 
-        className="relative w-full max-w-2xl bg-surface-1 text-ink-primary rounded-t-3xl shadow-2xl border-t border-line-subtle animate-slide-up overflow-hidden select-none"
-        style={{ backgroundColor: 'var(--surface-1)', color: 'var(--text-primary)' }}
+        className="relative w-full max-w-2xl bg-surface-1 text-ink-primary rounded-t-3xl sm:rounded-3xl shadow-2xl border-t sm:border border-stone-200/80 dark:border-stone-800 animate-slide-up overflow-hidden select-none"
       >
         {/* Drag Handle */}
-        <div className="flex justify-center pt-3 pb-2">
-          <div className="w-12 h-1 rounded-full bg-line-subtle opacity-70" />
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="w-12 h-1.5 rounded-full bg-stone-300 dark:bg-stone-700 opacity-80" />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pb-3.5 border-b border-line-subtle">
+        <div className="flex items-center justify-between px-6 py-3.5 border-b border-stone-200/60 dark:border-stone-800/80">
           <div>
-            <h2 className="font-display font-bold text-lg text-ink-primary">
+            <h2 className="font-editorial font-bold text-lg sm:text-xl text-ink-primary">
               Aksi Cepat Pelayanan
             </h2>
-            <p className="text-xs text-ink-secondary">
-              Pilih tindakan langsung untuk menginput data
+            <p className="micro-label text-ink-tertiary">
+              Pilih tindakan langsung untuk input data
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-ink-secondary hover:text-ink-primary hover:bg-surface-sunken active:scale-95 transition-all min-h-[44px] min-w-[44px] flex items-center justify-center border border-line-subtle/50"
+            className="p-2 rounded-full text-ink-secondary hover:text-ink-primary hover:bg-surface-sunken active:scale-95 transition-all min-h-[40px] min-w-[40px] flex items-center justify-center border border-stone-200/50 dark:border-stone-800"
             aria-label="Tutup Menu"
           >
-            <X className="w-5 h-5 text-ink-primary" />
+            <X className="size-4.5 text-ink-primary" />
           </button>
         </div>
 
         {/* Actions Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 pb-safe max-h-[70vh] overflow-y-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-3.5 p-5 pb-safe max-h-[70vh] overflow-y-auto">
           {QUICK_ACTIONS.map((action) => {
             const Icon = action.icon;
             return (
@@ -146,21 +145,21 @@ export function QuickActionSheet({ isOpen, onClose }: QuickActionSheetProps) {
                     onClose();
                   }
                 }}
-                className="tap flex flex-col items-center justify-center p-3.5 rounded-2xl bg-surface-sunken hover:bg-surface-sunken/80 active:scale-[0.97] transition-all min-h-[110px] text-center border border-line-subtle/50 group"
+                className="tap flex flex-col items-center justify-center p-4 rounded-2xl bg-stone-50/70 dark:bg-stone-900/50 hover:bg-surface-1 hover:border-amber-500/35 hover:shadow-md active:scale-[0.97] transition-all min-h-[115px] text-center border border-stone-200/70 dark:border-stone-800 group"
               >
                 <div
                   className={cn(
-                    'w-12 h-12 rounded-2xl flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform border border-line-hairline',
+                    'w-12 h-12 rounded-2xl flex items-center justify-center shadow-xs mb-2.5 group-hover:scale-105 transition-transform border border-line-hairline',
                     action.color
                   )}
                 >
-                  <Icon className="w-6 h-6 stroke-[2.2px]" />
+                  <Icon className="size-5 stroke-[2.2px]" />
                 </div>
-                <span className="font-display text-xs font-bold text-ink-primary leading-tight line-clamp-1 group-hover:text-brand-600 transition-colors">
+                <span className="font-editorial text-xs sm:text-sm font-bold text-ink-primary leading-tight line-clamp-1 group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
                   {action.label}
                 </span>
                 {action.description && (
-                  <span className="text-[10px] text-ink-secondary mt-0.5 line-clamp-1 font-medium">
+                  <span className="text-[10px] text-ink-secondary mt-0.5 line-clamp-1">
                     {action.description}
                   </span>
                 )}

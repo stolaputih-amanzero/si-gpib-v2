@@ -4,9 +4,8 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import Link from 'next/link';
-import { Navigation } from 'lucide-react';
+import { Navigation, ArrowRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
-
 
 const customIcon = L.icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -30,8 +29,6 @@ interface PosPelkes {
 interface PosPelkesMapProps {
   posPelkesData: PosPelkes[];
 }
-
-
 
 export default function PosPelkesMap({ posPelkesData }: PosPelkesMapProps) {
   // Default center (Indonesia)
@@ -72,25 +69,39 @@ export default function PosPelkesMap({ posPelkesData }: PosPelkesMapProps) {
             icon={customIcon}
           >
             <Popup>
-              <div className="p-1 min-w-[200px]">
-                <h3 className="font-bold text-brand-primary text-sm mb-1">{pos.nama_pos}</h3>
-                <p className="text-xs text-text-muted mb-3 line-clamp-2">{pos.alamat}</p>
+              <div className="p-2.5 min-w-[220px] max-w-[280px] space-y-2 text-slate-900 dark:text-slate-100">
+                <div className="border-b border-stone-200/70 dark:border-stone-800 pb-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-900 dark:bg-blue-950/80 dark:text-blue-300 border border-blue-200 dark:border-blue-800 inline-block mb-1">
+                    Pos Pelkes
+                  </span>
+                  <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white leading-snug">
+                    {pos.nama_pos}
+                  </h3>
+                </div>
+
+                {pos.alamat && (
+                  <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">
+                    {pos.alamat}
+                  </p>
+                )}
                 
-                <div className="flex gap-2">
+                <div className="flex gap-2 pt-1">
                   <Link 
-                    href={`/dashboard/pos-pelkes/${pos.id_pos}`}
-                    className="flex-1 bg-brand-primary text-white text-center text-xs py-1.5 rounded hover:bg-blue-800 transition-colors"
+                    href={`/org/${encodeURIComponent(pos.id_pos)}`}
+                    className="flex-1 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white text-center text-xs font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-[0.98]"
+                    style={{ color: '#ffffff' }}
                   >
-                    Detail
+                    <span>Detail Pos</span>
+                    <ArrowRight className="size-3 text-white" />
                   </Link>
                   <a 
                     href={`https://www.google.com/maps/dir/?api=1&destination=${pos.latitude},${pos.longitude}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 bg-green-600 text-white flex items-center justify-center text-xs py-1.5 rounded hover:bg-green-700 transition-colors"
+                    className="p-2 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 border border-stone-300 dark:border-stone-700 transition-colors flex items-center justify-center"
+                    title="Navigasi Google Maps"
                   >
-                    <Navigation size={12} className="mr-1" />
-                    Navigasi
+                    <Navigation size={14} className="text-amber-600 dark:text-amber-400" />
                   </a>
                 </div>
               </div>
