@@ -29,19 +29,20 @@ export async function updateSession(request: NextRequest) {
 
   let user: any = null
 
-  try {
-    const { data } = await supabase.auth.getUser()
-    user = data.user
-  } catch {}
+  // 1. Fast path: Check custom session cookie first (instant 0ms memory check)
+  const sessionCookie = request.cookies.get('si_gpib_user_session')?.value
+  if (sessionCookie) {
+    try {
+      user = JSON.parse(sessionCookie)
+    } catch {}
+  }
 
-  // Fallback to custom session cookie if Supabase Auth user is not active
+  // 2. Fallback: Query Supabase Auth only if no custom session cookie is present
   if (!user) {
-    const sessionCookie = request.cookies.get('si_gpib_user_session')?.value
-    if (sessionCookie) {
-      try {
-        user = JSON.parse(sessionCookie)
-      } catch {}
-    }
+    try {
+      const { data } = await supabase.auth.getUser()
+      user = data.user
+    } catch {}
   }
 
 
