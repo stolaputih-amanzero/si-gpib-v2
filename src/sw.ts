@@ -5,7 +5,7 @@
 // JANGAN gunakan next-pwa. File ini di-compile oleh @serwist/next saat build.
 
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
-import { registerRoute, NavigationRoute } from 'workbox-routing';
+import { registerRoute, NavigationRoute, setCatchHandler } from 'workbox-routing';
 import {
   CacheFirst,
   StaleWhileRevalidate,
@@ -32,7 +32,7 @@ cleanupOutdatedCaches();
 // ============================================
 const navigationHandler = new NetworkFirst({
   cacheName: 'sios-pages-v2',
-  networkTimeoutSeconds: 10,
+  networkTimeoutSeconds: 5,
   plugins: [
     new CacheableResponsePlugin({ statuses: [200] }),
     new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 24 * 60 * 60 }),
@@ -40,25 +40,29 @@ const navigationHandler = new NetworkFirst({
 });
 
 const navigationRoute = new NavigationRoute(navigationHandler, {
-  // Jangan intercept API routes dan auth
-  denylist: [/^\/api\//, /^\/auth\//, /^\/login/, /^\/register/],
+  // Jangan intercept API routes, auth, server actions, dan file statis
+  denylist: [
+    /^\/api\//,
+    /^\/auth\//,
+    /^\/login/,
+    /^\/register/,
+    /^\/forgot-password/,
+    /^\/_next\//,
+  ],
 });
 registerRoute(navigationRoute);
 
-// Fallback saat offline total
-self.addEventListener('fetch', (event: any) => {
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      navigationHandler.handle(event).catch(async () => {
-        const cachedFallback = await caches.match('/offline');
-        if (cachedFallback) return cachedFallback;
-        return new Response(
-          '<html><body><h1>Offline</h1><p>SI GPIB tidak dapat terhubung ke internet.</p></body></html>',
-          { headers: { 'Content-Type': 'text/html' } }
-        );
-      })
+// Standard offline catch handler for failed navigations
+setCatchHandler(async ({ request }) => {
+  if (request.mode === 'navigate' || request.destination === 'document') {
+    const cachedFallback = await caches.match('/offline');
+    if (cachedFallback) return cachedFallback;
+    return new Response(
+      '<html><body><h1>Offline</h1><p>SI GPIB tidak dapat terhubung ke internet.</p></body></html>',
+      { headers: { 'Content-Type': 'text/html' } }
     );
   }
+  return Response.error();
 });
 
 // ============================================
@@ -139,27 +143,25 @@ const mutationQueuePlugin = new BackgroundSyncPlugin('sios-mutation-queue', {
 });
 
 registerRoute(
-  ({ request }) => request.method !== 'GET',
+  ({ request, url }) =>
+    request.method === 'POST' &&
+    !url.pathname.startsWith('/api/auth') &&
+    !url.pathname.startsWith('/login') &&
+    !url.pathname.startsWith('/register') &&
+    !request.headers.has('next-action') &&
+    !request.headers.has('rsc'),
   new NetworkOnly({
     plugins: [mutationQueuePlugin],
-  }),
-  'POST'
+  })
 );
 
 registerRoute(
-  ({ request }) => request.method !== 'GET',
+  ({ request, url }) =>
+    (request.method === 'PUT' || request.method === 'DELETE') &&
+    !url.pathname.startsWith('/api/auth'),
   new NetworkOnly({
     plugins: [mutationQueuePlugin],
-  }),
-  'PUT'
-);
-
-registerRoute(
-  ({ request }) => request.method !== 'GET',
-  new NetworkOnly({
-    plugins: [mutationQueuePlugin],
-  }),
-  'DELETE'
+  })
 );
 
 // ============================================
