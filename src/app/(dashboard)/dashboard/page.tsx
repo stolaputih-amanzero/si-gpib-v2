@@ -1,4 +1,3 @@
-import { createClient as createServerClient } from '@/lib/supabase/server';
 import { normalizeRole } from '@/hooks/use-hierarki-selector';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { StatCards } from '@/components/dashboard/StatCards';
@@ -24,7 +23,6 @@ interface DemografiRow {
 }
 
 export default async function Dashboard() {
-  const supabaseServer = await createServerClient();
   const supabaseAdmin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -36,7 +34,7 @@ export default async function Dashboard() {
 
   // 1. Resolve logged in user session & role scope
   const context = await getServerContext();
-  const user = context?.user || (await supabaseServer.auth.getUser()).data.user;
+  const user = context?.user || null;
 
   let userRole: string = 'guest';
   let userMupelId: string | null = null;
@@ -51,55 +49,30 @@ export default async function Dashboard() {
     userPosId = user.id_pos || user.user_metadata?.id_pos || null;
     userNama = user.nama_lengkap || user.nama || user.user_metadata?.nama_lengkap || (user.email ? user.email.split('@')[0] : 'Pengguna');
 
-    let { data: profile } = await supabaseAdmin
-      .from('users')
-      .select('role, id_mupel, id_induk, id_pos, email, id_pendeta, nama, nama_lengkap')
-      .eq('id', user.id)
-      .maybeSingle();
-
-    if (!profile && user.email) {
-      const { data: profByEmail } = await supabaseAdmin
-        .from('users')
-        .select('role, id_mupel, id_induk, id_pos, email, id_pendeta, nama, nama_lengkap')
-        .eq('email', user.email)
+    const pendetaId = user.id_pendeta || null;
+    if (pendetaId && (!userIndukId || !userPosId)) {
+      const { data: pdt } = await supabaseAdmin
+        .from('m_pendeta')
+        .select('id_pendeta, id_induk, nama_lengkap')
+        .eq('id_pendeta', pendetaId)
         .maybeSingle();
-      profile = profByEmail;
-    }
 
-    if (profile) {
-      if (profile.role) userRole = normalizeRole(profile.role);
-      if (profile.id_mupel) userMupelId = profile.id_mupel;
-      if (profile.id_induk) userIndukId = profile.id_induk;
-      if (profile.id_pos) userPosId = profile.id_pos;
-      if (profile.nama_lengkap || profile.nama) userNama = profile.nama_lengkap || profile.nama;
+      if (pdt) {
+        if (!userIndukId && pdt.id_induk) userIndukId = pdt.id_induk;
+        if (!userNama || userNama === 'Pengguna') userNama = pdt.nama_lengkap || userNama;
 
-      // 1. Resolve pendeta record if profile.id_pendeta or email is present
-      const pendetaId = profile.id_pendeta || (user.id_pendeta ? user.id_pendeta : null);
-      if (pendetaId || user.email) {
-        let pdtQuery = supabaseAdmin.from('m_pendeta').select('id_pendeta, id_induk, nama_lengkap');
-        if (pendetaId) {
-          pdtQuery = pdtQuery.eq('id_pendeta', pendetaId);
-        } else if (user.email) {
-          pdtQuery = pdtQuery.ilike('email', user.email);
-        }
-        const { data: pdt } = await pdtQuery.maybeSingle();
-        if (pdt) {
-          if (!userIndukId && pdt.id_induk) userIndukId = pdt.id_induk;
-          if (!userNama || userNama === 'Pengguna') userNama = pdt.nama_lengkap || userNama;
-
-          // 2. Lookup assignment in t_penugasan_pendeta
-          if (!userPosId) {
-            const { data: penugasan } = await supabaseAdmin
-              .from('t_penugasan_pendeta')
-              .select('id_pos')
-              .eq('id_pendeta', pdt.id_pendeta)
-              .maybeSingle();
-            if (penugasan?.id_pos) {
-              userPosId = penugasan.id_pos;
-            }
+        if (!userPosId) {
+          const { data: penugasan } = await supabaseAdmin
+            .from('t_penugasan_pendeta')
+            .select('id_pos')
+            .eq('id_pendeta', pdt.id_pendeta)
+            .maybeSingle();
+          if (penugasan?.id_pos) {
+            userPosId = penugasan.id_pos;
           }
         }
       }
+    }
 
       // 3. If userIndukId is known but userPosId is missing, check if there is a Pos Pelkes under this Jemaat
       if (userIndukId && !userPosId && (userRole === 'pj' || userRole === 'user')) {
@@ -141,7 +114,6 @@ export default async function Dashboard() {
           userMupelId = jemaatObj.id_mupel;
         }
       }
-    }
   }
 
   // 2. Resolve Active Working Context Scope
