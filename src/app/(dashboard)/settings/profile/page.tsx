@@ -16,53 +16,40 @@ export default async function SettingsProfileShortcutPage() {
 
   const user = context.user;
 
-  // 2. Resolve id_person
-  let targetPersonId: string | null = 
-    user.id_person || 
-    user.user_metadata?.id_person || 
-    null;
+  // 2. Query the real user record from database to avoid stale cookie session contamination
+  const supabaseAdmin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
-  if (!targetPersonId) {
-    const supabaseAdmin = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+  let targetPersonId: string | null = null;
 
-    // Lookup users table by email or id
-    const { data: dbUser } = await supabaseAdmin
-      .from('users')
+  // Lookup database users table by id or email
+  const { data: dbUser } = await supabaseAdmin
+    .from('users')
+    .select('id, email, role, id_person, id_pendeta')
+    .or(`id.eq.${user.id},email.eq.${user.email}`)
+    .maybeSingle();
+
+  if (dbUser?.id_person) {
+    targetPersonId = dbUser.id_person;
+  } else if (dbUser?.id_pendeta) {
+    const { data: pendeta } = await supabaseAdmin
+      .from('m_pendeta')
       .select('id_person, id_pendeta')
-      .or(`id.eq.${user.id},email.eq.${user.email}`)
+      .eq('id_pendeta', dbUser.id_pendeta)
       .maybeSingle();
 
-    if (dbUser?.id_person) {
-      targetPersonId = dbUser.id_person;
-    } else if (dbUser?.id_pendeta || user.id_pendeta) {
-      const pndId = dbUser?.id_pendeta || user.id_pendeta;
-      const { data: pendeta } = await supabaseAdmin
-        .from('m_pendeta')
-        .select('id_person')
-        .eq('id_pendeta', pndId)
-        .maybeSingle();
-
-      if (pendeta?.id_person) {
-        targetPersonId = pendeta.id_person;
-      } else if (pndId) {
-        targetPersonId = pndId;
-      }
-    }
+    targetPersonId = pendeta?.id_person || pendeta?.id_pendeta || dbUser.id_pendeta;
   }
 
-  // 3. Resilient Fallback 1: Match Pendeta by email if user account is not linked directly
-  if (!targetPersonId && user.email) {
-    const supabaseAdmin = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+  // 3. Match Pendeta by email if user account email matches m_pendeta directly
+  if (!targetPersonId && (user.email || dbUser?.email)) {
+    const emailToMatch = dbUser?.email || user.email;
     const { data: matchedPendeta } = await supabaseAdmin
       .from('m_pendeta')
       .select('id_person, id_pendeta')
-      .ilike('email', user.email)
+      .ilike('email', emailToMatch)
       .maybeSingle();
 
     if (matchedPendeta?.id_person) {
@@ -72,31 +59,11 @@ export default async function SettingsProfileShortcutPage() {
     }
   }
 
-  // 4. Resilient Fallback 2: Default to primary active Pendeta person workspace when unlinked
-  if (!targetPersonId) {
-    const supabaseAdmin = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-    const { data: defaultPendeta } = await supabaseAdmin
-      .from('m_pendeta')
-      .select('id_person, id_pendeta')
-      .limit(1)
-      .maybeSingle();
-
-    if (defaultPendeta?.id_person) {
-      targetPersonId = defaultPendeta.id_person;
-    } else if (defaultPendeta?.id_pendeta) {
-      targetPersonId = defaultPendeta.id_pendeta;
-    } else {
-      targetPersonId = 'PDT-43300681';
-    }
-  }
-
-  // 5. Redirect to canonical Person Workspace (/people/{id_person})
+  // 3. If targetPersonId is found, redirect to personal workspace (/people/{id_person})
   if (targetPersonId) {
     redirect(`/people/${targetPersonId}`);
   } else {
+    // Non-pastoral admin / unlinked account -> Redirect to /people (Direktori SDM Pelayan)
     redirect('/people');
   }
 }

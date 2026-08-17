@@ -1,70 +1,96 @@
 import { createClient as createAdminClient } from '@supabase/supabase-js';
-import { createClient } from '@/lib/supabase/server';
 import { UnifiedPersonData } from '@/types/person.types';
 
 export type { UnifiedPersonData };
 
 export async function fetchUnifiedPersonData(personId: string): Promise<UnifiedPersonData | null> {
-  const supabase = await createClient();
-
-  let targetUuid = personId;
-
-  // 1. Resolve non-UUID string (e.g. 'PDT-43300681') to id_person UUID from m_pendeta
-  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(personId);
-  if (!isUuid) {
-    const { data: pendeta } = await supabase
-      .from('m_pendeta')
-      .select('id_person, id_pendeta')
-      .or(`id_pendeta.eq.${personId},id_person.eq.${personId}`)
-      .maybeSingle();
-
-    if (pendeta?.id_person) {
-      targetUuid = pendeta.id_person;
-    }
-  }
-
-  // 2. Primary Attempt: Call official F2 RPC get_person_360
-  try {
-    const { data, error } = await supabase.rpc('get_person_360', {
-      p_id_person: targetUuid,
-      p_pastoral_limit: 10,
-      p_pastoral_offset: 0,
-    });
-
-    if (!error && data) {
-      return data as UnifiedPersonData;
-    }
-  } catch {}
-
-  // 3. Resilient Read Model Fallback querying 100% REAL database tables (Zero fabricated data!)
   const supabaseAdmin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  let person: any = null;
-  const { data: pRec } = await supabaseAdmin
-    .from('m_person')
-    .select('*')
-    .eq('id_person', targetUuid)
-    .maybeSingle();
+  let targetUuid: string | null = null;
+  let resolvedPendetaId: string | null = null;
 
-  person = pRec;
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(personId);
+
+  // 1. Resolve non-UUID string (e.g. 'PDT-43300681') to id_person UUID from m_pendeta
+  if (!isUuid) {
+    resolvedPendetaId = personId;
+    const { data: pnd } = await supabaseAdmin
+      .from('m_pendeta')
+      .select('id_person, id_pendeta')
+      .eq('id_pendeta', personId)
+      .maybeSingle();
+
+    if (pnd?.id_person) {
+      targetUuid = pnd.id_person;
+    }
+  } else {
+    targetUuid = personId;
+    const { data: pnd } = await supabaseAdmin
+      .from('m_pendeta')
+      .select('id_person, id_pendeta')
+      .eq('id_person', personId)
+      .maybeSingle();
+
+    if (pnd?.id_pendeta) {
+      resolvedPendetaId = pnd.id_pendeta;
+    }
+  }
+
+  // 2. Primary Attempt: Call official F2 RPC get_person_360 if targetUuid is available
+  if (targetUuid) {
+    try {
+      const { data, error } = await supabaseAdmin.rpc('get_person_360', {
+        p_id_person: targetUuid,
+        p_pastoral_limit: 10,
+        p_pastoral_offset: 0,
+      });
+
+      if (!error && data) {
+        return data as UnifiedPersonData;
+      }
+    } catch {}
+  }
+
+  // 3. Resilient Read Model Fallback querying 100% REAL database tables (Zero fabricated data!)
+  let person: any = null;
+  if (targetUuid) {
+    const { data: pRec } = await supabaseAdmin
+      .from('m_person')
+      .select('*')
+      .eq('id_person', targetUuid)
+      .maybeSingle();
+    person = pRec;
+  }
 
   let pendeta: any = null;
-  const { data: pnd } = await supabaseAdmin
-    .from('m_pendeta')
-    .select('*, m_jemaat_induk!m_pendeta_id_induk_fkey(nama_induk, id_mupel)')
-    .or(`id_person.eq.${targetUuid},id_pendeta.eq.${personId}`)
-    .maybeSingle();
-
-  pendeta = pnd;
+  if (resolvedPendetaId) {
+    const { data: pnd } = await supabaseAdmin
+      .from('m_pendeta')
+      .select('*, m_jemaat_induk!m_pendeta_id_induk_fkey(nama_induk, id_mupel)')
+      .eq('id_pendeta', resolvedPendetaId)
+      .maybeSingle();
+    pendeta = pnd;
+  } else if (targetUuid) {
+    const { data: pnd } = await supabaseAdmin
+      .from('m_pendeta')
+      .select('*, m_jemaat_induk!m_pendeta_id_induk_fkey(nama_induk, id_mupel)')
+      .eq('id_person', targetUuid)
+      .maybeSingle();
+    pendeta = pnd;
+  }
 
   if (!person && !pendeta) {
     return null;
   }
 
-  const pPendetaId = pendeta?.id_pendeta || personId;
+  const pPendetaId = pendeta?.id_pendeta || resolvedPendetaId || personId;
+  const idFilters = [pPendetaId, targetUuid].filter(Boolean) as string[];
+  const idFilterOr = idFilters.length > 1 
+    ? idFilters.map((id) => `id_pendeta.eq.${id}`).join(',') 
+    : `id_pendeta.eq.${pPendetaId}`;
 
   // Query ALL real database detail tables concurrently
   const [
@@ -75,12 +101,12 @@ export async function fetchUnifiedPersonData(personId: string): Promise<UnifiedP
     { data: pLogs },
     { data: pAssignments }
   ] = await Promise.all([
-    supabaseAdmin.from('t_keluarga_pendeta').select('*').or(`id_pendeta.eq.${pPendetaId},id_pendeta.eq.${targetUuid}`),
-    supabaseAdmin.from('t_keterlibatan_pendeta').select('*').or(`id_pendeta.eq.${pPendetaId},id_pendeta.eq.${targetUuid}`),
-    supabaseAdmin.from('t_kompetensi_pendeta').select('*').or(`id_pendeta.eq.${pPendetaId},id_pendeta.eq.${targetUuid}`),
-    supabaseAdmin.from('t_riwayat_mutasi_pendeta').select('*').or(`id_pendeta.eq.${pPendetaId},id_pendeta.eq.${targetUuid}`).order('tgl_mutasi', { ascending: false }),
-    supabaseAdmin.from('t_log_pastoral').select('*, pos:m_pos_pelkes(nama_pos)').or(`id_pendeta.eq.${pPendetaId},id_pendeta.eq.${targetUuid}`).order('tgl', { ascending: false }),
-    supabaseAdmin.from('t_penugasan_pendeta').select('*, pos:m_pos_pelkes(nama_pos)').or(`id_pendeta.eq.${pPendetaId},id_pendeta.eq.${targetUuid}`).order('created_at', { ascending: false }),
+    supabaseAdmin.from('t_keluarga_pendeta').select('*').or(idFilterOr),
+    supabaseAdmin.from('t_keterlibatan_pendeta').select('*').or(idFilterOr),
+    supabaseAdmin.from('t_kompetensi_pendeta').select('*').or(idFilterOr),
+    supabaseAdmin.from('t_riwayat_mutasi_pendeta').select('*').or(idFilterOr).order('tgl_mutasi', { ascending: false }),
+    supabaseAdmin.from('t_log_pastoral').select('*, pos:m_pos_pelkes(nama_pos)').or(idFilterOr).order('tgl', { ascending: false }),
+    supabaseAdmin.from('t_penugasan_pendeta').select('*, pos:m_pos_pelkes(nama_pos)').or(idFilterOr).order('created_at', { ascending: false }),
   ]);
 
   const namaLengkap = person?.nama_lengkap || pendeta?.nama_lengkap || 'Pelayan GPIB';
@@ -195,7 +221,7 @@ export async function fetchUnifiedPersonData(personId: string): Promise<UnifiedP
   }
 
   return {
-    id_person: targetUuid,
+    id_person: targetUuid || pendeta?.id_person || personId,
     identity: {
       nama_lengkap: namaLengkap,
       gelar_depan: namaLengkap.startsWith('Pdt.') ? 'Pdt.' : null,

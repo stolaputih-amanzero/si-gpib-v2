@@ -6,7 +6,8 @@ import { OrgDirectoryHeader, OrgViewMode } from '@/components/org/OrgDirectoryHe
 import { OrgCard } from '@/components/org/OrgCard';
 import { HierarchyTree } from '@/components/hierarki/HierarchyTree';
 import { useOrgDirectory } from '@/hooks/use-org-directory';
-import { Building2, AlertTriangle, Search } from 'lucide-react';
+import { Building2, AlertTriangle, Search, ListTree, Filter, RefreshCw } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function OrgDirectoryPage() {
   const searchParams = useSearchParams();
@@ -37,20 +38,81 @@ export default function OrgDirectoryPage() {
 
   return (
     <div className="w-full min-h-screen bg-surface-base pb-28 pt-1 sm:pt-3">
-      <main className="max-w-6xl mx-auto px-3.5 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
+      <main className="max-w-6xl mx-auto px-3.5 sm:px-6 lg:px-8 space-y-5 sm:space-y-6">
         {/* Header & Interactive StatCard Filter Widget */}
         <OrgDirectoryHeader
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           stats={stats}
           isLoading={isLoading}
-          onRefresh={refetch}
           activeTab={activeTab}
           onTabChange={setActiveTab}
           totalFilteredCount={items.length}
-          viewMode={viewMode}
           onViewModeChange={setViewMode}
         />
+
+        {/* List Controls: View Mode Switcher (Hierarki / Filtered) & Refresh Button */}
+        <div className="flex items-center justify-between gap-3 flex-wrap pt-0.5">
+          <div className="flex items-center gap-2">
+            {/* View Mode Toggle Switcher: Hierarki vs Filtered */}
+            <div className="inline-flex items-center p-1 rounded-xl bg-surface-1 border border-stone-200/80 dark:border-stone-800 shadow-2xs">
+              <button
+                type="button"
+                onClick={() => setViewMode('tree')}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer select-none',
+                  viewMode === 'tree'
+                    ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold border border-amber-500/30 shadow-2xs'
+                    : 'text-ink-tertiary hover:text-ink-primary'
+                )}
+                title="Tampilan Pohon Hierarki Lengkap (Default)"
+              >
+                <ListTree size={14} />
+                <span>Hierarki</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setViewMode('filtered')}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer select-none',
+                  viewMode === 'filtered'
+                    ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold border border-amber-500/30 shadow-2xs'
+                    : 'text-ink-tertiary hover:text-ink-primary'
+                )}
+                title="Tampilan Unit Terfilter (Daftar Langsung)"
+              >
+                <Filter size={14} />
+                <span>Filtered</span>
+                {activeTab !== 'all' && (
+                  <span className="size-1.5 rounded-full bg-amber-600 dark:bg-amber-400 shrink-0" />
+                )}
+              </button>
+            </div>
+
+            {/* Refresh Button */}
+            <button
+              type="button"
+              onClick={refetch}
+              disabled={isLoading}
+              className="p-2 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-surface-1 hover:bg-stone-100 dark:hover:bg-stone-800 text-ink-secondary hover:text-ink-primary active:scale-95 transition-all min-h-[38px] min-w-[38px] flex items-center justify-center shrink-0 disabled:opacity-50 cursor-pointer"
+              title="Perbarui Data Direktori"
+              aria-label="Perbarui Data Direktori"
+            >
+              <RefreshCw size={15} className={cn('text-amber-600 dark:text-amber-400', isLoading ? 'animate-spin' : '')} />
+            </button>
+          </div>
+
+          {viewMode === 'filtered' && activeTab !== 'all' && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('all')}
+              className="text-xs font-semibold text-amber-700 dark:text-amber-400 hover:underline px-2.5 py-1 rounded-lg hover:bg-amber-500/10 transition-colors cursor-pointer"
+            >
+              Reset Filter ({activeTab.toUpperCase()})
+            </button>
+          )}
+        </div>
 
         {/* Error State */}
         {isError && (

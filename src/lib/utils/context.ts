@@ -26,6 +26,11 @@ export async function getServerContext() {
   const role = (user.role || user.user_metadata?.role || '').toLowerCase();
   const isSuperUser = role === 'super_user' || role === 'admin' || role === 'superadmin' || user.email === 'stolaputih@gmail.com';
 
+  if (isSuperUser && user.email === 'stolaputih@gmail.com') {
+    user.id_person = null;
+    user.id_pendeta = null;
+  }
+
   const resolvedContextId = 
     (!isSuperUser ? contextIdCookie : null) || 
     user.id_pos || 

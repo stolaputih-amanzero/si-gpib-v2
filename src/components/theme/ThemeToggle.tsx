@@ -12,20 +12,20 @@ const THEMES = [
   { value: 'system', label: 'Sistem', icon: Monitor },
 ] as const;
 
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle({ className, iconOnly = true }: { className?: string; iconOnly?: boolean }) {
   const { theme, setTheme } = useSmoothTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
   if (!mounted) {
-    return <div className={cn('h-12 w-full max-w-sm rounded-xl bg-surface-sunken animate-pulse', className)} />;
+    return <div className={cn('h-8 w-24 rounded-xl bg-surface-sunken animate-pulse', className)} />;
   }
 
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-1 rounded-xl bg-surface-sunken p-1.5 border border-line-subtle w-full max-w-sm',
+        'inline-flex items-center p-1 rounded-xl bg-surface-1 border border-stone-200/80 dark:border-stone-800 shadow-2xs gap-0.5 shrink-0',
         className
       )}
       role="radiogroup"
@@ -42,20 +42,24 @@ export function ThemeToggle({ className }: { className?: string }) {
             }}
             role="radio"
             aria-checked={isActive}
-            aria-label={label}
+            aria-label={`Tema ${label}`}
+            title={`Tema ${label}`}
             type="button"
             className={cn(
-              'flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-all duration-fast motion-reduce:transition-none select-none tap',
+              'flex items-center justify-center rounded-lg transition-all select-none cursor-pointer',
+              iconOnly ? 'p-1.5 min-w-[32px] min-h-[32px]' : 'gap-1.5 px-2.5 py-1 text-xs font-semibold',
               isActive
-                ? 'bg-surface-1 text-ink-primary shadow-xs border border-line-hairline'
-                : 'text-ink-tertiary hover:text-ink-secondary active:scale-[0.97]'
+                ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold border border-amber-500/30 shadow-2xs'
+                : 'text-ink-tertiary hover:text-ink-primary hover:bg-stone-100 dark:hover:bg-stone-800/60'
             )}
           >
-            <Icon className="h-4 w-4 shrink-0" />
-            <span>{label}</span>
+            <Icon className="size-4 shrink-0" />
+            {!iconOnly && <span>{label}</span>}
           </button>
         );
       })}
     </div>
   );
 }
+
+export default ThemeToggle;

@@ -1,6 +1,6 @@
 'use client';
 
-import { Search, Building2, Church, MapPin, RefreshCw, ListTree, Filter } from 'lucide-react';
+import { Search, Building2, Church, MapPin } from 'lucide-react';
 import { HierarchyStatsData } from '@/hooks/use-hierarki';
 import { OrgLevelFilter } from '@/hooks/use-org-directory';
 import { StatusPill } from '@/components/ui/StatusPill';
@@ -13,12 +13,10 @@ interface OrgDirectoryHeaderProps {
   onSearchChange: (query: string) => void;
   stats?: HierarchyStatsData;
   isLoading?: boolean;
-  onRefresh?: () => void;
   activeTab: OrgLevelFilter;
   onTabChange: (tab: OrgLevelFilter) => void;
   totalFilteredCount: number;
-  viewMode: OrgViewMode;
-  onViewModeChange: (mode: OrgViewMode) => void;
+  onViewModeChange?: (mode: OrgViewMode) => void;
 }
 
 export function OrgDirectoryHeader({
@@ -26,11 +24,9 @@ export function OrgDirectoryHeader({
   onSearchChange,
   stats,
   isLoading,
-  onRefresh,
   activeTab,
   onTabChange,
   totalFilteredCount,
-  viewMode,
   onViewModeChange,
 }: OrgDirectoryHeaderProps) {
   const filterCards = [
@@ -72,63 +68,13 @@ export function OrgDirectoryHeader({
     <div className="space-y-4 sm:space-y-5">
       {/* Open Canvas Hero Title & Status */}
       <div className="pt-2 sm:pt-4 space-y-3">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <StatusPill variant="gold" dot={true}>
-              Sinode GPIB
-            </StatusPill>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* View Mode Toggle Switcher: Hierarki vs Filtered */}
-            <div className="inline-flex items-center p-1 rounded-xl bg-surface-1 border border-stone-200/80 dark:border-stone-800 shadow-2xs">
-              <button
-                type="button"
-                onClick={() => onViewModeChange('tree')}
-                className={cn(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer select-none',
-                  viewMode === 'tree'
-                    ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold border border-amber-500/30 shadow-2xs'
-                    : 'text-ink-tertiary hover:text-ink-primary'
-                )}
-                title="Tampilan Pohon Hierarki Lengkap (Default)"
-              >
-                <ListTree size={14} />
-                <span>Hierarki</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => onViewModeChange('filtered')}
-                className={cn(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer select-none',
-                  viewMode === 'filtered'
-                    ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold border border-amber-500/30 shadow-2xs'
-                    : 'text-ink-tertiary hover:text-ink-primary'
-                )}
-                title="Tampilan Unit Terfilter (Daftar Langsung)"
-              >
-                <Filter size={14} />
-                <span>Filtered</span>
-                {activeTab !== 'all' && (
-                  <span className="size-1.5 rounded-full bg-amber-600 dark:bg-amber-400 shrink-0" />
-                )}
-              </button>
-            </div>
-
-            {onRefresh && (
-              <button
-                type="button"
-                onClick={onRefresh}
-                disabled={isLoading}
-                className="p-2 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-surface-1 hover:bg-stone-100 dark:hover:bg-stone-800 text-ink-secondary hover:text-ink-primary active:scale-95 transition-all min-h-[38px] min-w-[38px] flex items-center justify-center shrink-0 disabled:opacity-50 cursor-pointer"
-                title="Perbarui Data Direktori"
-                aria-label="Perbarui Data Direktori"
-              >
-                <RefreshCw size={15} className={cn('text-amber-600 dark:text-amber-400', isLoading ? 'animate-spin' : '')} />
-              </button>
-            )}
-          </div>
+        <div className="flex items-center gap-2">
+          <StatusPill variant="gold" dot={true}>
+            Sinode GPIB
+          </StatusPill>
+          <StatusPill variant="blue" dot={false}>
+            Direktori Struktur
+          </StatusPill>
         </div>
 
         <div className="space-y-1 pt-1">
@@ -156,7 +102,7 @@ export function OrgDirectoryHeader({
                 onTabChange(nextTab);
                 if (!isActive) {
                   // Otomatis aktifkan tampilan Filtered saat mengklik filter card
-                  onViewModeChange('filtered');
+                  onViewModeChange?.('filtered');
                 }
               }}
               className={cn(

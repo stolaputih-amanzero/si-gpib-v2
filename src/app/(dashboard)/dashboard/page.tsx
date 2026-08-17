@@ -534,15 +534,14 @@ export default async function Dashboard() {
                 {humanRole}
               </StatusPill>
             </div>
-            <div className="shrink-0">
-              <ScopeIndicator scope={roleScopeObj} />
-            </div>
+            {roleScopeObj.isLocked && (
+              <div className="shrink-0">
+                <ScopeIndicator scope={roleScopeObj} />
+              </div>
+            )}
           </div>
 
           <div className="space-y-1.5 pt-1">
-            <span className="micro-label text-ink-tertiary block">
-              {scopeLabel}
-            </span>
             <h1 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-bold text-ink-primary tracking-tight leading-[1.15]">
               <span>Selamat Datang,</span>
               <span className="block font-editorial-italic font-normal text-amber-700 dark:text-amber-400 mt-0.5 sm:mt-1">
