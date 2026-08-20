@@ -13,22 +13,12 @@ export const PastoralSection: React.FC<PastoralSectionProps> = ({ pastoral }) =>
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   return (
-    <section id="pastoral" className="scroll-mt-36 md:scroll-mt-28 space-y-5 w-full max-w-full overflow-hidden">
-      {/* Header Section */}
-      <div className="flex items-center justify-between border-b border-border-subtle pb-3">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0">
-            <HeartHandshake className="w-5 h-5" />
-          </div>
-          <div className="min-w-0">
-            <h2 className="text-lg font-bold text-text-high truncate">
-              Pelayanan &amp; Aktivitas Pastoral
-            </h2>
-            <p className="text-xs text-text-muted truncate">
-              Catatan rekam jejak giat pastoral, dokumentasi &amp; perjumpaan jemaat
-            </p>
-          </div>
-        </div>
+    <section id="pastoral" className="scroll-mt-36 md:scroll-mt-28 space-y-3 w-full max-w-full overflow-hidden">
+      <div className="flex items-center justify-between px-1">
+        <h2 className="text-base font-bold text-text-high flex items-center gap-2">
+          <HeartHandshake className="w-4 h-4 text-brand-primary" />
+          Pelayanan &amp; Aktivitas Pastoral
+        </h2>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 w-full">

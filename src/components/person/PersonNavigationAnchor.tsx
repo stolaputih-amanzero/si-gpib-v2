@@ -1,103 +1,72 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { 
-  User, 
-  Briefcase, 
-  GraduationCap, 
-  BookOpen,
-  LayoutDashboard
-} from 'lucide-react';
+import React from 'react';
 
-interface AnchorItem {
+export interface TabItem {
   id: string;
   label: string;
+  shortLabel?: string;
   icon: React.ReactNode;
 }
 
-const ANCHORS: AnchorItem[] = [
-  { id: 'overview', label: 'Ringkasan', icon: <LayoutDashboard className="w-4 h-4" /> },
-  { id: 'profile', label: 'Profil', icon: <User className="w-4 h-4" /> },
-  { id: 'roles', label: 'Penugasan', icon: <Briefcase className="w-4 h-4" /> },
-  { id: 'competencies', label: 'Kompetensi', icon: <GraduationCap className="w-4 h-4" /> },
-  { id: 'pastoral', label: 'Pastoral', icon: <BookOpen className="w-4 h-4" /> }
-];
+interface PersonNavigationAnchorProps {
+  tabs: TabItem[];
+  activeTab: string;
+  onSelectTab: (tabId: string) => void;
+}
 
-export const PersonNavigationAnchor: React.FC = () => {
-  const [activeAnchor, setActiveAnchor] = useState<string>('profil');
-
-  useEffect(() => {
-    const rawHash = window.location.hash.replace('#', '');
-    if (rawHash) {
-      const match = ANCHORS.find((a) => a.id === rawHash);
-      if (match) {
-        setActiveAnchor(match.id);
-        const timer = setTimeout(() => {
-          const el = document.getElementById(match.id);
-          if (el) {
-            el.scrollIntoView({ behavior: 'auto' });
-          }
-        }, 150);
-        return () => clearTimeout(timer);
-      }
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveAnchor(entry.target.id);
-          }
-        });
-      },
-      {
-        rootMargin: '-20% 0px -60% 0px',
-        threshold: 0,
-      }
-    );
-
-    ANCHORS.forEach((item) => {
-      const el = document.getElementById(item.id);
-      if (el) observer.observe(el);
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  const handleClickAnchor = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-    e.preventDefault();
-    setActiveAnchor(id);
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-      window.history.replaceState(null, '', `#${id}`);
-    }
-  };
+export const PersonNavigationAnchor: React.FC<PersonNavigationAnchorProps> = ({
+  tabs,
+  activeTab,
+  onSelectTab,
+}) => {
+  const currentIndex = tabs.findIndex((t) => t.id === activeTab);
 
   return (
-    <nav aria-label="Navigasi Seksi Person Workspace" className="sticky top-0 z-30 bg-surface-elevated/95 backdrop-blur-md border-y border-border-subtle shadow-xs py-2 px-1">
-      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-full">
-        {ANCHORS.map((item) => {
-          const isActive = activeAnchor === item.id;
+    <div className="sticky top-0 z-30 bg-surface-elevated/95 backdrop-blur-md border border-border-subtle rounded-2xl shadow-xs p-2 space-y-2">
+      {/* 1. Main Tab Buttons */}
+      <nav aria-label="Navigasi Tab Profil Personil" className="flex items-center gap-1 overflow-x-auto no-scrollbar max-w-full">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
           return (
-            <a
-              key={item.id}
-              href={`#${item.id}`}
-              onClick={(e) => handleClickAnchor(e, item.id)}
-              aria-current={isActive ? 'location' : undefined}
-              aria-label={`Pindah ke seksi ${item.label}`}
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold shrink-0 transition-all min-h-[44px] ${
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => onSelectTab(tab.id)}
+              aria-current={isActive ? 'page' : undefined}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer min-h-[36px] ${
                 isActive
-                  ? 'bg-blue-600 text-white border border-blue-500 shadow-xs'
+                  ? 'bg-amber-700 text-white shadow-xs'
                   : 'text-text-muted hover:bg-surface-sunken hover:text-text-high'
               }`}
             >
-              {item.icon}
-              <span>{item.label}</span>
-            </a>
+              {tab.icon}
+              <span className="whitespace-nowrap">{tab.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* 2. Sleek Minimal Step Marks (Indicator Marks/Pills) */}
+      <div className="flex items-center justify-center gap-1.5 pt-0.5">
+        {tabs.map((tab, idx) => {
+          const isActive = idx === currentIndex;
+          return (
+            <button
+              key={`mark-${tab.id}`}
+              type="button"
+              onClick={() => onSelectTab(tab.id)}
+              aria-label={`Pindah ke tab ${tab.label}`}
+              title={`${idx + 1}. ${tab.label}`}
+              className={`transition-all duration-300 rounded-full cursor-pointer ${
+                isActive
+                  ? 'w-7 h-1.5 bg-amber-700 shadow-2xs'
+                  : 'w-2 h-1.5 bg-border-strong hover:bg-text-muted opacity-60 hover:opacity-100'
+              }`}
+            />
           );
         })}
       </div>
-    </nav>
+    </div>
   );
 };
