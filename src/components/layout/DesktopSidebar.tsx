@@ -2,13 +2,31 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Building, Users, Plus, UserCircle, BarChart3, Map, Calendar, HandHeart, ShieldCheck } from 'lucide-react';
+import { Home, Building, Users, Plus, UserCircle, BarChart3, Map, Calendar, HandHeart, ShieldCheck, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useContextUIStore } from '@/stores/useContextUIStore';
+import { useUser } from '@/hooks/use-user';
+import { useToast } from '@/components/ui/toast';
 
 export function DesktopSidebar() {
   const pathname = usePathname();
   const { setQuickActionOpen } = useContextUIStore();
+  const { logout } = useUser();
+  const { confirm, toast } = useToast();
+
+  const handleLogoutClick = () => {
+    confirm({
+      title: 'Konfirmasi Keluar Sesi',
+      message: 'Apakah Anda yakin ingin keluar dari akun SI GPIB?',
+      confirmText: 'Ya, Keluar',
+      cancelText: 'Batal',
+      variant: 'danger',
+      onConfirm: async () => {
+        toast.info('Mengakhiri Sesi...', 'Mengeluarkan akun dari sistem SI GPIB.');
+        await logout();
+      },
+    });
+  };
 
   const navItems = [
     { name: 'Home', href: '/', icon: Home },
@@ -69,11 +87,11 @@ export function DesktopSidebar() {
         </div>
       </div>
 
-      <div className="p-3 border-t">
+      <div className="p-3 border-t space-y-1">
         <Link
           href="/settings"
           className={cn(
-            "group relative flex items-center lg:px-3 py-3 rounded-xl transition-all duration-200",
+            "group relative flex items-center lg:px-3 py-2.5 rounded-xl transition-all duration-200",
             pathname?.startsWith('/settings') 
               ? "bg-primary/10 text-primary font-semibold" 
               : "text-muted-foreground hover:bg-surface-sunken hover:text-foreground"
@@ -82,6 +100,17 @@ export function DesktopSidebar() {
           <UserCircle className={cn("w-5 h-5 mx-auto lg:mx-0 shrink-0", pathname?.startsWith('/settings') ? "text-primary" : "group-hover:scale-110 transition-transform")} />
           <span className="hidden lg:block ml-3 text-sm">Akun & Pengaturan</span>
         </Link>
+
+        <button
+          type="button"
+          onClick={handleLogoutClick}
+          className="w-full group relative flex items-center lg:px-3 py-2.5 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all duration-200 cursor-pointer"
+          title="Keluar Sesi Akun (Logout)"
+          aria-label="Keluar Sesi Akun (Logout)"
+        >
+          <LogOut className="w-5 h-5 mx-auto lg:mx-0 shrink-0 group-hover:scale-110 transition-transform" />
+          <span className="hidden lg:block ml-3 text-sm font-medium">Keluar Sesi</span>
+        </button>
       </div>
     </aside>
   );

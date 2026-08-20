@@ -153,8 +153,10 @@ export async function logout() {
   const cookieStore = await cookies()
 
   await supabase.auth.signOut().catch(() => {})
-  cookieStore.delete('si_gpib_user_session')
+  cookieStore.set('si_gpib_user_session', '', { path: '/', maxAge: 0, expires: new Date(0) })
+  cookieStore.set('sigpib_active_context', '', { path: '/', maxAge: 0, expires: new Date(0) })
 
   revalidatePath('/', 'layout')
   redirect('/login')
 }
+

@@ -117,12 +117,16 @@ export function useUser(): UserProfile {
     try {
       localStorage.removeItem('si_gpib_cached_user');
       localStorage.removeItem('si_gpib_cached_current_user');
+      localStorage.removeItem('sigpib_active_context');
+      sessionStorage.clear();
       const supabase = createClient();
-      await supabase.auth.signOut();
+      await supabase.auth.signOut().catch(() => {});
     } catch {
       // Ignore errors if offline
     } finally {
-      window.location.href = '/api/auth/logout';
+      document.cookie = 'si_gpib_user_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      document.cookie = 'sigpib_active_context=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      window.location.replace('/api/auth/logout');
     }
   };
 

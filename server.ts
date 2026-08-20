@@ -4,7 +4,8 @@ import next from 'next';
 import os from 'os';
 
 const dev = process.env.NODE_ENV !== 'production';
-const hostname = '0.0.0.0';
+const hostname = process.env.HOSTNAME || 'localhost';
+const listenAddress = '0.0.0.0';
 const port = parseInt(process.env.PORT || '3000', 10);
 const app = next({ dev, hostname, port, turbo: false });
 const handle = app.getRequestHandler();
@@ -24,7 +25,7 @@ app.prepare().then(() => {
       console.error(err);
       process.exit(1);
     })
-    .listen(port, hostname, () => {
+    .listen(port, listenAddress, () => {
       console.log(`> Ready on:`);
       console.log(`  - Local:   http://localhost:${port}`);
       const nets = os.networkInterfaces();
