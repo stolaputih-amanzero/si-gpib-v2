@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { X, Download, Printer, Share2, Smartphone, Check, Award, ShieldCheck, QrCode, Sparkles } from 'lucide-react';
+import { X, Download, Printer, Share2, Smartphone, Check, Award, ShieldCheck, QrCode } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 import { generateVCard } from '@/lib/utils/name-parser';
 import { UnifiedPersonData } from '@/types/person.types';
@@ -450,7 +450,7 @@ export function PersonIdCardModal({
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 9px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText('KARTU IDENTITAS DIGITAL RESMI • MAJELIS SINODE GPIB • CRYPTOGRAPHICALLY VERIFIABLE', width / 2, height - 31);
+        ctx.fillText('KARTU IDENTITAS DIGITAL RESMI • MAJELIS SINODE GPIB • TERDAFTAR DI SISTEM INFORMASI PUSAT', width / 2, height - 31);
       }
 
       // Convert Canvas to Download Link
@@ -482,12 +482,11 @@ export function PersonIdCardModal({
               <QrCode className="size-5" />
             </div>
             <div>
-              <h2 className="font-editorial text-xl font-bold text-ink-primary flex items-center gap-2">
+              <h2 className="font-editorial text-xl font-bold text-ink-primary">
                 Kartu Identitas Pelayanan Resmi
-                <Sparkles className="size-4 text-amber-600 dark:text-amber-400" />
               </h2>
               <p className="text-xs text-ink-secondary">
-                Digital Ministry ID Card GPIB • Seamless Unified PVC Design
+                Majelis Sinode GPIB • Kartu Identitas Digital
               </p>
             </div>
           </div>
