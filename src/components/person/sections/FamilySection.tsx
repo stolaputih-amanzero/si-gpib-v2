@@ -3,7 +3,7 @@
 import React from 'react';
 import { ProfileViewModel } from '../../../types/personViewModel.types';
 import { PrivacyStateNotice } from '../PrivacyStateNotice';
-import { Users, PhoneCall, ShieldCheck } from 'lucide-react';
+import { Users, PhoneCall, ShieldCheck, Heart } from 'lucide-react';
 
 interface FamilySectionProps {
   profile: ProfileViewModel;
@@ -12,10 +12,10 @@ interface FamilySectionProps {
 
 export const FamilySection: React.FC<FamilySectionProps> = ({ profile, isSelfPerson = false }) => {
   return (
-    <section id="keluarga" className="scroll-mt-36 md:scroll-mt-28 space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-text-high flex items-center gap-2">
-          <Users className="w-5 h-5 text-brand-primary" />
+    <section id="keluarga" className="scroll-mt-36 md:scroll-mt-28 space-y-3">
+      <div className="flex items-center justify-between px-1">
+        <h2 className="text-base font-bold text-text-high flex items-center gap-2">
+          <Users className="w-4 h-4 text-brand-primary" />
           Data Keluarga &amp; Kontak Darurat
         </h2>
         {isSelfPerson && (
@@ -26,52 +26,52 @@ export const FamilySection: React.FC<FamilySectionProps> = ({ profile, isSelfPer
         )}
       </div>
 
-      <div className="p-5 rounded-2xl bg-surface-elevated border border-border-subtle shadow-xs space-y-4">
+      <div className="bg-surface-elevated border border-border-subtle rounded-2xl shadow-xs overflow-hidden divide-y divide-border-subtle/60">
         {/* Data Anggota Keluarga */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-xs font-bold text-text-muted">
-            <Users className="w-3.5 h-3.5 text-brand-primary" />
+        <div className="p-4 sm:p-5 space-y-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-text-muted uppercase tracking-wider">
+            <Heart className="w-3.5 h-3.5 text-rose-500" />
             <span>Anggota Keluarga Terdaftar</span>
           </div>
 
           {profile.keluarga.type === 'DATA' ? (
-            <div className="space-y-2">
+            <div className="divide-y divide-border-subtle/40 -mx-4 sm:-mx-5 px-4 sm:px-5">
               {profile.keluarga.value.map((member, idx) => (
-                <div key={member.id_keluarga || `kel-${idx}`} className="text-xs p-3.5 rounded-xl bg-surface-sunken border border-border-subtle flex justify-between items-center">
-                  <span className="font-bold text-text-high">{member.nama_anggota}</span>
-                  <span className="text-text-muted font-medium">{member.hubungan}</span>
+                <div key={member.id_keluarga || `kel-${idx}`} className="py-2.5 flex justify-between items-center text-xs">
+                  <span className="font-bold text-text-high text-sm">{member.nama_anggota}</span>
+                  <span className="text-text-muted font-medium bg-surface-sunken px-2.5 py-1 rounded-md border border-border-subtle">{member.hubungan}</span>
                 </div>
               ))}
             </div>
           ) : profile.keluarga.type === 'PRIVACY_MASKED' ? (
             <PrivacyStateNotice reason={profile.keluarga.reason} label={profile.keluarga.label} />
           ) : (
-            <p className="text-xs italic text-text-disabled p-3 bg-surface-sunken rounded-xl border border-border-subtle text-center">
+            <p className="text-xs italic text-text-disabled py-2">
               {profile.keluarga.label}
             </p>
           )}
         </div>
 
         {/* Kontak Darurat */}
-        <div className="space-y-2 pt-3 border-t border-border-subtle">
-          <div className="flex items-center gap-2 text-xs font-bold text-text-muted">
+        <div className="p-4 sm:p-5 space-y-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-text-muted uppercase tracking-wider">
             <PhoneCall className="w-3.5 h-3.5 text-brand-primary" />
             <span>Kontak Darurat</span>
           </div>
 
           {profile.kontakDarurat.type === 'DATA' ? (
-            <div className="space-y-2">
+            <div className="divide-y divide-border-subtle/40 -mx-4 sm:-mx-5 px-4 sm:px-5">
               {profile.kontakDarurat.value.map((contact, i) => (
-                <div key={contact.nama || `contact-${i}`} className="text-xs p-3.5 rounded-xl bg-surface-sunken border border-border-subtle flex justify-between items-center">
-                  <span className="font-bold text-text-high">{contact.nama} ({contact.hubungan})</span>
-                  <span className="text-text-muted font-sans tabular-nums font-medium">{contact.no_telp}</span>
+                <div key={contact.nama || `contact-${i}`} className="py-2.5 flex justify-between items-center text-xs">
+                  <span className="font-bold text-text-high text-sm">{contact.nama} ({contact.hubungan})</span>
+                  <span className="text-brand-primary font-sans tabular-nums font-bold bg-brand-primary/10 px-2.5 py-1 rounded-md border border-brand-primary/20">{contact.no_telp}</span>
                 </div>
               ))}
             </div>
           ) : profile.kontakDarurat.type === 'PRIVACY_MASKED' ? (
             <PrivacyStateNotice reason={profile.kontakDarurat.reason} label={profile.kontakDarurat.label} />
           ) : (
-            <p className="text-xs italic text-text-disabled p-3 bg-surface-sunken rounded-xl border border-border-subtle text-center">
+            <p className="text-xs italic text-text-disabled py-2">
               {profile.kontakDarurat.label}
             </p>
           )}

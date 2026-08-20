@@ -90,8 +90,19 @@ export async function GET() {
           },
         };
 
+        const sessionSafeUser = {
+          id: user.id,
+          email: user.email,
+          role: finalRole,
+          id_person: resolvedPersonId,
+          id_pendeta: resolvedPdtId,
+          nama_lengkap: dbUser?.nama_lengkap || user.nama_lengkap || user.user_metadata?.nama_lengkap,
+          no_telepon: resolvedPhone,
+          avatar_url: typeof resolvedAvatar === 'string' && resolvedAvatar.startsWith('http') ? resolvedAvatar : null,
+        };
+
         try {
-          cookieStore.set('si_gpib_user_session', JSON.stringify(user), {
+          cookieStore.set('si_gpib_user_session', JSON.stringify(sessionSafeUser), {
             path: '/',
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
