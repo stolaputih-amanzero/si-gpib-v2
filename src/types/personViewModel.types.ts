@@ -48,6 +48,8 @@ export interface OverviewViewModel {
 export interface ProfileViewModel {
   tempatLahir: FieldRenderState<string>;
   tanggalLahir: FieldRenderState<string>;
+  gender?: FieldRenderState<string>;
+  nik?: FieldRenderState<string>;
   noHp: FieldRenderState<string>;
   email: FieldRenderState<string>;
   alamatTinggal: FieldRenderState<string>;

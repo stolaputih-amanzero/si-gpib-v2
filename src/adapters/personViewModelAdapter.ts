@@ -81,9 +81,33 @@ export function adaptPersonToViewModel(person: UnifiedPersonData): PersonWorkspa
   };
 
   // 3. Profile
+  const rawTglLahir = person.profile.data?.tanggal_lahir;
+  let formattedTglLahir = rawTglLahir || null;
+  if (rawTglLahir) {
+    try {
+      const d = new Date(rawTglLahir);
+      if (!isNaN(d.getTime())) {
+        const today = new Date();
+        let age = today.getFullYear() - d.getFullYear();
+        const m = today.getMonth() - d.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < d.getDate())) {
+          age--;
+        }
+        const dateStr = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        formattedTglLahir = `${dateStr} (${age} Tahun)`;
+      }
+    } catch {}
+  }
+
+  const isSelf = (person as any)._meta?.is_self === true || (person as any).is_self === true;
+  const rawNik = (person as any)?.nik || (person.profile.data as any)?.nik || null;
+  const maskedNik = rawNik ? (isSelf ? rawNik : `${rawNik.substring(0, 6)}**********`) : null;
+
   const profile: ProfileViewModel = {
     tempatLahir: resolveFieldState(person.profile.data?.tempat_lahir, person.profile._meta?.tempat_lahir, 'Belum diisi'),
-    tanggalLahir: resolveFieldState(person.profile.data?.tanggal_lahir, person.profile._meta?.tanggal_lahir, 'Belum diisi'),
+    tanggalLahir: resolveFieldState(formattedTglLahir, person.profile._meta?.tanggal_lahir, 'Belum diisi'),
+    gender: resolveFieldState((person.profile.data as any)?.gender || null, undefined, 'Belum diisi'),
+    nik: resolveFieldState(maskedNik, undefined, 'Belum diisi'),
     noHp: resolveFieldState(person.profile.data?.no_hp, person.profile._meta?.no_hp, 'Belum diisi'),
     email: resolveFieldState(person.profile.data?.email, person.profile._meta?.email, 'Belum diisi'),
     alamatTinggal: resolveFieldState(person.profile.data?.alamat_tinggal, person.profile._meta?.alamat_tinggal, 'Belum diisi'),

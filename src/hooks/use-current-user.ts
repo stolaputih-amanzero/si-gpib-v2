@@ -8,6 +8,8 @@ export interface CurrentUserAuth {
   id_mupel?: string | null;
   id_induk?: string | null;
   id_pos?: string | null;
+  id_person?: string | null;
+  id_pendeta?: string | null;
   isSuperUser: boolean;
 }
 
@@ -67,7 +69,7 @@ export function useCurrentUser() {
         if (user.id) {
           const { data } = await supabase
             .from('users')
-            .select('role, id_mupel, id_induk, id_pos')
+            .select('role, id_mupel, id_induk, id_pos, id_person, id_pendeta')
             .eq('id', user.id)
             .maybeSingle();
           userDb = data;
@@ -76,7 +78,7 @@ export function useCurrentUser() {
         if (!userDb && user.email) {
           const { data } = await supabase
             .from('users')
-            .select('role, id_mupel, id_induk, id_pos')
+            .select('role, id_mupel, id_induk, id_pos, id_person, id_pendeta')
             .eq('email', user.email)
             .maybeSingle();
           userDb = data;
@@ -98,6 +100,8 @@ export function useCurrentUser() {
         id_mupel: userDb?.id_mupel || user.user_metadata?.id_mupel || user.id_mupel || null,
         id_induk: userDb?.id_induk || user.user_metadata?.id_induk || user.id_induk || null,
         id_pos: userDb?.id_pos || user.user_metadata?.id_pos || user.id_pos || null,
+        id_person: userDb?.id_person || user.user_metadata?.id_person || user.id_person || null,
+        id_pendeta: userDb?.id_pendeta || user.user_metadata?.id_pendeta || user.id_pendeta || null,
         isSuperUser,
       };
 

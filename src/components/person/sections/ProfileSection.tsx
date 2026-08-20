@@ -3,7 +3,7 @@
 import React from 'react';
 import { ProfileViewModel, FieldRenderState } from '../../../types/personViewModel.types';
 import { PrivacyStateNotice } from '../PrivacyStateNotice';
-import { User, Phone, Mail, MapPin, Calendar } from 'lucide-react';
+import { User, Phone, Mail, MapPin, Calendar, ShieldCheck, MapPinned } from 'lucide-react';
 
 interface ProfileSectionProps {
   profile: ProfileViewModel;
@@ -34,17 +34,20 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ profile }) => {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-text-high flex items-center gap-2">
           <User className="w-5 h-5 text-brand-primary" />
-          Profil &amp; Kontak Utama
+          Data Pribadi &amp; Kontak
         </h2>
       </div>
 
       <div className="p-5 rounded-2xl bg-surface-elevated border border-border-subtle shadow-xs space-y-3">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted">Demografi &amp; Akses Kontak</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted">Informasi Data Pribadi</h3>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {profile.gender && renderFieldRow('Jenis Kelamin', <User className="w-3.5 h-3.5 text-brand-primary" />, profile.gender)}
+          {renderFieldRow('Tempat Lahir', <MapPinned className="w-3.5 h-3.5 text-brand-primary" />, profile.tempatLahir)}
+          {renderFieldRow('Tanggal Lahir & Umur', <Calendar className="w-3.5 h-3.5 text-brand-primary" />, profile.tanggalLahir)}
+          {profile.nik && renderFieldRow('No. KTP (NIK)', <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />, profile.nik)}
           {renderFieldRow('No. WhatsApp / HP', <Phone className="w-3.5 h-3.5 text-brand-primary" />, profile.noHp)}
           {renderFieldRow('Email Resmi', <Mail className="w-3.5 h-3.5 text-brand-primary" />, profile.email)}
-          {renderFieldRow('Tanggal Lahir', <Calendar className="w-3.5 h-3.5 text-brand-primary" />, profile.tanggalLahir)}
           {renderFieldRow('Alamat Tinggal', <MapPin className="w-3.5 h-3.5 text-brand-primary" />, profile.alamatTinggal)}
         </div>
       </div>

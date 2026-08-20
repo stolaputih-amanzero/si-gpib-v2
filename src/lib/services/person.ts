@@ -112,6 +112,7 @@ export async function fetchUnifiedPersonData(personId: string): Promise<UnifiedP
   const namaLengkap = person?.nama_lengkap || pendeta?.nama_lengkap || 'Pelayan GPIB';
   const fotoUrl = person?.foto_url || pendeta?.foto_url || null;
   const tglLahir = person?.tgl_lahir || pendeta?.tgl_lahir || null;
+  const gender = person?.gender || pendeta?.gender || null;
   const noWa = person?.no_wa || pendeta?.no_wa || null;
   const orgName = (pendeta?.m_jemaat_induk as any)?.nama_induk || 'GPIB';
   const jabatan = pendeta?.jabatan || 'Pendeta Jemaat';
@@ -220,8 +221,13 @@ export async function fetchUnifiedPersonData(personId: string): Promise<UnifiedP
     });
   }
 
+  const nip = pendeta?.nip || pendeta?.id_pendeta || null;
+  const nik = pendeta?.nik || null;
+
   return {
     id_person: targetUuid || pendeta?.id_person || personId,
+    nip: nip,
+    nik: nik,
     identity: {
       nama_lengkap: namaLengkap,
       gelar_depan: namaLengkap.startsWith('Pdt.') ? 'Pdt.' : null,
@@ -241,8 +247,11 @@ export async function fetchUnifiedPersonData(personId: string): Promise<UnifiedP
     },
     profile: {
       data: {
-        tempat_lahir: null,
+        tempat_lahir: (person as any)?.tempat_lahir || null,
         tanggal_lahir: tglLahir,
+        gender: gender,
+        nip: nip,
+        nik: nik,
         no_hp: noWa,
         email: pendeta?.email || null,
         alamat_tinggal: null,

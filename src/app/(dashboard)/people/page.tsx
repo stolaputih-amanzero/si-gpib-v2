@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { User, Church, MapPin, Search, ChevronRight } from 'lucide-react';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { cn } from '@/lib/utils';
+import { CreatePersonButton } from '@/components/person/CreatePersonButton';
 
 export const metadata = {
   title: 'Direktori SDM | SI GPIB',
@@ -20,6 +21,12 @@ export default async function PeopleDirectoryPage({
   if (!context || context.status === 'UNAUTHORIZED') {
     redirect('/login');
   }
+
+  const role = (context.user?.role || context.user?.user_metadata?.role || '').toLowerCase();
+  const isSuperUser = role === 'super_user' || role === 'sinode' || role === 'admin' || role === 'superadmin' || context.user?.email === 'stolaputih@gmail.com';
+  const isAdminMupel = role === 'admin_mupel';
+  const isKMJ = role === 'kmj' || role === 'admin_jemaat';
+  const canCreatePerson = isSuperUser || isAdminMupel || isKMJ;
 
   const supabase = await createClient();
   const resolvedParams = await searchParams;
@@ -116,13 +123,19 @@ export default async function PeopleDirectoryPage({
       <main className="max-w-6xl mx-auto px-3.5 sm:px-6 lg:px-8 space-y-5 sm:space-y-6">
         {/* Open Canvas Hero */}
         <section className="pt-2 sm:pt-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <StatusPill variant="gold" dot={true}>
-              Sinode GPIB
-            </StatusPill>
-            <StatusPill variant="blue" dot={false}>
-              Direktori SDM
-            </StatusPill>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <StatusPill variant="gold" dot={true}>
+                Sinode GPIB
+              </StatusPill>
+              <StatusPill variant="blue" dot={false}>
+                Direktori SDM
+              </StatusPill>
+            </div>
+
+            {canCreatePerson && (
+              <CreatePersonButton />
+            )}
           </div>
 
           <div className="space-y-1 pt-1">

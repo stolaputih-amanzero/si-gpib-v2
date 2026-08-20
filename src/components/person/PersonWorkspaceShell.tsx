@@ -19,12 +19,14 @@ import { ServiceFieldSection } from './sections/ServiceFieldSection';
 import { ActivitiesSection } from './sections/ActivitiesSection';
 
 import { WorkspaceErrorBoundary } from '../common/WorkspaceErrorBoundary';
+import { ForensicWatermark } from '@/components/security/ForensicWatermark';
 
 interface PersonWorkspaceShellProps {
   person: UnifiedPersonData;
+  isSelfPerson?: boolean;
 }
 
-export const PersonWorkspaceShell: React.FC<PersonWorkspaceShellProps> = ({ person }) => {
+export const PersonWorkspaceShell: React.FC<PersonWorkspaceShellProps> = ({ person, isSelfPerson: isSelfProp }) => {
   // Pass through UI Anti-Corruption Layer (Adapter)
   const vm = useMemo(() => adaptPersonToViewModel(person), [person]);
 
@@ -37,16 +39,24 @@ export const PersonWorkspaceShell: React.FC<PersonWorkspaceShellProps> = ({ pers
       ? 'PELAYAN'
       : 'RELAWAN';
 
-  const isSelfPerson = (person as any)._meta?.is_self === true || (person as any).is_self === true;
+  const isSelfPerson = Boolean(
+    isSelfProp ||
+    (person as any)._meta?.is_self === true || 
+    (person as any).is_self === true
+  );
   const assignmentSummary = `${person.overview?.current_organization_name || 'GPIB'}${person.overview?.current_role_label ? ` · ${person.overview.current_role_label}` : ''}`;
 
   return (
     <WorkspaceErrorBoundary>
-      <div className="min-h-screen bg-surface-base pb-20 space-y-6">
+      <div className="min-h-screen bg-surface-base pb-20 space-y-6 relative select-none">
+      {/* DLP Security Forensic Watermark */}
+      <ForensicWatermark label="DOKUMEN SDM RESMI GPIB" />
+
       {/* 1. Header (Identity-First Banner) */}
       <div className="max-w-5xl mx-auto px-4 pt-6">
         <PersonHeader 
-          header={vm.header} 
+          header={vm.header}
+          personRaw={person}
           isSelfPerson={isSelfPerson}
           personType={personType}
           assignmentSummary={assignmentSummary}
