@@ -25,7 +25,7 @@ export const RolesSection: React.FC<RolesSectionProps> = ({ roles }) => {
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
               <Briefcase className="w-3.5 h-3.5 text-brand-primary" />
-              <span>Penugasan Aktif (`t_penugasan_pendeta` / `t_pj_jemaat`)</span>
+              <span>Penugasan Pelayanan</span>
             </h3>
           </div>
 
@@ -72,7 +72,7 @@ export const RolesSection: React.FC<RolesSectionProps> = ({ roles }) => {
         <div id="mutasi" className="p-5 rounded-2xl bg-surface-elevated border border-border-subtle shadow-xs space-y-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
             <History className="w-3.5 h-3.5 text-brand-primary" />
-            <span>Riwayat Mutasi (`t_riwayat_mutasi_pendeta`)</span>
+            <span>Riwayat Mutasi Pelayanan</span>
           </h3>
 
           {roles.mutations.type === 'DATA' ? (

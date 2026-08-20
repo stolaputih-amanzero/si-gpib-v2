@@ -16,7 +16,7 @@ export const FamilySection: React.FC<FamilySectionProps> = ({ profile, isSelfPer
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-text-high flex items-center gap-2">
           <Users className="w-5 h-5 text-brand-primary" />
-          Keluarga &amp; Kontak Darurat (`t_keluarga_pendeta`)
+          Data Keluarga &amp; Kontak Darurat
         </h2>
         {isSelfPerson && (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">

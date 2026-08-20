@@ -15,7 +15,7 @@ export const CompetenciesSection: React.FC<CompetenciesSectionProps> = ({ compet
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-text-high flex items-center gap-2">
           <GraduationCap className="w-5 h-5 text-brand-primary" />
-          Kapasitas &amp; Kompetensi SDM (`t_kompetensi_pendeta`)
+          Kapasitas &amp; Kompetensi
         </h2>
       </div>
 

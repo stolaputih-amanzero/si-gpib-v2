@@ -11,19 +11,23 @@ interface ProfileSectionProps {
 
 function renderFieldRow(label: string, icon: React.ReactNode, state: FieldRenderState<any>) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl bg-surface-sunken gap-2 border border-border-subtle min-h-[44px]">
-      <div className="flex items-center gap-2 text-xs font-bold text-text-muted">
+    <div className="flex flex-row items-center justify-between p-3 rounded-xl bg-surface-sunken gap-3 border border-border-subtle min-h-[44px]">
+      <div className="flex items-center gap-2 text-xs font-semibold text-text-muted shrink-0">
         {icon}
         <span>{label}</span>
       </div>
       
-      {state.type === 'DATA' ? (
-        <span className="text-sm font-semibold text-text-high font-sans tabular-nums">{String(state.value)}</span>
-      ) : state.type === 'PRIVACY_MASKED' ? (
-        <PrivacyStateNotice reason={state.reason} label={state.label} compact />
-      ) : (
-        <span className="text-xs italic text-text-disabled">{state.label}</span>
-      )}
+      <div className="text-right min-w-0">
+        {state.type === 'DATA' ? (
+          <span className="text-xs sm:text-sm font-bold text-text-high font-sans tabular-nums truncate block">
+            {String(state.value)}
+          </span>
+        ) : state.type === 'PRIVACY_MASKED' ? (
+          <PrivacyStateNotice reason={state.reason} label={state.label} compact />
+        ) : (
+          <span className="text-xs italic text-text-disabled">{state.label}</span>
+        )}
+      </div>
     </div>
   );
 }

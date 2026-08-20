@@ -172,23 +172,23 @@ export const PersonHeader: React.FC<PersonHeaderProps> = ({
             <button
               type="button"
               onClick={() => setIsIdCardOpen(true)}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-700 hover:bg-amber-600 active:scale-95 text-white text-xs font-bold transition-all min-h-[40px] shadow-xs cursor-pointer"
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-amber-700 hover:bg-amber-600 active:scale-95 text-white text-xs font-bold transition-all min-h-[40px] shadow-xs cursor-pointer whitespace-nowrap"
               title="Lihat & Unduh Kartu Identitas Digital Pelayan"
               aria-label="Lihat ID Card Pelayan"
             >
-              <QrCode className="size-3.5 shrink-0" />
-              <span>Kartu Digital / ID Card</span>
+              <QrCode className="size-4 shrink-0" />
+              <span>ID Card</span>
             </button>
 
             {canEdit && personRaw && (
               <button
                 type="button"
                 onClick={() => setIsEditOpen(true)}
-                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-surface-sunken hover:bg-surface-elevated border border-border-strong text-text-high hover:text-brand-primary text-xs font-bold active:scale-95 transition-all min-h-[40px] shadow-2xs cursor-pointer"
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-surface-sunken hover:bg-surface-elevated border border-border-strong text-text-high hover:text-brand-primary text-xs font-bold active:scale-95 transition-all min-h-[40px] shadow-2xs cursor-pointer whitespace-nowrap"
                 title="Edit Profil Personil"
                 aria-label="Edit Profil Personil"
               >
-                <Edit3 className="size-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                <Edit3 className="size-4 text-amber-600 dark:text-amber-400 shrink-0" />
                 <span>Edit Profil</span>
               </button>
             )}
@@ -197,7 +197,7 @@ export const PersonHeader: React.FC<PersonHeaderProps> = ({
               <button
                 type="button"
                 onClick={handleDelete}
-                className="inline-flex items-center justify-center p-2 rounded-xl border border-red-200 dark:border-red-900/40 bg-red-50/50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/50 active:scale-95 transition-all min-h-[40px] min-w-[40px] shadow-2xs cursor-pointer"
+                className="inline-flex items-center justify-center p-2 rounded-xl border border-red-200 dark:border-red-900/40 bg-red-50/50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/50 active:scale-95 transition-all min-h-[40px] min-w-[40px] shadow-2xs cursor-pointer shrink-0"
                 title="Nonaktifkan Personil"
                 aria-label="Nonaktifkan Personil"
               >
@@ -208,19 +208,19 @@ export const PersonHeader: React.FC<PersonHeaderProps> = ({
         </div>
 
         {/* Clean Footer Affordance */}
-        <div className="pt-3 border-t border-border-subtle flex items-center justify-between text-xs text-text-muted">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-              ● Terverifikasi Sistem Informasi GPIB
+        <div className="pt-3 border-t border-border-subtle flex flex-wrap items-center justify-between gap-2 text-xs text-text-muted">
+          <div className="flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+              <ShieldCheck className="size-3 text-emerald-600" /> Terverifikasi SI GPIB
             </span>
           </div>
           <button
             type="button"
             onClick={() => setIsIdCardOpen(true)}
-            className="text-[11px] text-amber-700 dark:text-amber-400 hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+            className="text-[11px] text-amber-700 dark:text-amber-400 hover:underline font-semibold flex items-center gap-1 cursor-pointer ml-auto"
           >
-            <QrCode className="size-3" />
-            Tampilkan QR Verifikasi
+            <QrCode className="size-3.5" />
+            <span>QR Verifikasi</span>
           </button>
         </div>
       </header>

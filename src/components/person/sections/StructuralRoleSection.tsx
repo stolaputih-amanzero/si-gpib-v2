@@ -15,7 +15,7 @@ export const StructuralRoleSection: React.FC<StructuralRoleSectionProps> = ({ ro
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-text-high flex items-center gap-2">
           <Award className="w-5 h-5 text-brand-primary" />
-          Jabatan Struktural &amp; Penunjukan (`t_jabatan_struktural`)
+          Jabatan Struktural &amp; Penunjukan
         </h2>
       </div>
 

@@ -15,7 +15,7 @@ export const TransferHistorySection: React.FC<TransferHistorySectionProps> = ({ 
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-text-high flex items-center gap-2">
           <History className="w-5 h-5 text-brand-primary" />
-          Riwayat Mutasi Pendeta (`t_riwayat_mutasi_pendeta`)
+          Riwayat Mutasi Pelayanan
         </h2>
       </div>
 

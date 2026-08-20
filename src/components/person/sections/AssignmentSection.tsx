@@ -15,7 +15,7 @@ export const AssignmentSection: React.FC<AssignmentSectionProps> = ({ roles }) =
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-text-high flex items-center gap-2">
           <Briefcase className="w-5 h-5 text-brand-primary" />
-          Penugasan Organisasi (`t_penugasan_pendeta` / `t_pj_jemaat`)
+          Penugasan Pelayanan
         </h2>
       </div>
 

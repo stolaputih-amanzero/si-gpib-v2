@@ -15,7 +15,7 @@ export const ExternalInvolvementSection: React.FC<ExternalInvolvementSectionProp
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-text-high flex items-center gap-2">
           <Globe className="w-5 h-5 text-brand-primary" />
-          Keterlibatan Eksternal &amp; Oikumene (`t_keterlibatan_pendeta`)
+          Keterlibatan Oikumene &amp; Eksternal
         </h2>
       </div>
 
