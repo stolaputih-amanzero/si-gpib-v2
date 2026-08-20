@@ -38,9 +38,17 @@ export function PersonIdCardModal({
   const personId = person.id_person;
   const resolvedNip = nip || (person as any)?.nip || (person as any)?.profile?.data?.nip || (person as any)?.id_pendeta || 'PDT-43300681';
 
-  const verificationUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/people/${personId}`
-    : `https://sigpib.or.id/people/${personId}`;
+  const getPublicBaseUrl = () => {
+    if (typeof window !== 'undefined') {
+      const origin = window.location.origin;
+      if (!origin.includes('localhost') && !origin.includes('127.0.0.1')) {
+        return origin;
+      }
+    }
+    return process.env.NEXT_PUBLIC_PUBLIC_URL || 'https://sigpib.amanzero.space';
+  };
+
+  const verificationUrl = `${getPublicBaseUrl()}/people/${personId}`;
 
   // Official GPIB Logo Path
   const gpibLogoUrl = '/logo%20GPIB.png';
