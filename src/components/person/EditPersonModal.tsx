@@ -153,15 +153,28 @@ export function EditPersonModal({
       return;
     }
 
-    if (formData.nik && formData.nik.length !== 16) {
-      toast.error('Format NIK Tidak Valid', 'Nomor KTP (NIK) harus berjumlah tepat 16 digit angka.');
-      return;
+    const rawNikInput = formData.nik?.trim() || '';
+    let finalNikToSubmit: string | null | undefined = undefined;
+
+    if (rawNikInput.includes('*')) {
+      // Retain existing database NIK (don't overwrite with masked string)
+      finalNikToSubmit = undefined;
+    } else if (rawNikInput === '') {
+      // Explicitly cleared
+      finalNikToSubmit = null;
+    } else {
+      const cleanDigits = rawNikInput.replace(/\D/g, '');
+      if (cleanDigits.length > 0 && cleanDigits.length !== 16) {
+        toast.error('Format NIK Tidak Valid', 'Nomor KTP (NIK) harus berjumlah tepat 16 digit angka (atau kosongkan jika belum tersedia).');
+        return;
+      }
+      finalNikToSubmit = cleanDigits.length === 16 ? cleanDigits : null;
     }
 
     setIsSubmitting(true);
     try {
       const targetId = person.id_person;
-      const res = await updatePersonAction(targetId, {
+      const payload: UpdatePersonInput = {
         ...formData,
         nama_depan: namaDepan,
         nama_tengah: namaTengah,
@@ -169,7 +182,15 @@ export function EditPersonModal({
         nama_panggilan: namaPanggilan,
         gelar_depan: gelarDepan,
         gelar_belakang: gelarBelakang,
-      });
+      };
+
+      if (finalNikToSubmit !== undefined) {
+        payload.nik = finalNikToSubmit;
+      } else {
+        delete payload.nik;
+      }
+
+      const res = await updatePersonAction(targetId, payload);
 
       if (res.success) {
         toast.success('Profil Diperbarui', 'Perubahan data personil berhasil disimpan.');

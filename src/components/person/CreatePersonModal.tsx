@@ -169,15 +169,22 @@ export function CreatePersonModal({
       return;
     }
 
-    if (formData.nik && formData.nik.length !== 16) {
-      toast.error('Format NIK Tidak Valid', 'Nomor KTP (NIK) harus berjumlah tepat 16 digit angka.');
-      return;
+    const rawNikInput = formData.nik?.trim() || '';
+    let finalNik: string | null = null;
+    if (rawNikInput) {
+      const cleanDigits = rawNikInput.replace(/\D/g, '');
+      if (cleanDigits.length > 0 && cleanDigits.length !== 16) {
+        toast.error('Format NIK Tidak Valid', 'Nomor KTP (NIK) harus berjumlah tepat 16 digit angka (atau kosongkan jika belum tersedia).');
+        return;
+      }
+      finalNik = cleanDigits.length === 16 ? cleanDigits : null;
     }
 
     setIsSubmitting(true);
     try {
       const res = await createPersonAction({
         ...formData,
+        nik: finalNik,
         nama_depan: namaDepan,
         nama_tengah: namaTengah,
         nama_belakang: namaBelakang,
