@@ -11,7 +11,7 @@ export function getHumanReadableRoleLabel(role?: string | null): string {
   switch (roleLower) {
     case 'super_user':
     case 'superuser':
-      return 'Admin Nasional';
+      return 'Super User';
     case 'admin':
       return 'Admin Sistem';
     case 'kmj':

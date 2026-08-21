@@ -111,6 +111,16 @@ export function useCurrentUser() {
 
       return currentUserObj;
     },
-    staleTime: 0,
+    initialData: () => {
+      if (typeof window === 'undefined') return undefined;
+      try {
+        const cached = localStorage.getItem('si_gpib_cached_current_user');
+        return cached ? JSON.parse(cached) : undefined;
+      } catch {
+        return undefined;
+      }
+    },
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
   });
 }

@@ -6,11 +6,11 @@ import { AdminAccountProfileView } from '@/components/profile/AdminAccountProfil
 
 /**
  * F2 Settings Profile Router (/settings/profile)
- * - For Super User & Administrators: Displays dedicated fluid AdminAccountProfileView (account credentials, RBAC authority matrix, session security).
- * - For Pastoral / Field Workers (Pendeta, Presbiter): Redirects to canonical /people/{id_person} workspace.
+ * - Super User & Admin: Instant 0ms render of fluid AdminAccountProfileView without server waterfalls.
+ * - Pastoral / Field Workers (Pendeta, Presbiter): Redirects to canonical /people/{id_person} workspace.
  */
 export default async function SettingsProfilePage() {
-  // 1. Resolve authenticated identity
+  // 1. Resolve authenticated identity directly from cookie/JWT session
   const context = await getServerContext();
 
   if (!context || context.status === 'UNAUTHORIZED' || !context.user) {
@@ -19,7 +19,12 @@ export default async function SettingsProfilePage() {
 
   const user = context.user;
 
-  // 2. Query user record from database
+  // 2. Fast-Path: If user is Super User or Admin, render immediately without blocking on DB lookups
+  if (isSuperUserRole(user.role, user.email)) {
+    return <AdminAccountProfileView />;
+  }
+
+  // 3. For field ministers/pastoral roles, resolve targetPersonId
   const supabaseAdmin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -33,15 +38,6 @@ export default async function SettingsProfilePage() {
     .or(`id.eq.${user.id},email.eq.${user.email}`)
     .maybeSingle();
 
-  const resolvedRole = dbUser?.role || user.role || 'pelayan';
-  const isSuperUser = isSuperUserRole(resolvedRole, user.email || dbUser?.email);
-
-  // If user is Admin / Super User, display the dedicated fluid AdminAccountProfileView
-  if (isSuperUser) {
-    return <AdminAccountProfileView />;
-  }
-
-  // 3. For field ministers/pastoral roles, resolve targetPersonId
   if (dbUser?.id_person) {
     targetPersonId = dbUser.id_person;
   } else if (dbUser?.id_pendeta) {

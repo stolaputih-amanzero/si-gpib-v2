@@ -241,7 +241,8 @@ export function useProfileAkun(userId?: string) {
         biometric_enabled: Boolean(dbUser.biometric_enabled),
       };
     },
-    staleTime: 0,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
   });
 }
 
@@ -399,7 +400,8 @@ export function useProfilePelayanan(idPendeta?: string | null | undefined) {
         pos_pelkes_nama: posNama,
       };
     },
-    staleTime: 0,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
   });
 }
 

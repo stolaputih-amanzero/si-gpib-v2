@@ -135,16 +135,6 @@ export default function SettingsHubPage() {
             <StatusPill variant="gold" dot={true}>
               {humanRoleLabel}
             </StatusPill>
-
-            <button
-              type="button"
-              onClick={handleLogoutClick}
-              className="p-2 sm:p-2.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-surface-1 hover:bg-red-500/10 text-ink-secondary hover:text-red-600 dark:hover:text-red-400 active:scale-95 transition-all cursor-pointer min-h-[40px] min-w-[40px] flex items-center justify-center shadow-2xs"
-              title="Keluar Sesi"
-              aria-label="Keluar Sesi"
-            >
-              <LogOut className="size-4.5" />
-            </button>
           </div>
 
           <div className="space-y-1 pt-1">
@@ -413,12 +403,7 @@ export default function SettingsHubPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                      Admin
-                    </span>
-                    <ChevronRight className="size-4.5 text-stone-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0" />
-                  </div>
+                  <ChevronRight className="size-4.5 text-stone-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0" />
                 </Link>
 
                 <Link
@@ -438,12 +423,7 @@ export default function SettingsHubPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
-                      Admin
-                    </span>
-                    <ChevronRight className="size-4.5 text-stone-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 group-hover:translate-x-0.5 transition-all shrink-0" />
-                  </div>
+                  <ChevronRight className="size-4.5 text-stone-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 group-hover:translate-x-0.5 transition-all shrink-0" />
                 </Link>
 
                 <Link
@@ -463,12 +443,7 @@ export default function SettingsHubPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                      Admin
-                    </span>
-                    <ChevronRight className="size-4.5 text-stone-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all shrink-0" />
-                  </div>
+                  <ChevronRight className="size-4.5 text-stone-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all shrink-0" />
                 </Link>
               </div>
             </section>

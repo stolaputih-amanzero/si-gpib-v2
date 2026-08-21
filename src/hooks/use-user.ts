@@ -14,8 +14,23 @@ export interface UserProfile {
 }
 
 export function useUser(): UserProfile {
-  const [user, setUser] = useState<any | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<any | null>(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const cached = localStorage.getItem('si_gpib_cached_user');
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    try {
+      return !localStorage.getItem('si_gpib_cached_user');
+    } catch {
+      return true;
+    }
+  });
 
   useEffect(() => {
     const supabase = createClient();
