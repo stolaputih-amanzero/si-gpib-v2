@@ -276,7 +276,7 @@ export function ProfileView({
         </h2>
 
         <PrivacyGuard canAccess={viewerContext.canViewPrivate} sectionName="biometric">
-          <div className="p-3.5 rounded-2xl bg-surface-1 border border-stone-200/70 dark:border-stone-800/70">
+          <div className="divide-y divide-stone-200/60 dark:divide-stone-800/60">
             <ListRow
               icon={<Fingerprint className="size-5 text-emerald-600 dark:text-emerald-400" />}
               iconVariant="accent"
@@ -301,7 +301,7 @@ export function ProfileView({
           <span>Jejak Aktivitas Akun</span>
         </h2>
         <PrivacyGuard canAccess={viewerContext.canViewPrivate} sectionName="aktivitas">
-          <div className="p-3.5 rounded-2xl bg-surface-1 border border-stone-200/70 dark:border-stone-800/70">
+          <div className="divide-y divide-stone-200/60 dark:divide-stone-800/60">
             <ListRow
               icon={<UserCheck className="size-5 text-emerald-600 dark:text-emerald-400" />}
               iconVariant="accent"

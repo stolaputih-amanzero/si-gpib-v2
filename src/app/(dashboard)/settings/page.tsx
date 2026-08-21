@@ -132,14 +132,9 @@ export default function SettingsHubPage() {
         {/* Header Bar */}
         <section className="space-y-3 pt-1">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <StatusPill variant="gold" dot={true}>
-                Sinode GPIB
-              </StatusPill>
-              <StatusPill variant="blue" dot={false}>
-                {humanRoleLabel}
-              </StatusPill>
-            </div>
+            <StatusPill variant="gold" dot={true}>
+              {humanRoleLabel}
+            </StatusPill>
 
             <button
               type="button"

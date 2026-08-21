@@ -3,20 +3,17 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
-  ShieldCheck, 
   User as UserIcon, 
   Mail, 
   Calendar, 
   Fingerprint, 
   KeyRound, 
   ChevronLeft, 
-  ExternalLink, 
+  ChevronRight, 
   Users, 
   Activity, 
   Lock, 
   CheckCircle2, 
-  Copy, 
-  Check, 
   Church, 
   ArrowRight,
   X,
@@ -40,9 +37,8 @@ export function AdminAccountProfileView() {
   const { data: hierarki } = useHierarkiInfo(akun?.id_mupel, akun?.id_induk, akun?.id_pos);
   
   const isSuperUser = isSuperUserRole(currentUser?.role || role, email || undefined);
-  const humanRoleLabel = getHumanReadableRoleLabel(currentUser?.role || role);
+  const humanRoleLabel = isSuperUser ? 'Super User' : getHumanReadableRoleLabel(currentUser?.role || role);
 
-  const [copiedId, setCopiedId] = useState(false);
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
   const [isBiometricModalOpen, setIsBiometricModalOpen] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -69,15 +65,6 @@ export function AdminAccountProfileView() {
     };
     fetchBiometricsStatus();
   }, [user]);
-
-  const handleCopyId = () => {
-    const idToCopy = user?.id || akun?.id || '';
-    if (!idToCopy) return;
-    navigator.clipboard.writeText(idToCopy);
-    setCopiedId(true);
-    toast.success('ID Akun Disalin', 'ID Pengguna berhasil disalin ke clipboard.');
-    setTimeout(() => setCopiedId(false), 2000);
-  };
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,29 +98,25 @@ export function AdminAccountProfileView() {
   const getScopeDescription = () => {
     if (isSuperUser) {
       return {
-        title: 'Seluruh Wilayah Sinode GPIB',
-        subtitle: 'Otoritas tertinggi nasional mencakup seluruh Mupel, Jemaat Induk, dan Pos Pelkes di Indonesia.',
-        badge: 'Sinode Nasional',
+        title: 'Seluruh Sinode GPIB (Nasional)',
+        subtitle: 'Mencakup seluruh Mupel, Jemaat Induk, dan Pos Pelkes di Indonesia.',
       };
     }
     if (hierarki?.jemaatNama) {
       return {
         title: `Jemaat ${hierarki.jemaatNama}`,
-        subtitle: hierarki.mupelNama ? `Mupel ${hierarki.mupelNama}` : 'Otoritas tingkat jemaat lokal GPIB.',
-        badge: 'Lokal Jemaat',
+        subtitle: hierarki.mupelNama ? `Mupel ${hierarki.mupelNama}` : 'Otoritas jemaat lokal GPIB.',
       };
     }
     if (hierarki?.mupelNama) {
       return {
         title: `Mupel ${hierarki.mupelNama}`,
-        subtitle: 'Otoritas koordinasi wilayah Musyawarah Pelayanan (Mupel).',
-        badge: 'Wilayah Mupel',
+        subtitle: 'Wilayah Musyawarah Pelayanan (Mupel).',
       };
     }
     return {
       title: 'Lingkup Terbatas',
-      subtitle: 'Hak akses administratif terdistribusi sistem.',
-      badge: 'Admin Unit',
+      subtitle: 'Hak akses administratif terdistribusi.',
     };
   };
 
@@ -142,9 +125,9 @@ export function AdminAccountProfileView() {
 
   return (
     <div className="w-full min-h-screen bg-surface-base pb-32 pt-2 sm:pt-4">
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 space-y-8">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 space-y-7">
         
-        {/* Top Breadcrumb / Back Link */}
+        {/* Top Header: Single Role Pill */}
         <div className="flex items-center justify-between">
           <Link
             href="/settings"
@@ -154,42 +137,35 @@ export function AdminAccountProfileView() {
             <span>Kembali ke Pengaturan</span>
           </Link>
 
-          <div className="flex items-center gap-2">
-            <StatusPill variant="gold" dot={true}>
-              {scopeInfo.badge}
-            </StatusPill>
-            <StatusPill variant="blue" dot={false}>
-              {humanRoleLabel}
-            </StatusPill>
-          </div>
+          <StatusPill variant="gold" dot={true}>
+            {humanRoleLabel}
+          </StatusPill>
         </div>
 
-        {/* Hero Identity Section (Fluid & Clean, No Heavy Nested Box) */}
-        <section className="space-y-4 pt-1">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-5">
-            <div className="relative size-20 sm:size-24 rounded-3xl bg-amber-500/10 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold text-2xl sm:text-3xl overflow-hidden shrink-0 border border-amber-500/20 shadow-xs">
+        {/* Hero Identity Section (Fluid) */}
+        <section className="space-y-3 pt-1">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5">
+            <div className="relative size-18 sm:size-22 rounded-3xl bg-amber-500/10 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold text-2xl sm:text-3xl overflow-hidden shrink-0 border border-amber-500/20 shadow-xs">
               {displayAvatar ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={displayAvatar} alt={nama} className="w-full h-full object-cover" />
               ) : (
-                <UserIcon className="size-10 sm:size-12 text-amber-600 dark:text-amber-400" />
+                <UserIcon className="size-9 sm:size-11 text-amber-600 dark:text-amber-400" />
               )}
-              <div className="absolute bottom-1 right-1 size-4 rounded-full bg-emerald-500 ring-2 ring-surface-base" title="Online / Aktif" />
+              <div className="absolute bottom-1 right-1 size-3.5 rounded-full bg-emerald-500 ring-2 ring-surface-base" title="Online / Aktif" />
             </div>
 
-            <div className="space-y-1.5 min-w-0">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <h1 className="font-editorial text-2xl sm:text-3xl font-bold text-ink-primary tracking-tight">
-                  {isLoading ? 'Memuat Profil...' : nama || email}
-                </h1>
-              </div>
+            <div className="space-y-1 min-w-0">
+              <h1 className="font-editorial text-2xl sm:text-3xl font-bold text-ink-primary tracking-tight">
+                {isLoading ? 'Memuat Profil...' : nama || email}
+              </h1>
 
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-secondary">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-secondary">
                 <span className="flex items-center gap-1.5 font-mono text-ink-tertiary">
                   <Mail className="size-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
                   {email}
                 </span>
-                <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
                   <CheckCircle2 className="size-3.5 shrink-0" />
                   Akun Terverifikasi
                 </span>
@@ -199,7 +175,7 @@ export function AdminAccountProfileView() {
 
           {/* Hybrid Link Banner (If Admin is also linked to pastoral directory) */}
           {linkedPersonId && (
-            <div className="pt-2">
+            <div className="pt-1">
               <Link
                 href={`/people/${linkedPersonId}`}
                 className="flex items-center justify-between p-3 rounded-2xl bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/15 transition-all group"
@@ -207,7 +183,7 @@ export function AdminAccountProfileView() {
                 <div className="flex items-center gap-2.5 min-w-0">
                   <Church className="size-4 text-amber-600 dark:text-amber-400 shrink-0" />
                   <span className="text-xs text-ink-primary font-medium truncate">
-                    Akun ini terhubung ke direktori pelayanan. Buka <strong className="text-amber-700 dark:text-amber-400 font-bold">Workspace Pelayanan Pastoral</strong>
+                    Terhubung ke direktori pelayanan. Buka <strong className="text-amber-700 dark:text-amber-400 font-bold">Workspace Pastoral</strong>
                   </span>
                 </div>
                 <ArrowRight className="size-3.5 text-amber-600 group-hover:translate-x-0.5 transition-transform shrink-0" />
@@ -218,47 +194,28 @@ export function AdminAccountProfileView() {
 
         <div className="h-px bg-stone-200/80 dark:bg-stone-800/80" />
 
-        {/* Section 1: Kredensial & Detail Akun (Fluid Key-Value) */}
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-ink-tertiary">
-              Kredensial &amp; Data Akun
-            </h2>
-          </div>
+        {/* Section 1: Kredensial & Data Akun (Fluid Key-Value, Tanpa UUID) */}
+        <section className="space-y-2">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-ink-tertiary">
+            Kredensial &amp; Data Akun
+          </h2>
 
           <div className="divide-y divide-stone-200/60 dark:divide-stone-800/60 text-sm">
-            <div className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
-              <span className="text-xs font-medium text-ink-secondary">ID Akun (User UUID)</span>
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-xs text-ink-primary select-all">
-                  {user?.id || akun?.id || '-'}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleCopyId}
-                  className="p-1 rounded-md text-ink-secondary hover:text-ink-primary hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
-                  title="Salin ID"
-                >
-                  {copiedId ? <Check className="size-3.5 text-emerald-600" /> : <Copy className="size-3.5" />}
-                </button>
-              </div>
-            </div>
-
-            <div className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
-              <span className="text-xs font-medium text-ink-secondary">Role Otoritas Sistem</span>
+            <div className="py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
+              <span className="text-xs font-medium text-ink-secondary">Role Otoritas</span>
               <span className="text-xs font-bold text-amber-700 dark:text-amber-400">
                 {humanRoleLabel}
               </span>
             </div>
 
-            <div className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
-              <span className="text-xs font-medium text-ink-secondary">Nomor Kontak / WhatsApp</span>
+            <div className="py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
+              <span className="text-xs font-medium text-ink-secondary">Nomor WhatsApp</span>
               <span className="text-xs text-ink-primary font-mono">
                 {akun?.no_hp || akun?.no_telepon || 'Belum ditautkan'}
               </span>
             </div>
 
-            <div className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
+            <div className="py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
               <span className="text-xs font-medium text-ink-secondary">Terdaftar Sejak</span>
               <span className="text-xs text-ink-primary flex items-center gap-1.5">
                 <Calendar className="size-3.5 text-ink-tertiary" />
@@ -270,109 +227,86 @@ export function AdminAccountProfileView() {
 
         <div className="h-px bg-stone-200/80 dark:bg-stone-800/80" />
 
-        {/* Section 2: Matriks Otoritas & Hak Akses (RBAC Matrix) */}
-        <section className="space-y-3">
+        {/* Section 2: Hak Akses & Otoritas (Fluid Key-Value, Tanpa Kotak-Kotak Tebal) */}
+        <section className="space-y-2">
           <h2 className="text-xs font-bold uppercase tracking-wider text-ink-tertiary">
-            Matriks Hak Akses &amp; Lingkup Otoritas (RBAC)
+            Hak Akses &amp; Otoritas
           </h2>
 
-          {/* Scope Card Minimal */}
-          <div className="p-4 rounded-2xl bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/20 space-y-1">
-            <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-bold text-sm">
-              <ShieldCheck className="size-4.5 text-amber-600 dark:text-amber-400 shrink-0" />
-              <span>{scopeInfo.title}</span>
-            </div>
-            <p className="text-xs text-ink-secondary leading-relaxed pl-6">
-              {scopeInfo.subtitle}
-            </p>
-          </div>
-
-          {/* Granular Permission Checklist */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-stone-50/70 dark:bg-stone-800/30 border border-stone-200/50 dark:border-stone-800/50">
-              <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <div className="min-w-0">
-                <span className="text-xs font-semibold text-ink-primary block">Manajemen Pengguna &amp; Peran</span>
-                <span className="text-[11px] text-ink-secondary">Kelola kredensial &amp; status aktif</span>
-              </div>
+          <div className="divide-y divide-stone-200/60 dark:divide-stone-800/60 text-sm">
+            <div className="py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
+              <span className="text-xs font-medium text-ink-secondary">Lingkup Wilayah</span>
+              <span className="text-xs font-semibold text-ink-primary">
+                {scopeInfo.title}
+              </span>
             </div>
 
-            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-stone-50/70 dark:bg-stone-800/30 border border-stone-200/50 dark:border-stone-800/50">
-              <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <div className="min-w-0">
-                <span className="text-xs font-semibold text-ink-primary block">Audit Trail &amp; Log Aktivitas</span>
-                <span className="text-[11px] text-ink-secondary">Pemantauan mutasi data &amp; forensik</span>
-              </div>
+            <div className="py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
+              <span className="text-xs font-medium text-ink-secondary">Tingkat Hak Akses</span>
+              <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">
+                {isSuperUser ? 'Akses Penuh (Full Control)' : 'Administratif Terbatas'}
+              </span>
             </div>
 
-            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-stone-50/70 dark:bg-stone-800/30 border border-stone-200/50 dark:border-stone-800/50">
-              <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <div className="min-w-0">
-                <span className="text-xs font-semibold text-ink-primary block">Kebijakan &amp; Kontrol Akses</span>
-                <span className="text-[11px] text-ink-secondary">Konfigurasi hak akses &amp; batas wilayah</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-stone-50/70 dark:bg-stone-800/30 border border-stone-200/50 dark:border-stone-800/50">
-              <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <div className="min-w-0">
-                <span className="text-xs font-semibold text-ink-primary block">Ekspor &amp; Rekapitulasi Data</span>
-                <span className="text-[11px] text-ink-secondary">Laporan sensus, aset, &amp; keuangan</span>
-              </div>
+            <div className="py-2.5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-4">
+              <span className="text-xs font-medium text-ink-secondary">Izin Operasional</span>
+              <span className="text-xs text-ink-primary sm:text-right">
+                Manajemen Pengguna, Audit Trail, Kebijakan Akses, Ekspor Data
+              </span>
             </div>
           </div>
         </section>
 
         <div className="h-px bg-stone-200/80 dark:bg-stone-800/80" />
 
-        {/* Section 3: Keamanan & Autentikasi (Fluid Row Items) */}
-        <section className="space-y-3">
+        {/* Section 3: Keamanan & Autentikasi (Fluid Rows) */}
+        <section className="space-y-2">
           <h2 className="text-xs font-bold uppercase tracking-wider text-ink-tertiary">
             Keamanan &amp; Autentikasi
           </h2>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-surface-1 border border-stone-200/70 dark:border-stone-800/70">
+          <div className="divide-y divide-stone-200/60 dark:divide-stone-800/60">
+            <div className="py-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="size-9 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-ink-secondary shrink-0">
+                <div className="size-8.5 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-ink-secondary shrink-0">
                   <Fingerprint className="size-4.5 text-amber-600 dark:text-amber-400" />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-sm font-semibold text-ink-primary block leading-tight">
-                    Keamanan Biometrik (Passkey / WebAuthn)
+                  <span className="text-xs sm:text-sm font-semibold text-ink-primary block leading-tight">
+                    Keamanan Biometrik
                   </span>
                   <span className="text-[11px] text-ink-secondary block mt-0.5">
-                    {biometricsEnabled ? 'Sensor sidik jari / Face ID aktif pada perangkat ini' : 'Belum diaktifkan pada perangkat ini'}
+                    {biometricsEnabled ? 'Passkey / Sensor biometrik aktif' : 'WebAuthn / Passkey belum aktif'}
                   </span>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsBiometricModalOpen(true)}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 transition-all cursor-pointer border border-amber-500/20 shrink-0 ml-2"
+                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 transition-all cursor-pointer border border-amber-500/20 shrink-0"
               >
                 {biometricsEnabled ? 'Kelola' : 'Aktifkan'}
               </button>
             </div>
 
-            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-surface-1 border border-stone-200/70 dark:border-stone-800/70">
+            <div className="py-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="size-9 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-ink-secondary shrink-0">
+                <div className="size-8.5 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-ink-secondary shrink-0">
                   <KeyRound className="size-4.5 text-amber-600 dark:text-amber-400" />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-sm font-semibold text-ink-primary block leading-tight">
+                  <span className="text-xs sm:text-sm font-semibold text-ink-primary block leading-tight">
                     Kata Sandi Akun
                   </span>
                   <span className="text-[11px] text-ink-secondary block mt-0.5">
-                    Ganti kata sandi login sistem secara berkala
+                    Ganti kata sandi login secara berkala
                   </span>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsChangingPassword(true)}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-stone-100 dark:bg-stone-800 text-ink-primary hover:bg-stone-200 dark:hover:bg-stone-700 transition-all cursor-pointer shrink-0 ml-2 border border-stone-200/60 dark:border-stone-700"
+                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-stone-100 dark:bg-stone-800 text-ink-primary hover:bg-stone-200 dark:hover:bg-stone-700 transition-all cursor-pointer shrink-0 border border-stone-200/60 dark:border-stone-700"
               >
                 Ubah Sandi
               </button>
@@ -380,69 +314,75 @@ export function AdminAccountProfileView() {
           </div>
         </section>
 
-        {/* Section 4: Tautan Pintas Tata Kelola Sinodal (Fluid Actions) */}
+        {/* Section 4: Akses Cepat Tata Kelola (Fluid Rows, Tanpa Card Boxes) */}
         {isSuperUser && (
           <>
             <div className="h-px bg-stone-200/80 dark:bg-stone-800/80" />
 
-            <section className="space-y-3">
+            <section className="space-y-2">
               <h2 className="text-xs font-bold uppercase tracking-wider text-ink-tertiary">
-                Pusat Tata Kelola Cepat
+                Akses Cepat Tata Kelola
               </h2>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="divide-y divide-stone-200/60 dark:divide-stone-800/60">
                 <Link
                   href="/settings/users"
-                  className="p-3.5 rounded-2xl bg-surface-1 hover:bg-amber-500/5 border border-stone-200/70 dark:border-stone-800/70 hover:border-amber-500/30 transition-all group flex flex-col justify-between space-y-2"
+                  className="py-3 flex items-center justify-between hover:bg-stone-100/50 dark:hover:bg-stone-800/40 -mx-2 px-2 rounded-xl transition-colors group cursor-pointer"
                 >
-                  <div className="size-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                    <Users className="size-4" />
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="size-8.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                      <Users className="size-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs sm:text-sm font-semibold text-ink-primary group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors block leading-tight">
+                        Manajemen Pengguna
+                      </span>
+                      <span className="text-[11px] text-ink-secondary block mt-0.5">
+                        Kelola akun pengguna &amp; status peran
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-xs font-bold text-ink-primary group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors flex items-center justify-between">
-                      <span>Kelola Pengguna</span>
-                      <ExternalLink className="size-3 text-ink-tertiary group-hover:text-amber-600" />
-                    </span>
-                    <span className="text-[11px] text-ink-secondary block mt-0.5">
-                      Daftar akun &amp; role
-                    </span>
-                  </div>
+                  <ChevronRight className="size-4 text-stone-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0" />
                 </Link>
 
                 <Link
                   href="/developer/audit-trail"
-                  className="p-3.5 rounded-2xl bg-surface-1 hover:bg-purple-500/5 border border-stone-200/70 dark:border-stone-800/70 hover:border-purple-500/30 transition-all group flex flex-col justify-between space-y-2"
+                  className="py-3 flex items-center justify-between hover:bg-stone-100/50 dark:hover:bg-stone-800/40 -mx-2 px-2 rounded-xl transition-colors group cursor-pointer"
                 >
-                  <div className="size-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-                    <Activity className="size-4" />
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="size-8.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                      <Activity className="size-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs sm:text-sm font-semibold text-ink-primary group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors block leading-tight">
+                        Audit Trail Aktivitas
+                      </span>
+                      <span className="text-[11px] text-ink-secondary block mt-0.5">
+                        Jejak log aktivitas &amp; riwayat mutasi
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-xs font-bold text-ink-primary group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors flex items-center justify-between">
-                      <span>Audit Trail</span>
-                      <ExternalLink className="size-3 text-ink-tertiary group-hover:text-purple-600" />
-                    </span>
-                    <span className="text-[11px] text-ink-secondary block mt-0.5">
-                      Jejak log aktivitas
-                    </span>
-                  </div>
+                  <ChevronRight className="size-4 text-stone-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 group-hover:translate-x-0.5 transition-all shrink-0" />
                 </Link>
 
                 <Link
                   href="/settings/access-control"
-                  className="p-3.5 rounded-2xl bg-surface-1 hover:bg-indigo-500/5 border border-stone-200/70 dark:border-stone-800/70 hover:border-indigo-500/30 transition-all group flex flex-col justify-between space-y-2"
+                  className="py-3 flex items-center justify-between hover:bg-stone-100/50 dark:hover:bg-stone-800/40 -mx-2 px-2 rounded-xl transition-colors group cursor-pointer"
                 >
-                  <div className="size-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                    <Lock className="size-4" />
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="size-8.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                      <Lock className="size-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs sm:text-sm font-semibold text-ink-primary group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors block leading-tight">
+                        Kontrol Kebijakan &amp; Akses
+                      </span>
+                      <span className="text-[11px] text-ink-secondary block mt-0.5">
+                        Aturan otorisasi sistem &amp; batasan
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-xs font-bold text-ink-primary group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors flex items-center justify-between">
-                      <span>Kontrol Akses</span>
-                      <ExternalLink className="size-3 text-ink-tertiary group-hover:text-indigo-600" />
-                    </span>
-                    <span className="text-[11px] text-ink-secondary block mt-0.5">
-                      Aturan otorisasi
-                    </span>
-                  </div>
+                  <ChevronRight className="size-4 text-stone-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all shrink-0" />
                 </Link>
               </div>
             </section>
