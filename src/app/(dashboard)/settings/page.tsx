@@ -17,7 +17,8 @@ import {
   KeyRound, 
   Fingerprint, 
   ShieldCheck,
-  Church
+  Church,
+  LockKeyhole
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { BiometricSetup } from '@/components/biometric/BiometricSetup';
@@ -31,7 +32,7 @@ import { cn } from '@/lib/utils';
 export default function SettingsHubPage() {
   const { user, nama, email, role, avatarUrl, isLoading, logout } = useUser();
   const { data: currentUser } = useCurrentUser();
-  const isSuperUser = isSuperUserRole(currentUser?.role || role);
+  const isSuperUser = isSuperUserRole(currentUser?.role || role, email || undefined);
   const { toast, confirm } = useToast();
   
   const { data: akun } = useProfileAkun(user?.id);
@@ -53,7 +54,6 @@ export default function SettingsHubPage() {
           const body = await res.json();
           if (typeof body.enabled === 'boolean') {
             setBiometricsEnabled(body.enabled);
-            return;
           }
         }
       } catch (err) {
@@ -77,7 +77,7 @@ export default function SettingsHubPage() {
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error('Kombinasi Tidak Cocok', 'Konfirmasi password baru tidak sama dengan password baru.');
+      toast.error('Kombinasi Tidak Cocok', 'Konfirmasi password baru tidak sama.');
       return;
     }
 
@@ -88,12 +88,12 @@ export default function SettingsHubPage() {
 
       if (error) throw error;
 
-      toast.success('Kata Sandi Diperbarui', 'Kata sandi Anda berhasil diubah. Gunakan kata sandi ini untuk login berikutnya.');
+      toast.success('Kata Sandi Diperbarui', 'Kata sandi akun Anda berhasil diganti.');
       setIsChangingPassword(false);
       setNewPassword('');
       setConfirmPassword('');
     } catch (error: any) {
-      toast.error('Gagal Mengubah Kata Sandi', error?.message || 'Terjadi kesalahan saat memperbarui kata sandi.');
+      toast.error('Gagal Mengubah Kata Sandi', error?.message || 'Terjadi kesalahan sistem.');
     } finally {
       setIsSubmittingPassword(false);
     }
@@ -126,11 +126,11 @@ export default function SettingsHubPage() {
   const humanRoleLabel = getHumanReadableRoleLabel(currentUser?.role || role);
 
   return (
-    <div className="w-full min-h-screen bg-surface-base pb-28 pt-1 sm:pt-3">
-      <main className="max-w-4xl mx-auto px-3.5 sm:px-6 lg:px-8 space-y-6 sm:space-y-7">
+    <div className="w-full min-h-screen bg-surface-base pb-32 pt-2 sm:pt-4">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 space-y-8">
         
         {/* Header Bar */}
-        <section className="pt-2 sm:pt-4 space-y-3">
+        <section className="space-y-3 pt-1">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <StatusPill variant="gold" dot={true}>
@@ -162,50 +162,59 @@ export default function SettingsHubPage() {
           </div>
         </section>
 
-        {/* GROUP 1: AKUN & IDENTITAS */}
-        <section className="rounded-3xl bg-surface-1 border border-stone-200/80 dark:border-stone-800 p-4 sm:p-5 shadow-xs space-y-3">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-ink-tertiary px-1">
-            Akun &amp; Identitas
-          </h2>
-
-          {/* Identity Header Card */}
-          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-stone-50/80 dark:bg-stone-800/40 border border-stone-200/60 dark:border-stone-800/80">
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="size-13 rounded-2xl bg-amber-500/10 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold text-xl overflow-hidden shrink-0 border border-amber-500/20">
-                {displayAvatar ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={displayAvatar} alt={nama} className="w-full h-full object-cover" />
-                ) : (
-                  <UserIcon className="size-6 text-amber-600 dark:text-amber-400" />
-                )}
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-base text-ink-primary truncate">
-                    {isLoading ? 'Memuat Profil...' : nama}
-                  </span>
-                </div>
-                <p className="font-mono text-xs text-ink-secondary truncate mt-0.5">
-                  {email}
-                </p>
-                <div className="mt-1.5">
-                  <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
-                    {humanRoleLabel}
-                  </span>
-                </div>
+        {/* Identity Hero Section (Fluid & Clean) */}
+        <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/20">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="size-16 rounded-2xl bg-amber-500/10 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold text-xl overflow-hidden shrink-0 border border-amber-500/20 shadow-2xs">
+              {displayAvatar ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={displayAvatar} alt={nama} className="w-full h-full object-cover" />
+              ) : (
+                <UserIcon className="size-8 text-amber-600 dark:text-amber-400" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <span className="font-bold text-base sm:text-lg text-ink-primary truncate block">
+                {isLoading ? 'Memuat Profil...' : nama || email}
+              </span>
+              <p className="font-mono text-xs text-ink-secondary truncate mt-0.5">
+                {email}
+              </p>
+              <div className="mt-1.5 flex items-center gap-2">
+                <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                  {humanRoleLabel}
+                </span>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                  <span className="size-1.5 rounded-full bg-emerald-500" />
+                  Aktif
+                </span>
               </div>
             </div>
           </div>
 
-          <div className="h-px bg-stone-200/60 dark:bg-stone-800/80" />
+          <Link
+            href="/settings/profile"
+            className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shrink-0 self-start sm:self-center shadow-xs cursor-pointer flex items-center gap-1.5"
+          >
+            <span>Buka Profil</span>
+            <ChevronRight className="size-3.5" />
+          </Link>
+        </section>
 
-          {/* Group Items */}
-          <div className="space-y-1">
+        <div className="h-px bg-stone-200/80 dark:bg-stone-800/80" />
+
+        {/* GROUP 1: AKUN & KEAMANAN */}
+        <section className="space-y-3">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-ink-tertiary">
+            Akun &amp; Keamanan
+          </h2>
+
+          <div className="space-y-1.5">
             <Link
               href="/settings/profile"
-              className="flex items-center justify-between py-3 px-3 rounded-2xl hover:bg-stone-100/70 dark:hover:bg-stone-800/60 transition-colors group cursor-pointer"
+              className="flex items-center justify-between p-3 rounded-2xl hover:bg-stone-100/70 dark:hover:bg-stone-800/50 transition-colors group cursor-pointer"
             >
-              <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center gap-3.5 min-w-0">
                 <div className="size-9 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-ink-secondary group-hover:text-amber-700 dark:group-hover:text-amber-400 shrink-0 transition-colors">
                   {isSuperUser ? (
                     <ShieldCheck className="size-4.5 text-amber-600 dark:text-amber-400" />
@@ -228,9 +237,9 @@ export default function SettingsHubPage() {
             {isSuperUser && linkedPersonId && (
               <Link
                 href={`/people/${linkedPersonId}`}
-                className="flex items-center justify-between py-3 px-3 rounded-2xl hover:bg-stone-100/70 dark:hover:bg-stone-800/60 transition-colors group cursor-pointer"
+                className="flex items-center justify-between p-3 rounded-2xl hover:bg-stone-100/70 dark:hover:bg-stone-800/50 transition-colors group cursor-pointer"
               >
-                <div className="flex items-center gap-3 min-w-0">
+                <div className="flex items-center gap-3.5 min-w-0">
                   <div className="size-9 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-ink-secondary group-hover:text-amber-700 dark:group-hover:text-amber-400 shrink-0 transition-colors">
                     <Church className="size-4.5 text-amber-600 dark:text-amber-400" />
                   </div>
@@ -250,15 +259,20 @@ export default function SettingsHubPage() {
             <button
               type="button"
               onClick={() => setIsBiometricModalOpen(true)}
-              className="w-full flex items-center justify-between py-3 px-3 rounded-2xl hover:bg-stone-100/70 dark:hover:bg-stone-800/60 transition-colors group cursor-pointer text-left"
+              className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-stone-100/70 dark:hover:bg-stone-800/50 transition-colors group cursor-pointer text-left"
             >
-              <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center gap-3.5 min-w-0">
                 <div className="size-9 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-ink-secondary group-hover:text-amber-700 dark:group-hover:text-amber-400 shrink-0 transition-colors">
                   <Fingerprint className="size-4.5" />
                 </div>
-                <span className="text-sm font-semibold text-ink-primary group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
-                  Keamanan Biometrik
-                </span>
+                <div>
+                  <span className="text-sm font-semibold text-ink-primary group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors block leading-tight">
+                    Keamanan Biometrik
+                  </span>
+                  <span className="text-[11px] text-ink-secondary block mt-0.5">
+                    WebAuthn / Passkey / Face ID
+                  </span>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <span className={cn(
@@ -276,48 +290,65 @@ export default function SettingsHubPage() {
             <button
               type="button"
               onClick={() => setIsChangingPassword(true)}
-              className="w-full flex items-center justify-between py-3 px-3 rounded-2xl hover:bg-stone-100/70 dark:hover:bg-stone-800/60 transition-colors group cursor-pointer text-left"
+              className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-stone-100/70 dark:hover:bg-stone-800/50 transition-colors group cursor-pointer text-left"
             >
-              <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center gap-3.5 min-w-0">
                 <div className="size-9 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-ink-secondary group-hover:text-amber-700 dark:group-hover:text-amber-400 shrink-0 transition-colors">
                   <KeyRound className="size-4.5" />
                 </div>
-                <span className="text-sm font-semibold text-ink-primary group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
-                  Ubah Kata Sandi
-                </span>
+                <div>
+                  <span className="text-sm font-semibold text-ink-primary group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors block leading-tight">
+                    Ubah Kata Sandi
+                  </span>
+                  <span className="text-[11px] text-ink-secondary block mt-0.5">
+                    Perbarui kata sandi akun sistem
+                  </span>
+                </div>
               </div>
               <ChevronRight className="size-4.5 text-stone-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0" />
             </button>
           </div>
         </section>
 
-        {/* GROUP 2: PREFERENSI & PERANGKAT */}
-        <section className="rounded-3xl bg-surface-1 border border-stone-200/80 dark:border-stone-800 p-4 sm:p-5 shadow-xs space-y-3">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-ink-tertiary px-1">
+        <div className="h-px bg-stone-200/80 dark:bg-stone-800/80" />
+
+        {/* GROUP 2: PREFERENSI & APLIKASI */}
+        <section className="space-y-3">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-ink-tertiary">
             Preferensi &amp; Aplikasi
           </h2>
 
-          <div className="space-y-1">
-            <div className="flex items-center justify-between py-2.5 px-3 rounded-2xl">
-              <div className="flex items-center gap-3 min-w-0">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between p-3 rounded-2xl">
+              <div className="flex items-center gap-3.5 min-w-0">
                 <div className="size-9 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-ink-secondary shrink-0">
                   <Palette className="size-4.5" />
                 </div>
-                <span className="text-sm font-semibold text-ink-primary">
-                  Tema Tampilan
-                </span>
+                <div>
+                  <span className="text-sm font-semibold text-ink-primary block leading-tight">
+                    Tema Tampilan
+                  </span>
+                  <span className="text-[11px] text-ink-secondary block mt-0.5">
+                    Mode terang atau gelap
+                  </span>
+                </div>
               </div>
               <ThemeToggle />
             </div>
 
-            <div className="flex items-center justify-between py-2.5 px-3 rounded-2xl">
-              <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center justify-between p-3 rounded-2xl">
+              <div className="flex items-center gap-3.5 min-w-0">
                 <div className="size-9 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-ink-secondary shrink-0">
                   <Bell className="size-4.5" />
                 </div>
-                <span className="text-sm font-semibold text-ink-primary">
-                  Notifikasi Sistem
-                </span>
+                <div>
+                  <span className="text-sm font-semibold text-ink-primary block leading-tight">
+                    Notifikasi Sistem
+                  </span>
+                  <span className="text-[11px] text-ink-secondary block mt-0.5">
+                    Pemberitahuan aktivitas &amp; pelayanan
+                  </span>
+                </div>
               </div>
               <button
                 type="button"
@@ -339,15 +370,20 @@ export default function SettingsHubPage() {
 
             <Link
               href="/offline-sync"
-              className="flex items-center justify-between py-3 px-3 rounded-2xl hover:bg-stone-100/70 dark:hover:bg-stone-800/60 transition-colors group cursor-pointer"
+              className="flex items-center justify-between p-3 rounded-2xl hover:bg-stone-100/70 dark:hover:bg-stone-800/50 transition-colors group cursor-pointer"
             >
-              <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center gap-3.5 min-w-0">
                 <div className="size-9 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-ink-secondary group-hover:text-amber-700 dark:group-hover:text-amber-400 shrink-0 transition-colors">
                   <RefreshCw className="size-4.5" />
                 </div>
-                <span className="text-sm font-semibold text-ink-primary group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
-                  Manajer Sinkronisasi (Offline Sync)
-                </span>
+                <div>
+                  <span className="text-sm font-semibold text-ink-primary group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors block leading-tight">
+                    Manajer Sinkronisasi (Offline Sync)
+                  </span>
+                  <span className="text-[11px] text-ink-secondary block mt-0.5">
+                    Status sinkronisasi data lokal &amp; server
+                  </span>
+                </div>
               </div>
               <ChevronRight className="size-4.5 text-stone-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0" />
             </Link>
@@ -356,84 +392,105 @@ export default function SettingsHubPage() {
 
         {/* GROUP 3: ADMINISTRASI SINODAL (Super User) */}
         {isSuperUser && (
-          <section className="rounded-3xl bg-surface-1 border border-stone-200/80 dark:border-stone-800 p-4 sm:p-5 shadow-xs space-y-3">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-ink-tertiary px-1">
-              Administrasi Sinodal
-            </h2>
+          <>
+            <div className="h-px bg-stone-200/80 dark:bg-stone-800/80" />
 
-            <div className="space-y-1">
-              <Link
-                href="/settings/users"
-                className="flex items-center justify-between py-3 px-3 rounded-2xl hover:bg-stone-100/70 dark:hover:bg-stone-800/60 transition-colors group cursor-pointer"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="size-9 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-ink-secondary group-hover:text-amber-700 dark:group-hover:text-amber-400 shrink-0 transition-colors">
-                    <Crown className="size-4.5 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <span className="text-sm font-semibold text-ink-primary group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
-                    Manajemen Pengguna &amp; Peran
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                    Admin
-                  </span>
-                  <ChevronRight className="size-4.5 text-stone-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0" />
-                </div>
-              </Link>
+            <section className="space-y-3">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-ink-tertiary">
+                Administrasi Sinodal
+              </h2>
 
-              <Link
-                href="/developer/audit-trail"
-                className="flex items-center justify-between py-3 px-3 rounded-2xl hover:bg-stone-100/70 dark:hover:bg-stone-800/60 transition-colors group cursor-pointer"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="size-9 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-ink-secondary group-hover:text-purple-600 dark:group-hover:text-purple-400 shrink-0 transition-colors">
-                    <ShieldCheck className="size-4.5 text-purple-600 dark:text-purple-400" />
+              <div className="space-y-1.5">
+                <Link
+                  href="/settings/users"
+                  className="flex items-center justify-between p-3 rounded-2xl hover:bg-stone-100/70 dark:hover:bg-stone-800/50 transition-colors group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="size-9 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-ink-secondary group-hover:text-amber-700 dark:group-hover:text-amber-400 shrink-0 transition-colors">
+                      <Crown className="size-4.5 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-semibold text-ink-primary group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors block leading-tight">
+                        Manajemen Pengguna &amp; Peran
+                      </span>
+                      <span className="text-[11px] text-ink-secondary block mt-0.5">
+                        Kelola akun pengguna, aktivasi &amp; peran sistem
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-sm font-semibold text-ink-primary group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                    Audit Trail Aktivitas Sistem
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
-                    Admin
-                  </span>
-                  <ChevronRight className="size-4.5 text-stone-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 group-hover:translate-x-0.5 transition-all shrink-0" />
-                </div>
-              </Link>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                      Admin
+                    </span>
+                    <ChevronRight className="size-4.5 text-stone-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0" />
+                  </div>
+                </Link>
 
-              <Link
-                href="/settings/access-control"
-                className="flex items-center justify-between py-3 px-3 rounded-2xl hover:bg-stone-100/70 dark:hover:bg-stone-800/60 transition-colors group cursor-pointer"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="size-9 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-ink-secondary group-hover:text-indigo-600 dark:group-hover:text-indigo-400 shrink-0 transition-colors">
-                    <Lock className="size-4.5 text-indigo-600 dark:text-indigo-400" />
+                <Link
+                  href="/developer/audit-trail"
+                  className="flex items-center justify-between p-3 rounded-2xl hover:bg-stone-100/70 dark:hover:bg-stone-800/50 transition-colors group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="size-9 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-ink-secondary group-hover:text-purple-600 dark:group-hover:text-purple-400 shrink-0 transition-colors">
+                      <ShieldCheck className="size-4.5 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-semibold text-ink-primary group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors block leading-tight">
+                        Audit Trail Aktivitas Sistem
+                      </span>
+                      <span className="text-[11px] text-ink-secondary block mt-0.5">
+                        Jejak log mutasi, akses &amp; forensik sistem
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-sm font-semibold text-ink-primary group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                    Kebijakan &amp; Kontrol Akses
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                    Admin
-                  </span>
-                  <ChevronRight className="size-4.5 text-stone-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all shrink-0" />
-                </div>
-              </Link>
-            </div>
-          </section>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                      Admin
+                    </span>
+                    <ChevronRight className="size-4.5 text-stone-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 group-hover:translate-x-0.5 transition-all shrink-0" />
+                  </div>
+                </Link>
+
+                <Link
+                  href="/settings/access-control"
+                  className="flex items-center justify-between p-3 rounded-2xl hover:bg-stone-100/70 dark:hover:bg-stone-800/50 transition-colors group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="size-9 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-ink-secondary group-hover:text-indigo-600 dark:group-hover:text-indigo-400 shrink-0 transition-colors">
+                      <Lock className="size-4.5 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-semibold text-ink-primary group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors block leading-tight">
+                        Kebijakan &amp; Kontrol Akses
+                      </span>
+                      <span className="text-[11px] text-ink-secondary block mt-0.5">
+                        Konfigurasi aturan otorisasi &amp; batasan teritori
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                      Admin
+                    </span>
+                    <ChevronRight className="size-4.5 text-stone-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all shrink-0" />
+                  </div>
+                </Link>
+              </div>
+            </section>
+          </>
         )}
 
+        <div className="h-px bg-stone-200/80 dark:bg-stone-800/80" />
+
         {/* GROUP 4: SESI PENGGUNA */}
-        <section className="rounded-3xl bg-surface-1 border border-stone-200/80 dark:border-stone-800 p-2 sm:p-2.5 shadow-xs">
+        <section className="space-y-3">
           <button
             type="button"
             onClick={handleLogoutClick}
-            className="w-full flex items-center justify-between py-3 px-3.5 rounded-2xl hover:bg-red-500/10 text-red-600 dark:text-red-400 transition-colors group cursor-pointer text-left"
+            className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-red-500/10 text-red-600 dark:text-red-400 transition-colors group cursor-pointer text-left"
             aria-label="Keluar Sesi"
           >
-            <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center gap-3.5 min-w-0">
               <div className="size-9 rounded-xl bg-red-500/10 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0">
                 <LogOut className="size-4.5" />
               </div>
@@ -442,7 +499,7 @@ export default function SettingsHubPage() {
                   Keluar Sesi
                 </span>
                 <span className="text-[11px] text-red-600/70 dark:text-red-400/70 block mt-0.5">
-                  Akhiri sesi aktif akun ini
+                  Akhiri sesi aktif akun ini dari perangkat
                 </span>
               </div>
             </div>
@@ -504,7 +561,7 @@ export default function SettingsHubPage() {
             <div className="flex items-center justify-between border-b border-border-subtle pb-3">
               <div>
                 <h2 className="text-base font-bold text-amber-700 dark:text-amber-400 flex items-center gap-2">
-                  <Lock size={18} />
+                  <LockKeyhole size={18} />
                   <span>Ubah Kata Sandi</span>
                 </h2>
                 <p className="text-xs text-ink-secondary mt-0.5">
