@@ -16,7 +16,8 @@ import {
   Palette, 
   KeyRound, 
   Fingerprint, 
-  ShieldCheck
+  ShieldCheck,
+  Church
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { BiometricSetup } from '@/components/biometric/BiometricSetup';
@@ -41,6 +42,7 @@ export default function SettingsHubPage() {
   const [savedAvatar] = useState<string>('');
 
   const displayAvatar = savedAvatar || akun?.avatar_url || akun?.foto_url || pelayanan?.foto_url || avatarUrl;
+  const linkedPersonId = currentUser?.id_person || akun?.id_person || currentUser?.id_pendeta || akun?.id_pendeta;
 
   useEffect(() => {
     if (!user) return;
@@ -205,19 +207,45 @@ export default function SettingsHubPage() {
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="size-9 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-ink-secondary group-hover:text-amber-700 dark:group-hover:text-amber-400 shrink-0 transition-colors">
-                  <UserIcon className="size-4.5" />
+                  {isSuperUser ? (
+                    <ShieldCheck className="size-4.5 text-amber-600 dark:text-amber-400" />
+                  ) : (
+                    <UserIcon className="size-4.5" />
+                  )}
                 </div>
                 <div>
                   <span className="text-sm font-semibold text-ink-primary group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors block leading-tight">
-                    Profil Pelayanan Saya
+                    {isSuperUser ? 'Profil Akun & Hak Akses' : 'Profil Pelayanan Saya'}
                   </span>
                   <span className="text-[11px] text-ink-secondary block mt-0.5">
-                    {isSuperUser ? 'Katalog & Direktori SDM Pelayanan' : 'Ruang kerja biodata, penugasan & log pastoral'}
+                    {isSuperUser ? 'Detail kredensial, level hak akses, dan lingkup peran' : 'Ruang kerja biodata, penugasan & log pastoral'}
                   </span>
                 </div>
               </div>
               <ChevronRight className="size-4.5 text-stone-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0" />
             </Link>
+
+            {isSuperUser && linkedPersonId && (
+              <Link
+                href={`/people/${linkedPersonId}`}
+                className="flex items-center justify-between py-3 px-3 rounded-2xl hover:bg-stone-100/70 dark:hover:bg-stone-800/60 transition-colors group cursor-pointer"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="size-9 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-ink-secondary group-hover:text-amber-700 dark:group-hover:text-amber-400 shrink-0 transition-colors">
+                    <Church className="size-4.5 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div>
+                    <span className="text-sm font-semibold text-ink-primary group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors block leading-tight">
+                      Profil Pelayanan Pastoral
+                    </span>
+                    <span className="text-[11px] text-ink-secondary block mt-0.5">
+                      Ruang kerja biodata, penugasan &amp; log pastoral
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight className="size-4.5 text-stone-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0" />
+              </Link>
+            )}
 
             <button
               type="button"
