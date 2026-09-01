@@ -20,7 +20,7 @@ import {
   Church,
   LockKeyhole
 } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
+import { updateOwnPasswordAction } from '@/app/(dashboard)/settings/actions';
 import { BiometricSetup } from '@/components/biometric/BiometricSetup';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { useCurrentUser, isSuperUserRole } from '@/hooks/use-current-user';
@@ -83,10 +83,11 @@ export default function SettingsHubPage() {
 
     setIsSubmittingPassword(true);
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      const result = await updateOwnPasswordAction({ newPassword });
 
-      if (error) throw error;
+      if (!result.success) {
+        throw new Error(result.error || 'Terjadi kesalahan sistem.');
+      }
 
       toast.success('Kata Sandi Diperbarui', 'Kata sandi akun Anda berhasil diganti.');
       setIsChangingPassword(false);

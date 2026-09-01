@@ -289,6 +289,131 @@ export async function updateOwnProfileAction(payload: {
   }
 }
 
+export async function updateOwnPasswordAction(payload: { newPassword: string }) {
+  try {
+    if (!payload.newPassword || payload.newPassword.length < 6) {
+      return { success: false, error: 'Kata sandi minimal terdiri dari 6 karakter.' };
+    }
+
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
+
+    let currentUserId = user?.id;
+    let currentUserEmail = user?.email;
+
+    if (!currentUserId) {
+      const cookieStore = await cookies();
+      const sessionCookie = cookieStore.get('si_gpib_user_session')?.value;
+      if (sessionCookie) {
+        try {
+          const parsed = JSON.parse(sessionCookie);
+          currentUserId = parsed.id;
+          currentUserEmail = parsed.email;
+        } catch {}
+      }
+    }
+
+    if (!currentUserId && !currentUserEmail) {
+      return { success: false, error: 'Sesi login tidak ditemukan. Silakan login kembali.' };
+    }
+
+    const dbClient = createAdminClient() || supabase;
+    const adminClient = createAdminClient();
+
+    // 1. Update password in public.users table
+    let userRowId = currentUserId;
+    let updatedDb = false;
+
+    if (userRowId) {
+      const { error: dbErr } = await dbClient
+        .from('users')
+        .update({
+          password_hash: payload.newPassword,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userRowId);
+
+      if (!dbErr) {
+        updatedDb = true;
+      }
+    }
+
+    if (!updatedDb && currentUserEmail) {
+      const { error: dbEmailErr } = await dbClient
+        .from('users')
+        .update({
+          password_hash: payload.newPassword,
+          updated_at: new Date().toISOString(),
+        })
+        .ilike('email', currentUserEmail);
+
+      if (!dbEmailErr) {
+        updatedDb = true;
+      }
+    }
+
+    // 2. Update password in Supabase Auth (auth.users)
+    if (adminClient) {
+      try {
+        if (currentUserId) {
+          const { error: authErr } = await adminClient.auth.admin.updateUserById(currentUserId, {
+            password: payload.newPassword,
+          });
+
+          if (authErr && currentUserEmail) {
+            const { data: userList } = await adminClient.auth.admin.listUsers();
+            const matchingAuthUser = userList?.users?.find(
+              (u) => u.email?.toLowerCase() === currentUserEmail?.toLowerCase()
+            );
+            if (matchingAuthUser) {
+              await adminClient.auth.admin.updateUserById(matchingAuthUser.id, {
+                password: payload.newPassword,
+              });
+            }
+          }
+        } else if (currentUserEmail) {
+          const { data: userList } = await adminClient.auth.admin.listUsers();
+          const matchingAuthUser = userList?.users?.find(
+            (u) => u.email?.toLowerCase() === currentUserEmail?.toLowerCase()
+          );
+          if (matchingAuthUser) {
+            await adminClient.auth.admin.updateUserById(matchingAuthUser.id, {
+              password: payload.newPassword,
+            });
+          }
+        }
+      } catch (authAdminErr) {
+        console.warn('Supabase auth.admin updateUser error:', authAdminErr);
+      }
+    }
+
+    // 3. Update active client session if available
+    try {
+      await supabase.auth.updateUser({ password: payload.newPassword });
+    } catch {}
+
+    // 4. Audit Log
+    try {
+      await dbClient.from('t_log_aktivitas').insert({
+        id_log: `LOG-PW-${Date.now()}`,
+        id_user: currentUserId || 'usr-system',
+        aksi: 'user.update_password',
+        objek_type: 'User',
+        objek_id: currentUserId || currentUserEmail || 'unknown',
+        aktor: currentUserEmail || 'Pengguna',
+        keterangan: 'Memperbarui kata sandi akun sistem',
+      });
+    } catch (auditErr) {
+      console.warn('Audit log insert warning:', auditErr);
+    }
+
+    return { success: true, message: 'Kata sandi berhasil diperbarui' };
+  } catch (err: any) {
+    console.error('updateOwnPasswordAction error:', err);
+    return { success: false, error: err?.message || 'Gagal mengubah kata sandi' };
+  }
+}
+
 export async function updatePendetaPelayananAction(payload: {
   id_pendeta?: string;
   nama_lengkap: string;

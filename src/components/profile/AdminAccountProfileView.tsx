@@ -25,7 +25,7 @@ import { useProfileAkun, useHierarkiInfo } from '@/hooks/use-profile';
 import { getHumanReadableRoleLabel } from '@/lib/utils/role-presentation';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { BiometricSetup } from '@/components/biometric/BiometricSetup';
-import { createClient } from '@/lib/supabase/client';
+import { updateOwnPasswordAction } from '@/app/(dashboard)/settings/actions';
 import { useToast } from '@/components/ui/toast';
 
 export function AdminAccountProfileView() {
@@ -79,9 +79,10 @@ export function AdminAccountProfileView() {
 
     setIsSubmittingPassword(true);
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) throw error;
+      const result = await updateOwnPasswordAction({ newPassword });
+      if (!result.success) {
+        throw new Error(result.error || 'Terjadi kesalahan sistem.');
+      }
 
       toast.success('Kata Sandi Diperbarui', 'Kata sandi akun Anda berhasil diganti.');
       setIsChangingPassword(false);
